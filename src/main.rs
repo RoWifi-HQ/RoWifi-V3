@@ -1,3 +1,6 @@
+mod framework;
+mod utils;
+
 use std::{env, error::Error};
 use tokio::stream::StreamExt;
 use twilight::{
