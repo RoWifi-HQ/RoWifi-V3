@@ -1,5 +1,5 @@
 use futures::future::BoxFuture;
-use std::{error::Error, sync::Arc};
+use std::{error::Error, fmt};
 use twilight::{
     model::{guild::Permissions, channel::Message},
     command_parser::Arguments
@@ -15,8 +15,12 @@ pub struct CommandGroup {
 
 #[derive(Debug, PartialEq)]
 pub struct GroupOptions {
+    pub prefixes: &'static [&'static str],
     pub allowed_roles: &'static [&'static str],
-    pub require_permissions: Permissions
+    pub require_permissions: Permissions,
+    pub default_command: Option<&'static Command>,
+    pub commands: &'static [&'static Command],
+    pub sub_groups: &'static [&'static CommandGroup]
 }
 
 pub type CommandError = Box<dyn Error + Send + Sync>;
@@ -44,6 +48,48 @@ pub struct CommandOptions {
     pub sub_commands: &'static [&'static Command]
 }
 
+pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments, &'fut HelpOptions, &'fut [&'static CommandGroup]);
+
+pub struct HelpCommand {
+    pub fun: HelpCommandFn,
+    pub options: &'static HelpOptions
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct HelpOptions {
+    pub name: &'static str
+}
+
 pub struct Bucket {
 
+}
+
+impl fmt::Debug for Command {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Command")
+            .field("options", &self.options)
+            .finish()
+    }
+}
+
+impl PartialEq for Command {
+    fn eq(&self, other: &Command) -> bool {
+        (self.fun as usize == other.fun as usize) && (self.options == other.options)
+    }
+}
+
+impl fmt::Debug for HelpCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("HelpCommand")
+            .field("fun", &"<function>")
+            .field("options", &self.options)
+            .finish()
+    }
+}
+
+impl PartialEq for HelpCommand {
+    #[inline]
+    fn eq(&self, other: &HelpCommand) -> bool {
+        (self.fun as usize == other.fun as usize) && (self.options == other.options)
+    }
 }

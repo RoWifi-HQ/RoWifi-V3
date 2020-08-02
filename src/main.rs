@@ -1,5 +1,4 @@
 mod framework;
-mod utils;
 
 use std::{env, error::Error};
 use tokio::stream::StreamExt;
@@ -17,7 +16,7 @@ use twilight::{
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     kankyo::load().err();
     tracing_subscriber::fmt::init();
-    tracing_log::LogTracer::init();
+    tracing_log::LogTracer::init()?;
 
     let token = env::var("DISC_TOKEN")?;
     let scheme = ShardScheme::Auto;
