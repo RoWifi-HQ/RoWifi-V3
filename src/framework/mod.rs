@@ -65,7 +65,7 @@ impl Framework {
         let invocation = parser::command(&mut stream, &msg, &self.groups, &self.help.options).await;
         let invoke = match invocation {
             Ok(i) => i,
-            Err(ParseError::UnrecognisedCommand(name)) => {
+            Err(ParseError::UnrecognisedCommand(_)) => {
                 return;
             }
         };
