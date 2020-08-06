@@ -20,9 +20,9 @@ pub struct Command {
 pub struct CommandOptions {
     pub bucket: Option<&'static str>,
     pub names: &'static [&'static str],
-    pub desc: &'static str,
-    pub usage: &'static str,
-    pub examples: &'static str,
+    pub desc: Option<&'static str>,
+    pub usage: Option<&'static str>,
+    pub examples: &'static [&'static str],
     pub allowed_roles: &'static [&'static str],
     pub required_permissions: Permissions,
     pub hidden: bool,

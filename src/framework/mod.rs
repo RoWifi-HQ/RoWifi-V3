@@ -1,6 +1,7 @@
 pub mod context;
 mod map;
 mod parser;
+pub mod prelude;
 mod structures;
 
 use std::{
@@ -14,8 +15,10 @@ use twilight::{
         channel::Message,
         id::{
             UserId, GuildId, ChannelId
-        }
-    }
+        },
+        guild::Permissions
+    },
+    command_parser::Arguments
 };
 use uwl::Stream;
 
@@ -38,12 +41,13 @@ pub struct Configuration {
     pub disabled_channels: HashSet<ChannelId>,
     pub prefixes: Arc<Mutex<HashMap<GuildId, String>>>,
     pub on_mention: String,
-    pub default_prefix: String
+    pub default_prefix: String,
+    pub owners: HashSet<UserId>
 }
 
 impl Framework {
-    async fn dispatch(&self, msg: Message, context: Context) {
-        if msg.author.bot || msg.webhook_id.is_some() {
+    async fn dispatch(&self, msg: Message, mut context: Context) {
+        if msg.author.bot || msg.webhook_id.is_some() || msg.guild_id.is_none() || msg.content.is_empty() {
             return;
         }
 
@@ -68,14 +72,22 @@ impl Framework {
             }
         };
 
-        //check for perms
-
         match invoke {
             Invoke::Help => {
 
             },
             Invoke::Command{command} => {
+                if !self.run_checks(&context, &msg, command).await {
+                    return;
+                }
+                let args = Arguments::new(stream.rest());
 
+                let res = (command.fun)(&mut context, &msg, args).await;
+
+                match res {
+                    Ok(()) => {},
+                    Err(why) => println!("Command {:?} errored: {:?}", command, why)
+                }
             }
         }
     }
@@ -87,5 +99,43 @@ impl Framework {
             },
             _ => {}
         }
+    }
+
+    async fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
+        if self.config.blocked_users.contains(&msg.author.id) {
+            return false;
+        }
+
+        if self.config.owners.contains(&msg.author.id) {
+            return true;
+        }
+
+        //Check for disabled channels (Implement after database cache)
+        //Bucketing mechanism
+
+        if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()).await.expect("The guild cache crapped out") {
+            if self.config.blocked_users.contains(&guild.owner_id) {
+                return false;
+            }
+
+            if msg.author.id.0 == guild.owner_id.0 {
+                return true;
+            }
+
+            if let Some(member) = context.cache.member(guild.id, msg.author.id).await.expect("The member cache screwed up") {
+                for role in member.roles.iter() {
+                    if let Some(role) = context.cache.role(*role).await.expect("The role cache crapped out") {
+                        if role.permissions.contains(Permissions::ADMINISTRATOR) {
+                            return true;
+                        }
+                        if role.permissions.contains(command.options.required_permissions) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        false
     }
 }
