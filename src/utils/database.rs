@@ -1,22 +1,14 @@
 use bson::{doc, Bson::Document};
 use mongodb::{Client, options::{ClientOptions, FindOneOptions, FindOptions}};
 use futures::stream::StreamExt;
-use typemap_rev::{TypeMapKey};
-use std::sync::Arc;
 use crate::models::{guild::RoGuild, user::RoUser};
 use super::error::RoError;
 
-pub struct Database;
-
-pub struct DatabaseClient {
+pub struct Database {
     client: Client
 }
 
-impl TypeMapKey for Database {
-    type Value = Arc<DatabaseClient>;
-}
-
-impl DatabaseClient {
+impl Database {
     pub async fn new(conn_string: &str) -> Self {
         let client_options = ClientOptions::parse(conn_string).await.unwrap();
         let client = Client::with_options(client_options).unwrap();

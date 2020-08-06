@@ -1,20 +1,13 @@
 use reqwest::Client;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 use serde_json::Value;
-use typemap_rev::TypeMapKey;
 
 use super::error::RoError;
-
-pub struct Roblox;
-pub struct RobloxClient {
+pub struct Roblox {
     client: Client
 }
 
-impl TypeMapKey for Roblox {
-    type Value = Arc<RobloxClient>;
-}
-
-impl RobloxClient {
+impl Roblox {
     pub fn new() -> Self {
         let client = Client::new();
         Self {

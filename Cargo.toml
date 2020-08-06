@@ -29,7 +29,3 @@ branch = "trunk"
 [dependencies.mongodb]
 git = "https://github.com/mongodb/mongo-rust-driver"
 branch = "master"
-
-[dependencies.redis]
-version = "*"
-features = ["tokio-rt-core", "connection-manager"]

@@ -1,21 +1,28 @@
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use twilight::http::Client as Http;
-use typemap_rev::TypeMap;
+use twilight::{
+    http::Client as Http,
+    cache::InMemoryCache as Cache
+};
+
+use crate::utils::{Database, Roblox};
 
 #[derive(Clone)]
 pub struct Context {
-    pub data: Arc<RwLock<TypeMap>>,
     pub shard_id: u64,
-    pub http: Arc<Http>
+    pub http: Arc<Http>,
+    pub cache: Arc<Cache>,
+    pub database: Arc<Database>,
+    pub roblox: Arc<Roblox>
 }
 
 impl Context {
-    pub fn new(data: Arc<RwLock<TypeMap>>, shard_id: u64, http: Arc<Http>) -> Self {
+    pub fn new(shard_id: u64, http: Arc<Http>, cache: Arc<Cache>, database: Arc<Database>, roblox: Arc<Roblox>) -> Self {
         Self {
-            data,
             shard_id,
-            http
+            http,
+            cache,
+            database,
+            roblox
         }
-    }
+    } 
 }

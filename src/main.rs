@@ -1,20 +1,25 @@
+#![allow(dead_code)]
+
 mod cache;
 mod framework;
 mod models;
 mod rolang;
 mod utils;
 
-use std::{env, error::Error};
+use std::{env, error::Error, sync::Arc};
 use tokio::stream::StreamExt;
 use twilight::{
     cache::{
         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
         InMemoryCache,
     },
-    gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
+    gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
 };
+
+use framework::{context::Context, Framework};
+use utils::{Database, Roblox};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -23,12 +28,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_log::LogTracer::init()?;
 
     let token = env::var("DISC_TOKEN")?;
+    let conn_string = env::var("DB_CONN")?;
     let scheme = ShardScheme::Auto;
+    let http = Arc::new(HttpClient::new(&token));
+
     let config = ClusterConfig::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS
         ))
+        .http_client(http.as_ref().clone())
         .build();
 
     let cluster = Cluster::new(config).await?;
@@ -38,7 +47,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_spawn.up().await;
     });
 
-    let http = HttpClient::new(&token);
     let cache_config = InMemoryConfigBuilder::new()
         .event_types(
             EventType::MESSAGE_CREATE
@@ -47,26 +55,22 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                  | EventType::MESSAGE_UPDATE,
         )
         .build();
-    let cache = InMemoryCache::from(cache_config);
+    let cache = Arc::new(InMemoryCache::from(cache_config));
+
+    let database = Arc::new(Database::new(&conn_string).await);
+    let roblox = Arc::new(Roblox::new());
+
+    let context = Context::new(0, http, cache, database, roblox);
+    let framework = Arc::new(Box::new(Framework::default()));
 
     let mut events = cluster.events().await;
     while let Some(event) = events.next().await {
-        cache.update(&event.1).await.expect("Failed to update cache");
-        tokio::spawn(handle_event(event, http.clone()));
-    }
-
-    Ok(())
-}
-
-async fn handle_event(event: (u64, Event), _http: HttpClient) -> Result<(), Box<dyn Error + Send + Sync>> {
-    match event {
-        (_, Event::MessageCreate(_)) => {
-
-        },
-        (id, Event::ShardConnected(_)) => {
-            println!("Connected on shard {}", id);
-        }
-        _ => {}
+        let c = context.clone();
+        let f = Arc::clone(&framework);
+        context.cache.update(&event.1).await.expect("Failed to update cache");
+        tokio::spawn(async move {
+            f.handle_event(event.1, c).await;
+        });
     }
 
     Ok(())

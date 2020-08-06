@@ -7,22 +7,6 @@ use twilight::{
 
 use super::context::Context;
 
-#[derive(Debug, PartialEq)]
-pub struct CommandGroup {
-    pub name: &'static str,
-    pub options: &'static GroupOptions
-}
-
-#[derive(Debug, PartialEq)]
-pub struct GroupOptions {
-    pub prefixes: &'static [&'static str],
-    pub allowed_roles: &'static [&'static str],
-    pub require_permissions: Permissions,
-    pub default_command: Option<&'static Command>,
-    pub commands: &'static [&'static Command],
-    pub sub_groups: &'static [&'static CommandGroup]
-}
-
 pub type CommandError = Box<dyn Error + Send + Sync>;
 pub type CommandResult = std::result::Result<(), CommandError>;
 pub type CommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments) -> BoxFuture<'fut, CommandResult>;
@@ -39,8 +23,6 @@ pub struct CommandOptions {
     pub desc: &'static str,
     pub usage: &'static str,
     pub examples: &'static str,
-    pub min_args: Option<u16>,
-    pub max_args: Option<u16>,
     pub allowed_roles: &'static [&'static str],
     pub required_permissions: Permissions,
     pub hidden: bool,
@@ -48,7 +30,7 @@ pub struct CommandOptions {
     pub sub_commands: &'static [&'static Command]
 }
 
-pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments, &'fut HelpOptions, &'fut [&'static CommandGroup]);
+pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments, &'fut HelpOptions, &'fut [&'static Command]);
 
 pub struct HelpCommand {
     pub fun: HelpCommandFn,

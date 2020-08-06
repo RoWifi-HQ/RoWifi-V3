@@ -1,4 +1,4 @@
-mod context;
+pub mod context;
 mod map;
 mod parser;
 mod structures;
@@ -7,10 +7,9 @@ use std::{
     collections::{HashMap, HashSet}, 
     sync::Arc
 };
-use tokio::sync::{Mutex, RwLock};
-use typemap_rev::TypeMap;
+use tokio::sync::Mutex;
 use twilight::{
-    command_parser::Arguments,
+    gateway::Event,
     model::{
         channel::Message,
         id::{
@@ -20,18 +19,19 @@ use twilight::{
 };
 use uwl::Stream;
 
-use map::Map;
+use context::Context;
+use map::CommandMap;
 use structures::*;
 use parser::{ParseError, Invoke};
 
+#[derive(Default)]
 pub struct Framework {
-    data: Arc<RwLock<TypeMap>>,
-    groups: Vec<(&'static CommandGroup, Map)>,
-    buckets: Mutex<HashMap<String, Bucket>>,
-    help: &'static HelpCommand,
+    commands: Vec<(&'static Command, CommandMap)>,
+    help: Option<&'static HelpCommand>,
     config: Configuration
 }
 
+#[derive(Default)]
 pub struct Configuration {
     pub blocked_guilds: HashSet<GuildId>,
     pub blocked_users: HashSet<UserId>,
@@ -42,7 +42,7 @@ pub struct Configuration {
 }
 
 impl Framework {
-    async fn dispatch(&self, msg: Message) {
+    async fn dispatch(&self, msg: Message, context: Context) {
         if msg.author.bot || msg.webhook_id.is_some() {
             return;
         }
@@ -60,9 +60,7 @@ impl Framework {
             return;
         }
 
-        //create context
-
-        let invocation = parser::command(&mut stream, &msg, &self.groups, &self.help.options).await;
+        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.options.name)).await;
         let invoke = match invocation {
             Ok(i) => i,
             Err(ParseError::UnrecognisedCommand(_)) => {
@@ -70,15 +68,24 @@ impl Framework {
             }
         };
 
+        //check for perms
+
         match invoke {
             Invoke::Help => {
 
             },
-            Invoke::Command {command, group} => {
-                let mut args = Arguments::new(stream.rest());
-                //check for permissions blah blah
-                //let res = (command.fun)(&mut ctx, &msg, args).await;
+            Invoke::Command{command} => {
+
             }
+        }
+    }
+
+    pub async fn handle_event(&self, event: Event, context: Context) {
+        match event {
+            Event::MessageCreate(msg) => {
+                self.dispatch(msg.0, context).await;
+            },
+            _ => {}
         }
     }
 }

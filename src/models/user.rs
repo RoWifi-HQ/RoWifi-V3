@@ -9,7 +9,7 @@ use twilight::{
 };
 use std::{sync::Arc, borrow::Cow};
 
-use crate::utils::{RobloxClient, error::RoError};
+use crate::utils::{Roblox, error::RoError};
 use super::{guild::{RoGuild, BlacklistActionType}, command::RoCommandUser};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,19 +22,19 @@ pub struct RoUser {
 }
 
 impl RoUser {
-    pub async fn update(&self, http: impl AsRef<Http>, member: &mut Member, rbx: &Arc<RobloxClient>, server: &Guild, guild: &RoGuild) 
+    pub async fn update(&self, http: impl AsRef<Http>, member: &mut Member, rbx: &Arc<Roblox>, server: &Guild, guild: &RoGuild) 
         -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let verification_role = RoleId(guild.verification_role as u64);
-        if let Some(verification) = server.roles.get(&verification_role) {
+        if server.roles.get(&verification_role).is_some() {
             if member.roles.contains(&verification_role) {
-                http.as_ref().remove_guild_member_role(server.id, member.user.id, verification_role).await;
+                http.as_ref().remove_guild_member_role(server.id, member.user.id, verification_role).await?;
             } 
         }
 
         let verified_role = RoleId(guild.verified_role as u64);
-        if let Some(verified) = server.roles.get(&verified_role) {
+        if server.roles.get(&verified_role).is_some() {
             if !member.roles.contains(&verified_role) {
-                http.as_ref().add_guild_member_role(server.id, member.user.id, verified_role).await;
+                http.as_ref().add_guild_member_role(server.id, member.user.id, verified_role).await?;
             }
         }
 
