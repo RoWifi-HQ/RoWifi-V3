@@ -18,6 +18,7 @@ use twilight::{
     model::gateway::GatewayIntents,
 };
 
+use commands::*;
 use framework::{context::Context, Framework};
 use utils::{Database, Roblox};
 
@@ -25,7 +26,7 @@ use utils::{Database, Roblox};
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     kankyo::load().err();
     tracing_subscriber::fmt::init();
-    tracing_log::LogTracer::init()?;
+    //tracing_log::LogTracer::init()?;
 
     let token = env::var("DISC_TOKEN")?;
     let conn_string = env::var("DB_CONN")?;
@@ -49,10 +50,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let cache_config = InMemoryConfigBuilder::new()
         .event_types(
-            EventType::MESSAGE_CREATE
-                 | EventType::MESSAGE_DELETE
-                 | EventType::MESSAGE_DELETE_BULK
-                 | EventType::MESSAGE_UPDATE,
+            EventType::all()
         )
         .build();
     let cache = Arc::new(InMemoryCache::from(cache_config));
@@ -61,7 +59,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let roblox = Arc::new(Roblox::new());
 
     let context = Context::new(0, http, cache, database, roblox);
-    let framework = Arc::new(Box::new(Framework::default()));
+    let framework = Framework::default()
+        .configure(|c| c
+            .default_prefix("?")
+        )
+        .command(&UPDATE_COMMAND);
+
+    let framework = Arc::new(Box::new(framework));
 
     let mut events = cluster.events().await;
     while let Some(event) = events.next().await {

@@ -1,21 +1,14 @@
 pub mod context;
+mod configuration;
 mod map;
 mod parser;
 pub mod prelude;
 mod structures;
 
-use std::{
-    collections::{HashMap, HashSet}, 
-    sync::Arc
-};
-use tokio::sync::Mutex;
 use twilight::{
     gateway::Event,
     model::{
         channel::Message,
-        id::{
-            UserId, GuildId, ChannelId
-        },
         guild::Permissions
     },
     command_parser::Arguments
@@ -23,6 +16,7 @@ use twilight::{
 use uwl::Stream;
 
 use context::Context;
+use configuration::Configuration;
 use map::CommandMap;
 use structures::*;
 use parser::{ParseError, Invoke};
@@ -34,18 +28,18 @@ pub struct Framework {
     config: Configuration
 }
 
-#[derive(Default)]
-pub struct Configuration {
-    pub blocked_guilds: HashSet<GuildId>,
-    pub blocked_users: HashSet<UserId>,
-    pub disabled_channels: HashSet<ChannelId>,
-    pub prefixes: Arc<Mutex<HashMap<GuildId, String>>>,
-    pub on_mention: String,
-    pub default_prefix: String,
-    pub owners: HashSet<UserId>
-}
-
 impl Framework {
+    pub fn configure<F>(mut self, f: F) -> Self where F: FnOnce(&mut Configuration) -> &mut Configuration {
+        f(&mut self.config);
+        self
+    }
+
+    pub fn command(mut self, command: &'static Command) -> Self {
+        let map = CommandMap::new(&[command]);
+        self.commands.push((command, map));
+        self
+    }
+
     async fn dispatch(&self, msg: Message, mut context: Context) {
         if msg.author.bot || msg.webhook_id.is_some() || msg.guild_id.is_none() || msg.content.is_empty() {
             return;

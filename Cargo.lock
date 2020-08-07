@@ -76,6 +76,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "attributes"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.19",
+ "quote 1.0.7",
+ "syn 1.0.38",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1449,6 +1458,7 @@ dependencies = [
 name = "rowifi"
 version = "0.1.0"
 dependencies = [
+ "attributes",
  "bson",
  "futures",
  "itertools",

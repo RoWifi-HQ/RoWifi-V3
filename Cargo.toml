@@ -29,3 +29,7 @@ branch = "trunk"
 [dependencies.mongodb]
 git = "https://github.com/mongodb/mongo-rust-driver"
 branch = "master"
+
+[dependencies.attributes]
+path = "./src/attributes"
+version = "0.1"

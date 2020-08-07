@@ -34,16 +34,16 @@ pub async fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Co
     }
 
     {
-        let prefixes = config.prefixes.lock().await;
-        if let Some(guild_id) = &msg.guild_id {
-            if let Some(prefix) = prefixes.get(guild_id) {
-                let peeked = stream.peek_for_char(prefix.chars().count());
-                if prefix == peeked {
-                    stream.increment(prefix.len());
-                    return Some(Cow::Borrowed(peeked))
-                }
-            }
-        }
+        // let prefixes = config.prefixes.lock().await;
+        // if let Some(guild_id) = &msg.guild_id {
+        //     if let Some(prefix) = prefixes.get(guild_id) {
+        //         let peeked = stream.peek_for_char(prefix.chars().count());
+        //         if prefix == peeked {
+        //             stream.increment(prefix.len());
+        //             return Some(Cow::Borrowed(peeked))
+        //         }
+        //     }
+        // }
     }
 
     let default_prefix = &config.default_prefix;
