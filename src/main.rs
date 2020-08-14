@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod cache;
 mod commands;
 mod framework;
 mod models;
@@ -67,7 +68,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let framework = Arc::new(Box::new(framework));
 
-    let mut events = cluster.events().await;
+    let mut events = cluster.events();
     while let Some(event) = events.next().await {
         let c = context.clone();
         let f = Arc::clone(&framework);

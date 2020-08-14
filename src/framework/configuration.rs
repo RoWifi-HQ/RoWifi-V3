@@ -1,4 +1,5 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Arc};
+use dashmap::DashMap;
 use twilight::model::id::{GuildId, UserId, ChannelId};
 
 #[derive(Default)]
@@ -8,7 +9,8 @@ pub struct Configuration {
     pub disabled_channels: HashSet<ChannelId>,
     pub on_mention: String,
     pub default_prefix: String,
-    pub owners: HashSet<UserId>
+    pub owners: HashSet<UserId>,
+    pub prefixes: Arc<DashMap<GuildId, String>>
 }
 
 impl Configuration {
@@ -24,6 +26,11 @@ impl Configuration {
 
     pub fn on_mention(&mut self, id_to_mention: UserId) -> &mut Self {
         self.on_mention = id_to_mention.to_string();
+        self
+    }
+
+    pub fn prefixes(&mut self, prefixes: Arc<DashMap<GuildId, String>>) -> &mut Self {
+        self.prefixes = prefixes;
         self
     }
 }

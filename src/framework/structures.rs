@@ -9,7 +9,7 @@ use super::context::Context;
 
 pub type CommandError = Box<dyn Error + Send + Sync>;
 pub type CommandResult = std::result::Result<(), CommandError>;
-pub type CommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments) -> BoxFuture<'fut, CommandResult>;
+pub type CommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>) -> BoxFuture<'fut, CommandResult>;
 
 pub struct Command {
     pub fun: CommandFn,
