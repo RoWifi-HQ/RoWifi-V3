@@ -1,5 +1,5 @@
 use bson::{doc, Bson::Document};
-use mongodb::{Client, options::{ClientOptions, FindOneOptions, FindOptions}};
+use mongodb::{Client, options::*};
 use futures::stream::StreamExt;
 use crate::models::{guild::RoGuild, user::RoUser};
 use super::error::RoError;
@@ -43,8 +43,20 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn get_user(&self, user_id: impl Into<u64>) -> Result<Option<RoUser>, RoError> {
-        let user_id = user_id.into();
+    pub async fn add_user(&self, user: RoUser, unverified: bool) -> Result<(), RoError> {
+        let users = self.client.database("RoWifi").collection("users");
+        let user_doc = bson::to_bson(&user)?;
+        if let Document(u) = user_doc {
+            if unverified {
+                let _ = users.insert_one(u, InsertOneOptions::default()).await?;
+            } else {
+                let _ = users.find_one_and_replace(doc! {"_id": user.discord_id}, u, FindOneAndReplaceOptions::default()).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn get_user(&self, user_id: u64) -> Result<Option<RoUser>, RoError> {
         let users = self.client.database("RoWifi").collection("users");
         let result = users.find_one(doc! {"_id": user_id}, FindOneOptions::default()).await?;
         match result {

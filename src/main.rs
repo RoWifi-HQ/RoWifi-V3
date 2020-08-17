@@ -13,6 +13,7 @@ use twilight::{
     gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
+    standby::Standby
 };
 
 use cache::Cache;
@@ -47,11 +48,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     });
 
     let cache = Arc::new(Cache::new());
+    let standby = Arc::new(Standby::new());
 
     let database = Arc::new(Database::new(&conn_string).await);
     let roblox = Arc::new(Roblox::new());
 
-    let context = Context::new(0, http, cache, database, roblox);
+    let context = Context::new(0, http, cache, database, roblox, standby);
     let framework = Framework::default()
         .configure(|c| c
             .default_prefix("?")
@@ -66,6 +68,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let c = context.clone();
         let f = Arc::clone(&framework);
         context.cache.update(&event.1).await.expect("Failed to update cache");
+        context.standby.process(&event.1);
         tokio::spawn(async move {
             f.handle_event(event.1, c).await;
         });
