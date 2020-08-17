@@ -6,6 +6,7 @@ pub use twilight::{
         guild::Permissions
     }
 };
+pub use twilight_embed_builder::EmbedBuilder;
 
 pub use super::context::Context;
 pub use super::structures::{Command, CommandResult, CommandOptions};

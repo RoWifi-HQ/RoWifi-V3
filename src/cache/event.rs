@@ -76,7 +76,7 @@ impl UpdateCache<Cache, CacheError> for ChannelUpdate {
 #[async_trait]
 impl UpdateCache<Cache, CacheError> for GuildCreate {
     async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        println!("{:?} {:?}", self.0.id, self.0.members.len());
+        println!("{:?}", self.0.members);
         c.cache_guild(self.0.clone()).await;
         Ok(())
     }

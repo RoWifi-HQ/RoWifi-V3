@@ -23,7 +23,8 @@ tokio = { version = "0.2", features = ["full"] }
 tracing = "0.1"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
-typemap_rev = "*"
+twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 uwl = "*"
 
 [dependencies.twilight]
