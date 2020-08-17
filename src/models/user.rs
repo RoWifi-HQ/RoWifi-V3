@@ -2,14 +2,12 @@ use itertools::Itertools;
 use serde::{Serialize, Deserialize};
 use twilight::{
     http::Client as Http,
-    model::{
-        guild::{Guild, Member}, 
-        id::RoleId
-    }
+    model::id::RoleId
 };
-use std::{sync::Arc, borrow::Cow};
+use std::{sync::Arc, borrow::Cow, collections::HashSet};
 
 use crate::utils::{Roblox, error::RoError};
+use crate::cache::{CachedGuild, CachedMember};
 use super::{guild::{RoGuild, BlacklistActionType}, command::RoCommandUser};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,25 +20,28 @@ pub struct RoUser {
 }
 
 impl RoUser {
-    pub async fn update(&self, http: impl AsRef<Http>, member: &mut Member, rbx: &Arc<Roblox>, server: &Guild, guild: &RoGuild) 
+    pub async fn update(&self, http: impl AsRef<Http>, member: Arc<CachedMember>, rbx: Arc<Roblox>, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: HashSet<RoleId>) 
         -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
+        let mut added_roles = Vec::<RoleId>::new();
+        let mut removed_roles = Vec::<RoleId>::new();
+
         let verification_role = RoleId(guild.verification_role as u64);
-        if server.roles.get(&verification_role).is_some() {
+        if guild_roles.get(&verification_role).is_some() {
             if member.roles.contains(&verification_role) {
-                http.as_ref().remove_guild_member_role(server.id, member.user.id, verification_role).await?;
+                removed_roles.push(verification_role);
             } 
         }
 
         let verified_role = RoleId(guild.verified_role as u64);
-        if server.roles.get(&verified_role).is_some() {
+        if guild_roles.get(&verified_role).is_some() {
             if !member.roles.contains(&verified_role) {
-                http.as_ref().add_guild_member_role(server.id, member.user.id, verified_role).await?;
+                added_roles.push(verified_role);
             }
         }
 
         let user_roles = rbx.get_user_roles(self.roblox_id).await?;
         let username = rbx.get_username_from_id(self.roblox_id).await?;
-        let command_user = RoCommandUser {user: &self, member: Cow::Borrowed(member), ranks: &user_roles, username: &username };
+        let command_user = RoCommandUser {user: &self, member: Arc::clone(&member), ranks: &user_roles, username: &username };
 
         if !guild.blacklists.is_empty() {
             let success = guild.blacklists.iter().find(|b| b.evaluate(&command_user).unwrap());
@@ -88,12 +89,9 @@ impl RoUser {
             .unique()
             .collect_vec();
 
-        let mut added_roles = Vec::<RoleId>::new();
-        let mut removed_roles = Vec::<RoleId>::new();
-
         for bind_role in all_roles {
             let r = RoleId(*bind_role as u64);
-            if let Some(_role) = server.roles.get(&r) {
+            if let Some(_role) = guild_roles.get(&r) {
                 if roles_to_add.contains(&bind_role) {
                     if !member.roles.contains(&r) {
                         added_roles.push(r);
@@ -124,17 +122,19 @@ impl RoUser {
         }
 
         let update = http.as_ref().update_guild_member(server.id, member.user.id);
-
-        let role_changes = !added_roles.is_empty() && !removed_roles.is_empty();
+        println!("{:?} {:?}", added_roles, removed_roles);
+        let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = member.roles.clone();
         roles.extend_from_slice(&added_roles);
         roles.retain(|r| !removed_roles.contains(r));
+        println!("{:?} {:?}", added_roles, removed_roles);
         
-        let nick_changes = disc_nick != display_name;
+        let nick_changes = false;//disc_nick != display_name;
         
 
         if role_changes || nick_changes {
-            update.roles(roles).nick(disc_nick.to_string()).unwrap().await?;
+            //update.roles(roles).nick(disc_nick.to_string()).unwrap().await?;
+            update.roles(roles).await?;
         }
 
         Ok((added_roles, removed_roles, disc_nick.to_string()))

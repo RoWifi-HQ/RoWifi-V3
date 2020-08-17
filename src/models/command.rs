@@ -1,7 +1,7 @@
-use twilight::model::guild::Member;
-use std::{collections::HashMap, fmt, borrow::Cow};
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use crate::rolang::{expression::Expression, scanner::Scanner, parser::Parser, token::Literal};
+use crate::cache::CachedMember;
 use super::user::RoUser;
 
 pub struct RoCommand {
@@ -11,7 +11,7 @@ pub struct RoCommand {
 
 pub struct RoCommandUser<'rc> {
     pub user: &'rc RoUser,
-    pub member: Cow<'rc, Member>,
+    pub member: Arc<CachedMember>,
     pub ranks: &'rc HashMap<i64, i64>,
     pub username: &'rc str
 }

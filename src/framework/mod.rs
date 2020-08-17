@@ -4,6 +4,7 @@ mod map;
 mod parser;
 pub mod prelude;
 mod structures;
+pub mod utils;
 
 use twilight::{
     gateway::Event,
@@ -107,7 +108,7 @@ impl Framework {
         //Check for disabled channels (Implement after database cache)
         //Bucketing mechanism
 
-        if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()).await.expect("The guild cache crapped out") {
+        if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()).await {
             if self.config.blocked_users.contains(&guild.owner_id) {
                 return false;
             }
@@ -116,9 +117,9 @@ impl Framework {
                 return true;
             }
 
-            if let Some(member) = context.cache.member(guild.id, msg.author.id).await.expect("The member cache screwed up") {
+            if let Some(member) = context.cache.member(guild.id, msg.author.id).await {
                 for role in member.roles.iter() {
-                    if let Some(role) = context.cache.role(*role).await.expect("The role cache crapped out") {
+                    if let Some(role) = context.cache.role(*role).await {
                         if role.permissions.contains(Permissions::ADMINISTRATOR) {
                             return true;
                         }
@@ -129,7 +130,6 @@ impl Framework {
                 }
             }
         }
-
         false
     }
 }

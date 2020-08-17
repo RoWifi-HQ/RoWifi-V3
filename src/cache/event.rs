@@ -8,6 +8,7 @@ use twilight::{
     }
 };
 use std::{ops::Deref, sync::Arc};
+use tracing::debug;
 
 use super::{Cache, CacheError};
 
@@ -75,6 +76,7 @@ impl UpdateCache<Cache, CacheError> for ChannelUpdate {
 #[async_trait]
 impl UpdateCache<Cache, CacheError> for GuildCreate {
     async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        println!("{:?} {:?}", self.0.id, self.0.members.len());
         c.cache_guild(self.0.clone()).await;
         Ok(())
     }
@@ -165,7 +167,7 @@ impl UpdateCache<Cache, CacheError> for MemberChunk {
 impl UpdateCache<Cache, CacheError> for MemberRemove {
     async fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.members.remove(&(self.guild_id, self.user.id));
-        if let Some(members) = c.guild_members.get_mut(&self.guild_id) {
+        if let Some(mut members) = c.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
         }
         
@@ -176,6 +178,7 @@ impl UpdateCache<Cache, CacheError> for MemberRemove {
 #[async_trait]
 impl UpdateCache<Cache, CacheError> for MemberUpdate {
     async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        debug!(id = ?self.user.id, "Received event for Member Update for");
         let mut member = match c.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
             None => return Ok(())

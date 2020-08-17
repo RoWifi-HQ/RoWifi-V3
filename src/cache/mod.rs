@@ -15,15 +15,15 @@ use tokio::sync::Mutex;
 
 mod event;
 mod models;
-use models::{guild::CachedGuild, member::CachedMember, role::CachedRole};
+pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole};
 
-async fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, DashSet<V>>, k: K, v: V) {
+async fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, HashSet<V>>, k: K, v: V) {
     match map.entry(k) {
         Entry::Occupied(e) if e.get().contains(&v) => {},
-        Entry::Occupied(e) => {
-            e.get().insert(v);
+        Entry::Occupied(mut e) => {
+            e.get_mut().insert(v);
         },
-        Entry::Vacant(e) => {
+        Entry::Vacant(_) => {
             //PROBLEM TODO: PRINT ERROR
         }
     }
@@ -53,9 +53,9 @@ pub struct Cache {
     roles: DashMap<RoleId, Arc<CachedRole>>,
     users: DashMap<UserId, Arc<User>>,
 
-    guild_roles: DashMap<GuildId, DashSet<RoleId>>,
-    guild_channels: DashMap<GuildId, DashSet<ChannelId>>,
-    guild_members: DashMap<GuildId, DashSet<UserId>>,
+    guild_roles: DashMap<GuildId, HashSet<RoleId>>,
+    guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
+    guild_members: DashMap<GuildId, HashSet<UserId>>,
 
     log_channels: DashMap<GuildId, Arc<ChannelId>>,
     bypass_role: DashMap<GuildId, Arc<(Option<RoleId>, Option<RoleId>)>>,
@@ -70,6 +70,28 @@ pub struct CacheError;
 impl Cache {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub async fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
+        self.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
+    }
+
+    pub async fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
+        self.members.get(&(guild_id, user_id)).map(|m| Arc::clone(m.value()))
+    }
+
+    pub async fn bypass_roles(&self, guild_id: GuildId) -> Arc<(Option<RoleId>, Option<RoleId>)> {
+        self.bypass_role
+            .get(&guild_id)
+            .map_or_else(|| Arc::new((None, None)), |b| Arc::clone(b.value()))
+    }
+
+    pub async fn role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
+        self.roles.get(&role_id).map(|r| Arc::clone(r.value()))
+    }
+
+    pub async fn roles(&self, guild_id: GuildId) -> HashSet<RoleId> {
+        self.guild_roles.get(&guild_id).map_or_else(|| HashSet::new(), |gr| gr.value().clone())
     }
 
     pub async fn update<T: UpdateCache<Self, CacheError>>(&self, value: &T) -> Result<(), CacheError> {
@@ -174,7 +196,7 @@ impl Cache {
     }
 
     pub async fn cache_guild(&self, guild: Guild) {
-        self.guild_roles.insert(guild.id, DashSet::new());
+        self.guild_roles.insert(guild.id, HashSet::new());
         self.bypass_role.insert(guild.id, Arc::new((None, None)));
         
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v)).await;
@@ -217,7 +239,7 @@ impl Cache {
 
     pub async fn delete_guild_channel(&self, tc: GuildChannel) -> Option<Arc<GuildChannel>> {
         let channel = self.channels.remove(&tc.id()).map(|(_, c)| c)?;
-        if let Some(channels) = self.guild_channels.get_mut(&tc.guild_id().unwrap()) {
+        if let Some(mut channels) = self.guild_channels.get_mut(&tc.guild_id().unwrap()) {
             channels.remove(&tc.id());
         }
         if let Some(log_channel) = self.log_channels.get(&tc.guild_id().unwrap()) {
@@ -230,7 +252,7 @@ impl Cache {
 
     pub async fn delete_role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
         let role = self.roles.remove(&role_id).map(|(_, r)| r)?;
-        if let Some(roles) = self.guild_roles.get_mut(&role.guild_id) {
+        if let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id) {
             roles.remove(&role_id);
         }
         if let Some(mut bypass) = self.bypass_role.get_mut(&role.guild_id) {

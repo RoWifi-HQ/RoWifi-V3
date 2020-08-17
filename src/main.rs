@@ -10,15 +10,12 @@ mod utils;
 use std::{env, error::Error, sync::Arc};
 use tokio::stream::StreamExt;
 use twilight::{
-    cache::{
-        twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
-        InMemoryCache,
-    },
     gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
 };
 
+use cache::Cache;
 use commands::*;
 use framework::{context::Context, Framework};
 use utils::{Database, Roblox};
@@ -37,7 +34,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let config = ClusterConfig::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
-            GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS
+            GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS
         ))
         .http_client(http.as_ref().clone())
         .build();
@@ -49,12 +46,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_spawn.up().await;
     });
 
-    let cache_config = InMemoryConfigBuilder::new()
-        .event_types(
-            EventType::all()
-        )
-        .build();
-    let cache = Arc::new(InMemoryCache::from(cache_config));
+    let cache = Arc::new(Cache::new());
 
     let database = Arc::new(Database::new(&conn_string).await);
     let roblox = Arc::new(Roblox::new());

@@ -43,7 +43,8 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn get_user(&self, user_id: &u64) -> Result<Option<RoUser>, RoError> {
+    pub async fn get_user(&self, user_id: impl Into<u64>) -> Result<Option<RoUser>, RoError> {
+        let user_id = user_id.into();
         let users = self.client.database("RoWifi").collection("users");
         let result = users.find_one(doc! {"_id": user_id}, FindOneOptions::default()).await?;
         match result {
