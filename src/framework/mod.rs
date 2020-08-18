@@ -88,11 +88,8 @@ impl Framework {
     }
 
     pub async fn handle_event(&self, event: Event, context: Context) {
-        match event {
-            Event::MessageCreate(msg) => {
-                self.dispatch(msg.0, context).await;
-            },
-            _ => {}
+        if let Event::MessageCreate(msg) = event {
+            self.dispatch(msg.0, context).await;
         }
     }
 

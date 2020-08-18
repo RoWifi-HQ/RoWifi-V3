@@ -59,7 +59,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             .default_prefix("?")
         )
         .command(&UPDATE_COMMAND)
-        .command(&VERIFY_COMMAND);
+        .command(&VERIFY_COMMAND)
+        .command(&REVERIFY_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
 

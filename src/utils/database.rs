@@ -1,7 +1,7 @@
 use bson::{doc, Bson::Document};
 use mongodb::{Client, options::*};
 use futures::stream::StreamExt;
-use crate::models::{guild::RoGuild, user::RoUser};
+use crate::models::{guild::RoGuild, user::*};
 use super::error::RoError;
 
 pub struct Database {
@@ -43,11 +43,27 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn add_user(&self, user: RoUser, unverified: bool) -> Result<(), RoError> {
+    pub async fn add_queue_user(&self, user: QueueUser) -> Result<(), RoError> {
+        let queue = self.client.database("RoWifi").collection("queue");
+
+        let exists = queue.find_one(doc! {"_id": user.roblox_id}, FindOneOptions::default()).await?.is_some();
+
+        let user_doc = bson::to_bson(&user)?;
+        if let Document(u) = user_doc {
+            if exists {
+                let _ = queue.find_one_and_replace(doc! {"_id": user.roblox_id}, u, FindOneAndReplaceOptions::default()).await?;
+            } else {
+                let _ = queue.insert_one(u, InsertOneOptions::default()).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn add_user(&self, user: RoUser, verified: bool) -> Result<(), RoError> {
         let users = self.client.database("RoWifi").collection("users");
         let user_doc = bson::to_bson(&user)?;
         if let Document(u) = user_doc {
-            if unverified {
+            if !verified {
                 let _ = users.insert_one(u, InsertOneOptions::default()).await?;
             } else {
                 let _ = users.find_one_and_replace(doc! {"_id": user.discord_id}, u, FindOneAndReplaceOptions::default()).await?;

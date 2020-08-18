@@ -19,6 +19,18 @@ pub struct RoUser {
     pub roblox_id: i64
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct QueueUser{
+    #[serde(rename = "_id")]
+    pub roblox_id: i64,
+
+    #[serde(rename = "DiscordId")]
+    pub discord_id: i64,
+
+    #[serde(rename = "Verified")]
+    pub verified: bool
+}
+
 impl RoUser {
     pub async fn update(&self, http: impl AsRef<Http>, member: Arc<CachedMember>, rbx: Arc<Roblox>, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: HashSet<RoleId>) 
         -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
@@ -26,17 +38,13 @@ impl RoUser {
         let mut removed_roles = Vec::<RoleId>::new();
 
         let verification_role = RoleId(guild.verification_role as u64);
-        if guild_roles.get(&verification_role).is_some() {
-            if member.roles.contains(&verification_role) {
-                removed_roles.push(verification_role);
-            } 
+        if guild_roles.get(&verification_role).is_some() && member.roles.contains(&verification_role) {
+            removed_roles.push(verification_role);
         }
 
         let verified_role = RoleId(guild.verified_role as u64);
-        if guild_roles.get(&verified_role).is_some() {
-            if !member.roles.contains(&verified_role) {
-                added_roles.push(verified_role);
-            }
+        if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
+            added_roles.push(verified_role);
         }
 
         let user_roles = rbx.get_user_roles(self.roblox_id).await?;

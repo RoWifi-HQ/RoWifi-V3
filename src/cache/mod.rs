@@ -91,7 +91,7 @@ impl Cache {
     }
 
     pub async fn roles(&self, guild_id: GuildId) -> HashSet<RoleId> {
-        self.guild_roles.get(&guild_id).map_or_else(|| HashSet::new(), |gr| gr.value().clone())
+        self.guild_roles.get(&guild_id).map_or_else(HashSet::new, |gr| gr.value().clone())
     }
 
     pub async fn update<T: UpdateCache<Self, CacheError>>(&self, value: &T) -> Result<(), CacheError> {
