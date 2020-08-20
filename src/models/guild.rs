@@ -39,7 +39,8 @@ pub struct RoGuild {
     pub blacklists: Vec<Blacklist>,
 
     #[serde(rename = "DisabledChannels")]
-    pub disabled_channels: Option<Vec<i64>>
+    #[serde(default)]
+    pub disabled_channels: Vec<i64>
 }
 
 #[derive(Debug, Serialize, Deserialize)]

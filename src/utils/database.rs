@@ -17,7 +17,7 @@ impl Database {
         }
     }
 
-    pub async fn get_guild(&self, guild_id: &u64) -> Result<Option<RoGuild>, RoError> {
+    pub async fn get_guild(&self, guild_id: u64) -> Result<Option<RoGuild>, RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let result = guilds.find_one(doc! {"_id": guild_id}, FindOneOptions::default()).await?;
         match result {

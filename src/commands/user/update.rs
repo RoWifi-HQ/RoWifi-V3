@@ -95,7 +95,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         }
     };
 
-    let guild = match ctx.database.get_guild(&guild_id.0).await? {
+    let guild = match ctx.database.get_guild(guild_id.0).await? {
         Some(g) => g,
         None => {
             let embed = EmbedBuilder::new()

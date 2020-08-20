@@ -72,9 +72,9 @@ impl Framework {
 
             },
             Invoke::Command{command} => {
-                if !self.run_checks(&context, &msg, command).await {
-                    return;
-                }
+                // if !self.run_checks(&context, &msg, command).await {
+                //     return;
+                // }
                 let args = Arguments::new(stream.rest());
 
                 let res = (command.fun)(&mut context, &msg, args).await;

@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let config = ClusterConfig::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
-            GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS
+            GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS | GatewayIntents::GUILD_MESSAGE_REACTIONS
         ))
         .http_client(http.as_ref().clone())
         .build();
@@ -60,7 +60,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         )
         .command(&UPDATE_COMMAND)
         .command(&VERIFY_COMMAND)
-        .command(&REVERIFY_COMMAND);
+        .command(&REVERIFY_COMMAND)
+        .command(&RANKBINDS_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
 
