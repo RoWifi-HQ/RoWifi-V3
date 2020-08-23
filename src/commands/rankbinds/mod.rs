@@ -1,3 +1,5 @@
+mod new;
+
 use crate::framework::prelude::*;
 use itertools::Itertools;
 use std::{time::Duration, sync::Arc, cmp::{max, min}};
@@ -5,6 +7,8 @@ use tokio::stream::StreamExt;
 use twilight::model::{id::RoleId, gateway::payload::ReactionAdd, channel::ReactionType};
 use twilight_mention::Mention;
 use twilight_embed_builder::EmbedFieldBuilder;
+
+pub use new::*;
 
 pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -16,7 +20,7 @@ pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[&RANKBINDS_NEW_COMMAND]
 };
 
 pub static RANKBINDS_COMMAND: Command = Command {
@@ -35,6 +39,13 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
         }
     };
 
+    if guild.rankbinds.is_empty() {
+        let e = EmbedBuilder::new().default_data().title("Bind Viewing Failed").unwrap().color(Color::Red as u32).unwrap()
+            .description("No rankbinds were found associated with this server").unwrap().build().unwrap();
+        let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(e).unwrap().await;
+        return Ok(())
+    }
+
     let mut pages = Vec::new();
     let mut page_count: usize = 0;
     let distinct_groups = guild.rankbinds.iter().group_by(|r| r.group_id);
@@ -45,23 +56,25 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
             for rb in rbs {
                 let name = format!("Rank: {}", rb.rank_id);
                 let desc = format!("Prefix: {}\nPriority: {}\n Roles: {}", rb.prefix, rb.priority, rb.discord_roles.iter().map(|r| RoleId(*r as u64).mention().to_string()).collect::<String>());
-                embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap());
+                embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
             }
             pages.push(embed.build().unwrap());
             page_count += 1;
         }
     }
 
-    if page_count == 1 {
+    if page_count <= 1 {
         let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
     } else {
         let m = ctx.http.as_ref().create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
 
-        //Don't wait up for the reactions to show up
+        //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
         let author_id = msg.author.id;
         let http = Arc::clone(&ctx.http);
+
+        //Don't wait up for the reactions to show
         tokio::spawn(async move {
             let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("⏮️") }).await;
             let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("◀️") }).await;

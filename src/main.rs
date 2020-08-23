@@ -10,7 +10,7 @@ mod utils;
 use std::{env, error::Error, sync::Arc};
 use tokio::stream::StreamExt;
 use twilight::{
-    gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
+    gateway::cluster::{ShardScheme, Cluster},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
     standby::Standby
@@ -32,15 +32,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let scheme = ShardScheme::Auto;
     let http = Arc::new(HttpClient::new(&token));
 
-    let config = ClusterConfig::builder(&token)
+    let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS | GatewayIntents::GUILD_MESSAGE_REACTIONS
         ))
         .http_client(http.as_ref().clone())
-        .build();
-
-    let cluster = Cluster::new(config).await?;
+        .build().await?;
 
     let cluster_spawn = cluster.clone();
     tokio::spawn(async move {

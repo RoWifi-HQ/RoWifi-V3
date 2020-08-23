@@ -12,7 +12,7 @@ pub struct RankBind {
     pub discord_roles: Vec<i64>,
 
     #[serde(rename = "RbxRankId")]
-    pub rank_id: i32,
+    pub rank_id: i64,
 
     #[serde(rename = "RbxGrpRoleId")]
     pub rbx_rank_id: i64,
@@ -21,7 +21,7 @@ pub struct RankBind {
     pub prefix: String,
 
     #[serde(rename = "Priority")]
-    pub priority: i32
+    pub priority: i64
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,7 +48,7 @@ pub struct CustomBind {
     pub prefix: String,
 
     #[serde(rename = "Priority")]
-    pub priority: i32,
+    pub priority: i64,
 
     #[serde(skip_serializing)]
     pub command: RoCommand
@@ -89,7 +89,7 @@ impl<'de> Deserialize<'de> for CustomBind {
             pub prefix: String,
 
             #[serde(rename = "Priority")]
-            pub priority: i32
+            pub priority: i64
         }
 
         let input = EncodedCustombind::deserialize(deserializer)?;

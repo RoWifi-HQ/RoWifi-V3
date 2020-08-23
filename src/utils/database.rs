@@ -1,4 +1,4 @@
-use bson::{doc, Bson::Document};
+use bson::{doc, Bson, document::Document};
 use mongodb::{Client, options::*};
 use futures::stream::StreamExt;
 use crate::models::{guild::RoGuild, user::*};
@@ -22,7 +22,7 @@ impl Database {
         let result = guilds.find_one(doc! {"_id": guild_id}, FindOneOptions::default()).await?;
         match result {
             None => Ok(None),
-            Some(res) => Ok(Some(bson::from_bson::<RoGuild>(Document(res))?))
+            Some(res) => Ok(Some(bson::from_bson::<RoGuild>(Bson::Document(res))?))
         }
     }
 
@@ -36,11 +36,17 @@ impl Database {
         let mut result = Vec::<RoGuild>::new();
         while let Some(res) = cursor.next().await {
             match res {
-                Ok(document) => result.push(bson::from_bson::<RoGuild>(Document(document))?),
+                Ok(document) => result.push(bson::from_bson::<RoGuild>(Bson::Document(document))?),
                 Err(e) => return Err(e.into())
             }
         }
         Ok(result)
+    }
+
+    pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<(), RoError> {
+        let guilds = self.client.database("RoWifi").collection("guilds");
+        let _res = guilds.update_one(filter, update, UpdateOptions::default()).await?;
+        Ok(())
     }
 
     pub async fn add_queue_user(&self, user: QueueUser) -> Result<(), RoError> {
@@ -49,7 +55,7 @@ impl Database {
         let exists = queue.find_one(doc! {"_id": user.roblox_id}, FindOneOptions::default()).await?.is_some();
 
         let user_doc = bson::to_bson(&user)?;
-        if let Document(u) = user_doc {
+        if let Bson::Document(u) = user_doc {
             if exists {
                 let _ = queue.find_one_and_replace(doc! {"_id": user.roblox_id}, u, FindOneAndReplaceOptions::default()).await?;
             } else {
@@ -62,7 +68,7 @@ impl Database {
     pub async fn add_user(&self, user: RoUser, verified: bool) -> Result<(), RoError> {
         let users = self.client.database("RoWifi").collection("users");
         let user_doc = bson::to_bson(&user)?;
-        if let Document(u) = user_doc {
+        if let Bson::Document(u) = user_doc {
             if !verified {
                 let _ = users.insert_one(u, InsertOneOptions::default()).await?;
             } else {
@@ -77,7 +83,7 @@ impl Database {
         let result = users.find_one(doc! {"_id": user_id}, FindOneOptions::default()).await?;
         match result {
             None => Ok(None),
-            Some(res) => Ok(Some(bson::from_bson::<RoUser>(Document(res))?))
+            Some(res) => Ok(Some(bson::from_bson::<RoUser>(Bson::Document(res))?))
         }
     }
 
@@ -88,7 +94,7 @@ impl Database {
         let mut result = Vec::<RoUser>::new();
         while let Some(res) = cursor.next().await {
             match res {
-                Ok(document) => result.push(bson::from_bson::<RoUser>(Document(document))?),
+                Ok(document) => result.push(bson::from_bson::<RoUser>(Bson::Document(document))?),
                 Err(e) => return Err(e.into())
             }
         }
