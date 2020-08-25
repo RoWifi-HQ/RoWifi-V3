@@ -28,7 +28,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         Some(g) => g,
         None => return Ok(())
     };
-    let server = ctx.cache.guild(guild_id).await.unwrap();
+    let server = ctx.cache.guild(guild_id).unwrap();
 
     let user_id = match args.next() {
         Some(s) => match parse_username(s).await {
@@ -67,7 +67,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
     //Handle role position check
 
     //Check for bypass role
-    let bypass = ctx.cache.bypass_roles(guild_id).await; 
+    let bypass = ctx.cache.bypass_roles(guild_id); 
     if let Some(bypass_role) = &bypass.0 {
         if member.roles.contains(bypass_role) {
             let embed = EmbedBuilder::new()
@@ -108,7 +108,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
             return Ok(())
         }
     }; 
-    let guild_roles = ctx.cache.roles(guild_id).await;
+    let guild_roles = ctx.cache.roles(guild_id);
 
     let (added_roles, removed_roles, disc_nick) = user.update(Arc::clone(&ctx.http), member, Arc::clone(&ctx.roblox), server, &guild, guild_roles).await?;
     let end = chrono::Utc::now().timestamp_millis();

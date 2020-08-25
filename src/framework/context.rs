@@ -34,12 +34,12 @@ impl Context {
     pub async fn member(&self, guild_id: GuildId, user_id: impl Into<UserId>) -> Result<Option<Arc<CachedMember>>, RoError> {
         let user_id = user_id.into();
         
-        if let Some(member) = self.cache.member(guild_id, user_id).await {
+        if let Some(member) = self.cache.member(guild_id, user_id) {
             return Ok(Some(member))
         }
         match self.http.guild_member(guild_id, user_id).await? {
             Some(m) => {
-                let cached = self.cache.cache_member(guild_id, m).await;
+                let cached = self.cache.cache_member(guild_id, m);
                 Ok(Some(cached))
             },
             None => Ok(None)

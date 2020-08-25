@@ -56,7 +56,7 @@ pub async fn rankbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'fu
         None => return Ok(())
     };
 
-    let server_roles = ctx.cache.roles(msg.guild_id.unwrap()).await;
+    let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
     let mut roles: Vec<i64> = Vec::new();
     while let Some(r) = args.next() {
         if let Ok(role_id) = r.parse::<i64>() {

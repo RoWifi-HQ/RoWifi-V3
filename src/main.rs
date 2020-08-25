@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     while let Some(event) = events.next().await {
         let c = context.clone();
         let f = Arc::clone(&framework);
-        context.cache.update(&event.1).await.expect("Failed to update cache");
+        context.cache.update(&event.1).expect("Failed to update cache");
         context.standby.process(&event.1);
         tokio::spawn(async move {
             f.handle_event(event.1, c).await;

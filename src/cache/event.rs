@@ -1,6 +1,4 @@
-use async_trait::async_trait;
 use twilight::{
-    cache::UpdateCache,
     model::{
         gateway::{payload::*, event::Event},
         channel::Channel,
@@ -12,79 +10,83 @@ use tracing::debug;
 
 use super::{Cache, CacheError};
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for Event {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+pub trait UpdateCache {
+    fn update(&self, cache: &Cache) -> Result<(), CacheError>;
+}
+
+
+impl UpdateCache for Event {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         use Event::*;
 
         match self {
-            ChannelCreate(v) => c.update(v).await,
-            ChannelDelete(v) => c.update(v).await,
-            ChannelUpdate(v) => c.update(v).await,
-            GuildCreate(v) => c.update(v.deref()).await,
-            GuildDelete(v) => c.update(v.deref()).await,
-            GuildUpdate(v) => c.update(v.deref()).await,
-            MemberAdd(v) => c.update(v.deref()).await,
-            MemberChunk(v) => c.update(v.deref()).await,
-            MemberRemove(v) => c.update(v.deref()).await,
-            MemberUpdate(v) => c.update(v.deref()).await,
-            Ready(v) => c.update(v.deref()).await,
-            RoleCreate(v) => c.update(v.deref()).await,
-            RoleDelete(v) => c.update(v.deref()).await,
-            RoleUpdate(v) => c.update(v.deref()).await,
-            UnavailableGuild(v) => c.update(v).await,
-            UserUpdate(v) => c.update(v).await,
+            ChannelCreate(v) => c.update(v),
+            ChannelDelete(v) => c.update(v),
+            ChannelUpdate(v) => c.update(v),
+            GuildCreate(v) => c.update(v.deref()),
+            GuildDelete(v) => c.update(v.deref()),
+            GuildUpdate(v) => c.update(v.deref()),
+            MemberAdd(v) => c.update(v.deref()),
+            MemberChunk(v) => c.update(v.deref()),
+            MemberRemove(v) => c.update(v.deref()),
+            MemberUpdate(v) => c.update(v.deref()),
+            Ready(v) => c.update(v.deref()),
+            RoleCreate(v) => c.update(v.deref()),
+            RoleDelete(v) => c.update(v.deref()),
+            RoleUpdate(v) => c.update(v.deref()),
+            UnavailableGuild(v) => c.update(v),
+            UserUpdate(v) => c.update(v),
             _ => Ok(())
         }
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for ChannelCreate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for ChannelCreate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(guild_id, gc).await;
+            c.cache_guild_channel(guild_id, gc);
         }
 
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for ChannelDelete {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for ChannelDelete {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
-            c.delete_guild_channel(gc).await;
+            c.delete_guild_channel(gc);
         }
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for ChannelUpdate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for ChannelUpdate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(guild_id, gc).await;
+            c.cache_guild_channel(guild_id, gc);
         }
 
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for GuildCreate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for GuildCreate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         println!("{:?}", self.0.members);
-        c.cache_guild(self.0.clone()).await;
+        c.cache_guild(self.0.clone());
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for GuildDelete {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for GuildDelete {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.guilds.remove(&self.id);
         
         {
@@ -117,9 +119,9 @@ impl UpdateCache<Cache, CacheError> for GuildDelete {
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for GuildUpdate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for GuildUpdate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let mut guild = match c.guilds.get_mut(&self.0.id).map(|r| Arc::clone(r.value())) {
             Some(guild) => guild,
             None => return Ok(())
@@ -142,30 +144,30 @@ impl UpdateCache<Cache, CacheError> for GuildUpdate {
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for MemberAdd {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_member(self.guild_id, self.0.clone()).await;
+
+impl UpdateCache for MemberAdd {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.cache_member(self.guild_id, self.0.clone());
         Ok(())
     }
 }
 
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for MemberChunk {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for MemberChunk {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if self.members.is_empty() {
             return Ok(())
         }
 
-        c.cache_members(self.guild_id, self.members.values().cloned()).await;
+        c.cache_members(self.guild_id, self.members.values().cloned());
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for MemberRemove {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for MemberRemove {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.members.remove(&(self.guild_id, self.user.id));
         if let Some(mut members) = c.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
@@ -175,9 +177,9 @@ impl UpdateCache<Cache, CacheError> for MemberRemove {
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for MemberUpdate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for MemberUpdate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
         let mut member = match c.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
@@ -192,18 +194,18 @@ impl UpdateCache<Cache, CacheError> for MemberUpdate {
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for Ready {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_current_user(self.user.clone()).await;
+
+impl UpdateCache for Ready {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.cache_current_user(self.user.clone());
 
         for status in self.guilds.values() {
             match status {
                 GuildStatus::Offline(u) => {
-                    c.unavailable_guild(u.id).await
+                    c.unavailable_guild(u.id)
                 },
                 GuildStatus::Online(g) => {
-                    c.cache_guild(g.clone()).await
+                    c.cache_guild(g.clone())
                 }
             }
         }
@@ -212,43 +214,43 @@ impl UpdateCache<Cache, CacheError> for Ready {
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for RoleCreate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_role(self.guild_id, self.role.clone()).await;
+
+impl UpdateCache for RoleCreate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.cache_role(self.guild_id, self.role.clone());
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for RoleDelete {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.delete_role(self.role_id).await;
+
+impl UpdateCache for RoleDelete {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.delete_role(self.role_id);
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for RoleUpdate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_role(self.guild_id, self.role.clone()).await;
+
+impl UpdateCache for RoleUpdate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.cache_role(self.guild_id, self.role.clone());
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for UnavailableGuild {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
+
+impl UpdateCache for UnavailableGuild {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.guilds.remove(&self.id);
         c.unavailable_guilds.insert(self.id);
         Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<Cache, CacheError> for UserUpdate {
-    async fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_current_user(self.0.clone()).await;
+
+impl UpdateCache for UserUpdate {
+     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        c.cache_current_user(self.0.clone());
         Ok(())
     }
 }

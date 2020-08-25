@@ -1,4 +1,5 @@
 mod new;
+mod modify;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -9,6 +10,7 @@ use twilight_mention::Mention;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use new::*;
+pub use modify::*;
 
 pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],

@@ -105,7 +105,7 @@ impl Framework {
         //Check for disabled channels (Implement after database cache)
         //Bucketing mechanism
 
-        if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()).await {
+        if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()) {
             if self.config.blocked_users.contains(&guild.owner_id) {
                 return false;
             }
@@ -114,9 +114,9 @@ impl Framework {
                 return true;
             }
 
-            if let Some(member) = context.cache.member(guild.id, msg.author.id).await {
+            if let Some(member) = context.cache.member(guild.id, msg.author.id) {
                 for role in member.roles.iter() {
-                    if let Some(role) = context.cache.role(*role).await {
+                    if let Some(role) = context.cache.role(*role) {
                         if role.permissions.contains(Permissions::ADMINISTRATOR) {
                             return true;
                         }
