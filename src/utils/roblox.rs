@@ -6,6 +6,8 @@ use serde_json::Value;
 use super::error::RoError;
 
 type Result<T> = std::result::Result<T, RoError>;
+
+#[derive(Clone)]
 pub struct Roblox {
     client: Client
 }

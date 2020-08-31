@@ -4,6 +4,7 @@ use futures::stream::StreamExt;
 use crate::models::{guild::RoGuild, user::*};
 use super::error::RoError;
 
+#[derive(Clone)]
 pub struct Database {
     client: Client
 }

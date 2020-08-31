@@ -30,7 +30,7 @@ pub struct QueueUser{
 }
 
 impl RoUser {
-    pub async fn update(&self, http: impl AsRef<Http>, member: Arc<CachedMember>, rbx: Arc<Roblox>, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: HashSet<RoleId>) 
+    pub async fn update(&self, http: Http, member: Arc<CachedMember>, rbx: Roblox, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: HashSet<RoleId>) 
         -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
@@ -54,8 +54,8 @@ impl RoUser {
             if let Some(success) = success {
                 match guild.settings.blacklist_action {
                     BlacklistActionType::None => {},
-                    BlacklistActionType::Kick => {let _ = http.as_ref().remove_guild_member(server.id, member.user.id).await;},
-                    BlacklistActionType::Ban => {let _ = http.as_ref().create_ban(server.id, member.user.id).await;},
+                    BlacklistActionType::Kick => {let _ = http.remove_guild_member(server.id, member.user.id).await;},
+                    BlacklistActionType::Ban => {let _ = http.create_ban(server.id, member.user.id).await;},
                 };
                 return Err(RoError::Blacklist(success.reason.to_owned()))
             }
@@ -127,7 +127,7 @@ impl RoUser {
             return Err(RoError::NicknameTooLong(format!("The supposed nickname {} was found to be more than 32 characters", disc_nick)))
         }
 
-        let update = http.as_ref().update_guild_member(server.id, member.user.id);
+        let update = http.update_guild_member(server.id, member.user.id);
         println!("{:?} {:?}", added_roles, removed_roles);
         let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = member.roles.clone();

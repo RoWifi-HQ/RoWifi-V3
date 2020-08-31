@@ -1,7 +1,6 @@
 use crate::framework::prelude::*;
 use twilight_model::id::UserId;
 use twilight_embed_builder::EmbedFooterBuilder;
-use std::sync::Arc;
 
 pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -47,7 +46,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .description("No such member was found").unwrap()
                 .color(Color::Red as u32).unwrap()
                 .build().unwrap();
-            let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
             return Ok(())
         }
     };
@@ -60,7 +59,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
             .description("Due to discord limitations, I cannot update the server owner").unwrap()
             .color(Color::Red as u32).unwrap()
             .build().unwrap();
-        let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
         return Ok(())
     }
 
@@ -76,7 +75,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .description("I cannot update users with the `RoWifi Bypass` role").unwrap()
                 .color(Color::Red as u32).unwrap()
                 .build().unwrap();
-            let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
             return Ok(())
         }
     }
@@ -90,7 +89,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .description("User was not verified. Please ask him/her to verify themselves").unwrap()
                 .color(Color::Red as u32).unwrap()
                 .build().unwrap();
-            let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
             return Ok(())
         }
     };
@@ -104,13 +103,13 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .description("Server is not set up. Please ask the server owner to set up the server.").unwrap()
                 .color(Color::Red as u32).unwrap()
                 .build().unwrap();
-            let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
             return Ok(())
         }
     }; 
     let guild_roles = ctx.cache.roles(guild_id);
 
-    let (added_roles, removed_roles, disc_nick) = user.update(Arc::clone(&ctx.http), member, Arc::clone(&ctx.roblox), server, &guild, guild_roles).await?;
+    let (added_roles, removed_roles, disc_nick) = user.update(ctx.http.clone(), member, ctx.roblox.clone(), server, &guild, guild_roles).await?;
     let end = chrono::Utc::now().timestamp_millis();
     let embed = EmbedBuilder::new()
         .default_data()
@@ -119,7 +118,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         .color(Color::DarkGreen as u32).unwrap()
         .footer(EmbedFooterBuilder::new(format!("RoWifi | Executed in {} ms", (end - start))).unwrap())
         .build().unwrap();
-    let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(embed).unwrap().await;
+    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
 
     Ok(())
 }

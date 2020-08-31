@@ -3,7 +3,7 @@ mod modify;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
-use std::{time::Duration, sync::Arc, cmp::{max, min}};
+use std::{time::Duration, cmp::{max, min}};
 use tokio::stream::StreamExt;
 use twilight_model::{id::RoleId, gateway::payload::ReactionAdd, channel::ReactionType};
 use twilight_mention::Mention;
@@ -44,7 +44,7 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
     if guild.rankbinds.is_empty() {
         let e = EmbedBuilder::new().default_data().title("Bind Viewing Failed").unwrap().color(Color::Red as u32).unwrap()
             .description("No rankbinds were found associated with this server").unwrap().build().unwrap();
-        let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(e).unwrap().await;
+        let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await;
         return Ok(())
     }
 
@@ -66,15 +66,15 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
     }
 
     if page_count <= 1 {
-        let _ = ctx.http.as_ref().create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
+        let _ = ctx.http.create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
     } else {
-        let m = ctx.http.as_ref().create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
+        let m = ctx.http.create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
 
         //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
         let author_id = msg.author.id;
-        let http = Arc::clone(&ctx.http);
+        let http = ctx.http.clone();
 
         //Don't wait up for the reactions to show
         tokio::spawn(async move {
@@ -109,11 +109,11 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
                 } else if name == "⏹️" {
                     break;
                 }
-                let _ = ctx.http.as_ref().update_message(channel_id, message_id).embed(pages[page_pointer].clone()).unwrap().await;
-                let _ = ctx.http.as_ref().delete_reaction(channel_id, message_id, reaction.emoji.clone(), author_id).await;
+                let _ = ctx.http.update_message(channel_id, message_id).embed(pages[page_pointer].clone()).unwrap().await;
+                let _ = ctx.http.delete_reaction(channel_id, message_id, reaction.emoji.clone(), author_id).await;
             }
         }
-        let _ = ctx.http.as_ref().delete_message(channel_id, message_id).await;
+        let _ = ctx.http.delete_message(channel_id, message_id).await;
     }
 
     Ok(())

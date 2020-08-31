@@ -6,19 +6,18 @@ use twilight_standby::Standby;
 use crate::cache::*;
 use crate::utils::{Database, Roblox};
 use crate::utils::error::RoError;
-//TODO: Remove Arcs from literally every field
 #[derive(Clone)]
 pub struct Context {
     pub shard_id: u64,
-    pub http: Arc<Http>,
+    pub http: Http,
     pub cache: Arc<Cache>,
-    pub database: Arc<Database>,
-    pub roblox: Arc<Roblox>,
-    pub standby: Arc<Standby>
+    pub database: Database,
+    pub roblox: Roblox,
+    pub standby: Standby
 }
 
 impl Context {
-    pub fn new(shard_id: u64, http: Arc<Http>, cache: Arc<Cache>, database: Arc<Database>, roblox: Arc<Roblox>, standby: Arc<Standby>) -> Self {
+    pub fn new(shard_id: u64, http: Http, cache: Arc<Cache>, database: Database, roblox: Roblox, standby: Standby) -> Self {
         Self {
             shard_id,
             http,

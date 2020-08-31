@@ -28,14 +28,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISC_TOKEN")?;
     let conn_string = env::var("DB_CONN")?;
     let scheme = ShardScheme::Auto;
-    let http = Arc::new(HttpClient::new(&token));
+    let http = HttpClient::new(&token);
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS | GatewayIntents::GUILD_MESSAGE_REACTIONS
         ))
-        .http_client(http.as_ref().clone())
+        .http_client(http.clone())
         .build().await?;
 
     let cluster_spawn = cluster.clone();
@@ -44,10 +44,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     });
 
     let cache = Arc::new(Cache::new());
-    let standby = Arc::new(Standby::new());
+    let standby = Standby::new();
 
-    let database = Arc::new(Database::new(&conn_string).await);
-    let roblox = Arc::new(Roblox::new());
+    let database = Database::new(&conn_string).await;
+    let roblox = Roblox::new();
 
     let context = Context::new(0, http, cache, database, roblox, standby);
     let framework = Framework::default()
