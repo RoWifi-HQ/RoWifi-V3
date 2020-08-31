@@ -1,13 +1,14 @@
 use futures::future::BoxFuture;
-use std::{error::Error, fmt};
+use std::fmt;
 use twilight::{
     model::{guild::Permissions, channel::Message},
     command_parser::Arguments
 };
+use crate::utils::error::RoError;
 
 use super::context::Context;
 
-pub type CommandError = Box<dyn Error + Send + Sync>;
+pub type CommandError = RoError;
 pub type CommandResult = std::result::Result<(), CommandError>;
 pub type CommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>) -> BoxFuture<'fut, CommandResult>;
 

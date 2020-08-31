@@ -50,9 +50,9 @@ checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
 name = "async-trait"
-version = "0.1.38"
+version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e1a4a2f97ce50c9d0282c1468816208588441492b40d813b2e0419c22c05e7f"
+checksum = "687c230d85c0a52504709705fc8a53e4a692b83a2184f03dae73e38e1e93a783"
 dependencies = [
  "proc-macro2 1.0.19",
  "quote 1.0.7",
@@ -561,7 +561,7 @@ checksum = "7abc8dd8451921606d809ba32e95b6111925cd2906060d2dcc29c070220503eb"
 dependencies = [
  "cfg-if",
  "libc",
- "wasi",
+ "wasi 0.9.0+wasi-snapshot-preview1",
 ]
 
 [[package]]
@@ -706,7 +706,7 @@ dependencies = [
  "log",
  "rustls 0.18.1",
  "tokio",
- "tokio-rustls 0.14.0",
+ "tokio-rustls 0.14.1",
  "webpki",
 ]
 
@@ -834,9 +834,9 @@ checksum = "755456fae044e6fa1ebbbd1b3e902ae19e73097ed4ed87bb79934a867c007bc3"
 
 [[package]]
 name = "libz-sys"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af67924b8dd885cccea261866c8ce5b74d239d272e154053ff927dae839f5ae9"
+checksum = "23b34178653005c1181711c333f0e5604a14a1b5115c814fd42304bdd16245e0"
 dependencies = [
  "cc",
  "pkg-config",
@@ -1430,9 +1430,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.10.7"
+version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12427a5577082c24419c9c417db35cfeb65962efc7675bb6b0d5f1f9d315bfe6"
+checksum = "e9eaa17ac5d7b838b7503d118fa16ad88f440498bf9ffe5424e621f93190d61e"
 dependencies = [
  "base64 0.12.3",
  "bytes",
@@ -1458,7 +1458,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "tokio",
- "tokio-rustls 0.14.0",
+ "tokio-rustls 0.14.1",
  "tokio-tls",
  "url",
  "wasm-bindgen",
@@ -1919,11 +1919,12 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.1.43"
+version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
+checksum = "6db9e6914ab8b1ae1c260a4ae7a49b6c5611b40328a735b21862567685e73255"
 dependencies = [
  "libc",
+ "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi 0.3.9",
 ]
 
@@ -1992,9 +1993,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "228139ddd4fea3fa345a29233009635235833e52807af7ea6448ead03890d6a9"
+checksum = "e12831b255bcfa39dc0436b01e19fea231a37db570686c06ee72c423479f889a"
 dependencies = [
  "futures-core",
  "rustls 0.18.1",
@@ -2175,7 +2176,7 @@ dependencies = [
 [[package]]
 name = "twilight"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "twilight-cache-inmemory",
  "twilight-command-parser",
@@ -2188,7 +2189,7 @@ dependencies = [
 [[package]]
 name = "twilight-cache-inmemory"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "bitflags",
  "dashmap",
@@ -2199,7 +2200,7 @@ dependencies = [
 [[package]]
 name = "twilight-command-parser"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "unicase",
 ]
@@ -2207,7 +2208,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "twilight-model",
 ]
@@ -2215,7 +2216,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2236,7 +2237,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2255,7 +2256,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "twilight-model",
 ]
@@ -2263,7 +2264,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "bitflags",
  "serde",
@@ -2276,7 +2277,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#ef881fa02fe846f174f28343f1a6e38a8b5674e0"
+source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
 dependencies = [
  "dashmap",
  "futures-channel",
@@ -2412,6 +2413,12 @@ name = "wasi"
 version = "0.9.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
+
+[[package]]
+name = "wasi"
+version = "0.10.0+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "wasm-bindgen"

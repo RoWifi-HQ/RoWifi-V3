@@ -21,5 +21,8 @@ pub enum RoError {
     NicknameTooLong(String),
 
     #[error("You were found on the server blacklist. Reason: {0}")]
-    Blacklist(String)
+    Blacklist(String),
+
+    #[error("This server has not been setup. Please ask the server owner to set it up")]
+    NoRoGuild
 }

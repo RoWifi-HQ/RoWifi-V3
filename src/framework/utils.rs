@@ -15,6 +15,25 @@ pub async fn parse_username(mention: impl AsRef<str>) -> Option<u64> {
     } else if mention.starts_with("<@") {
         let len = mention.len() - 1;
         mention[2..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
+    } else {
+        None
+    } 
+}
+
+pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
+    let mention = mention.as_ref();
+
+    if mention.len() < 4 {
+        return None;
+    }
+
+    if mention.starts_with("<@&") && mention.ends_with('>') {
+        let len = mention.len() - 1;
+        mention[3..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
     } else {
         None
     }

@@ -8,7 +8,7 @@ use twilight::{
 use crate::cache::*;
 use crate::utils::{Database, Roblox};
 use crate::utils::error::RoError;
-
+//TODO: Remove Arcs from literally every field
 #[derive(Clone)]
 pub struct Context {
     pub shard_id: u64,

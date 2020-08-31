@@ -1,12 +1,10 @@
-use twilight::{
-    model::{
-        gateway::{payload::*, event::Event},
-        channel::Channel,
-        guild::GuildStatus
-    }
-};
 use std::{ops::Deref, sync::Arc};
 use tracing::debug;
+use twilight::model::{
+    channel::Channel,
+    gateway::{event::Event, payload::*},
+    guild::GuildStatus,
+};
 
 use super::{Cache, CacheError};
 
@@ -14,9 +12,8 @@ pub trait UpdateCache {
     fn update(&self, cache: &Cache) -> Result<(), CacheError>;
 }
 
-
 impl UpdateCache for Event {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         use Event::*;
 
         match self {
@@ -36,14 +33,13 @@ impl UpdateCache for Event {
             RoleUpdate(v) => c.update(v.deref()),
             UnavailableGuild(v) => c.update(v),
             UserUpdate(v) => c.update(v),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 }
 
-
 impl UpdateCache for ChannelCreate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(guild_id, gc);
@@ -53,9 +49,8 @@ impl UpdateCache for ChannelCreate {
     }
 }
 
-
 impl UpdateCache for ChannelDelete {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             c.delete_guild_channel(gc);
         }
@@ -63,9 +58,8 @@ impl UpdateCache for ChannelDelete {
     }
 }
 
-
 impl UpdateCache for ChannelUpdate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(guild_id, gc);
@@ -75,20 +69,18 @@ impl UpdateCache for ChannelUpdate {
     }
 }
 
-
 impl UpdateCache for GuildCreate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         println!("{:?}", self.0.members);
         c.cache_guild(self.0.clone());
         Ok(())
     }
 }
 
-
 impl UpdateCache for GuildDelete {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.guilds.remove(&self.id);
-        
+
         {
             if let Some((_, ids)) = c.guild_channels.remove(&self.id) {
                 for id in ids {
@@ -97,7 +89,7 @@ impl UpdateCache for GuildDelete {
             }
             c.log_channels.remove(&self.id);
         }
-        
+
         {
             if let Some((_, ids)) = c.guild_roles.remove(&self.id) {
                 for id in ids {
@@ -119,12 +111,11 @@ impl UpdateCache for GuildDelete {
     }
 }
 
-
 impl UpdateCache for GuildUpdate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let mut guild = match c.guilds.get_mut(&self.0.id).map(|r| Arc::clone(r.value())) {
             Some(guild) => guild,
-            None => return Ok(())
+            None => return Ok(()),
         };
 
         let g = &self.0;
@@ -144,20 +135,17 @@ impl UpdateCache for GuildUpdate {
     }
 }
 
-
 impl UpdateCache for MemberAdd {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_member(self.guild_id, self.0.clone());
         Ok(())
     }
 }
 
-
-
 impl UpdateCache for MemberChunk {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if self.members.is_empty() {
-            return Ok(())
+            return Ok(());
         }
 
         c.cache_members(self.guild_id, self.members.values().cloned());
@@ -165,25 +153,23 @@ impl UpdateCache for MemberChunk {
     }
 }
 
-
 impl UpdateCache for MemberRemove {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.members.remove(&(self.guild_id, self.user.id));
         if let Some(mut members) = c.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
         }
-        
+
         Ok(())
     }
 }
 
-
 impl UpdateCache for MemberUpdate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
         let mut member = match c.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
-            None => return Ok(())
+            None => return Ok(()),
         };
         let mut member = Arc::make_mut(&mut member);
 
@@ -194,62 +180,52 @@ impl UpdateCache for MemberUpdate {
     }
 }
 
-
 impl UpdateCache for Ready {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_current_user(self.user.clone());
 
         for status in self.guilds.values() {
             match status {
-                GuildStatus::Offline(u) => {
-                    c.unavailable_guild(u.id)
-                },
-                GuildStatus::Online(g) => {
-                    c.cache_guild(g.clone())
-                }
+                GuildStatus::Offline(u) => c.unavailable_guild(u.id),
+                GuildStatus::Online(g) => c.cache_guild(g.clone()),
             }
         }
-        
+
         Ok(())
     }
 }
 
-
 impl UpdateCache for RoleCreate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_role(self.guild_id, self.role.clone());
         Ok(())
     }
 }
 
-
 impl UpdateCache for RoleDelete {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.delete_role(self.role_id);
         Ok(())
     }
 }
 
-
 impl UpdateCache for RoleUpdate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_role(self.guild_id, self.role.clone());
         Ok(())
     }
 }
 
-
 impl UpdateCache for UnavailableGuild {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.guilds.remove(&self.id);
         c.unavailable_guilds.insert(self.id);
         Ok(())
     }
 }
 
-
 impl UpdateCache for UserUpdate {
-     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_current_user(self.0.clone());
         Ok(())
     }
