@@ -1,5 +1,6 @@
 mod new;
 mod modify;
+mod delete;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -11,6 +12,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use new::*;
 pub use modify::*;
+pub use delete::*;
 
 pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -22,7 +24,7 @@ pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&RANKBINDS_NEW_COMMAND, &RANKBINDS_MODIFY_COMMAND]
+    sub_commands: &[&RANKBINDS_NEW_COMMAND, &RANKBINDS_MODIFY_COMMAND, &RANKBINDS_DELETE_COMMAND]
 };
 
 pub static RANKBINDS_COMMAND: Command = Command {
