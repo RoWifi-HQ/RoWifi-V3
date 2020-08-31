@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
 use lazy_static::lazy_static;
 use regex::Regex;
-use twilight::model::id::RoleId;
+use twilight_model::id::RoleId;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 use crate::models::bind::RankBind;

@@ -9,12 +9,10 @@ mod utils;
 
 use std::{env, error::Error, sync::Arc};
 use tokio::stream::StreamExt;
-use twilight::{
-    gateway::cluster::{ShardScheme, Cluster},
-    http::Client as HttpClient,
-    model::gateway::GatewayIntents,
-    standby::Standby
-};
+use twilight_gateway::cluster::{ShardScheme, Cluster};
+use twilight_http::Client as HttpClient;
+use twilight_model::gateway::GatewayIntents;
+use twilight_standby::Standby;
 
 use cache::Cache;
 use commands::*;

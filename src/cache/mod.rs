@@ -4,7 +4,7 @@ use std::{
     hash::Hash,
     sync::{Arc, Mutex},
 };
-use twilight::model::{
+use twilight_model::{
     channel::GuildChannel,
     guild::{Guild, Member, Role},
     id::{ChannelId, GuildId, RoleId, UserId},

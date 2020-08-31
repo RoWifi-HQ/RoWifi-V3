@@ -1,6 +1,6 @@
 use std::{collections::HashSet, sync::Arc};
 use dashmap::DashMap;
-use twilight::model::id::{GuildId, UserId, ChannelId};
+use twilight_model::id::{GuildId, UserId, ChannelId};
 
 #[derive(Default)]
 pub struct Configuration {

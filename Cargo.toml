@@ -29,13 +29,16 @@ tokio = { version = "0.2", features = ["full"] }
 tracing = "0.1"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
-twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-uwl = "*"
 
-[dependencies.twilight]
-git = "https://github.com/twilight-rs/twilight.git"
-branch = "trunk"
+twilight-command-parser = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-gateway = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-standby = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+
+uwl = "*"
 
 [dependencies.mongodb]
 git = "https://github.com/mongodb/mongo-rust-driver"

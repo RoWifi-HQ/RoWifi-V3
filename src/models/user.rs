@@ -1,9 +1,7 @@
 use itertools::Itertools;
 use serde::{Serialize, Deserialize};
-use twilight::{
-    http::Client as Http,
-    model::id::RoleId
-};
+use twilight_http::Client as Http;
+use twilight_model::id::RoleId;
 use std::{sync::Arc, borrow::Cow, collections::HashSet};
 
 use crate::utils::{Roblox, error::RoError};

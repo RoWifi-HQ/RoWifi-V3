@@ -5,7 +5,7 @@ use crate::framework::prelude::*;
 use itertools::Itertools;
 use std::{time::Duration, sync::Arc, cmp::{max, min}};
 use tokio::stream::StreamExt;
-use twilight::model::{id::RoleId, gateway::payload::ReactionAdd, channel::ReactionType};
+use twilight_model::{id::RoleId, gateway::payload::ReactionAdd, channel::ReactionType};
 use twilight_mention::Mention;
 use twilight_embed_builder::EmbedFieldBuilder;
 

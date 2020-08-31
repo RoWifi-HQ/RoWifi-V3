@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use twilight::model::{
+use twilight_model::{
     id::RoleId,
     guild::Member,
     user::User

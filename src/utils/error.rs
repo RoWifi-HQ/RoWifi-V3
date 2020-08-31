@@ -15,7 +15,7 @@ pub enum RoError {
     Roblox(#[from] reqwest::Error),
 
     #[error("There was some error in interacting with Discord")]
-    Discord(#[from] twilight::http::Error),
+    Discord(#[from] twilight_http::Error),
 
     #[error("{0}")]
     NicknameTooLong(String),

@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use rand::{thread_rng, Rng};
 use std::time::Duration;
 use tokio::time::timeout;
-use twilight::model::gateway::payload::MessageCreate;
+use twilight_model::gateway::payload::MessageCreate;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 use crate::models::user::{RoUser, QueueUser};

@@ -1,6 +1,6 @@
 use std::{ops::Deref, sync::Arc};
 use tracing::debug;
-use twilight::model::{
+use twilight_model::{
     channel::Channel,
     gateway::{event::Event, payload::*},
     guild::GuildStatus,

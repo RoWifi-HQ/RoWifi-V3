@@ -1,6 +1,6 @@
 use futures::future::{BoxFuture, FutureExt};
 use std::borrow::Cow;
-use twilight::model::channel::Message;
+use twilight_model::channel::Message;
 use uwl::Stream;
 
 use super::{Configuration, Command, map::*};

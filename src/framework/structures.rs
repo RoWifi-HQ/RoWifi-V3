@@ -1,9 +1,7 @@
 use futures::future::BoxFuture;
 use std::fmt;
-use twilight::{
-    model::{guild::Permissions, channel::Message},
-    command_parser::Arguments
-};
+use twilight_model::{guild::Permissions, channel::Message};
+use twilight_command_parser::Arguments;
 use crate::utils::error::RoError;
 
 use super::context::Context;

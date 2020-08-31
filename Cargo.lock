@@ -49,6 +49,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
+name = "async-tls"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7e7fbc0843fc5ad3d5ca889c5b2bea9130984d34cd0e62db57ab70c2529a8e3"
+dependencies = [
+ "futures",
+ "rustls 0.18.1",
+ "webpki",
+ "webpki-roots 0.20.0",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -65,13 +77,12 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a5c45a0dd44b7e6533ac4e7acc38ead1a3b39885f5bbb738140d30ea528abc7c"
 dependencies = [
+ "async-tls",
  "futures-io",
  "futures-util",
  "log",
- "native-tls",
  "pin-project",
  "tokio",
- "tokio-native-tls",
  "tungstenite",
 ]
 
@@ -1518,9 +1529,13 @@ dependencies = [
  "tracing",
  "tracing-log",
  "tracing-subscriber",
- "twilight",
+ "twilight-command-parser",
  "twilight-embed-builder",
+ "twilight-gateway",
+ "twilight-http",
  "twilight-mention",
+ "twilight-model",
+ "twilight-standby",
  "uwl",
 ]
 
@@ -1970,16 +1985,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-native-tls"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd608593a919a8e05a7d1fc6df885e40f6a88d3a70a3a7eff23ff27964eda069"
-dependencies = [
- "native-tls",
- "tokio",
-]
-
-[[package]]
 name = "tokio-rustls"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2166,35 +2171,10 @@ dependencies = [
  "httparse",
  "input_buffer",
  "log",
- "native-tls",
  "rand",
  "sha-1 0.9.1",
  "url",
  "utf-8",
-]
-
-[[package]]
-name = "twilight"
-version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
-dependencies = [
- "twilight-cache-inmemory",
- "twilight-command-parser",
- "twilight-gateway",
- "twilight-http",
- "twilight-model",
- "twilight-standby",
-]
-
-[[package]]
-name = "twilight-cache-inmemory"
-version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight.git?branch=trunk#5f8b3f2c97d5378b6feee972028b8c621fe4ead0"
-dependencies = [
- "bitflags",
- "dashmap",
- "tracing",
- "twilight-model",
 ]
 
 [[package]]
@@ -2522,6 +2502,15 @@ name = "webpki-roots"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8eff4b7516a57307f9349c64bf34caa34b940b66fed4b2fb3136cb7386e5739"
+dependencies = [
+ "webpki",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f20dea7535251981a9670857150d571846545088359b28e4951d350bdaf179f"
 dependencies = [
  "webpki",
 ]

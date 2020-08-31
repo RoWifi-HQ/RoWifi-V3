@@ -1,9 +1,7 @@
 use std::sync::Arc;
-use twilight::{
-    http::Client as Http,
-    model::id::*,
-    standby::Standby
-};
+use twilight_http::Client as Http;
+use twilight_model::id::*;
+use twilight_standby::Standby;
 
 use crate::cache::*;
 use crate::utils::{Database, Roblox};

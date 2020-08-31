@@ -1,4 +1,4 @@
-use twilight::model::{
+use twilight_model::{
     guild::Permissions,
     id::{RoleId, GuildId},
 };

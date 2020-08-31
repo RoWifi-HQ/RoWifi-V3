@@ -6,14 +6,12 @@ pub mod prelude;
 mod structures;
 pub mod utils;
 
-use twilight::{
-    gateway::Event,
-    model::{
-        channel::Message,
-        guild::Permissions
-    },
-    command_parser::Arguments
+use twilight_gateway::Event;
+use twilight_model::{
+    channel::Message,
+    guild::Permissions
 };
+use twilight_command_parser::Arguments;
 use uwl::Stream;
 
 use context::Context;
