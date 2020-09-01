@@ -1,5 +1,6 @@
 mod new;
 mod modify;
+mod delete;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -11,6 +12,7 @@ use tokio::stream::StreamExt;
 
 pub use new::*;
 pub use modify::*;
+pub use delete::*;
 
 pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -22,7 +24,7 @@ pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND]
+    sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND, &GROUPBINDS_DELETE_COMMAND]
 };
 
 pub static GROUPBINDS_COMMAND: Command = Command {

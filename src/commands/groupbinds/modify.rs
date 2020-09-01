@@ -4,7 +4,7 @@ use crate::models::guild::RoGuild;
 pub static GROUPBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
     bucket: None,
-    names: &["rankbinds", "rb"],
+    names: &["modify", "m"],
     desc: None,
     usage: None,
     examples: &[],
