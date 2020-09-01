@@ -1,4 +1,5 @@
 mod new;
+mod modify;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -9,6 +10,7 @@ use std::{cmp::{min, max}, time::Duration};
 use tokio::stream::StreamExt;
 
 pub use new::*;
+pub use modify::*;
 
 pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -20,7 +22,7 @@ pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&GROUPBINDS_NEW_COMMAND]
+    sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND]
 };
 
 pub static GROUPBINDS_COMMAND: Command = Command {
