@@ -1,5 +1,4 @@
 use crate::framework::prelude::*;
-use crate::utils::error::RoError;
 
 pub static RANKBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],

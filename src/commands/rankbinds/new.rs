@@ -94,7 +94,7 @@ pub async fn rankbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'fu
     let name = format!("Rank: {}", bind.rank_id);
     let roles_str = bind.discord_roles.iter().map(|r| format!("<@&{}> ", r)).collect::<String>();
     let desc = format!("Prefix: {}\nPriority: {}\nDiscord Roles: {}", bind.prefix, bind.priority, roles_str);
-    let embed = EmbedBuilder::new().default_data().title("Title Addition Sucessful").unwrap()
+    let embed = EmbedBuilder::new().default_data().title("Bind Addition Sucessful").unwrap()
         .color(Color::Red as u32).unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build().unwrap();

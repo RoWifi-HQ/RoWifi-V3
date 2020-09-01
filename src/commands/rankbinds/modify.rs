@@ -1,8 +1,5 @@
 use crate::framework::prelude::*;
-
 use crate::models::guild::RoGuild;
-use crate::utils::error::RoError;
-
 
 pub static RANKBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
