@@ -9,6 +9,7 @@ pub struct RoCommand {
     pub expr: Expression
 }
 
+#[derive(Debug)]
 pub struct RoCommandUser<'rc> {
     pub user: &'rc RoUser,
     pub member: Arc<CachedMember>,
