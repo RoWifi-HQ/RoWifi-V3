@@ -1,5 +1,6 @@
 mod new;
 mod modify;
+mod delete;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -11,6 +12,7 @@ use tokio::stream::StreamExt;
 
 use new::*;
 use modify::*;
+use delete::*;
 
 pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -22,7 +24,7 @@ pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&CUSTOMBINDS_NEW_COMMAND, &CUSTOMBINDS_MODIFY_COMMAND]
+    sub_commands: &[&CUSTOMBINDS_NEW_COMMAND, &CUSTOMBINDS_MODIFY_COMMAND, &CUSTOMBINDS_DELETE_COMMAND]
 };
 
 pub static CUSTOMBINDS_COMMAND: Command = Command {

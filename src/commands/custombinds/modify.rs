@@ -3,6 +3,7 @@ use crate::models::{
     command::*,
     guild::RoGuild
 };
+use itertools::Itertools;
 
 pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -67,8 +68,8 @@ pub async fn custombinds_modify(ctx: &Context, msg: &Message, mut args: Argument
     Ok(())
 }
 
-async fn modify_code(ctx: &Context, msg: &Message, guild: &RoGuild, bind_id: i64, args: Arguments<'_>) -> Result<(), RoError> {
-    let code = args.skip(1).collect::<String>();
+async fn modify_code(ctx: &Context, msg: &Message, guild: &RoGuild, bind_id: i64, mut args: Arguments<'_>) -> Result<(), RoError> {
+    let code = args.join(" ");
     let user = match ctx.database.get_user(msg.author.id.0).await? {
         Some(u) => u,
         None => return Ok(())

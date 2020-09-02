@@ -124,8 +124,8 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
 
     let mut binds = guild.custombinds.iter().map(|c| c.id).collect_vec();
     binds.sort();
-    let id = binds.last().unwrap_or(&1);
-    let bind = CustomBind {id: *id, code: code.to_owned(), prefix, priority, command, discord_roles};
+    let id = binds.last().unwrap_or(&0) + 1;
+    let bind = CustomBind {id, code: code.to_owned(), prefix, priority, command, discord_roles};
     let bind_bson = bson::to_bson(&bind)?;
     let filter = bson::doc! {"_id": guild.id};
     let update = bson::doc! {"$push": {"CustomBinds": bind_bson}};
