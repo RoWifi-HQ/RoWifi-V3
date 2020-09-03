@@ -121,9 +121,9 @@ impl fmt::Debug for CustomBind {
 impl fmt::Display for AssetType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            AssetType::Asset => f.write_str("asset"),
-            AssetType::Badge => f.write_str("badge"),
-            AssetType::Gamepass => f.write_str("gamepass")
+            AssetType::Asset => f.write_str("Asset"),
+            AssetType::Badge => f.write_str("Badge"),
+            AssetType::Gamepass => f.write_str("Gamepass")
         }
     }
 }
