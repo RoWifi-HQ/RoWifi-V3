@@ -1,3 +1,5 @@
+mod new;
+
 use crate::framework::prelude::*;
 use itertools::Itertools;
 use twilight_embed_builder::EmbedFieldBuilder;
@@ -5,6 +7,8 @@ use twilight_mention::Mention;
 use twilight_model::{gateway::payload::ReactionAdd, channel::ReactionType};
 use std::{cmp::{min, max}, time::Duration};
 use tokio::stream::StreamExt;
+
+pub use new::*;
 
 pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],

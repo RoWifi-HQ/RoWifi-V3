@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize, Deserializer};
 use serde_repr::*;
-use std::fmt;
+use std::{fmt, str::FromStr};
 use super::command::RoCommand;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -66,7 +66,7 @@ pub struct AssetBind {
     pub discord_roles: Vec<i64>
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
 #[repr(i8)]
 pub enum AssetType {
     Asset, Badge, Gamepass
@@ -124,6 +124,18 @@ impl fmt::Display for AssetType {
             AssetType::Asset => f.write_str("Asset"),
             AssetType::Badge => f.write_str("Badge"),
             AssetType::Gamepass => f.write_str("Gamepass")
+        }
+    }
+}
+
+impl FromStr for AssetType {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "asset" => Ok(AssetType::Asset),
+            "badge" => Ok(AssetType::Badge),
+            "gamepass" => Ok(AssetType::Gamepass),
+             _ => Err(())
         }
     }
 }
