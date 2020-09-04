@@ -1,4 +1,6 @@
 mod new;
+mod modify;
+mod delete;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -9,6 +11,8 @@ use std::{cmp::{min, max}, time::Duration};
 use tokio::stream::StreamExt;
 
 pub use new::*;
+pub use modify::*;
+pub use delete::*;
 
 pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -20,7 +24,7 @@ pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[&ASSETBINDS_NEW_COMMAND, &ASSETBINDS_MODIFY_COMMAND, &ASSETBINDS_DELETE_COMMAND]
 };
 
 pub static ASSETBINDS_COMMAND: Command = Command {

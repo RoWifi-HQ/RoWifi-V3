@@ -11,7 +11,7 @@ use std::{env, error::Error, sync::Arc};
 use tokio::stream::StreamExt;
 use twilight_gateway::cluster::{ShardScheme, Cluster};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::GatewayIntents;
+use twilight_model::gateway::Intents;
 use twilight_standby::Standby;
 
 use cache::Cache;
@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         .intents(Some(
-            GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS | GatewayIntents::GUILD_MESSAGE_REACTIONS
+            Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::GUILD_MEMBERS | Intents::GUILD_MESSAGE_REACTIONS
         ))
         .http_client(http.clone())
         .build().await?;
