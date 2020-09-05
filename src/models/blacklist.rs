@@ -18,7 +18,7 @@ pub enum BlacklistType {
 impl Blacklist {
     pub fn evaluate(&self, user: &RoCommandUser) -> Result<bool, String> {
         match &self.blacklist_type {
-            BlacklistType::Name(name) => Ok(user.username == name),
+            BlacklistType::Name(name) => Ok(user.user.roblox_id.to_string().eq(name)),
             BlacklistType::Group(id) => Ok(user.ranks.contains_key(id)),
             BlacklistType::Custom(cmd) => Ok(cmd.evaluate(user)?)
         }
