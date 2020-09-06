@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use serde_repr::*;
-use std::default::Default;
+use std::{default::Default, fmt};
 use super::{bind::*, blacklist::*};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,10 +56,12 @@ pub struct GuildSettings {
     pub blacklist_action: BlacklistActionType,
 
     #[serde(rename = "UpdateOnJoin")]
-    pub update_on_join: Option<bool>,
+    #[serde(default)]
+    pub update_on_join: bool,
 
     #[serde(rename = "UpdateOnVerify")]
-    pub update_on_verify: Option<bool>
+    #[serde(default)]
+    pub update_on_verify: bool
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -77,5 +79,25 @@ pub enum BlacklistActionType {
 impl Default for BlacklistActionType {
     fn default() -> Self {
         BlacklistActionType::None
+    }
+}
+
+impl fmt::Display for BlacklistActionType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BlacklistActionType::None => write!(f, "None"),
+            BlacklistActionType::Kick=> write!(f, "Kick"),
+            BlacklistActionType::Ban => write!(f, "Ban")
+        }
+    }
+}
+
+impl fmt::Display for GuildType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GuildType::Alpha => write!(f, "Alpha"),
+            GuildType::Beta => write!(f, "Beta"),
+            GuildType::Normal => write!(f, "Normal")
+        }
     }
 }
