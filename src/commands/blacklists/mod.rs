@@ -1,6 +1,7 @@
 mod name;
 mod group;
 mod custom;
+mod delete;
 
 use crate::framework::prelude::*;
 use itertools::Itertools;
@@ -12,6 +13,7 @@ use tokio::stream::StreamExt;
 pub use name::*;
 pub use group::*;
 pub use custom::*;
+pub use delete::*;
 
 pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -23,7 +25,7 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&BLACKLISTS_NAME_COMMAND]
+    sub_commands: &[&BLACKLISTS_NAME_COMMAND, &BLACKLISTS_GROUP_COMMAND, &BLACKLISTS_CUSTOM_COMMAND, &BLACKLISTS_DELETE_COMMAND]
 };
 
 pub static BLACKLISTS_COMMAND: Command = Command {

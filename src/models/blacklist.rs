@@ -73,9 +73,9 @@ impl<'de> Deserialize<'de> for Blacklist {
 impl fmt::Debug for BlacklistType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BlacklistType::Name(name) => write!(f, "{}", name),
-            BlacklistType::Group(id) => write!(f, "{}", id),
-            BlacklistType::Custom(cmd) => write!(f, "{}", cmd)
+            BlacklistType::Name(_) => write!(f, "Name"),
+            BlacklistType::Group(_) => write!(f, "Group"),
+            BlacklistType::Custom(_) => write!(f, "Custom")
         }
     }
 }

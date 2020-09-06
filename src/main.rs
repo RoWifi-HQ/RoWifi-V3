@@ -60,7 +60,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&RANKBINDS_COMMAND)
         .command(&GROUPBINDS_COMMAND)
         .command(&CUSTOMBINDS_COMMAND)
-        .command(&ASSETBINDS_COMMAND);
+        .command(&ASSETBINDS_COMMAND)
+        .command(&BLACKLISTS_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
 

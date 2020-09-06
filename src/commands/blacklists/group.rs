@@ -5,7 +5,7 @@ use itertools::Itertools;
 pub static BLACKLISTS_GROUP_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
     bucket: None,
-    names: &["name"],
+    names: &["group"],
     desc: None,
     usage: None,
     examples: &[],
