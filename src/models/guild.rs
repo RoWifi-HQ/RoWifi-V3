@@ -3,7 +3,7 @@ use serde_repr::*;
 use std::{default::Default, fmt};
 use super::{bind::*, blacklist::*};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RoGuild {
     #[serde(rename = "_id")]
     pub id: i64,
@@ -43,7 +43,7 @@ pub struct RoGuild {
     pub disabled_channels: Vec<i64>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct GuildSettings {
     #[serde(rename = "AutoDetection")]
     pub auto_detection: bool,
@@ -74,6 +74,12 @@ pub enum GuildType {
 #[repr(i8)]
 pub enum BlacklistActionType {
     None, Kick, Ban
+}
+
+impl Default for GuildType {
+    fn default() -> Self {
+        GuildType::Normal
+    }
 }
 
 impl Default for BlacklistActionType {

@@ -18,6 +18,19 @@ impl Database {
         }
     }
 
+    pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<(), RoError> {
+        let guilds = self.client.database("RoWifi").collection("guilds");
+        let guild_bson = bson::to_bson(&guild)?;
+        if let Bson::Document(g) = guild_bson {
+            if replace {
+                let _ = guilds.find_one_and_replace(doc! {"_id": guild.id}, g, FindOneAndReplaceOptions::default()).await?;
+            } else {
+                let _ = guilds.insert_one(g, InsertOneOptions::default()).await?;
+            }
+        }
+        Ok(())
+    }
+
     pub async fn get_guild(&self, guild_id: u64) -> Result<Option<RoGuild>, RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let result = guilds.find_one(doc! {"_id": guild_id}, FindOneOptions::default()).await?;

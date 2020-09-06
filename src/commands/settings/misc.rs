@@ -67,7 +67,6 @@ pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<
     Ok(())
 }
 
-//TODO: Not sure what's happening here, this is not working
 #[command]
 pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
@@ -82,8 +81,8 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
     };
     
     let update = match option.to_lowercase().as_str() {
-        "on" => bson::doc! {"$pull": {"Settings.DisabledChannels": msg.channel_id.0}},
-        "off" => bson::doc! {"$push": {"Settings.DisabledChannels": msg.channel_id.0}},
+        "on" => bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}},
+        "off" => bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}},
         _ => return Ok(())
     };
     let filter = bson::doc! {"_id": guild.id};

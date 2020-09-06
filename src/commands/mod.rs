@@ -5,6 +5,7 @@ mod custombinds;
 mod assetbinds;
 mod blacklists;
 mod settings;
+mod group;
 
 pub use user::*;
 pub use rankbinds::*;
@@ -13,3 +14,4 @@ pub use custombinds::*;
 pub use assetbinds::*;
 pub use blacklists::*;
 pub use settings::*;
+pub use group::*;
