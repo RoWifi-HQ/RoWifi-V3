@@ -5,6 +5,7 @@ mod commands;
 mod framework;
 mod models;
 mod rolang;
+mod services;
 mod utils;
 
 use std::{env, error::Error, sync::Arc};
@@ -17,6 +18,7 @@ use twilight_standby::Standby;
 use cache::Cache;
 use commands::*;
 use framework::{context::Context, Framework};
+use services::*;
 use utils::{Database, Roblox};
 
 #[tokio::main]
@@ -66,6 +68,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&SETUP_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
+
+    let context_ad = context.clone();
+    tokio::spawn(async move{
+        let _ = auto_detection(context_ad).await;
+    });
 
     let mut events = cluster.events();
     while let Some(event) = events.next().await {

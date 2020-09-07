@@ -75,10 +75,18 @@ impl Cache {
         self.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
     }
 
+    pub fn guilds(&self) -> Vec<u64> {
+        self.guilds.iter().map(|g| g.id.0).collect::<Vec<_>>()
+    }
+
     pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
         self.members
             .get(&(guild_id, user_id))
             .map(|m| Arc::clone(m.value()))
+    }
+
+    pub fn members(&self, guild_id: GuildId) -> HashSet<UserId> {
+        self.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
     }
 
     pub fn bypass_roles(&self, guild_id: GuildId) -> Arc<(Option<RoleId>, Option<RoleId>)> {

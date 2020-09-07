@@ -30,7 +30,7 @@ pub struct QueueUser{
 }
 
 impl RoUser {
-    pub async fn update(&self, http: Http, member: Arc<CachedMember>, rbx: Roblox, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: HashSet<RoleId>) 
+    pub async fn update(&self, http: Http, member: Arc<CachedMember>, rbx: Roblox, server: Arc<CachedGuild>, guild: &RoGuild, guild_roles: &HashSet<RoleId>) 
         -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();

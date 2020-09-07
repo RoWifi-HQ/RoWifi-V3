@@ -101,7 +101,7 @@ impl Database {
         }
     }
 
-    pub async fn get_users(&self, user_ids: Vec<&u64>) -> Result<Vec<RoUser>, RoError> {
+    pub async fn get_users(&self, user_ids: Vec<u64>) -> Result<Vec<RoUser>, RoError> {
         let users = self.client.database("RoWifi").collection("users");
         let filter = doc! {"_id": {"$in": user_ids}};
         let mut cursor = users.find(filter, FindOptions::default()).await?;
