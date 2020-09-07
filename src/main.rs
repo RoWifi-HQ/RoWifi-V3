@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let database = Database::new(&conn_string).await;
     let roblox = Roblox::new();
 
-    let context = Context::new(0, http, cache, database, roblox, standby);
+    let context = Context::new(0, http, cache, database, roblox, standby, cluster);
     let framework = Framework::default()
         .configure(|c| c
             .default_prefix("?")
@@ -68,19 +68,23 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&SETUP_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
+    let event_handler = EventHandler::default();
 
     let context_ad = context.clone();
     tokio::spawn(async move{
         let _ = auto_detection(context_ad).await;
     });
 
-    let mut events = cluster.events();
+    let mut events = context.cluster.events();
     while let Some(event) = events.next().await {
         let c = context.clone();
         let f = Arc::clone(&framework);
+        let e = event_handler.clone();
         context.cache.update(&event.1).expect("Failed to update cache");
         context.standby.process(&event.1);
+        
         tokio::spawn(async move {
+            e.handle_event(event.0, &event.1, c.clone()).await;
             f.handle_event(event.1, c).await;
         });
     }

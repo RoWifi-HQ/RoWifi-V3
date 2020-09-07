@@ -71,7 +71,6 @@ impl UpdateCache for ChannelUpdate {
 
 impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        println!("{:?}", self.0.members);
         c.cache_guild(self.0.clone());
         Ok(())
     }
@@ -147,7 +146,7 @@ impl UpdateCache for MemberChunk {
         if self.members.is_empty() {
             return Ok(());
         }
-
+        debug!(id = ?self.guild_id, "Received event for Guild Members Chunk for");
         c.cache_members(self.guild_id, self.members.values().cloned());
         Ok(())
     }

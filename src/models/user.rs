@@ -128,19 +128,16 @@ impl RoUser {
         }
 
         let update = http.update_guild_member(server.id, member.user.id);
-        println!("{:?} {:?}", added_roles, removed_roles);
         let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = member.roles.clone();
         roles.extend_from_slice(&added_roles);
         roles.retain(|r| !removed_roles.contains(r));
-        println!("{:?} {:?}", added_roles, removed_roles);
         
-        let nick_changes = false;//disc_nick != display_name;
+        let nick_changes = disc_nick != display_name;
         
 
         if role_changes || nick_changes {
-            //update.roles(roles).nick(disc_nick.to_string()).unwrap().await?;
-            update.roles(roles).await?;
+            update.roles(roles).nick(disc_nick.to_string()).unwrap().await?;
         }
 
         Ok((added_roles, removed_roles, disc_nick.to_string()))

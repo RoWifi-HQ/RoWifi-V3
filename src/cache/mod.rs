@@ -220,6 +220,8 @@ impl Cache {
 
     pub fn cache_guild(&self, guild: Guild) {
         self.guild_roles.insert(guild.id, HashSet::new());
+        self.guild_channels.insert(guild.id, HashSet::new());
+        self.guild_members.insert(guild.id, HashSet::new());
         self.bypass_role.insert(guild.id, Arc::new((None, None)));
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));

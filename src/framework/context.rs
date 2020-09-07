@@ -2,6 +2,7 @@ use std::sync::Arc;
 use twilight_http::Client as Http;
 use twilight_model::id::*;
 use twilight_standby::Standby;
+use twilight_gateway::Cluster;
 
 use crate::cache::*;
 use crate::utils::{Database, Roblox};
@@ -13,18 +14,20 @@ pub struct Context {
     pub cache: Arc<Cache>,
     pub database: Database,
     pub roblox: Roblox,
-    pub standby: Standby
+    pub standby: Standby,
+    pub cluster: Cluster
 }
 
 impl Context {
-    pub fn new(shard_id: u64, http: Http, cache: Arc<Cache>, database: Database, roblox: Roblox, standby: Standby) -> Self {
+    pub fn new(shard_id: u64, http: Http, cache: Arc<Cache>, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster) -> Self {
         Self {
             shard_id,
             http,
             cache,
             database,
             roblox,
-            standby
+            standby,
+            cluster
         }
     }
 
