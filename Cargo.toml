@@ -20,7 +20,6 @@ kankyo = "0.2"
 lazy_static = "*"
 rand = "*"
 regex = "*"
-reqwest = { version = "0.10", features = ["rustls-tls"] }
 serde = "1.0"
 serde_json = "1.0"
 serde_repr = "0.1"
@@ -29,7 +28,6 @@ tokio = { version = "0.2", features = ["full"] }
 tracing = "0.1"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
-
 twilight-command-parser = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 twilight-gateway = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
@@ -37,12 +35,16 @@ twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilig
 twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 twilight-standby = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-
 uwl = "*"
 
 [dependencies.mongodb]
 git = "https://github.com/mongodb/mongo-rust-driver"
 branch = "master"
+
+[dependencies.reqwest]
+version = "0.10"
+default-features = false
+features = ["json", "rustls-tls"]
 
 [dependencies.attributes]
 path = "./src/attributes"

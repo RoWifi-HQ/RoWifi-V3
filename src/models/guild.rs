@@ -64,7 +64,7 @@ pub struct GuildSettings {
     pub update_on_verify: bool
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
 #[repr(i8)]
 pub enum GuildType {
     Alpha, Beta, Normal
