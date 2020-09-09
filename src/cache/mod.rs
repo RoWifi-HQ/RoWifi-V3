@@ -89,6 +89,10 @@ impl Cache {
         self.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
     }
 
+    pub fn member_count(&self, guild_id: GuildId) -> usize {
+        self.guild_members.get(&guild_id).map_or_else(|| 0, |g| g.value().len())
+    }
+
     pub fn bypass_roles(&self, guild_id: GuildId) -> Arc<(Option<RoleId>, Option<RoleId>)> {
         self.bypass_role
             .get(&guild_id)

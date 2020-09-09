@@ -65,7 +65,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&ASSETBINDS_COMMAND)
         .command(&BLACKLISTS_COMMAND)
         .command(&SETTINGS_COMMAND)
-        .command(&SETUP_COMMAND);
+        .command(&SETUP_COMMAND)
+        .command(&UPDATE_ALL_COMMAND)
+        .command(&UPDATE_ROLE_COMMAND)
+        .command(&SERVERINFO_COMMAND);
 
     let framework = Arc::new(Box::new(framework));
     let event_handler = EventHandler::default();
