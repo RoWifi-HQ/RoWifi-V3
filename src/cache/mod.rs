@@ -71,6 +71,10 @@ impl Cache {
         Self::default()
     }
 
+    pub fn current_user(&self) -> Option<Arc<CurrentUser>> {
+        self.current_user.lock().expect("Current user poisoned").clone()
+    }
+
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
         self.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
     }
@@ -107,6 +111,10 @@ impl Cache {
         self.guild_roles
             .get(&guild_id)
             .map_or_else(HashSet::new, |gr| gr.value().clone())
+    }
+
+    pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
+        self.users.get(&user_id).map(|u| Arc::clone(u.value()))
     }
 
     pub fn update<T: UpdateCache>(&self, value: &T) -> Result<(), CacheError> {
