@@ -2,13 +2,14 @@ use serde::{Serialize, Deserialize, Deserializer, Serializer, ser::SerializeStru
 use std::fmt;
 use super::command::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Blacklist {
     pub id: String,
     pub reason: String,
     pub blacklist_type: BlacklistType
 }
 
+#[derive(Clone)]
 pub enum BlacklistType {
     Name(String), 
     Group(i64), 

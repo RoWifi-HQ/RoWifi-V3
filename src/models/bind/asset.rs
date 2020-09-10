@@ -1,6 +1,10 @@
-use std::{fmt, str::FromStr};
+use std::{fmt, str::FromStr, collections::HashMap, sync::Arc};
 use serde::{Serialize, Deserialize};
 use serde_repr::*;
+use twilight_model::id::RoleId;
+
+use super::Backup;
+use crate::cache::CachedRole;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AssetBind {
@@ -14,7 +18,19 @@ pub struct AssetBind {
     pub discord_roles: Vec<i64>
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupAssetBind {
+    #[serde(rename = "_id")]
+    pub id: i64,
+
+    #[serde(rename = "Type")]
+    pub asset_type: AssetType,
+
+    #[serde(rename = "DiscordRoles")]
+    pub discord_roles: Vec<String>
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
 #[repr(i8)]
 pub enum AssetType {
     Asset, Badge, Gamepass
@@ -38,6 +54,25 @@ impl FromStr for AssetType {
             "badge" => Ok(AssetType::Badge),
             "gamepass" => Ok(AssetType::Gamepass),
              _ => Err(())
+        }
+    }
+}
+
+impl Backup for AssetBind {
+    type Bind = BackupAssetBind;
+
+    fn to_backup(&self, roles: &HashMap<RoleId, Arc<CachedRole>>) -> Self::Bind {
+        let mut discord_roles = Vec::new();
+        for role_id in self.discord_roles.iter() {
+            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+                discord_roles.push(role.name.clone());
+            }
+        }
+
+        BackupAssetBind {
+            id: self.id,
+            asset_type: self.asset_type,
+            discord_roles
         }
     }
 }

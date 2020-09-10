@@ -1,5 +1,9 @@
 use serde::{Serialize, Deserialize, Deserializer};
-use std::fmt;
+use std::{collections::HashMap, sync::Arc, fmt};
+use twilight_model::id::RoleId;
+
+use super::Backup;
+use crate::cache::CachedRole;
 use crate::models::command::RoCommand;
 
 #[derive(Serialize)]
@@ -21,6 +25,24 @@ pub struct CustomBind {
 
     #[serde(skip_serializing)]
     pub command: RoCommand
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupCustomBind {
+    #[serde(rename = "_id")]
+    pub id: i64,
+
+    #[serde(rename = "DiscordRoles")]
+    pub discord_roles: Vec<String>,
+
+    #[serde(rename = "Code")]
+    pub code: String,
+
+    #[serde(rename = "Prefix")]
+    pub prefix: String,
+
+    #[serde(rename = "Priority")]
+    pub priority: i64,
 }
 
 impl<'de> Deserialize<'de> for CustomBind {
@@ -66,5 +88,26 @@ impl fmt::Debug for CustomBind {
             .field("Prefix", &self.prefix)
             .field("Priority", &self.priority)
             .finish()
+    }
+}
+
+impl Backup for CustomBind {
+    type Bind = BackupCustomBind;
+
+    fn to_backup(&self, roles: &HashMap<RoleId, Arc<CachedRole>>) -> Self::Bind {
+        let mut discord_roles = Vec::new();
+        for role_id in self.discord_roles.iter() {
+            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+                discord_roles.push(role.name.clone());
+            }
+        }
+
+        BackupCustomBind {
+            id: self.id,
+            discord_roles,
+            code: self.code.clone(),
+            priority: self.priority,
+            prefix: self.prefix.clone()
+        }
     }
 }

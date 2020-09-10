@@ -3,6 +3,7 @@ use twilight_model::id::RoleId;
 use super::{token::*, parser::ParseError};
 use crate::models::command::RoCommandUser;
 
+#[derive(Clone)]
 pub enum Expression {
     Binary(Box<Expression>, Token, Box<Expression>),
     Unary(Token, Box<Expression>),

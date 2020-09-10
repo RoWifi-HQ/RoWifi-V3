@@ -4,6 +4,7 @@ use crate::rolang::{expression::Expression, scanner::Scanner, parser::Parser, to
 use crate::cache::CachedMember;
 use super::user::RoUser;
 
+#[derive(Clone)]
 pub struct RoCommand {
     pub code: String,
     pub expr: Expression
