@@ -1,9 +1,10 @@
+use async_trait::async_trait;
 use serde::{Serialize, Deserialize, Deserializer};
 use std::{collections::HashMap, sync::Arc, fmt};
-use twilight_model::id::RoleId;
+use twilight_model::id::{RoleId, GuildId};
 
 use super::Backup;
-use crate::cache::CachedRole;
+use crate::{cache::CachedRole, framework::context::Context};
 use crate::models::command::RoCommand;
 
 #[derive(Serialize)]
@@ -91,6 +92,7 @@ impl fmt::Debug for CustomBind {
     }
 }
 
+#[async_trait]
 impl Backup for CustomBind {
     type Bind = BackupCustomBind;
 
@@ -108,6 +110,31 @@ impl Backup for CustomBind {
             code: self.code.clone(),
             priority: self.priority,
             prefix: self.prefix.clone()
+        }
+    }
+
+    async fn from_backup(ctx: &Context, guild_id: GuildId, bind: Self::Bind, roles: &Vec<Arc<CachedRole>>) -> Self {
+        let mut discord_roles = Vec::new();
+        for role_name in bind.discord_roles {
+            let role = match roles.iter().find(|r| r.name.eq_ignore_ascii_case(&role_name)) {
+                Some(r) => r.id.0 as i64,
+                None => {
+                    let role = ctx.http.create_role(guild_id).name(role_name).await.expect("Error creating a role");
+                    role.id.0 as i64
+                }
+            };
+            discord_roles.push(role);
+        }
+
+        let command = RoCommand::new(&bind.code).unwrap();
+
+        CustomBind {
+            id: bind.id,
+            discord_roles,
+            code: bind.code.clone(),
+            priority: bind.priority,
+            prefix: bind.prefix.clone(),
+            command
         }
     }
 }

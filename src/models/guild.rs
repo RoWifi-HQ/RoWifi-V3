@@ -70,17 +70,17 @@ pub struct BackupGuild {
     #[serde(rename = "VerifiedRole")]
     pub verified_role: Option<String>,
 
-    #[serde(rename = "RankBinds")]
+    #[serde(rename = "Rankbinds")]
     pub rankbinds: Vec<BackupRankBind>,
 
-    #[serde(rename = "GroupBinds")]
+    #[serde(rename = "Groupbinds")]
     pub groupbinds: Vec<BackupGroupBind>,
 
-    #[serde(rename = "CustomBinds")]
+    #[serde(rename = "Custombinds")]
     #[serde(default)]
     pub custombinds: Vec<BackupCustomBind>,
 
-    #[serde(rename = "AssetBinds")]
+    #[serde(rename = "Assetbinds")]
     #[serde(default)]
     pub assetbinds: Vec<BackupAssetBind>,
 

@@ -1,10 +1,11 @@
+use async_trait::async_trait;
 use std::{fmt, str::FromStr, collections::HashMap, sync::Arc};
 use serde::{Serialize, Deserialize};
 use serde_repr::*;
-use twilight_model::id::RoleId;
+use twilight_model::id::{RoleId, GuildId};
 
 use super::Backup;
-use crate::cache::CachedRole;
+use crate::{cache::CachedRole, framework::context::Context};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AssetBind {
@@ -58,6 +59,7 @@ impl FromStr for AssetType {
     }
 }
 
+#[async_trait]
 impl Backup for AssetBind {
     type Bind = BackupAssetBind;
 
@@ -72,6 +74,26 @@ impl Backup for AssetBind {
         BackupAssetBind {
             id: self.id,
             asset_type: self.asset_type,
+            discord_roles
+        }
+    }
+
+    async fn from_backup(ctx: &Context, guild_id: GuildId, bind: Self::Bind, roles: &Vec<Arc<CachedRole>>) -> Self {
+        let mut discord_roles = Vec::new();
+        for role_name in bind.discord_roles {
+            let role = match roles.iter().find(|r| r.name.eq_ignore_ascii_case(&role_name)) {
+                Some(r) => r.id.0 as i64,
+                None => {
+                    let role = ctx.http.create_role(guild_id).name(role_name).await.expect("Error creating a role");
+                    role.id.0 as i64
+                }
+            };
+            discord_roles.push(role);
+        }
+
+        AssetBind {
+            id: bind.id,
+            asset_type: bind.asset_type,
             discord_roles
         }
     }

@@ -1,7 +1,10 @@
 use bson::{doc, Bson, document::Document};
 use mongodb::{Client, options::*};
 use futures::stream::StreamExt;
-use crate::models::{guild::RoGuild, user::*};
+use crate::models::{
+    guild::{RoGuild, BackupGuild}, 
+    user::*
+};
 use super::error::RoError;
 
 #[derive(Clone)]
@@ -114,4 +117,28 @@ impl Database {
         }
         Ok(result)
     }   
+
+    pub async fn get_backup(&self, user_id: u64, name: String) -> Result<Option<BackupGuild>, RoError> {
+        let backups = self.client.database("RoWifi").collection("backups");
+        let filter = doc! {"UserId": user_id, "Name": name};
+        let result = backups.find_one(filter, FindOneOptions::default()).await?;
+        match result {
+            Some(b) => Ok(Some(bson::from_bson::<BackupGuild>(Bson::Document(b))?)),
+            None => Ok(None)
+        }
+    }
+
+    pub async fn get_backups(&self, user_id: u64) -> Result<Vec<BackupGuild>, RoError> {
+        let backups = self.client.database("RoWifi").collection("backups");
+        let filter = doc! {"UserId": user_id};
+        let mut cursor = backups.find(filter, FindOptions::default()).await?;
+        let mut result = Vec::<BackupGuild>::new();
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(document) => result.push(bson::from_bson::<BackupGuild>(Bson::Document(document))?),
+                Err(e) => return Err(e.into())
+            }
+        }
+        Ok(result)
+    }
 }
