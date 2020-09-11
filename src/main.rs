@@ -29,6 +29,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let token = env::var("DISC_TOKEN")?;
     let conn_string = env::var("DB_CONN")?;
+    let premium_features = env::var("PREMIUM_FEATURES")?.as_str().parse::<bool>()?;
+
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
 
@@ -76,10 +78,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let framework = Arc::new(Box::new(framework));
     let event_handler = EventHandler::default();
 
-    let context_ad = context.clone();
-    tokio::spawn(async move{
-        let _ = auto_detection(context_ad).await;
-    });
+    if premium_features {
+        let context_ad = context.clone();
+        tokio::spawn(async move{
+            let _ = auto_detection(context_ad).await;
+        });
+    }
 
     let mut events = context.cluster.events();
     while let Some(event) = events.next().await {

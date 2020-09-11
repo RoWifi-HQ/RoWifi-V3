@@ -116,7 +116,27 @@ impl Database {
             }
         }
         Ok(result)
-    }   
+    }
+    
+    pub async fn add_backup(&self, mut backup: BackupGuild, name: String) -> Result<(), RoError> {
+        let backups = self.client.database("RoWifi").collection("backups");
+        match self.get_backup(backup.user_id as u64, name).await? {
+            Some(b) => {
+                backup.id = b.id;
+                let backup_bson = bson::to_bson(&backup)?;
+                if let Bson::Document(b) = backup_bson {
+                    let _ = backups.find_one_and_replace(doc! {"UserId": backup.user_id, "Name": backup.name}, b, FindOneAndReplaceOptions::default()).await?;
+                }
+            },
+            None => {
+                let backup_bson = bson::to_bson(&backup)?;
+                if let Bson::Document(b) = backup_bson {
+                    let _ = backups.insert_one(b, InsertOneOptions::default()).await?;
+                }
+            }
+        }
+        Ok(())
+    }
 
     pub async fn get_backup(&self, user_id: u64, name: String) -> Result<Option<BackupGuild>, RoError> {
         let backups = self.client.database("RoWifi").collection("backups");
