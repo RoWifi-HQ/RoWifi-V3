@@ -2,10 +2,11 @@ use itertools::Itertools;
 use serde::{Serialize, Deserialize};
 use serde_repr::*;
 use std::{default::Default, fmt, collections::HashMap, sync::Arc};
-use twilight_model::id::RoleId;
+use twilight_model::id::{RoleId, GuildId};
 
 use super::{bind::*, blacklist::*};
 use crate::cache::CachedRole;
+use crate::framework::context::Context;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct RoGuild {
@@ -174,6 +175,71 @@ impl RoGuild {
             custombinds,
             assetbinds,
             blacklists: self.blacklists.clone()
+        }
+    }
+
+    pub async fn from_backup(backup: BackupGuild, ctx: &Context, guild_id: GuildId, existing_roles: &Vec<Arc<CachedRole>>) -> Self {
+        let mut names_to_ids = HashMap::<String, RoleId>::new();
+
+        let all_roles = backup.rankbinds.iter()
+            .flat_map(|r| r.discord_roles.iter().map(|r| r.clone()))
+            .chain(backup.groupbinds.iter().flat_map(|g| g.discord_roles.iter().map(|r| r.clone())))
+            .chain(backup.custombinds.iter().flat_map(|c| c.discord_roles.iter().map(|r| r.clone())))
+            .chain(backup.assetbinds.iter().flat_map(|a| a.discord_roles.iter().map(|r| r.clone())))
+            .unique()
+            .collect::<Vec<String>>();
+        for role_name in all_roles {
+            if let Some(r) = existing_roles.iter().find(|r| r.name.eq_ignore_ascii_case(&role_name)) {
+                names_to_ids.insert(role_name, r.id);
+            } else {
+                let role = ctx.http.create_role(guild_id).name(role_name).await.expect("Error creating a role");
+                names_to_ids.insert(role.name, role.id);
+            }
+        }
+
+        let rankbinds = backup.rankbinds.iter().map(|bind| RankBind::from_backup(bind, &names_to_ids)).collect_vec();
+        let groupbinds = backup.groupbinds.iter().map(|bind| GroupBind::from_backup(bind, &names_to_ids)).collect_vec();
+        let custombinds = backup.custombinds.iter().map(|bind| CustomBind::from_backup(bind, &names_to_ids)).collect_vec();
+        let assetbinds = backup.assetbinds.iter().map(|bind| AssetBind::from_backup(bind, &names_to_ids)).collect_vec();
+
+        let verification_role = if let Some(verification_name) = backup.verification_role {
+            if let Some(r) = names_to_ids.get(&verification_name) {
+                r.0 as i64
+            } else if let Some(r) = existing_roles.iter().find(|e| e.name.eq(&verification_name)) {
+                r.id.0 as i64
+            } else {
+                let role = ctx.http.create_role(guild_id).name(verification_name).await.expect("Error creating a role");
+                role.id.0 as i64
+            }
+        } else {
+            0
+        };
+
+        let verified_role = if let Some(verified_name) = backup.verified_role {
+            if let Some(r) = names_to_ids.get(&verified_name) {
+                r.0 as i64
+            } else if let Some(r) = existing_roles.iter().find(|e| e.name.eq(&verified_name)) {
+                r.id.0 as i64
+            } else {
+                let role = ctx.http.create_role(guild_id).name(verified_name).await.expect("Error creating a role");
+                role.id.0 as i64
+            }
+        } else {
+            0
+        };
+
+        Self {
+            id: guild_id.0 as i64,
+            command_prefix: backup.command_prefix,
+            settings: backup.settings,
+            verification_role,
+            verified_role,
+            rankbinds,
+            groupbinds,
+            custombinds,
+            assetbinds,
+            blacklists: backup.blacklists,
+            disabled_channels: Vec::new()
         }
     }
 }

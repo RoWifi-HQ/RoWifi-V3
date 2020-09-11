@@ -1,9 +1,11 @@
 mod new;
+mod restore;
 
 use crate::framework::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use new::*;
+pub use restore::*;
 
 pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     allowed_roles: &[],
@@ -15,7 +17,7 @@ pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&BACKUP_NEW_COMMAND]
+    sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND]
 };
 
 pub static BACKUP_COMMAND: Command = Command {

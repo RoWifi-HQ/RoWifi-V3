@@ -1,10 +1,9 @@
-use async_trait::async_trait;
 use serde::{Serialize, Deserialize};
 use std::{collections::HashMap, sync::Arc};
-use twilight_model::id::{RoleId, GuildId};
+use twilight_model::id::RoleId;
 
 use super::Backup;
-use crate::{cache::CachedRole, framework::context::Context};
+use crate::cache::CachedRole;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GroupBind {
@@ -24,7 +23,6 @@ pub struct BackupGroupBind {
     pub discord_roles: Vec<String>
 }
 
-#[async_trait]
 impl Backup for GroupBind {
     type Bind = BackupGroupBind;
 
@@ -42,16 +40,10 @@ impl Backup for GroupBind {
         }
     }
 
-    async fn from_backup(ctx: &Context, guild_id: GuildId, bind: Self::Bind, roles: &Vec<Arc<CachedRole>>) -> Self {
+    fn from_backup(bind: &Self::Bind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
-        for role_name in bind.discord_roles {
-            let role = match roles.iter().find(|r| r.name.eq_ignore_ascii_case(&role_name)) {
-                Some(r) => r.id.0 as i64,
-                None => {
-                    let role = ctx.http.create_role(guild_id).name(role_name).await.expect("Error creating a role");
-                    role.id.0 as i64
-                }
-            };
+        for role_name in bind.discord_roles.iter() {
+            let role = roles.get(role_name).unwrap().0 as i64;
             discord_roles.push(role);
         }
 

@@ -50,6 +50,7 @@ pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Comm
 
     let mut replace = false;
     let mut guild = RoGuild::default();
+    guild.id = msg.guild_id.unwrap().0 as i64;
     guild.verification_role = verification_role as i64;
     guild.verified_role = verified_role as i64;
     if let Some(existing) = existing_guild {

@@ -38,7 +38,6 @@ pub async fn backup_new(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
     }
 
     let backup = guild.to_backup(msg.author.id.0 as i64, &name, &roles);
-    println!("{:?}", backup);
     ctx.database.add_backup(backup, name.clone()).await?;
     let _ = ctx.http.create_message(msg.channel_id).content(format!("New backup with {} was created", name)).unwrap().await?;
     Ok(())
