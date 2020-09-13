@@ -113,6 +113,17 @@ impl Cache {
             .map_or_else(HashSet::new, |gr| gr.value().clone())
     }
 
+    pub fn guild_roles(&self, guild_id: GuildId) -> Vec<Arc<CachedRole>> {
+        let roles = self.roles(guild_id);
+        let mut guild_roles = Vec::new();
+        for role_id in roles {
+            if let Some(role) = self.role(role_id) {
+                guild_roles.push(role);
+            }
+        }
+        guild_roles
+    }
+
     pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
         self.users.get(&user_id).map(|u| Arc::clone(u.value()))
     }

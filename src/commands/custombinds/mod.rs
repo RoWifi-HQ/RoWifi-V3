@@ -3,12 +3,10 @@ mod modify;
 mod delete;
 
 use crate::framework::prelude::*;
+use crate::utils::pagination::paginate_embed;
 use itertools::Itertools;
 use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_mention::Mention;
-use twilight_model::{gateway::payload::ReactionAdd, channel::ReactionType};
-use std::{cmp::{min, max}, time::Duration};
-use tokio::stream::StreamExt;
 
 use new::*;
 use modify::*;
@@ -62,57 +60,6 @@ pub async fn custombind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         pages.push(embed.build().unwrap());
         page_count += 1;
     }
-
-    if page_count <= 1 {
-        let _ = ctx.http.create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
-    } else {
-        let m = ctx.http.create_message(msg.channel_id).embed(pages[0].clone()).unwrap().await?;
-
-        //Get some easy named vars
-        let channel_id = m.channel_id;
-        let message_id = m.id;
-        let author_id = msg.author.id;
-        let http = ctx.http.clone();
-
-        //Don't wait up for the reactions to show
-        tokio::spawn(async move {
-            let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("⏮️") }).await;
-            let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("◀️") }).await;
-            let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("▶️") }).await;
-            let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("⏭️") }).await;
-            let _ = http.create_reaction(channel_id, message_id, ReactionType::Unicode {name: String::from("⏹️") }).await;
-        });
-
-        let mut reactions = ctx.standby.wait_for_reaction_stream(message_id, move |event: &ReactionAdd| {
-            if event.user_id != author_id {
-                return false;
-            }
-            if let ReactionType::Unicode{name} = &event.emoji {
-                return matches!(&name[..], "⏮️" | "◀️" | "▶️" | "⏭️" | "⏹️")
-            }
-           false
-        }).timeout(Duration::from_secs(60));
-
-        let mut page_pointer: usize = 0;
-        while let Some(Ok(reaction)) = reactions.next().await {
-            if let ReactionType::Unicode{name} = &reaction.emoji {
-                if name == "⏮️" {
-                    page_pointer = 0;
-                } else if name == "◀️" {
-                    page_pointer = max(page_pointer - 1, 0);
-                } else if name == "▶️" {
-                    page_pointer = min(page_pointer + 1, page_count - 1);
-                } else if name == "⏭️" {
-                    page_pointer = page_count - 1;
-                } else if name == "⏹️" {
-                    break;
-                }
-                let _ = ctx.http.update_message(channel_id, message_id).embed(pages[page_pointer].clone()).unwrap().await;
-                let _ = ctx.http.delete_reaction(channel_id, message_id, reaction.emoji.clone(), author_id).await;
-            }
-        }
-        let _ = ctx.http.delete_message(channel_id, message_id).await;
-    }
-
+    paginate_embed(ctx, msg, pages, page_count).await?;
     Ok(())
 }
