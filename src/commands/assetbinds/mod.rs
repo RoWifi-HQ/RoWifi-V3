@@ -24,7 +24,8 @@ pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&ASSETBINDS_NEW_COMMAND, &ASSETBINDS_MODIFY_COMMAND, &ASSETBINDS_DELETE_COMMAND]
+    sub_commands: &[&ASSETBINDS_NEW_COMMAND, &ASSETBINDS_MODIFY_COMMAND, &ASSETBINDS_DELETE_COMMAND],
+    group: Some("Binds")
 };
 
 pub static ASSETBINDS_COMMAND: Command = Command {

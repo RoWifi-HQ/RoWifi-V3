@@ -7,6 +7,7 @@ mod blacklists;
 mod settings;
 mod group;
 mod backup;
+mod help;
 
 pub use user::*;
 pub use rankbinds::*;
@@ -17,3 +18,4 @@ pub use blacklists::*;
 pub use settings::*;
 pub use group::*;
 pub use backup::*;
+pub use help::*;

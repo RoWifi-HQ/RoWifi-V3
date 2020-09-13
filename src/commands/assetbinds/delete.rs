@@ -10,7 +10,8 @@ pub static ASSETBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static ASSETBINDS_DELETE_COMMAND: Command = Command {

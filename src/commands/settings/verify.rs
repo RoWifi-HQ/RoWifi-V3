@@ -10,7 +10,8 @@ pub static SETTINGS_VERIFICATION_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static SETTINGS_VERIFIED_OPTIONS: CommandOptions = CommandOptions {
@@ -23,7 +24,8 @@ pub static SETTINGS_VERIFIED_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static SETTINGS_VERIFICATION_COMMAND: Command = Command {

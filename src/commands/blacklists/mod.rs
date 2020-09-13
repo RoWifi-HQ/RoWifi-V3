@@ -25,7 +25,8 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&BLACKLISTS_NAME_COMMAND, &BLACKLISTS_GROUP_COMMAND, &BLACKLISTS_CUSTOM_COMMAND, &BLACKLISTS_DELETE_COMMAND]
+    sub_commands: &[&BLACKLISTS_NAME_COMMAND, &BLACKLISTS_GROUP_COMMAND, &BLACKLISTS_CUSTOM_COMMAND, &BLACKLISTS_DELETE_COMMAND],
+    group: Some("Administration")
 };
 
 pub static BLACKLISTS_COMMAND: Command = Command {

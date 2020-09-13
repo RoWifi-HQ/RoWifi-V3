@@ -5,6 +5,7 @@ use twilight_command_parser::Arguments;
 use crate::utils::error::RoError;
 
 use super::context::Context;
+use super::map::CommandMap;
 
 pub type CommandError = RoError;
 pub type CommandResult = std::result::Result<(), CommandError>;
@@ -26,18 +27,14 @@ pub struct CommandOptions {
     pub required_permissions: Permissions,
     pub hidden: bool,
     pub owners_only: bool,
-    pub sub_commands: &'static [&'static Command]
+    pub sub_commands: &'static [&'static Command],
+    pub group: Option<&'static str>
 }
 
-pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments, &'fut HelpOptions, &'fut [&'static Command]);
+pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>, &'fut [(&'static Command, CommandMap)]) -> BoxFuture<'fut, CommandResult>;
 
 pub struct HelpCommand {
     pub fun: HelpCommandFn,
-    pub options: &'static HelpOptions
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct HelpOptions {
     pub name: &'static str
 }
 
@@ -63,14 +60,6 @@ impl fmt::Debug for HelpCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("HelpCommand")
             .field("fun", &"<function>")
-            .field("options", &self.options)
             .finish()
-    }
-}
-
-impl PartialEq for HelpCommand {
-    #[inline]
-    fn eq(&self, other: &HelpCommand) -> bool {
-        (self.fun as usize == other.fun as usize) && (self.options == other.options)
     }
 }

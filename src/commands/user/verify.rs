@@ -17,7 +17,8 @@ pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: Some("User")
 };
 
 pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
@@ -30,7 +31,8 @@ pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: Some("User")
 };
 
 pub static VERIFY_COMMAND: Command = Command {

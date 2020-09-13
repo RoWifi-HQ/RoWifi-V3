@@ -10,7 +10,8 @@ pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
@@ -23,7 +24,8 @@ pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static UPDATE_JOIN_COMMAND: Command = Command {

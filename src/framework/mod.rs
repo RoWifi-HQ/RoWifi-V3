@@ -1,9 +1,9 @@
 pub mod context;
 mod configuration;
 mod map;
-mod parser;
+pub mod parser;
 pub mod prelude;
-mod structures;
+pub mod structures;
 pub mod utils;
 
 use twilight_gateway::Event;
@@ -16,7 +16,7 @@ use uwl::Stream;
 
 use context::Context;
 use configuration::Configuration;
-use map::CommandMap;
+pub use map::CommandMap;
 use structures::*;
 use parser::{ParseError, Invoke};
 
@@ -39,6 +39,11 @@ impl Framework {
         self
     }
 
+    pub fn help(mut self, help: &'static HelpCommand) -> Self {
+        self.help = Some(help);
+        self
+    }
+
     async fn dispatch(&self, msg: Message, mut context: Context) {
         if msg.author.bot || msg.webhook_id.is_some() || msg.guild_id.is_none() || msg.content.is_empty() {
             return;
@@ -57,7 +62,7 @@ impl Framework {
             return;
         }
 
-        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.options.name)).await;
+        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.name)).await;
         let invoke = match invocation {
             Ok(i) => i,
             Err(ParseError::UnrecognisedCommand(_)) => {
@@ -67,7 +72,10 @@ impl Framework {
 
         match invoke {
             Invoke::Help => {
-
+                let args = Arguments::new(stream.rest());
+                if let Some(help) = self.help {
+                    let _res = (help.fun)(&mut context, &msg, args, &self.commands).await;
+                }
             },
             Invoke::Command{command} => {
                 // if !self.run_checks(&context, &msg, command).await {

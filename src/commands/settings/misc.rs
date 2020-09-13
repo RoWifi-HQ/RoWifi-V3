@@ -11,7 +11,8 @@ pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
@@ -24,7 +25,8 @@ pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static BLACKLIST_ACTION_COMMAND: Command = Command {

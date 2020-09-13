@@ -11,7 +11,8 @@ pub static BACKUP_NEW_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: None
 };
 
 pub static BACKUP_NEW_COMMAND: Command = Command {

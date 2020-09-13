@@ -24,7 +24,8 @@ pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND, &GROUPBINDS_DELETE_COMMAND]
+    sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND, &GROUPBINDS_DELETE_COMMAND],
+    group: Some("Binds")
 };
 
 pub static GROUPBINDS_COMMAND: Command = Command {

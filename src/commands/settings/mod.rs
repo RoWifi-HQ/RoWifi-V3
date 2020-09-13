@@ -20,7 +20,8 @@ pub static SETTINGS_OPTIONS: CommandOptions = CommandOptions {
     hidden: false,
     owners_only: false,
     sub_commands: &[&SETTINGS_VERIFICATION_COMMAND, &SETTINGS_VERIFIED_COMMAND, &UPDATE_JOIN_COMMAND, &UPDATE_VERIFY_COMMAND,
-                    &BLACKLIST_ACTION_COMMAND, &TOGGLE_COMMANDS_COMMAND]
+                    &BLACKLIST_ACTION_COMMAND, &TOGGLE_COMMANDS_COMMAND],
+    group: Some("Administration")
 };
 
 pub static SETTINGS_COMMAND: Command = Command {

@@ -17,7 +17,8 @@ pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND]
+    sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND],
+    group: Some("Premium")
 };
 
 pub static BACKUP_COMMAND: Command = Command {

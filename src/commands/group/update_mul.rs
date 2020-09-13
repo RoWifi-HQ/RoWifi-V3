@@ -12,7 +12,8 @@ pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: Some("Premium")
 };
 
 pub static UPDATE_ALL_COMMAND: Command = Command {
@@ -30,7 +31,8 @@ pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: Some("Premium")
 };
 
 pub static UPDATE_ROLE_COMMAND: Command = Command {

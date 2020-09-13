@@ -14,7 +14,8 @@ pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     hidden: false,
     owners_only: false,
-    sub_commands: &[]
+    sub_commands: &[],
+    group: Some("Administration")
 };
 
 pub static SETUP_COMMAND: Command = Command {
