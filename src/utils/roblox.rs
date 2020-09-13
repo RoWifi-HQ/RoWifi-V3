@@ -66,7 +66,7 @@ impl Roblox {
     pub async fn get_group_rank(&self, group_id: i64, rank_id: i64) -> Result<Option<Value>> {
         let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id);
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
-        let ranks_array = match body.as_array() {
+        let ranks_array = match body["roles"].as_array() {
             Some(a) => a,
             None => return Ok(None)
         };
@@ -80,7 +80,7 @@ impl Roblox {
     pub async fn get_group_ranks(&self, group_id: i64, min_rank: i64, max_rank: i64) -> Result<Vec<Value>> {
         let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id);
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
-        let ranks_array = match body.as_array() {
+        let ranks_array = match body["roles"].as_array() {
             Some(a) => a,
             None => return Ok(Vec::new())
         };
