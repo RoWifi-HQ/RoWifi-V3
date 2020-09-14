@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_spawn.up().await;
     });
 
-    let cache = Arc::new(Cache::new());
+    let cache = Cache::new();
     let standby = Standby::new();
 
     let database = Database::new(&conn_string).await;

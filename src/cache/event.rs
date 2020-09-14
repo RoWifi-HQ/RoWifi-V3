@@ -78,30 +78,30 @@ impl UpdateCache for GuildCreate {
 
 impl UpdateCache for GuildDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.guilds.remove(&self.id);
+        c.0.guilds.remove(&self.id);
 
         {
-            if let Some((_, ids)) = c.guild_channels.remove(&self.id) {
+            if let Some((_, ids)) = c.0.guild_channels.remove(&self.id) {
                 for id in ids {
-                    c.channels.remove(&id);
+                    c.0.channels.remove(&id);
                 }
             }
-            c.log_channels.remove(&self.id);
+            c.0.log_channels.remove(&self.id);
         }
 
         {
-            if let Some((_, ids)) = c.guild_roles.remove(&self.id) {
+            if let Some((_, ids)) = c.0.guild_roles.remove(&self.id) {
                 for id in ids {
-                    c.roles.remove(&id);
+                    c.0.roles.remove(&id);
                 }
             }
-            c.bypass_role.remove(&self.id);
+            c.0.bypass_role.remove(&self.id);
         }
 
         {
-            if let Some((_, ids)) = c.guild_members.remove(&self.id) {
+            if let Some((_, ids)) = c.0.guild_members.remove(&self.id) {
                 for id in ids {
-                    c.members.remove(&(self.id, id));
+                    c.0.members.remove(&(self.id, id));
                 }
             }
         }
@@ -112,7 +112,7 @@ impl UpdateCache for GuildDelete {
 
 impl UpdateCache for GuildUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        let mut guild = match c.guilds.get_mut(&self.0.id).map(|r| Arc::clone(r.value())) {
+        let mut guild = match c.0.guilds.get_mut(&self.0.id).map(|r| Arc::clone(r.value())) {
             Some(guild) => guild,
             None => return Ok(()),
         };
@@ -154,8 +154,8 @@ impl UpdateCache for MemberChunk {
 
 impl UpdateCache for MemberRemove {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.members.remove(&(self.guild_id, self.user.id));
-        if let Some(mut members) = c.guild_members.get_mut(&self.guild_id) {
+        c.0.members.remove(&(self.guild_id, self.user.id));
+        if let Some(mut members) = c.0.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
         }
 
@@ -166,7 +166,7 @@ impl UpdateCache for MemberRemove {
 impl UpdateCache for MemberUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
-        let mut member = match c.members.get_mut(&(self.guild_id, self.user.id)) {
+        let mut member = match c.0.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
             None => return Ok(()),
         };
@@ -217,8 +217,8 @@ impl UpdateCache for RoleUpdate {
 
 impl UpdateCache for UnavailableGuild {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.guilds.remove(&self.id);
-        c.unavailable_guilds.insert(self.id);
+        c.0.guilds.remove(&self.id);
+        c.0.unavailable_guilds.insert(self.id);
         Ok(())
     }
 }

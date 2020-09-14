@@ -11,7 +11,7 @@ use crate::utils::error::RoError;
 pub struct Context {
     pub shard_id: u64,
     pub http: Http,
-    pub cache: Arc<Cache>,
+    pub cache: Cache,
     pub database: Database,
     pub roblox: Roblox,
     pub standby: Standby,
@@ -19,7 +19,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(shard_id: u64, http: Http, cache: Arc<Cache>, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster) -> Self {
+    pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster) -> Self {
         Self {
             shard_id,
             http,

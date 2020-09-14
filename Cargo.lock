@@ -936,11 +936,12 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d7559a8a40d0f97e1edea3220f698f78b1c5ab67532e49f68fde3910323b722"
+checksum = "c60c0dfe32c10b43a144bad8fc83538c52f58302c92300ea7ec7bf7b38d5a7b9"
 dependencies = [
  "adler",
+ "autocfg",
 ]
 
 [[package]]
@@ -1696,9 +1697,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.3.18"
+version = "0.3.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa7bd58cc9323a0db16713ada63e7ab8c51b4d1fa0b2bce1afd964e19b6f0c56"
+checksum = "7084403c2d566bfcbc3ad3a33b4bf8a255c936050a382b921749e015ee8066c3"
 dependencies = [
  "halfbrown",
  "serde",
@@ -2065,7 +2066,7 @@ dependencies = [
 [[package]]
 name = "twilight-command-parser"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "unicase",
 ]
@@ -2073,7 +2074,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "twilight-model",
 ]
@@ -2081,7 +2082,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2103,7 +2104,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2122,7 +2123,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "twilight-model",
 ]
@@ -2130,7 +2131,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "bitflags",
  "serde",
@@ -2143,7 +2144,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#9da141c2bb139a0778784e7f3b301734262821ef"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#859677d51d45fc8e531a4d50345c02213094789c"
 dependencies = [
  "dashmap",
  "futures-channel",

@@ -45,7 +45,7 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V)
 }
 
 #[derive(Debug, Default)]
-pub struct Cache {
+pub struct CacheRef {
     channels: DashMap<ChannelId, Arc<GuildChannel>>,
     guilds: DashMap<GuildId, Arc<CachedGuild>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
@@ -63,6 +63,9 @@ pub struct Cache {
     current_user: Mutex<Option<Arc<CurrentUser>>>,
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct Cache(Arc<CacheRef>);
+
 #[derive(Debug, Clone)]
 pub struct CacheError;
 
@@ -72,43 +75,43 @@ impl Cache {
     }
 
     pub fn current_user(&self) -> Option<Arc<CurrentUser>> {
-        self.current_user.lock().expect("Current user poisoned").clone()
+        self.0.current_user.lock().expect("Current user poisoned").clone()
     }
 
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
-        self.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
+        self.0.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
     }
 
     pub fn guilds(&self) -> Vec<u64> {
-        self.guilds.iter().map(|g| g.id.0).collect::<Vec<_>>()
+        self.0.guilds.iter().map(|g| g.id.0).collect::<Vec<_>>()
     }
 
     pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
-        self.members
+        self.0.members
             .get(&(guild_id, user_id))
             .map(|m| Arc::clone(m.value()))
     }
 
     pub fn members(&self, guild_id: GuildId) -> HashSet<UserId> {
-        self.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
+        self.0.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
     }
 
     pub fn member_count(&self, guild_id: GuildId) -> usize {
-        self.guild_members.get(&guild_id).map_or_else(|| 0, |g| g.value().len())
+        self.0.guild_members.get(&guild_id).map_or_else(|| 0, |g| g.value().len())
     }
 
     pub fn bypass_roles(&self, guild_id: GuildId) -> Arc<(Option<RoleId>, Option<RoleId>)> {
-        self.bypass_role
+        self.0.bypass_role
             .get(&guild_id)
             .map_or_else(|| Arc::new((None, None)), |b| Arc::clone(b.value()))
     }
 
     pub fn role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
-        self.roles.get(&role_id).map(|r| Arc::clone(r.value()))
+        self.0.roles.get(&role_id).map(|r| Arc::clone(r.value()))
     }
 
     pub fn roles(&self, guild_id: GuildId) -> HashSet<RoleId> {
-        self.guild_roles
+        self.0.guild_roles
             .get(&guild_id)
             .map_or_else(HashSet::new, |gr| gr.value().clone())
     }
@@ -125,7 +128,7 @@ impl Cache {
     }
 
     pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
-        self.users.get(&user_id).map(|u| Arc::clone(u.value()))
+        self.0.users.get(&user_id).map(|u| Arc::clone(u.value()))
     }
 
     pub fn update<T: UpdateCache>(&self, value: &T) -> Result<(), CacheError> {
@@ -133,7 +136,7 @@ impl Cache {
     }
 
     pub fn cache_current_user(&self, mut current_user: CurrentUser) {
-        let mut user = self.current_user.lock().expect("current user poisoned");
+        let mut user = self.0.current_user.lock().expect("current user poisoned");
         if let Some(mut user) = user.as_mut() {
             if let Some(user) = Arc::get_mut(&mut user) {
                 std::mem::swap(user, &mut current_user);
@@ -161,12 +164,12 @@ impl Cache {
     pub fn cache_guild_channel(&self, guild: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
         if let GuildChannel::Text(tc) = &channel {
             if tc.name.eq_ignore_ascii_case("rowifi-logs") {
-                upsert_item(&self.log_channels, tc.guild_id.unwrap(), tc.id);
+                upsert_item(&self.0.log_channels, tc.guild_id.unwrap(), tc.id);
             }
         }
         let id = channel.id();
-        upsert_guild_item(&self.guild_channels, guild, id);
-        upsert_item(&self.channels, id, channel)
+        upsert_guild_item(&self.0.guild_channels, guild, id);
+        upsert_item(&self.0.channels, id, channel)
     }
 
     pub fn cache_members(
@@ -185,7 +188,7 @@ impl Cache {
 
     pub fn cache_member(&self, guild: GuildId, member: Member) -> Arc<CachedMember> {
         let key = (guild, member.user.id);
-        match self.members.get(&key) {
+        match self.0.members.get(&key) {
             Some(m) if **m == member => return Arc::clone(&m),
             _ => {}
         }
@@ -196,8 +199,8 @@ impl Cache {
             nick: member.nick,
             user,
         });
-        upsert_guild_item(&self.guild_members, guild, cached.user.id);
-        self.members.insert(key, Arc::clone(&cached));
+        upsert_guild_item(&self.0.guild_members, guild, cached.user.id);
+        self.0.members.insert(key, Arc::clone(&cached));
         cached
     }
 
@@ -225,12 +228,12 @@ impl Cache {
             position: role.position,
             permissions: role.permissions,
         };
-        upsert_guild_item(&self.guild_roles, guild, role.id);
-        upsert_item(&self.roles, role.id, role)
+        upsert_guild_item(&self.0.guild_roles, guild, role.id);
+        upsert_item(&self.0.roles, role.id, role)
     }
 
     pub fn cache_bypass_role(&self, guild: GuildId, role: Role) {
-        if let Some(mut bypass) = self.bypass_role.get_mut(&guild) {
+        if let Some(mut bypass) = self.0.bypass_role.get_mut(&guild) {
             if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
                 let mut bypass = Arc::make_mut(&mut bypass);
                 bypass.0 = Some(role.id);
@@ -242,10 +245,10 @@ impl Cache {
     }
 
     pub fn cache_guild(&self, guild: Guild) {
-        self.guild_roles.insert(guild.id, HashSet::new());
-        self.guild_channels.insert(guild.id, HashSet::new());
-        self.guild_members.insert(guild.id, HashSet::new());
-        self.bypass_role.insert(guild.id, Arc::new((None, None)));
+        self.0.guild_roles.insert(guild.id, HashSet::new());
+        self.0.guild_channels.insert(guild.id, HashSet::new());
+        self.0.guild_members.insert(guild.id, HashSet::new());
+        self.0.bypass_role.insert(guild.id, Arc::new((None, None)));
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
         self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, r)| r));
@@ -270,40 +273,40 @@ impl Cache {
             unavailable: guild.unavailable,
         };
 
-        self.unavailable_guilds.remove(&guild.id);
-        self.guilds.insert(guild.id, Arc::new(cached));
+        self.0.unavailable_guilds.remove(&guild.id);
+        self.0.guilds.insert(guild.id, Arc::new(cached));
     }
 
     pub fn cache_user(&self, user: User) -> Arc<User> {
-        match self.users.get(&user.id) {
+        match self.0.users.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
             _ => {}
         }
 
         let user = Arc::new(user);
-        self.users.insert(user.id, Arc::clone(&user));
+        self.0.users.insert(user.id, Arc::clone(&user));
         user
     }
 
     pub fn delete_guild_channel(&self, tc: GuildChannel) -> Option<Arc<GuildChannel>> {
-        let channel = self.channels.remove(&tc.id()).map(|(_, c)| c)?;
-        if let Some(mut channels) = self.guild_channels.get_mut(&tc.guild_id().unwrap()) {
+        let channel = self.0.channels.remove(&tc.id()).map(|(_, c)| c)?;
+        if let Some(mut channels) = self.0.guild_channels.get_mut(&tc.guild_id().unwrap()) {
             channels.remove(&tc.id());
         }
-        if let Some(log_channel) = self.log_channels.get(&tc.guild_id().unwrap()) {
+        if let Some(log_channel) = self.0.log_channels.get(&tc.guild_id().unwrap()) {
             if log_channel.0 == tc.id().0 {
-                self.log_channels.remove(&tc.guild_id().unwrap());
+                self.0.log_channels.remove(&tc.guild_id().unwrap());
             }
         }
         Some(channel)
     }
 
     pub fn delete_role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
-        let role = self.roles.remove(&role_id).map(|(_, r)| r)?;
-        if let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id) {
+        let role = self.0.roles.remove(&role_id).map(|(_, r)| r)?;
+        if let Some(mut roles) = self.0.guild_roles.get_mut(&role.guild_id) {
             roles.remove(&role_id);
         }
-        if let Some(mut bypass) = self.bypass_role.get_mut(&role.guild_id) {
+        if let Some(mut bypass) = self.0.bypass_role.get_mut(&role.guild_id) {
             if bypass.0 == Some(role_id) {
                 let mut bypass = Arc::make_mut(&mut bypass);
                 bypass.0 = None;
@@ -316,7 +319,7 @@ impl Cache {
     }
 
     pub fn unavailable_guild(&self, guild_id: GuildId) {
-        self.unavailable_guilds.insert(guild_id);
-        self.guilds.remove(&guild_id);
+        self.0.unavailable_guilds.insert(guild_id);
+        self.0.guilds.remove(&guild_id);
     }
 }
