@@ -36,9 +36,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
-        .intents(Some(
+        .intents(
             Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::GUILD_MEMBERS | Intents::GUILD_MESSAGE_REACTIONS
-        ))
+        )
         .http_client(http.clone())
         .build().await?;
 

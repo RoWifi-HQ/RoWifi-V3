@@ -86,7 +86,6 @@ impl UpdateCache for GuildDelete {
                     c.0.channels.remove(&id);
                 }
             }
-            c.0.log_channels.remove(&self.id);
         }
 
         {
@@ -95,7 +94,6 @@ impl UpdateCache for GuildDelete {
                     c.0.roles.remove(&id);
                 }
             }
-            c.0.bypass_role.remove(&self.id);
         }
 
         {
@@ -120,15 +118,11 @@ impl UpdateCache for GuildUpdate {
         let g = &self.0;
         let mut guild = Arc::make_mut(&mut guild);
         guild.description = g.description.clone();
-        guild.embed_channel_id = g.embed_channel_id;
-        guild.embed_enabled.replace(g.embed_enabled);
         guild.icon = g.icon.clone();
         guild.name = g.name.clone();
-        guild.owner = g.owner;
         guild.owner_id = g.owner_id;
         guild.permissions = g.permissions;
         guild.preferred_locale = g.preferred_locale.clone();
-        guild.splash = g.splash.clone();
 
         Ok(())
     }

@@ -67,8 +67,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
     //Handle role position check
 
     //Check for bypass role
-    let bypass = ctx.cache.bypass_roles(guild_id); 
-    if let Some(bypass_role) = &bypass.0 {
+    if let Some(bypass_role) = &server.bypass_role {
         if member.roles.contains(bypass_role) {
             let embed = EmbedBuilder::new()
                 .default_data()

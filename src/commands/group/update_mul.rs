@@ -53,13 +53,12 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
     let server = ctx.cache.guild(guild_id).unwrap();
     let members = ctx.cache.members(guild_id).into_iter().map(|m| m.0).collect::<Vec<_>>();
     let users = ctx.database.get_users(members).await?;
-    let bypass = ctx.cache.bypass_roles(guild_id);
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
     tokio::spawn(async move {
         for user in users {
             if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                if let Some(bypass) = bypass.0 {
+                if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {continue;}
                 }
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
@@ -91,14 +90,13 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
     let server = ctx.cache.guild(guild_id).unwrap();
     let members = ctx.cache.members(guild_id).into_iter().map(|m| m.0).collect::<Vec<_>>();
     let users = ctx.database.get_users(members).await?;
-    let bypass = ctx.cache.bypass_roles(guild_id);
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
     tokio::spawn(async move {
         for user in users {
             if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
                 if !member.roles.contains(&role_id) {continue;}
-                if let Some(bypass) = bypass.0 {
+                if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {continue;}
                 }
                 tracing::trace!(id = user.discord_id, "Mass Update for member");

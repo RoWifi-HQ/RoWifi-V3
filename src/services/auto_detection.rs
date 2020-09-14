@@ -26,11 +26,10 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
         };
         let members = ctx.cache.members(guild_id).into_iter().map(|m| m.0).collect::<Vec<_>>();
         let users = ctx.database.get_users(members).await?;
-        let bypass = ctx.cache.bypass_roles(guild_id);
         let guild_roles = ctx.cache.roles(guild_id);
         for user in users {
             if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                if let Some(bypass) = bypass.0 {
+                if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {continue;}
                 }
                 trace!(id = user.discord_id, "Auto Detection for member");
