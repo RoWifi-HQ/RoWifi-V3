@@ -18,15 +18,14 @@ pub struct Command {
 
 #[derive(Debug, PartialEq)]
 pub struct CommandOptions {
+    pub perm_level: RoLevel,
     pub bucket: Option<&'static str>,
     pub names: &'static [&'static str],
     pub desc: Option<&'static str>,
     pub usage: Option<&'static str>,
     pub examples: &'static [&'static str],
-    pub allowed_roles: &'static [&'static str],
     pub required_permissions: Permissions,
     pub hidden: bool,
-    pub owners_only: bool,
     pub sub_commands: &'static [&'static Command],
     pub group: Option<&'static str>
 }
@@ -36,6 +35,15 @@ pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'f
 pub struct HelpCommand {
     pub fun: HelpCommandFn,
     pub name: &'static str
+}
+
+#[derive(Debug, PartialEq)]
+#[repr(i8)]
+pub enum RoLevel {
+    Creator = 3, 
+    Admin = 2,
+    Trainer = 1,
+    Normal = 0 
 }
 
 pub struct Bucket {

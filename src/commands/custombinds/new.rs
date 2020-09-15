@@ -10,7 +10,7 @@ use tokio::time::timeout;
 use itertools::Itertools;
 
 pub static CUSTOMBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
     desc: None,
@@ -18,7 +18,6 @@ pub static CUSTOMBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

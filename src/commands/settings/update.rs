@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
 
 pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-on-join", "uoj"],
     desc: None,
@@ -9,13 +9,12 @@ pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };
 
 pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-on-verify", "uov"],
     desc: None,
@@ -23,7 +22,6 @@ pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

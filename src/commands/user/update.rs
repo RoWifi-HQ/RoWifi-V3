@@ -3,7 +3,7 @@ use twilight_model::id::UserId;
 use twilight_embed_builder::EmbedFooterBuilder;
 
 pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["update", "getroles"],
     desc: None,
@@ -11,7 +11,6 @@ pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("User")
 };

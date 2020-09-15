@@ -3,7 +3,7 @@ use crate::models::guild::GuildType;
 use twilight_model::id::UserId;
 
 pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-all"],
     desc: None,
@@ -11,7 +11,6 @@ pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Premium")
 };
@@ -22,7 +21,7 @@ pub static UPDATE_ALL_COMMAND: Command = Command {
 };
 
 pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-role"],
     desc: None,
@@ -30,7 +29,6 @@ pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Premium")
 };

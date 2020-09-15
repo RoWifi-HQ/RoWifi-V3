@@ -13,7 +13,7 @@ pub use modify::*;
 pub use delete::*;
 
 pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["assetbinds", "ab"],
     desc: None,
@@ -21,7 +21,6 @@ pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&ASSETBINDS_NEW_COMMAND, &ASSETBINDS_MODIFY_COMMAND, &ASSETBINDS_DELETE_COMMAND],
     group: Some("Binds")
 };

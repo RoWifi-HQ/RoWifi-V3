@@ -13,7 +13,7 @@ pub use modify::*;
 pub use delete::*;
 
 pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["groupbinds", "gb"],
     desc: None,
@@ -21,7 +21,6 @@ pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&GROUPBINDS_NEW_COMMAND, &GROUPBINDS_MODIFY_COMMAND, &GROUPBINDS_DELETE_COMMAND],
     group: Some("Binds")
 };

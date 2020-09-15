@@ -8,7 +8,7 @@ pub use twilight_model::{
 pub use twilight_embed_builder::EmbedBuilder;
 
 pub use super::context::Context;
-pub use super::structures::{Command, CommandResult, CommandOptions};
+pub use super::structures::{Command, CommandResult, CommandOptions, RoLevel};
 pub use super::utils::*;
 
 pub use crate::utils::error::{RoError, CommandError};

@@ -13,7 +13,7 @@ use modify::*;
 use delete::*;
 
 pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["custombinds", "cb"],
     desc: None,
@@ -21,7 +21,6 @@ pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&CUSTOMBINDS_NEW_COMMAND, &CUSTOMBINDS_MODIFY_COMMAND, &CUSTOMBINDS_DELETE_COMMAND],
     group: Some("Binds")
 };

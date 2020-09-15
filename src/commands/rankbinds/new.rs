@@ -8,7 +8,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 use crate::models::{bind::RankBind, guild::RoGuild};
 
 pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
     desc: None,
@@ -16,7 +16,6 @@ pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use crate::models::guild::BlacklistActionType;
 
 pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["blacklist-action", "bl-action"],
     desc: None,
@@ -10,13 +10,12 @@ pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };
 
 pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["commands"],
     desc: None,
@@ -24,7 +23,6 @@ pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

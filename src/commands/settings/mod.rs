@@ -10,7 +10,7 @@ pub use update::*;
 pub use misc::*;
 
 pub static SETTINGS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["settings"],
     desc: None,
@@ -18,7 +18,6 @@ pub static SETTINGS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&SETTINGS_VERIFICATION_COMMAND, &SETTINGS_VERIFIED_COMMAND, &UPDATE_JOIN_COMMAND, &UPDATE_VERIFY_COMMAND,
                     &BLACKLIST_ACTION_COMMAND, &TOGGLE_COMMANDS_COMMAND],
     group: Some("Administration")

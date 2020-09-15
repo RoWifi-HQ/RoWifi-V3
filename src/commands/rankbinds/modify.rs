@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use crate::models::guild::RoGuild;
 
 pub static RANKBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["modify", "m"],
     desc: None,
@@ -10,7 +10,6 @@ pub static RANKBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

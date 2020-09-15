@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
 
 pub static SETTINGS_VERIFICATION_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["verification"],
     desc: None,
@@ -9,13 +9,12 @@ pub static SETTINGS_VERIFICATION_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };
 
 pub static SETTINGS_VERIFIED_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["verified"],
     desc: None,
@@ -23,7 +22,6 @@ pub static SETTINGS_VERIFIED_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

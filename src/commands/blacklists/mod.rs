@@ -14,7 +14,7 @@ pub use custom::*;
 pub use delete::*;
 
 pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["blacklists", "bl"],
     desc: None,
@@ -22,7 +22,6 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&BLACKLISTS_NAME_COMMAND, &BLACKLISTS_GROUP_COMMAND, &BLACKLISTS_CUSTOM_COMMAND, &BLACKLISTS_DELETE_COMMAND],
     group: Some("Administration")
 };

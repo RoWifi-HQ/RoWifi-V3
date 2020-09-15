@@ -3,7 +3,7 @@ use crate::models::blacklist::*;
 use itertools::Itertools;
 
 pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["name"],
     desc: None,
@@ -11,7 +11,6 @@ pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

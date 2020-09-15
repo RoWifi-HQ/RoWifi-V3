@@ -8,7 +8,7 @@ pub use new::*;
 pub use restore::*;
 
 pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["backup"],
     desc: None,
@@ -16,7 +16,6 @@ pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND],
     group: Some("Premium")
 };

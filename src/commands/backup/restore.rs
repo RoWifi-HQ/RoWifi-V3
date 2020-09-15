@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use crate::models::guild::RoGuild;
 
 pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["restore"],
     desc: None,
@@ -10,7 +10,6 @@ pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

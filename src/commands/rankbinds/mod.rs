@@ -13,7 +13,7 @@ pub use modify::*;
 pub use delete::*;
 
 pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["rankbinds", "rb"],
     desc: None,
@@ -21,7 +21,6 @@ pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[&RANKBINDS_NEW_COMMAND, &RANKBINDS_MODIFY_COMMAND, &RANKBINDS_DELETE_COMMAND],
     group: Some("Binds")
 };

@@ -6,7 +6,7 @@ use std::time::Duration;
 use twilight_model::gateway::payload::MessageCreate;
 
 pub static BLACKLISTS_CUSTOM_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["custom"],
     desc: None,
@@ -14,7 +14,6 @@ pub static BLACKLISTS_CUSTOM_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

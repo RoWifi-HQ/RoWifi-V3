@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["serverinfo"],
     desc: None,
@@ -10,7 +10,6 @@ pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Miscellanous")
 };

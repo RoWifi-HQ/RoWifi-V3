@@ -5,7 +5,7 @@ use std::time::Duration;
 use twilight_model::gateway::payload::MessageCreate;
 
 pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["setup"],
     desc: None,
@@ -13,7 +13,6 @@ pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Administration")
 };

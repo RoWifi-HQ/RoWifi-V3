@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
 
 pub static ASSETBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["delete", "d"],
     desc: None,
@@ -9,7 +9,6 @@ pub static ASSETBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };

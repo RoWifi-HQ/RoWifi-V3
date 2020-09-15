@@ -8,7 +8,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 use crate::models::user::{RoUser, QueueUser};
 
 pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["verify"],
     desc: None,
@@ -16,13 +16,12 @@ pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("User")
 };
 
 pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["reverify"],
     desc: None,
@@ -30,7 +29,6 @@ pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("User")
 };

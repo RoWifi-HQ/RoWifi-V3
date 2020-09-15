@@ -3,7 +3,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_model::id::{UserId, GuildId};
 
 pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["userinfo"],
     desc: None,
@@ -11,7 +11,6 @@ pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Miscellanous")
 };
@@ -22,7 +21,7 @@ pub static USERINFO_COMMAND: Command = Command {
 };
 
 pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["botinfo"],
     desc: None,
@@ -30,7 +29,6 @@ pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: Some("Miscellanous")
 };

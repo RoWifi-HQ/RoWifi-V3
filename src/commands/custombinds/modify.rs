@@ -6,7 +6,7 @@ use crate::models::{
 use itertools::Itertools;
 
 pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
-    allowed_roles: &[],
+    perm_level: RoLevel::Admin,
     bucket: None,
     names: &["modify", "m"],
     desc: None,
@@ -14,7 +14,6 @@ pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
-    owners_only: false,
     sub_commands: &[],
     group: None
 };
