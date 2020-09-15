@@ -42,10 +42,7 @@ pub static TOGGLE_COMMANDS_COMMAND: Command = Command {
 #[command]
 pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let option = match args.next() {
         Some(o) => o.to_owned(),
@@ -72,10 +69,7 @@ pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<
 #[command]
 pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let option = match args.next() {
         Some(o) => o.to_owned(),

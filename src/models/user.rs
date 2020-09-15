@@ -4,7 +4,7 @@ use twilight_http::Client as Http;
 use twilight_model::id::RoleId;
 use std::{sync::Arc, borrow::Cow, collections::HashSet};
 
-use crate::utils::{Roblox, error::RoError};
+use crate::utils::{Roblox, error::*};
 use crate::cache::{CachedGuild, CachedMember};
 use super::{guild::{RoGuild, BlacklistActionType}, command::RoCommandUser};
 
@@ -57,7 +57,7 @@ impl RoUser {
                     BlacklistActionType::Kick => {let _ = http.remove_guild_member(server.id, member.user.id).await;},
                     BlacklistActionType::Ban => {let _ = http.create_ban(server.id, member.user.id).await;},
                 };
-                return Err(RoError::Blacklist(success.reason.to_owned()))
+                return Err(RoError::Command(CommandError::Blacklist(success.reason.to_owned())))
             }
         }
 
@@ -124,7 +124,7 @@ impl RoUser {
         else {disc_nick = Cow::Owned(format!("{} {}", prefix, username));}
 
         if disc_nick.len() > 32 {
-            return Err(RoError::NicknameTooLong(format!("The supposed nickname {} was found to be more than 32 characters", disc_nick)))
+            return Err(RoError::Command(CommandError::NicknameTooLong(format!("The supposed nickname {} was found to be more than 32 characters", disc_nick))))
         }
 
         let update = http.update_guild_member(server.id, member.user.id);

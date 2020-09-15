@@ -311,7 +311,7 @@ impl Cache {
         } else if role.name.eq_ignore_ascii_case("RoWifi Nickname Bypass") {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
-                guild.bypass_role = None;
+                guild.nickname_bypass = None;
             }
         }
         Some(role)

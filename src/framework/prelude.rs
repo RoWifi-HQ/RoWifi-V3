@@ -11,4 +11,4 @@ pub use super::context::Context;
 pub use super::structures::{Command, CommandResult, CommandOptions};
 pub use super::utils::*;
 
-pub use crate::utils::error::RoError;
+pub use crate::utils::error::{RoError, CommandError};

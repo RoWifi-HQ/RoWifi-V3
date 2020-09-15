@@ -34,13 +34,7 @@ pub static RANKBINDS_COMMAND: Command = Command {
 #[command]
 pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => {
-            println!("No Guild Found");
-            return Ok(())
-        }
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     if guild.rankbinds.is_empty() {
         let e = EmbedBuilder::new().default_data().title("Bind Viewing Failed").unwrap().color(Color::Red as u32).unwrap()

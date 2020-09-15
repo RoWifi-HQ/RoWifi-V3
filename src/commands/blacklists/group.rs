@@ -24,10 +24,7 @@ pub static BLACKLISTS_GROUP_COMMAND: Command = Command {
 #[command]
 pub async fn blacklists_group(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let group_id = match args.next().map(|g| g.parse::<i64>()) {
         Some(Ok(g)) => g,

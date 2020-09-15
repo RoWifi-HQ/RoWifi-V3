@@ -41,10 +41,7 @@ pub static UPDATE_VERIFY_COMMAND: Command = Command {
 #[command]
 pub async fn update_on_join(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let option = match args.next() {
         Some(o) => o.to_owned(),
@@ -70,10 +67,7 @@ pub async fn update_on_join(ctx: &Context, msg: &Message, mut args: Arguments<'f
 #[command]
 pub async fn update_on_verify(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let option = match args.next() {
         Some(o) => o.to_owned(),

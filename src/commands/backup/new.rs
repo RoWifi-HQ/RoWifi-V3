@@ -23,7 +23,8 @@ pub static BACKUP_NEW_COMMAND: Command = Command {
 #[command]
 pub async fn backup_new(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or(RoError::NoRoGuild)?;
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or(RoError::Command(CommandError::NoRoGuild))?;
+
 
     let name = match args.next() {
         Some(g) => g.to_owned(),

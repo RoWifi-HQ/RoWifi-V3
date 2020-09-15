@@ -43,10 +43,7 @@ pub static UPDATE_ROLE_COMMAND: Command = Command {
 #[command]
 pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
     if guild.settings.guild_type == GuildType::Normal {
         return Ok(())
     }
@@ -72,10 +69,7 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
 #[command]
 pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
     if guild.settings.guild_type == GuildType::Normal {
         return Ok(())
     }

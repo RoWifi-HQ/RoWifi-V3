@@ -34,10 +34,7 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
                 .default_data().color(Color::Red as u32).unwrap()
                 .title("Bind Addition Failed").unwrap();
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let code = args.as_str();
     if code.is_empty() {

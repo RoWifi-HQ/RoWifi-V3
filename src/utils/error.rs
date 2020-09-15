@@ -17,6 +17,12 @@ pub enum RoError {
     #[error("There was some error in interacting with Discord")]
     Discord(#[from] twilight_http::Error),
 
+    #[error(transparent)]
+    Command(#[from] CommandError)
+}
+
+#[derive(Debug, Error)]
+pub enum CommandError {
     #[error("{0}")]
     NicknameTooLong(String),
 

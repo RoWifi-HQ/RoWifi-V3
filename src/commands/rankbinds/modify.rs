@@ -22,10 +22,8 @@ pub static RANKBINDS_MODIFY_COMMAND: Command = Command {
 
 #[command]
 pub async fn rankbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let guild = match ctx.database.get_guild(msg.guild_id.unwrap().0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild_id = msg.guild_id.unwrap();
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let field = match args.next() {
         Some(s) => s.to_owned(),

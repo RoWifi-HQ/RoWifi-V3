@@ -41,10 +41,7 @@ pub static SETTINGS_VERIFIED_COMMAND: Command = Command {
 #[command]
 pub async fn settings_verification(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let verification_role = match args.next().map(|r| parse_role(r)) {
         Some(Some(s)) => s,
@@ -66,10 +63,7 @@ pub async fn settings_verification(ctx: &Context, msg: &Message, mut args: Argum
 #[command]
 pub async fn settings_verified(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
-        Some(g) => g,
-        None => return Err(RoError::NoRoGuild)
-    };
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let verified_role = match args.next().map(|r| parse_role(r)) {
         Some(Some(s)) => s,
