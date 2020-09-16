@@ -209,7 +209,7 @@ impl Cache {
     }
 
     pub fn cache_role(&self, guild: GuildId, role: Role) -> Arc<CachedRole> {
-        self.cache_bypass_role(guild, role.clone());
+        self.cache_extra_roles(guild, role.clone());
 
         let role = CachedRole {
             id: role.id,
@@ -222,14 +222,17 @@ impl Cache {
         upsert_item(&self.0.roles, role.id, role)
     }
 
-    pub fn cache_bypass_role(&self, guild: GuildId, role: Role) {
-        if let Some(mut bypass) = self.0.guilds.get_mut(&guild) {
+    pub fn cache_extra_roles(&self, guild: GuildId, role: Role) {
+        if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
             if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
-                let mut guild = Arc::make_mut(&mut bypass);
+                let mut guild = Arc::make_mut(&mut guild);
                 guild.bypass_role = Some(role.id);
             } else if role.name.eq_ignore_ascii_case("RoWifi Nickname Bypass") {
-                let mut guild = Arc::make_mut(&mut bypass);
+                let mut guild = Arc::make_mut(&mut guild);
                 guild.nickname_bypass = Some(role.id);
+            } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
+                let mut guild = Arc::make_mut(&mut guild);
+                guild.admin_role = Some(role.id);
             }
         }
     }
@@ -248,6 +251,9 @@ impl Cache {
         let log_channel = guild.channels.iter()
             .find(|(_, c)| c.name().eq_ignore_ascii_case("rowifi-logs"))
             .map(|(_, c)| c.id());
+        let admin_role = guild.roles.iter()
+            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Admin"))
+            .map(|(_, r)| r.id);
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
         self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, r)| r));
@@ -266,7 +272,8 @@ impl Cache {
             unavailable: guild.unavailable,
             log_channel,
             bypass_role,
-            nickname_bypass
+            nickname_bypass,
+            admin_role
         };
 
         self.0.unavailable_guilds.remove(&guild.id);

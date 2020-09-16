@@ -19,5 +19,6 @@ pub struct CachedGuild {
     //Custom Fields
     pub log_channel: Option<ChannelId>,
     pub bypass_role: Option<RoleId>,
-    pub nickname_bypass: Option<RoleId>
+    pub nickname_bypass: Option<RoleId>,
+    pub admin_role: Option<RoleId>
 }
