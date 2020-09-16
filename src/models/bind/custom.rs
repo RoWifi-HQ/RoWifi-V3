@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize, Deserializer};
+use serde::{Serialize, Deserialize, de::{Deserializer, Visitor, MapAccess, Error as DeError}};
 use std::{collections::HashMap, sync::Arc, fmt};
 use twilight_model::id::RoleId;
 
@@ -43,40 +43,6 @@ pub struct BackupCustomBind {
 
     #[serde(rename = "Priority")]
     pub priority: i64,
-}
-
-impl<'de> Deserialize<'de> for CustomBind {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        #[derive(Deserialize)]
-        pub struct EncodedCustombind {
-            #[serde(rename = "_id")]
-            pub id: i64,
-
-            #[serde(rename = "DiscordRoles")]
-            pub discord_roles: Vec<i64>,
-
-            #[serde(rename = "Code")]
-            pub code: String,
-
-            #[serde(rename = "Prefix")]
-            pub prefix: String,
-
-            #[serde(rename = "Priority")]
-            pub priority: i64
-        }
-
-        let input = EncodedCustombind::deserialize(deserializer)?;
-        let command = RoCommand::new(&input.code).map_err(serde::de::Error::custom)?;
-
-        Ok(CustomBind {
-            id: input.id,
-            discord_roles: input.discord_roles,
-            code: input.code,
-            prefix: input.prefix,
-            priority: input.priority,
-            command
-        })
-    }
 }
 
 impl fmt::Debug for CustomBind {
@@ -128,5 +94,89 @@ impl Backup for CustomBind {
             prefix: bind.prefix.clone(),
             command
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for CustomBind {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        #[derive(Debug, Deserialize)]
+        #[serde(field_identifier)]
+        enum Field {
+            #[serde(rename = "_id")] Id,
+            DiscordRoles,
+            Code,
+            Prefix,
+            Priority
+        }
+
+        struct CustomBindVisitor;
+
+        impl<'de> Visitor<'de> for CustomBindVisitor {
+            type Value = CustomBind;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str("struct CustomBind")
+            }
+
+            fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+                let mut id = None;
+                let mut discord_roles = None;
+                let mut code = None::<String>;
+                let mut prefix = None;
+                let mut priority = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(DeError::duplicate_field("_id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::DiscordRoles => {
+                            if discord_roles.is_some() {
+                                return Err(DeError::duplicate_field("DiscordRoles"));
+                            }
+                            discord_roles = Some(map.next_value()?);
+                        },
+                        Field::Code => {
+                            if code.is_some() {
+                                return Err(DeError::duplicate_field("Coe"));
+                            }
+                            code = Some(map.next_value()?);
+                        },
+                        Field::Prefix => {
+                            if prefix.is_some() {
+                                return Err(DeError::duplicate_field("Prefix"));
+                            }
+                            prefix = Some(map.next_value()?);
+                        },
+                        Field::Priority => {
+                            if priority.is_some() {
+                                return Err(DeError::duplicate_field("Priority"));
+                            }
+                            priority = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
+                let discord_roles = discord_roles.ok_or_else(|| DeError::missing_field("DiscordRoles"))?;
+                let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
+                let priority = priority.ok_or_else(|| DeError::missing_field("Priority"))?;
+                let code = code.ok_or_else(|| DeError::missing_field("Code"))?;
+                let command = RoCommand::new(&code).unwrap();
+
+                Ok(CustomBind {
+                    id, discord_roles, prefix, priority, code: code.to_owned(), command
+                })
+            }
+        }
+
+        const FIELDS: &[&str] = &[
+            "_id", "DiscordRoles", "Code", "Priority", "Prefix"
+        ];
+
+        deserializer.deserialize_struct("CustomBind", FIELDS, CustomBindVisitor)
     }
 }
