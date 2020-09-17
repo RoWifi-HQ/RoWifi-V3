@@ -3,8 +3,8 @@ mod settings;
 mod types;
 
 use itertools::Itertools;
-use serde::{Serialize, Deserialize};
-use std::{default::Default, collections::HashMap, sync::Arc};
+use serde::{Serialize, Deserialize, de::{Deserializer, Visitor, MapAccess, Error as DeError}};
+use std::{default::Default, collections::HashMap, sync::Arc, fmt};
 use twilight_model::id::{RoleId, GuildId};
 
 use super::{bind::*, blacklist::*};
@@ -15,7 +15,7 @@ pub use backup::*;
 pub use settings::*;
 pub use types::*;
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Default)]
 pub struct RoGuild {
     #[serde(rename = "_id")]
     pub id: i64,
@@ -52,7 +52,10 @@ pub struct RoGuild {
 
     #[serde(rename = "DisabledChannels")]
     #[serde(default)]
-    pub disabled_channels: Vec<i64>
+    pub disabled_channels: Vec<i64>,
+
+    #[serde(skip_serializing)]
+    pub all_roles: Vec<i64>
 }
 
 impl RoGuild {
@@ -128,6 +131,14 @@ impl RoGuild {
             0
         };
 
+        let all_roles = rankbinds.iter()
+            .flat_map(|r| r.discord_roles.iter().cloned())
+            .chain(groupbinds.iter().flat_map(|g| g.discord_roles.iter().cloned()))
+            .chain(custombinds.iter().flat_map(|c| c.discord_roles.iter().cloned()))
+            .chain(assetbinds.iter().flat_map(|a| a.discord_roles.iter().cloned()))
+            .unique()
+            .collect_vec();
+
         Self {
             id: guild_id.0 as i64,
             command_prefix: backup.command_prefix,
@@ -139,7 +150,163 @@ impl RoGuild {
             custombinds,
             assetbinds,
             blacklists: backup.blacklists,
-            disabled_channels: Vec::new()
+            disabled_channels: Vec::new(),
+            all_roles
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for RoGuild{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        #[derive(Debug, Deserialize)]
+        #[serde(field_identifier)]
+        enum Field {
+            #[serde(rename = "_id")] Id,
+            Prefix,
+            Settings,
+            VerificationRole,
+            VerifiedRole,
+            RankBinds,
+            GroupBinds,
+            CustomBinds,
+            AssetBinds,
+            Blacklists,
+            DisabledChannels
+        }
+
+        struct RoGuildVisitor;
+
+        impl<'de> Visitor<'de> for RoGuildVisitor {
+            type Value = RoGuild;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str("struct RoGuild")
+            }
+
+            fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+                let mut id = None;
+                let mut prefix = None;
+                let mut settings = None;
+                let mut verification_role = None;
+                let mut verified_role = None;
+                let mut rankbinds = None::<Vec<RankBind>>;
+                let mut groupbinds = None::<Vec<GroupBind>>;
+                let mut custombinds = None::<Vec<CustomBind>>;
+                let mut assetbinds = None::<Vec<AssetBind>>;
+                let mut blacklists = None;
+                let mut disabled_channels = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(DeError::duplicate_field("_id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::Prefix => {
+                            if prefix.is_some() {
+                                return Err(DeError::duplicate_field("Prefix"));
+                            }
+                            prefix = Some(map.next_value()?);
+                        },
+                        Field::Settings => {
+                            if settings.is_some() {
+                                return Err(DeError::duplicate_field("Settings"));
+                            }
+                            settings = Some(map.next_value()?);
+                        },
+                        Field::VerificationRole => {
+                            if verification_role.is_some() {
+                                return Err(DeError::duplicate_field("VerificationRole"));
+                            }
+                            verification_role = Some(map.next_value()?);
+                        },
+                        Field::VerifiedRole => {
+                            if verified_role.is_some() {
+                                return Err(DeError::duplicate_field("VerifiedRole"));
+                            }
+                            verified_role = Some(map.next_value()?);
+                        },
+                        Field::RankBinds => {
+                            if rankbinds.is_some() {
+                                return Err(DeError::duplicate_field("RankBinds"));
+                            }
+                            rankbinds = Some(map.next_value()?);
+                        },
+                        Field::GroupBinds => {
+                            if groupbinds.is_some() {
+                                return Err(DeError::duplicate_field("GroupBinds"));
+                            }
+                            groupbinds = Some(map.next_value()?);
+                        },
+                        Field::CustomBinds => {
+                            if custombinds.is_some() {
+                                return Err(DeError::duplicate_field("CustomBinds"));
+                            }
+                            custombinds = Some(map.next_value()?);
+                        },
+                        Field::AssetBinds => {
+                            if assetbinds.is_some() {
+                                return Err(DeError::duplicate_field("AssetBinds"));
+                            }
+                            assetbinds = Some(map.next_value()?);
+                        },
+                        Field::Blacklists => {
+                            if blacklists.is_some() {
+                                return Err(DeError::duplicate_field("Blacklists"));
+                            }
+                            blacklists = Some(map.next_value()?);
+                        },
+                        Field::DisabledChannels => {
+                            if disabled_channels.is_some() {
+                                return Err(DeError::duplicate_field("DisabledChannels"));
+                            }
+                            disabled_channels = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
+                let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
+                let settings = settings.ok_or_else(|| DeError::missing_field("Settings"))?;
+                let verification_role = verification_role.ok_or_else(|| DeError::missing_field("VerificationRole"))?;
+                let verified_role = verified_role.ok_or_else(|| DeError::missing_field("VerifiedRole"))?;
+                let rankbinds = rankbinds.ok_or_else(|| DeError::missing_field("RankBinds"))?;
+                let groupbinds = groupbinds.ok_or_else(|| DeError::missing_field("GroupBinds"))?;
+                let custombinds = custombinds.ok_or_else(|| DeError::missing_field("CustomBinds"))?;
+                let assetbinds = assetbinds.ok_or_else(|| DeError::missing_field("AssetBinds"))?;
+                let blacklists = blacklists.ok_or_else(|| DeError::missing_field("Blacklists"))?;
+                let disabled_channels = disabled_channels.ok_or_else(|| DeError::missing_field("DisabledChannels"))?;
+                let all_roles = rankbinds.iter()
+                    .flat_map(|r| r.discord_roles.iter().cloned())
+                    .chain(groupbinds.iter().flat_map(|g| g.discord_roles.iter().cloned()))
+                    .chain(custombinds.iter().flat_map(|c| c.discord_roles.iter().cloned()))
+                    .chain(assetbinds.iter().flat_map(|a| a.discord_roles.iter().cloned()))
+                    .unique()
+                    .collect_vec();
+                Ok(RoGuild {
+                    id,
+                    command_prefix: prefix,
+                    settings,
+                    verification_role,
+                    verified_role,
+                    rankbinds,
+                    groupbinds,
+                    custombinds,
+                    assetbinds,
+                    blacklists,
+                    disabled_channels,
+                    all_roles
+                })
+            }
+        }
+
+        const FIELDS: &[&str] = &[
+            "_id", "Prefix", "Settings", "VerificationRole", "VerifiedRole", "RankBinds", "GroupBinds", "CustomBinds", "AssetBinds",
+            "Blacklists", "DisabledChannels"
+        ];
+
+        deserializer.deserialize_struct("RoGuild", FIELDS, RoGuildVisitor)
     }
 }

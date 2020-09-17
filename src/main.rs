@@ -33,6 +33,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
+    let app_info = http.current_user().await?;
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
@@ -57,6 +58,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let framework = Framework::default()
         .configure(|c| c
             .default_prefix("?")
+            .on_mention(app_info.id)
         )
         .command(&UPDATE_COMMAND)
         .command(&VERIFY_COMMAND)

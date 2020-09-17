@@ -54,7 +54,8 @@ impl Framework {
 
         let prefix = parser::find_prefix(&mut stream, &msg, &self.config).await;
         if prefix.is_some() && stream.rest().is_empty() {
-            //print just the prefix
+            let command_prefix = self.config.prefixes.get(&msg.guild_id.unwrap()).map(|g| g.to_string()).unwrap_or_else(|| self.config.default_prefix.to_string());
+            let _ = context.http.create_message(msg.channel_id).content(format!("The prefix of this server is {}", command_prefix)).unwrap().await;
             return;
         }
 
