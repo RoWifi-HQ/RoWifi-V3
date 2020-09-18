@@ -19,7 +19,7 @@ use cache::Cache;
 use commands::*;
 use framework::{context::Context, Framework};
 use services::*;
-use utils::{Database, Roblox};
+use utils::{Database, Roblox, Logger};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -53,8 +53,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let database = Database::new(&conn_string).await;
     let roblox = Roblox::new();
+    let logger = Logger::default();
 
-    let context = Context::new(0, http, cache, database, roblox, standby, cluster);
+    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger);
     let framework = Framework::default()
         .configure(|c| c
             .default_prefix("?")

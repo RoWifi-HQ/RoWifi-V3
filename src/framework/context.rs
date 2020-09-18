@@ -5,7 +5,7 @@ use twilight_standby::Standby;
 use twilight_gateway::Cluster;
 
 use crate::cache::*;
-use crate::utils::{Database, Roblox};
+use crate::utils::{Database, Roblox, Logger};
 use crate::utils::error::RoError;
 #[derive(Clone)]
 pub struct Context {
@@ -15,11 +15,12 @@ pub struct Context {
     pub database: Database,
     pub roblox: Roblox,
     pub standby: Standby,
-    pub cluster: Cluster
+    pub cluster: Cluster,
+    pub logger: Logger
 }
 
 impl Context {
-    pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster) -> Self {
+    pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster, logger: Logger) -> Self {
         Self {
             shard_id,
             http,
@@ -27,7 +28,8 @@ impl Context {
             database,
             roblox,
             standby,
-            cluster
+            cluster,
+            logger
         }
     }
 
