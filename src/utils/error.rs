@@ -30,5 +30,11 @@ pub enum CommandError {
     Blacklist(String),
 
     #[error("This server has not been setup. Please ask the server owner to set it up")]
-    NoRoGuild
+    NoRoGuild,
+
+    #[error("Error in parsing the argument")]
+    ParseArgument(String, String, String),
+
+    #[error("Timeout reached. Please try again")]
+    Timeout
 }

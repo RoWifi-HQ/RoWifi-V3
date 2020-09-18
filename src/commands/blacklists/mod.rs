@@ -4,7 +4,7 @@ mod custom;
 mod delete;
 
 use crate::framework::prelude::*;
-use crate::utils::pagination::paginate_embed;
+use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
 use twilight_embed_builder::EmbedFieldBuilder;
 

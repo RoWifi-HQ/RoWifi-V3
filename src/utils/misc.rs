@@ -1,10 +1,24 @@
+use crate::framework::prelude::Context;
+use super::error::{RoError, CommandError};
 use std::{time::Duration, cmp::{max, min}};
-use tokio::stream::StreamExt;
-use twilight_model::{channel::embed::Embed, gateway::payload::ReactionAdd, channel::ReactionType};
 use twilight_http::request::prelude::RequestReactionType;
+use twilight_model::{
+    channel::{Message, embed::Embed}, 
+    gateway::payload::{MessageCreate, ReactionAdd},
+    channel::ReactionType
+};
+use tokio::{time::timeout, stream::StreamExt};
 
-use super::error::RoError;
-use crate::framework::prelude::{Context, Message};
+pub async fn await_reply(question: &str, ctx: &Context, msg: &Message) -> Result<String, RoError> {
+    let question = format!("{}\nSay `cancel` to cancel this prompt", question);
+    let _ = ctx.http.create_message(msg.channel_id).content(question).unwrap().await?;
+    let id = msg.author.id;
+    let fut = ctx.standby.wait_for_message(msg.channel_id, move |event: &MessageCreate| event.author.id == id && !event.content.is_empty());
+    match timeout(Duration::from_secs(300), fut).await {
+        Ok(Ok(m)) if !m.content.eq_ignore_ascii_case("cancel") => Ok(m.content.to_owned()),
+        _ => Err(RoError::Command(CommandError::Timeout))
+    }
+}
 
 pub async fn paginate_embed(ctx: &Context, msg: &Message, pages: Vec<Embed>, page_count: usize) -> Result<(), RoError> {
     if page_count <= 1 {

@@ -26,10 +26,13 @@ pub async fn groupbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
-    let group_id = match args.next().map(|g| g.parse::<i64>()) {
-        Some(Ok(g)) => g,
-        Some(Err(_)) => return Ok(()),
+    let group_str = match args.next() {
+        Some(g) => g,
         None => return Ok(())
+    };
+    let group_id = match group_str.parse::<i64>() {
+        Ok(g) => g,
+        Err(_) => return Err(RoError::Command(CommandError::ParseArgument(group_str.to_string(), "Group Id".into(), "Number".into())))
     };
 
     if guild.groupbinds.iter().find(|g| g.group_id == group_id).is_some() {

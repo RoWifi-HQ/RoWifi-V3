@@ -85,9 +85,9 @@ async fn modify_priority(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id:
     ctx.database.modify_guild(filter, update).await
 }
 
-async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id: i64, mut args: Arguments<'_>) -> Result<(), RoError> {
+async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id: i64, args: Arguments<'_>) -> Result<(), RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }

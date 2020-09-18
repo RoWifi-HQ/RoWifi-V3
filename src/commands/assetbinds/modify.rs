@@ -29,10 +29,13 @@ pub async fn assetbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments
         None => return Ok(())
     };
 
-    let asset_id = match args.next().map(|g| g.parse::<i64>()) {
-        Some(Ok(g)) => g,
-        Some(Err(_)) => return Ok(()),
-        None => return Ok(())
+    let asset_str = match args.next() {
+        Some(a) => a.to_owned(),
+        None => await_reply("Enter the ID of the asset to modify", ctx, msg).await?
+    };
+    let asset_id = match asset_str.parse::<i64>() {
+        Ok(a) => a,
+        Err(_) => return Err(RoError::Command(CommandError::ParseArgument(asset_str.into(), "Asset ID".into(), "Number".into())))
     };
 
     if !guild.assetbinds.iter().any(|g| g.id == asset_id) {

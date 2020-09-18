@@ -67,7 +67,7 @@ pub async fn rankbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'fu
 
     let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
     let mut roles: Vec<i64> = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if r.eq_ignore_ascii_case("auto") {
             if let CreateType::Single(r1) = create_type {create_type = CreateType::SingleWithAuto(r1);}
             else if let CreateType::Multiple(r1, r2) = create_type {create_type = CreateType::MultipleWithAuto(r1, r2);}
@@ -96,8 +96,9 @@ enum CreateType {
     Single(i64), SingleWithAuto(i64), Multiple(i64, i64), MultipleWithAuto(i64, i64)
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn single_rank(ctx: &Context, msg: &Message, guild: RoGuild, group_id: i64, rank_id: i64, mut prefix: String, priority: i64, roles: Vec<i64>) -> Result<(), RoError> {
-    if guild.rankbinds.iter().find(|r| r.group_id == group_id && r.rank_id == rank_id).is_some() {
+    if guild.rankbinds.iter().any(|r| r.group_id == group_id && r.rank_id == rank_id) {
         return Ok(())
     }
     
@@ -126,6 +127,7 @@ async fn single_rank(ctx: &Context, msg: &Message, guild: RoGuild, group_id: i64
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn single_rank_with_auto(ctx: &Context, msg: &Message, group_id: i64, rank_id: i64, mut prefix: String, priority: i64) -> Result<(), RoError> {
     let roblox_rank = match ctx.roblox.get_group_rank(group_id, rank_id).await?{
         Some(r) => r,
@@ -160,6 +162,7 @@ async fn single_rank_with_auto(ctx: &Context, msg: &Message, group_id: i64, rank
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn multiple_rank(ctx: &Context, msg: &Message, mut guild: RoGuild, group_id: i64, min_rank: i64, max_rank: i64, prefix: &str, priority: i64, roles: Vec<i64>) -> Result<(), RoError> {
     let roblox_ranks = ctx.roblox.get_group_ranks(group_id, min_rank, max_rank).await?;
     if roblox_ranks.is_empty() {
@@ -207,6 +210,7 @@ async fn multiple_rank(ctx: &Context, msg: &Message, mut guild: RoGuild, group_i
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn multiple_rank_with_auto(ctx: &Context, msg: &Message, mut guild: RoGuild, group_id: i64, min_rank: i64, max_rank: i64, prefix: &str, priority: i64) ->Result<(), RoError> {
     let roblox_ranks = ctx.roblox.get_group_ranks(group_id, min_rank, max_rank).await?;
     if roblox_ranks.is_empty() {
@@ -282,7 +286,7 @@ async fn add_rankbind(ctx: &Context, msg: &Message, bind: RankBind) -> Result<()
 }
 
 fn extract_ids(rank_str: &str) -> Option<(i64, i64)> {
-    let splits = rank_str.split("-").collect_vec();
+    let splits = rank_str.split('-').collect_vec();
     if splits.len() == 2 {
         if let Ok(r1) = splits[0].parse::<i64>() {
             if let Ok(r2) = splits[1].parse::<i64>() {

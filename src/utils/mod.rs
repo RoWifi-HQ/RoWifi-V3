@@ -1,7 +1,7 @@
 mod database;
 pub mod error;
 mod roblox;
-pub mod pagination;
+pub mod misc;
 
 pub use database::*;
 pub use roblox::*;

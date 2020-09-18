@@ -11,4 +11,7 @@ pub use super::context::Context;
 pub use super::structures::{Command, CommandResult, CommandOptions, RoLevel};
 pub use super::utils::*;
 
-pub use crate::utils::error::{RoError, CommandError};
+pub use crate::utils::{
+    misc::await_reply,
+    error::{RoError, CommandError}
+};

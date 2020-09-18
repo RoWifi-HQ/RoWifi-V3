@@ -13,6 +13,7 @@ use twilight_model::{
 };
 use twilight_command_parser::Arguments;
 use uwl::Stream;
+use crate::utils::error::{RoError, CommandError};
 
 use context::Context;
 use configuration::Configuration;
@@ -88,7 +89,7 @@ impl Framework {
 
                 match res {
                     Ok(()) => {},
-                    Err(why) => println!("Command {:?} errored: {:?}", command, why)
+                    Err(error) => self.handle_error(error, &context, &msg).await
                 }
             }
         }
@@ -135,5 +136,47 @@ impl Framework {
             }
         }
         false
+    }
+
+    async fn handle_error(&self, error: RoError, context: &Context, msg: &Message) {
+        match error {
+            RoError::Command(cmd_err) => {
+                match cmd_err {
+                    CommandError::Blacklist(reason) => {
+                        let _ = context.http.create_message(msg.channel_id)
+                            .content(format!("User was found on the server blacklist. Reason: {}", reason)).unwrap()
+                            .await;
+                    },
+                    CommandError::NicknameTooLong(nick) => {
+                        let _ = context.http.create_message(msg.channel_id)
+                            .content(format!("The supposed nickname {} was found to be longer than 32 characters", nick)).unwrap()
+                            .await;
+                    },
+                    CommandError::NoRoGuild => {
+                        let _ = context.http.create_message(msg.channel_id)
+                            .content("This server was not set up. Please ask the server owner to run `setup`").unwrap()
+                            .await;
+                    }
+                    CommandError::ParseArgument(arg, param, param_type) => {
+                        let idx = msg.content.find(&arg).unwrap();
+                        let size = arg.len();
+                        let content = format!("```{}\n{}{}\n\nExpected {} to be a {}```", 
+                            msg.content, " ".repeat(idx), "^".repeat(size), param, param_type
+                        );
+                        let _ = context.http.create_message(msg.channel_id)
+                            .content(content).unwrap().await;
+                    },
+                    CommandError::Timeout => {
+                        let _ = context.http.create_message(msg.channel_id)
+                            .content("Timeout reached. Please try again").unwrap().await;
+                    }
+                }
+            },
+            _ => {
+                let _ = context.http.create_message(msg.channel_id)
+                    .content("There was an error in executing this command. Please try again. If the issue persists, please contact the support server for more information").unwrap()
+                    .await;
+            }
+        }
     }
 }
