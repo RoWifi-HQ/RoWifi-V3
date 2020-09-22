@@ -272,12 +272,12 @@ impl<'de> Deserialize<'de> for RoGuild{
                 let settings = settings.ok_or_else(|| DeError::missing_field("Settings"))?;
                 let verification_role = verification_role.ok_or_else(|| DeError::missing_field("VerificationRole"))?;
                 let verified_role = verified_role.ok_or_else(|| DeError::missing_field("VerifiedRole"))?;
-                let rankbinds = rankbinds.ok_or_else(|| DeError::missing_field("RankBinds"))?;
-                let groupbinds = groupbinds.ok_or_else(|| DeError::missing_field("GroupBinds"))?;
-                let custombinds = custombinds.ok_or_else(|| DeError::missing_field("CustomBinds"))?;
-                let assetbinds = assetbinds.ok_or_else(|| DeError::missing_field("AssetBinds"))?;
-                let blacklists = blacklists.ok_or_else(|| DeError::missing_field("Blacklists"))?;
-                let disabled_channels = disabled_channels.ok_or_else(|| DeError::missing_field("DisabledChannels"))?;
+                let rankbinds = rankbinds.unwrap_or_default();
+                let groupbinds = groupbinds.unwrap_or_default();
+                let custombinds = custombinds.unwrap_or_default();
+                let assetbinds = assetbinds.unwrap_or_default();
+                let blacklists = blacklists.unwrap_or_default();
+                let disabled_channels = disabled_channels.unwrap_or_default();
                 let all_roles = rankbinds.iter()
                     .flat_map(|r| r.discord_roles.iter().cloned())
                     .chain(groupbinds.iter().flat_map(|g| g.discord_roles.iter().cloned()))

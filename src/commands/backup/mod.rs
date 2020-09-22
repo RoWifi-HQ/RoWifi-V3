@@ -11,7 +11,7 @@ pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["backup"],
-    desc: None,
+    desc: Some("Command to view saved backups"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),

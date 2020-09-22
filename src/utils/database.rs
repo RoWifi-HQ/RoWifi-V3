@@ -118,7 +118,7 @@ impl Database {
         Ok(result)
     }
     
-    pub async fn add_backup(&self, mut backup: BackupGuild, name: String) -> Result<(), RoError> {
+    pub async fn add_backup(&self, mut backup: BackupGuild, name: &str) -> Result<(), RoError> {
         let backups = self.client.database("RoWifi").collection("backups");
         match self.get_backup(backup.user_id as u64, name).await? {
             Some(b) => {
@@ -138,7 +138,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn get_backup(&self, user_id: u64, name: String) -> Result<Option<BackupGuild>, RoError> {
+    pub async fn get_backup(&self, user_id: u64, name: &str) -> Result<Option<BackupGuild>, RoError> {
         let backups = self.client.database("RoWifi").collection("backups");
         let filter = doc! {"UserId": user_id, "Name": name};
         let result = backups.find_one(filter, FindOneOptions::default()).await?;

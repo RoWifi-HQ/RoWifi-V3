@@ -5,9 +5,9 @@ pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["restore"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    desc: Some("Command to restore a backup"),
+    usage: Some("backup restore <Name>"),
+    examples: &["backup restore RoWifi"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -28,9 +28,16 @@ pub async fn backup_restore(ctx: &Context, msg: &Message, mut args: Arguments<'f
     };
     let existing = ctx.database.get_guild(guild_id.0).await?.is_some();
 
-    let backup = match ctx.database.get_backup(msg.author.id.0, name).await? {
+    let backup = match ctx.database.get_backup(msg.author.id.0, &name).await? {
         Some(b) => b,
-        None => return Ok(())
+        None => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Backup Restore Failed").unwrap()
+                .description(format!("No backup with name {} was found associated to your account", name)).unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+            return Ok(())
+        }
     };
 
     let server_roles = ctx.cache.roles(guild_id);
