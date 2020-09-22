@@ -7,9 +7,9 @@ pub static ASSETBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    desc: Some("Command to add a new asset bind"),
+    usage: Some("assetbinds new <Field> <Asset Id> [Roles..]`\n`Field`: `Asset` `Badge` `Gamepass"),
+    examples: &["assetbinds new Asset 78978292 @Role1", "ab new Gamepass 79820839 @Role2", "assetbinds new Badge 8799292 @Role1 @Role2"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -26,16 +26,19 @@ pub async fn assetbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
-
-    let asset_type = match args.next().map(|a| a.parse::<AssetType>()) {
-        Some(Ok(a)) => a,
-        Some(Err(_)) => return Ok(()),
+    let asset_type = match args.next() {
+        Some(a) => match a.parse::<AssetType>() {
+            Ok(a) => a,
+            Err(_) => return Err(CommandError::ParseArgument(a.into(), "Asset Type".into(), "Asset, Badge, Gamepass".into()).into())
+        },
         None => return Ok(())
     };
 
-    let asset_id = match args.next().map(|g| g.parse::<i64>()) {
-        Some(Ok(g)) => g,
-        Some(Err(_)) => return Ok(()),
+    let asset_id = match args.next() {
+        Some(a) => match a.parse::<i64>() {
+            Ok(a) => a,
+            Err(_) => return Err(CommandError::ParseArgument(a.into(), "Asset ID".into(), "Number".into()).into())
+        },
         None => return Ok(())
     };
 
@@ -49,13 +52,20 @@ pub async fn assetbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
 
     let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
     let mut roles: Vec<i64> = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId(role_id)) {
                 roles.push(role_id as i64);
             }
         }
     }
+    if roles.is_empty() {
+        let embed = EmbedBuilder::new().default_data().title("Bind Addition Failed").unwrap()
+            .color(Color::Red as u32).unwrap()
+            .description("Atleast role must be entered to create an assetbind").unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    } 
 
     let bind = AssetBind {id: asset_id, asset_type, discord_roles: roles};
     let bind_bson = bson::to_bson(&bind)?;
@@ -68,8 +78,14 @@ pub async fn assetbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let value = format!("Type: {}\nRoles: {}", bind.asset_type, bind.discord_roles.iter().map(|r| RoleId(*r as u64).mention().to_string()).collect::<String>());
     let embed = EmbedBuilder::new().default_data().title("Bind Addition Successful").unwrap()
         .color(Color::DarkGreen as u32).unwrap()
-        .field(EmbedFieldBuilder::new(name, value).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), value.clone()).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Asset Bind Addition").unwrap()
+        .field(EmbedFieldBuilder::new(name, value).unwrap()).build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

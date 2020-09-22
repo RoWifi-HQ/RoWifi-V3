@@ -16,7 +16,7 @@ pub static ASSETBINDS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["assetbinds", "ab"],
-    desc: None,
+    desc: Some("Command to view asset binds"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
