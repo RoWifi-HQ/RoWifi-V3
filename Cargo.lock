@@ -330,6 +330,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
 name = "dtoa"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -624,9 +630,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
+checksum = "4c30f6d0bc6b00693347368a67d41b58f2fb851215ff1da49e90fe2c5c667151"
 dependencies = [
  "libc",
 ]
@@ -811,12 +817,6 @@ checksum = "ca059e81d9486668f12d455a4ea6daa600bd408134cd17e3d3fb5a32d1f016f8"
 dependencies = [
  "wasm-bindgen",
 ]
-
-[[package]]
-name = "kankyo"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "147dec7a6c66256d1ca8704e3b34365ccb8e050baeca278f16a554cced9681df"
 
 [[package]]
 name = "kernel32-sys"
@@ -1017,7 +1017,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "1.1.1"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#b4523e5f9c3dcec1e8eac000e55a7cbf8430b4ac"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#b74114a5e5f005ad5d968b2a24cd4da1c998f00c"
 dependencies = [
  "async-trait",
  "base64 0.11.0",
@@ -1450,9 +1450,9 @@ dependencies = [
  "bson",
  "chrono",
  "dashmap",
+ "dotenv",
  "futures",
  "itertools",
- "kankyo",
  "lazy_static",
  "mongodb",
  "rand",

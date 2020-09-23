@@ -23,13 +23,13 @@ use utils::{Database, Roblox, Logger};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    kankyo::load().err();
+    dotenv::dotenv().ok();
     tracing_subscriber::fmt::init();
     //tracing_log::LogTracer::init()?;
 
-    let token = env::var("DISC_TOKEN")?;
-    let conn_string = env::var("DB_CONN")?;
-    let premium_features = env::var("PREMIUM_FEATURES")?.as_str().parse::<bool>()?;
+    let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
+    let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
+    let premium_features = env::var("PREMIUM_FEATURES")?.as_str().parse::<bool>().expect("Expected premium toggle");
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);

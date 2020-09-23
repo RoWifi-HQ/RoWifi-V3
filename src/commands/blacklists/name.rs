@@ -6,9 +6,9 @@ pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["name"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    desc: Some("Command to add a user blacklist"),
+    usage: Some("blacklist name <Username>"),
+    examples: &["blacklist name AsianIntel", "bl name Zanance"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -33,8 +33,12 @@ pub async fn blacklists_name(ctx: &Context, msg: &Message, mut args: Arguments<'
         Some(u) => u,
         None => return Ok(())
     };
-    //Check if you put the username or user id in blacklist type name, not that it matters but still
-    let reason = args.join(" ");
+
+    let mut reason = args.join(" ");
+    if reason.is_empty() {
+        reason = "N/A".into();
+    }
+
     let blacklist = Blacklist {id: user_id.to_string(), reason, blacklist_type: BlacklistType::Name(user_id.to_string())};
     let blacklist_bson = bson::to_bson(&blacklist)?;
     let filter = bson::doc! {"_id": guild.id};
