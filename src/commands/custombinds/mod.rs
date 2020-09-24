@@ -5,7 +5,6 @@ mod delete;
 use crate::framework::prelude::*;
 use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
-use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_mention::Mention;
 
 use new::*;
@@ -16,7 +15,7 @@ pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["custombinds", "cb"],
-    desc: None,
+    desc: Some("Command to view the custom binds"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),

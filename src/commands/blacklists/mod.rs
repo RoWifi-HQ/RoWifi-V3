@@ -6,7 +6,6 @@ mod delete;
 use crate::framework::prelude::*;
 use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use name::*;
 pub use group::*;
@@ -17,7 +16,7 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["blacklists", "bl"],
-    desc: None,
+    desc: Some("Command to view the blacklists"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),

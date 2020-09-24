@@ -1017,7 +1017,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "1.1.1"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#b74114a5e5f005ad5d968b2a24cd4da1c998f00c"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#92e717d761e668e2f666444f4bfa932a4610cc5b"
 dependencies = [
  "async-trait",
  "base64 0.11.0",
@@ -2072,7 +2072,7 @@ dependencies = [
 [[package]]
 name = "twilight-command-parser"
 version = "0.1.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "unicase",
 ]
@@ -2080,7 +2080,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "twilight-model",
 ]
@@ -2088,7 +2088,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.1.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2110,7 +2110,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.1.4"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2129,7 +2129,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.1.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "twilight-model",
 ]
@@ -2137,7 +2137,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.1.2"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "bitflags",
  "serde",
@@ -2150,7 +2150,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#29e02bd49a6e1978848d82d9eca0cec012f91b0a"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#0ccd98ef62b0111987bdccd50045a04b60b701da"
 dependencies = [
  "dashmap",
  "futures-channel",

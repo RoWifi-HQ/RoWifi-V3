@@ -1,7 +1,6 @@
 use crate::framework::prelude::*;
 use crate::models::bind::{AssetBind, AssetType};
 use twilight_mention::Mention;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub static ASSETBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

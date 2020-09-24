@@ -31,7 +31,14 @@ pub async fn blacklists_name(ctx: &Context, msg: &Message, mut args: Arguments<'
     };
     let user_id = match ctx.roblox.get_id_from_username(&username).await? {
         Some(u) => u,
-        None => return Ok(())
+        None => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Blacklist Addition Failed").unwrap()
+                .description(format!("There was no user found with username {}", username)).unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+            return Ok(())
+        }
     };
 
     let mut reason = args.join(" ");
@@ -45,9 +52,19 @@ pub async fn blacklists_name(ctx: &Context, msg: &Message, mut args: Arguments<'
     let update = bson::doc! {"$push": {"Blacklists": blacklist_bson}};
     ctx.database.modify_guild(filter, update).await?;
 
+    let name = format!("Type: {:?}", blacklist.blacklist_type);
+    let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
+
     let embed = EmbedBuilder::new().default_data().title("Blacklist Addition Successful").unwrap()
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .color(Color::DarkGreen as u32).unwrap()
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+
+    let log_embed = EmbedBuilder::new().default_data().title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Blacklist Addition").unwrap()
+        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

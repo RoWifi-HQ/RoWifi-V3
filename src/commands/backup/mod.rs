@@ -2,7 +2,6 @@ mod new;
 mod restore;
 
 use crate::framework::prelude::*;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use new::*;
 pub use restore::*;

@@ -3,10 +3,10 @@ use crate::framework::prelude::*;
 pub static CUSTOMBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
-    names: &["delete", "d"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    names: &["delete", "d", "remove"],
+    desc: Some("Command to delete a custombind"),
+    usage: Some("custombinds delete <Id>"),
+    examples: &["custombinds delete 1", "cb remove 2"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -38,13 +38,20 @@ pub async fn custombinds_delete(ctx: &Context, msg: &Message, mut args: Argument
     }
 
     let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"CustomBinds": {"_id": {"$in": binds_to_delete}}}};
+    let update = bson::doc! {"$pull": {"CustomBinds": {"_id": {"$in": binds_to_delete.clone()}}}};
     let _ = ctx.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Success!").unwrap()
-        .description("The given bind were successfully deleted").unwrap()
+        .description("The given binds were successfully deleted").unwrap()
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
+
+    let ids_str = binds_to_delete.iter().map(|b| format!("`Id`: {}\n", b)).collect::<String>();
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Custom Bind Deletion").unwrap()
+        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap()).build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }
