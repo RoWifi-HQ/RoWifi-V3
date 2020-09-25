@@ -57,7 +57,7 @@ pub async fn custombinds_modify(ctx: &Context, msg: &Message, mut args: Argument
     let desc = if field.eq_ignore_ascii_case("code") {
         let new_code = match modify_code(ctx, msg, &guild, bind_id, args).await? {
             Some(n) => n,
-            None=> return Ok(())
+            None => return Ok(())
         };
         format!("`New Code`: {}", new_code)
     } else if field.eq_ignore_ascii_case("prefix") {

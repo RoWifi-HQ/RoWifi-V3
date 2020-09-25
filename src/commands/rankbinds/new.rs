@@ -11,9 +11,14 @@ pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    desc: Some("Command to add a new rankbind"),
+    usage: Some("rankbinds new <Group Id> <Rank Id (1-255)> <Prefix> <Priority> [Roles..]`\n
+                `Rank Id`: Either a single rank id between 1-255 or a range of rank ids separated by a `-`. Ex. 25-55\n
+                `Prefix`: The keyword that is used before the nickname. Can be set to `N/A`\n
+                `Priorty`: The number that tells the bot which rankbind to choose for the nickname\n
+                `Roles`: The discord roles to add to the bind. To tell the bot to create roles, put `auto"),
+    examples: &["rankbinds new 3108077 255 [CJCS] 1 @CJCS", "rb new 5581309 1-255 N/A 1 @RoWifi",
+                "rb new 5581309 1-255 auto 1 @RoWifi", "rankbinds new 3108077 1-255 auto 1 auto"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],

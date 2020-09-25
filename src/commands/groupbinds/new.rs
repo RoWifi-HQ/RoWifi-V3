@@ -35,7 +35,7 @@ pub async fn groupbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
         Err(_) => return Err(RoError::Command(CommandError::ParseArgument(group_str.to_string(), "Group Id".into(), "Number".into())))
     };
 
-    if guild.groupbinds.iter().find(|g| g.group_id == group_id).is_some() {
+    if guild.groupbinds.iter().any(|g| g.group_id == group_id) {
         let embed = EmbedBuilder::new().default_data().title("Bind Addition Failed").unwrap()
             .color(Color::Red as u32).unwrap()
             .description(format!("A bind with group id {} already exists", group_id)).unwrap()

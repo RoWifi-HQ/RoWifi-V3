@@ -6,7 +6,6 @@ use crate::framework::prelude::*;
 use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
 use twilight_mention::Mention;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use new::*;
 pub use modify::*;
@@ -16,7 +15,7 @@ pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["rankbinds", "rb"],
-    desc: None,
+    desc: Some("Command to view the rankbinds"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
