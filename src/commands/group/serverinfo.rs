@@ -5,7 +5,7 @@ pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["serverinfo"],
-    desc: None,
+    desc: Some("Shows the information about the server"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),

@@ -81,6 +81,7 @@ pub async fn custombinds_modify(ctx: &Context, msg: &Message, mut args: Argument
     let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Success!").unwrap()
         .description("The bind was successfully modified").unwrap()
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
 

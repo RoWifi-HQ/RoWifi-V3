@@ -3,10 +3,10 @@ use crate::framework::prelude::*;
 pub static GROUPBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
-    names: &["delete", "d"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    names: &["delete", "d", "remove"],
+    desc: Some("Command to delete a groupbind"),
+    usage: Some("groupbinds delete <Group Id>"),
+    examples: &["groupbinds delete 3108077", "gb remove 5581309"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -19,12 +19,12 @@ pub static GROUPBINDS_DELETE_COMMAND: Command = Command {
 };
 
 #[command]
-pub async fn groupbinds_delete(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+pub async fn groupbinds_delete(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let mut groups_to_delete = Vec::new();
-    while let Some(arg) = args.next() {
+    for arg in args {
         if let Ok(r) = arg.parse::<i64>() {
             groups_to_delete.push(r);
         }
@@ -38,13 +38,20 @@ pub async fn groupbinds_delete(ctx: &Context, msg: &Message, mut args: Arguments
     }
 
     let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"GroupBinds": {"GroupId": {"$in": binds_to_delete}}}};
+    let update = bson::doc! {"$pull": {"GroupBinds": {"GroupId": {"$in": binds_to_delete.clone()}}}};
     let _ = ctx.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Success!").unwrap()
-        .description("The given bind were successfully deleted").unwrap()
+        .description("The given binds were successfully deleted").unwrap()
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
+
+    let ids_str = binds_to_delete.iter().map(|b| format!("`Group Id`: {}\n", b)).collect::<String>();
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Custom Bind Deletion").unwrap()
+        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap()).build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

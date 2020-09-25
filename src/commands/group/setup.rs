@@ -1,14 +1,11 @@
 use crate::framework::prelude::*;
 use crate::models::guild::RoGuild;
-use tokio::time::timeout;
-use std::time::Duration;
-use twilight_model::gateway::payload::MessageCreate;
 
 pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["setup"],
-    desc: None,
+    desc: Some("Command to set up the server. May also be used to reset all configurations."),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
@@ -25,25 +22,30 @@ pub static SETUP_COMMAND: Command = Command {
 #[command]
 pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
     let existing_guild = ctx.database.get_guild(msg.guild_id.unwrap().0).await?;
+    let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
 
-    ctx.http.create_message(msg.channel_id).content("Which role would you like to bind as your **unverified role**?\nPlease tag the role for the bot to be able to detect it.").unwrap().await?;
-    let id = msg.author.id;
-    let verification_fut = ctx.standby.wait_for_message(msg.channel_id, 
-        move |event: &MessageCreate| event.author.id == id && !event.content.is_empty() && parse_role(event.content.to_owned()).is_some());
-    let verification_role = match timeout(Duration::from_secs(300), verification_fut).await {
-        Ok(Ok(m)) => parse_role(m.content.to_owned()).unwrap(),
+    let verification_role_str = await_reply("Which role would you like to bind as your **unverified/verification** role?\nPlease tag the role for the bot to be able to detect it.", ctx, msg).await?;
+    let verification_role = match parse_role(verification_role_str) {
+        Some(v) if server_roles.contains(&RoleId(v)) => v,
         _ => {
-            //Do this later
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Setup Failed").unwrap()
+                .description("Invalid verification role found").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
             return Ok(())
         }
     };
 
-    ctx.http.create_message(msg.channel_id).content("Which role would you like to bind as your **verifed role**?\n Please tag the role for the bot to be able to detect it.").unwrap().await?;
-    let verified_fut = ctx.standby.wait_for_message(msg.channel_id, 
-        move |event: &MessageCreate| event.author.id == id && !event.content.is_empty() && parse_role(event.content.to_owned()).is_some());
-    let verified_role = match timeout(Duration::from_secs(300), verified_fut).await {
-        Ok(Ok(m)) => parse_role(m.content.to_owned()).unwrap(),
+    let verified_role_str = await_reply("Which role would you like to bind as your **verified** role?\nPlease tag the role for the bot to be able to detect it.", ctx, msg).await?;
+    let verified_role = match parse_role(verified_role_str) {
+        Some(v) if server_roles.contains(&RoleId(v)) => v,
         _ => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Setup Failed").unwrap()
+                .description("Invalid verified role found").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
             return Ok(())
         }
     };

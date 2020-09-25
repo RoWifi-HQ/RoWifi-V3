@@ -7,9 +7,9 @@ pub static GROUPBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
-    desc: None,
-    usage: None,
-    examples: &[],
+    desc: Some("Command to add a new group bind"),
+    usage: Some("groupbinds new <Group Id> [Roles..]"),
+    examples: &["groupbinds new 3108077 @Role1", "gb new 5581309 @Role1 @Role2"],
     required_permissions: Permissions::empty(),
     hidden: false,
     sub_commands: &[],
@@ -64,8 +64,14 @@ pub async fn groupbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let value = format!("Roles: {}", bind.discord_roles.iter().map(|r| RoleId(*r as u64).mention().to_string()).collect::<String>());
     let embed = EmbedBuilder::new().default_data().title("Bind Addition Successful").unwrap()
         .color(Color::DarkGreen as u32).unwrap()
-        .field(EmbedFieldBuilder::new(name, value).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), value.clone()).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Asset Bind Addition").unwrap()
+        .field(EmbedFieldBuilder::new(name, value).unwrap()).build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }
