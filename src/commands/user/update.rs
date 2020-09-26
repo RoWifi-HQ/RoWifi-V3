@@ -6,7 +6,7 @@ pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["update", "getroles"],
-    desc: None,
+    desc: Some("Command to update an user"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
@@ -23,17 +23,11 @@ pub static UPDATE_COMMAND: Command = Command {
 #[command]
 pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let start = chrono::Utc::now().timestamp_millis();
-    let guild_id = match msg.guild_id {
-        Some(g) => g,
-        None => return Ok(())
-    };
+    let guild_id = msg.guild_id.unwrap();
     let server = ctx.cache.guild(guild_id).unwrap();
 
-    let user_id = match args.next() {
-        Some(s) => match parse_username(s).await {
-            Some(id) => UserId(id),
-            None => msg.author.id
-        },
+    let user_id = match args.next().and_then(parse_username) {
+        Some(s) => UserId(s),
         None => msg.author.id
     };
 
@@ -113,11 +107,16 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Update").unwrap()
-        .update_log(added_roles, removed_roles, &disc_nick)
+        .update_log(&added_roles, &removed_roles, &disc_nick)
         .color(Color::DarkGreen as u32).unwrap()
         .footer(EmbedFooterBuilder::new(format!("RoWifi | Executed in {} ms", (end - start))).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
 
+    let log_embed = EmbedBuilder::new()
+        .title("Update").unwrap()
+        .update_log(&added_roles, &removed_roles, &disc_nick)
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

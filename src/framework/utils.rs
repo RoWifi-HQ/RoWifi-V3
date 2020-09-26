@@ -2,7 +2,7 @@ use twilight_model::id::RoleId;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
 use twilight_mention::Mention;
 
-pub async fn parse_username(mention: impl AsRef<str>) -> Option<u64> {
+pub fn parse_username(mention: impl AsRef<str>) -> Option<u64> {
     let mention = mention.as_ref();
 
     if mention.len() < 4 {
@@ -41,11 +41,10 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
 
 pub trait EmbedExtensions {
     fn default_data(self) -> Self;
-    fn update_log(self, added_roles: Vec<RoleId>, removed_roles: Vec<RoleId>, disc_nick: &str) -> Self;
+    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self;
 }
 
 impl EmbedExtensions for EmbedBuilder {
-    #[inline]
     fn default_data(self) -> Self {
         self
             .timestamp(&chrono::Utc::now().to_rfc3339())
@@ -53,8 +52,7 @@ impl EmbedExtensions for EmbedBuilder {
             .footer(EmbedFooterBuilder::new("RoWifi").expect("Looks like the footer text screwed up"))
     }
 
-    #[inline]
-    fn update_log(self, added_roles: Vec<RoleId>, removed_roles: Vec<RoleId>, disc_nick: &str) -> Self {
+    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self {
         let mut added_str = added_roles.iter()
             .map(|a| format!("- {}\n", a.mention())).collect::<String>();
         let mut removed_str = removed_roles.iter()

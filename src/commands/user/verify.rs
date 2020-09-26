@@ -3,7 +3,6 @@ use rand::{thread_rng, Rng};
 use std::time::Duration;
 use tokio::time::timeout;
 use twilight_model::gateway::payload::MessageCreate;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 use crate::models::user::{RoUser, QueueUser};
 
@@ -11,8 +10,8 @@ pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["verify"],
-    desc: None,
-    usage: None,
+    desc: Some("Command to link Roblox Account to Discord Account"),
+    usage: Some("verify <Roblox Username> <Code/Game>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -24,8 +23,8 @@ pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["reverify"],
-    desc: None,
-    usage: None,
+    desc: Some("Command to change the linked Roblox Account"),
+    usage: Some("reverify <Roblox Username> <Code/Game>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -79,28 +78,7 @@ pub async fn verify_common(ctx: &Context, msg: &Message, mut args: Arguments<'_>
 
     let roblox_username = match args.next() {
         Some(r) => r.to_owned(),
-        None => {
-            let _ = ctx.http.create_message(msg.channel_id).content("Enter your Roblox Name.\nSay `cancel` if you wish to cancel this command").unwrap().await;
-
-            let id = msg.author.id;
-            let fut = ctx.standby.wait_for_message(msg.channel_id, 
-                move |event: &MessageCreate| event.author.id == id && !event.content.is_empty());
-            match timeout(Duration::from_secs(300), fut).await {
-                Ok(Ok(m)) => {
-                    if m.content.eq_ignore_ascii_case("cancel") {
-                        let e = embed.description("Command has been cancelled").unwrap().build().unwrap();
-                        let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
-                        return Ok(())
-                    }
-                    m.content.to_owned()
-                },
-                _ => {
-                    let e = embed.description("Command timed out. Please try again.").unwrap().build().unwrap();
-                    let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await;
-                    return Ok(())
-                }
-            }
-        }
+        None => await_reply("Enter your Roblox Username", ctx, msg).await?
     };
     
     let roblox_id = match ctx.roblox.get_id_from_username(&roblox_username).await? {
@@ -114,29 +92,7 @@ pub async fn verify_common(ctx: &Context, msg: &Message, mut args: Arguments<'_>
 
     let option = match args.next() {
         Some(o) => o.to_owned(),
-        None => {
-            let _ = ctx.http.create_message(msg.channel_id).content("Enter Option").unwrap().await;
-            let id = msg.author.id;
-            let fut = ctx.standby.wait_for_message(msg.channel_id, 
-            move |event: &MessageCreate| event.author.id == id && 
-                        (event.content.eq_ignore_ascii_case("Code") || event.content.eq_ignore_ascii_case("Game") || event.content.eq_ignore_ascii_case("cancel")));
-            
-            match timeout(Duration::from_secs(300), fut).await {
-                Ok(Ok(m)) => {
-                    if m.content.eq_ignore_ascii_case("cancel") {
-                        let e = embed.description("Command has been cancelled").unwrap().build().unwrap();
-                        let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
-                        return Ok(())
-                    }
-                    m.content.to_owned()
-                },
-                _ => {
-                    let e = embed.description("Command timed out. Please try again.").unwrap().build().unwrap();
-                    let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await;
-                    return Ok(())
-                }
-            }
-        }
+        None => await_reply("Enter the type of verification you wish to perform.\n Options: `Code`, `Game`", ctx, msg).await?
     };
 
     if option.eq_ignore_ascii_case("Code") {
@@ -190,6 +146,12 @@ pub async fn verify_common(ctx: &Context, msg: &Message, mut args: Arguments<'_>
         let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
         let q_user = QueueUser {roblox_id, discord_id: msg.author.id.0 as i64, verified};
         let _ = ctx.database.add_queue_user(q_user).await?;
+    } else {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Verification Failed").unwrap()
+            .description("Invalid Option selected. Available Options: `Code`, `Game`").unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
     }
 
     Ok(())

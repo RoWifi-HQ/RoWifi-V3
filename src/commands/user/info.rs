@@ -6,7 +6,7 @@ pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["userinfo"],
-    desc: None,
+    desc: Some("Command to view the information about an user"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
@@ -24,7 +24,7 @@ pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["botinfo"],
-    desc: None,
+    desc: Some("Command to view the information about the bot"),
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
@@ -40,13 +40,20 @@ pub static BOTINFO_COMMAND: Command = Command {
 
 #[command]
 pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let author = match args.next().and_then(parse_role).and_then(|u| ctx.cache.user(UserId(u))) {
+    let author = match args.next().and_then(parse_username).and_then(|u| ctx.cache.user(UserId(u))) {
         Some(u) => (u.id, u.name.to_owned()),
         None => (msg.author.id, msg.author.name.to_owned())
     };
     let user = match ctx.database.get_user(author.0.0).await? {
         Some(u) => u,
-        None => return Ok(())
+        None => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("User Info Failed").unwrap()
+                .description("User was not verified. Please ask him/her to verify themselves").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+            return Ok(())
+        }
     };
 
     let username = ctx.roblox.get_username_from_id(user.roblox_id).await?;
