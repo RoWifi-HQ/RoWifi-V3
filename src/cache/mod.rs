@@ -75,6 +75,10 @@ impl Cache {
         self.0.current_user.lock().expect("Current user poisoned").clone()
     }
 
+    pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
+        self.0.channels.get(&channel_id).map(|c| Arc::clone(c.value()))
+    }
+
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
         self.0.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
     }

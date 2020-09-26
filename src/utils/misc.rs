@@ -1,13 +1,22 @@
 use crate::framework::prelude::Context;
 use super::error::{RoError, CommandError};
-use std::{time::Duration, cmp::{max, min}};
+use std::{time::Duration, cmp::{max, min}, collections::HashMap};
 use twilight_http::request::prelude::RequestReactionType;
 use twilight_model::{
-    channel::{Message, embed::Embed}, 
+    channel::{Message, embed::Embed, ReactionType, GuildChannel, permission_overwrite::PermissionOverwriteType}, 
     gateway::payload::{MessageCreate, ReactionAdd},
-    channel::ReactionType
+    id::{RoleId, GuildId, UserId, ChannelId},
+    guild::Permissions
 };
+use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
+use twilight_mention::Mention;
 use tokio::{time::timeout, stream::StreamExt};
+
+pub enum Color {
+    Red = 0xE74C3C,
+    Blue = 0x3498DB,
+    DarkGreen = 0x1F8B4C
+}
 
 pub async fn await_reply(question: &str, ctx: &Context, msg: &Message) -> Result<String, RoError> {
     let question = format!("{}\nSay `cancel` to cancel this prompt", question);
@@ -73,4 +82,167 @@ pub async fn paginate_embed(ctx: &Context, msg: &Message, pages: Vec<Embed>, pag
         let _ = ctx.http.delete_message(channel_id, message_id).await;
     }
     Ok(())
+}
+
+pub fn parse_username(mention: impl AsRef<str>) -> Option<u64> {
+    let mention = mention.as_ref();
+
+    if mention.len() < 4 {
+        return None;
+    }
+
+    if mention.starts_with("<@!") {
+        let len = mention.len() - 1;
+        mention[3..len].parse::<u64>().ok()
+    } else if mention.starts_with("<@") {
+        let len = mention.len() - 1;
+        mention[2..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
+    } else {
+        None
+    } 
+}
+
+pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
+    let mention = mention.as_ref();
+
+    if mention.len() < 4 {
+        return None;
+    }
+
+    if mention.starts_with("<@&") && mention.ends_with('>') {
+        let len = mention.len() - 1;
+        mention[3..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
+    } else {
+        None
+    }
+}
+
+pub trait EmbedExtensions {
+    fn default_data(self) -> Self;
+    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self;
+}
+
+impl EmbedExtensions for EmbedBuilder {
+    fn default_data(self) -> Self {
+        self
+            .timestamp(&chrono::Utc::now().to_rfc3339())
+            .color(Color::Blue as u32).expect("Some shit occurred with the embed color")
+            .footer(EmbedFooterBuilder::new("RoWifi").expect("Looks like the footer text screwed up"))
+    }
+
+    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self {
+        let mut added_str = added_roles.iter()
+            .map(|a| format!("- {}\n", a.mention())).collect::<String>();
+        let mut removed_str = removed_roles.iter()
+            .map(|r| format!("- {}\n", r.mention())).collect::<String>();
+        if added_str.is_empty() {
+            added_str = "None".into();
+        }
+        if removed_str.is_empty() {
+            removed_str = "None".into();
+        }
+
+        self
+            .field(EmbedFieldBuilder::new("Nickname", disc_nick).unwrap())
+            .field(EmbedFieldBuilder::new("Added Roles", added_str).unwrap())
+            .field(EmbedFieldBuilder::new("Removed Roles", removed_str).unwrap())
+    }
+}
+
+pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &Vec<RoleId>) -> Result<Permissions, String> {
+    let guild = match ctx.cache.guild(guild_id) {
+        Some(g) => g,
+        None => return Err("Server was not found in the cache".into())
+    };
+
+    if member_id == guild.owner_id {
+        return Ok(Permissions::all())
+    }
+
+    let server_roles = ctx.cache.roles(guild_id);
+    let mut roles = HashMap::new();
+    for role in server_roles {
+        let cached = ctx.cache.role(role);
+        if let Some(cached) = cached {
+            roles.insert(role, cached);
+        }
+    }
+
+    let mut permissions = match roles.get(&RoleId(guild.id.0)) {
+        Some(r) => r.permissions,
+        None => return Err("`@everyone` role is missing from the cache.".into())
+    };
+
+    for role in member_roles {
+        let role_permissions = match roles.get(&role) {
+            Some(r) => r.permissions,
+            None => return Err("Found a role on the member that doesn't exist on the cache".into())
+        };
+
+        permissions |= role_permissions;
+    }
+    Ok(permissions)
+}
+
+pub fn channel_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &Vec<RoleId>, channel_id: ChannelId) -> Result<Permissions, String> {
+    let mut permissions = guild_wide_permissions(ctx, guild_id, member_id, &member_roles)?;
+    let mut member_allow = Permissions::empty();
+    let mut member_deny = Permissions::empty();
+    let mut roles_allow = Permissions::empty();
+    let mut roles_deny = Permissions::empty();
+
+    let channel = match ctx.cache.channel(channel_id) {
+        Some(c) => c,
+        None => return Err("Channel doesn't exist in the cache".into())
+    };
+
+    if let GuildChannel::Text(tc) = channel.as_ref() {
+        for overwrite in tc.permission_overwrites.iter() {
+            match overwrite.kind {
+                PermissionOverwriteType::Role(role) => {
+                    if role.0 == guild_id.0 {
+                        permissions.remove(overwrite.deny);
+                        permissions.insert(overwrite.allow);
+                        continue;
+                    }
+
+                    if !member_roles.contains(&role) {
+                        continue;
+                    }
+
+                    roles_allow.insert(overwrite.allow);
+                    roles_deny.insert(overwrite.deny);
+                },
+                PermissionOverwriteType::Member(user) if user == member_id => {
+                    member_allow.insert(overwrite.allow);
+                    member_deny.insert(overwrite.deny);
+                }
+                PermissionOverwriteType::Member(_) => {}
+            }
+        }
+
+        let role_view_channel_denied = roles_deny.contains(Permissions::VIEW_CHANNEL)
+            && !roles_allow.contains(Permissions::VIEW_CHANNEL)
+            && !roles_allow.contains(Permissions::VIEW_CHANNEL);
+
+        let member_view_channel_denied = member_deny.contains(Permissions::VIEW_CHANNEL)
+            && !member_allow.contains(Permissions::VIEW_CHANNEL);
+
+        if member_view_channel_denied || role_view_channel_denied {
+            return Ok(Permissions::empty());
+        }
+
+        permissions.remove(roles_deny);
+        permissions.insert(roles_allow);
+        permissions.remove(member_deny);
+        permissions.insert(member_allow);
+
+        return Ok(permissions);
+    }
+
+    Err("Not implemented for non text guild channels".into())
 }

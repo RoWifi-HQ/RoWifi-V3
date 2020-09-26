@@ -5,6 +5,7 @@ use tokio::time::timeout;
 use twilight_model::gateway::payload::MessageCreate;
 
 use crate::models::user::{RoUser, QueueUser};
+use super::update;
 
 pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
@@ -152,7 +153,13 @@ pub async fn verify_common(ctx: &Context, msg: &Message, mut args: Arguments<'_>
             .description("Invalid Option selected. Available Options: `Code`, `Game`").unwrap()
             .build().unwrap();
         let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+        return Ok(())
     }
 
+    if let Some(guild) = ctx.database.get_guild(msg.guild_id.unwrap().0).await? {
+        if guild.settings.update_on_verify {
+            update(ctx, msg, args).await?;
+        }
+    }
     Ok(())
 }

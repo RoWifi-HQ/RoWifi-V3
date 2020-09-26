@@ -9,9 +9,8 @@ pub use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 pub use super::context::Context;
 pub use super::structures::{Command, CommandResult, CommandOptions, RoLevel};
-pub use super::utils::*;
 
 pub use crate::utils::{
-    misc::await_reply,
+    misc::*,
     error::{RoError, CommandError}
 };

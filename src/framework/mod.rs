@@ -4,7 +4,6 @@ mod map;
 pub mod parser;
 pub mod prelude;
 pub mod structures;
-pub mod utils;
 
 use twilight_gateway::Event;
 use twilight_model::{
