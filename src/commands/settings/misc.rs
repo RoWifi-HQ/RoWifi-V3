@@ -5,8 +5,8 @@ pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["blacklist-action", "bl-action"],
-    desc: None,
-    usage: None,
+    desc: Some("Command to change the blacklist action"),
+    usage: Some("settings blacklist-action <None/Kick/Ban>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -17,9 +17,9 @@ pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
 pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
-    names: &["commands"],
-    desc: None,
-    usage: None,
+    names: &["commands", "command", "command-channel"],
+    desc: Some("Command to disable/enable commands in a channel"),
+    usage: Some("settings commands <enable/disable/on/off>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -50,7 +50,7 @@ pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<
         "none" => BlacklistActionType::None,
         "kick" => BlacklistActionType::Kick,
         "ban" => BlacklistActionType::Ban,
-        _ => return Ok(())
+        _ => return Err(CommandError::ParseArgument(option.into(), "Blacklist Action".into(), "None/Ban/Kick".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};
@@ -59,8 +59,15 @@ pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<
 
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Settings Modification Successful").unwrap()
+        .description(format!("Blacklist action has successfully been set to {}", bl_type)).unwrap()
         .build().unwrap();
     ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description(format!("Settings Modification: Blacklist Action - {} -> {}", guild.settings.blacklist_action, bl_type)).unwrap()
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }
 
@@ -74,16 +81,17 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
         None => return Ok(())
     };
     
-    let update = match option.to_lowercase().as_str() {
-        "on" => bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}},
-        "off" => bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}},
-        _ => return Ok(())
+    let (update, desc) = match option.to_lowercase().as_str() {
+        "on" | "enable" => (bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully enabled in this channel"),
+        "off" | "disable" => (bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully disabled in this channel"),
+        _ => return Err(CommandError::ParseArgument(option.into(), "toggle".into(), "`enable`, `disable`, `on`, `off`".into()).into())
     };
     let filter = bson::doc! {"_id": guild.id};
     ctx.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Settings Modification Successful").unwrap()
+        .description(desc).unwrap()
         .build().unwrap();
     ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
     Ok(())

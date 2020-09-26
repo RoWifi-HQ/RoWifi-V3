@@ -4,8 +4,8 @@ pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-on-join", "uoj"],
-    desc: None,
-    usage: None,
+    desc: Some("Command to enable/disable updating a member when they join the server"),
+    usage: Some("settings update-on-join <on/off/enable/disable>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -17,8 +17,8 @@ pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["update-on-verify", "uov"],
-    desc: None,
-    usage: None,
+    desc: Some("Command to enable/disable automatically updating a member just after they verify"),
+    usage: Some("settings update-on-verify <on/off/enable/disable>"),
     examples: &[],
     required_permissions: Permissions::empty(),
     hidden: false,
@@ -41,14 +41,14 @@ pub async fn update_on_join(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
-    let option = match args.next() {
+    let option_str = match args.next() {
         Some(o) => o.to_owned(),
         None => return Ok(())
     };
-    let option = match option.to_lowercase().as_str() {
-        "on" => true,
-        "off" => false,
-        _ => return Ok(())
+    let (option, desc) = match option_str.to_lowercase().as_str() {
+        "on" | "enable" => (true, "Update on Join has succesfully been enabled"),
+        "off" | "disable" => (false, "Update on Join has successfully been disabled"),
+        _ => return Err(CommandError::ParseArgument(option_str.into(), "Update On Join".into(), "`on`, `off`, `enable`, `disable`".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};
@@ -57,8 +57,15 @@ pub async fn update_on_join(ctx: &Context, msg: &Message, mut args: Arguments<'f
 
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Settings Modification Successful").unwrap()
+        .description(desc).unwrap()
         .build().unwrap();
     ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description(format!("Settings Modification: Update On Join - {} -> {}", guild.settings.update_on_join, option)).unwrap()
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }
 
@@ -67,14 +74,14 @@ pub async fn update_on_verify(ctx: &Context, msg: &Message, mut args: Arguments<
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
-    let option = match args.next() {
+    let option_str = match args.next() {
         Some(o) => o.to_owned(),
         None => return Ok(())
     };
-    let option = match option.to_lowercase().as_str() {
-        "on" => true,
-        "off" => false,
-        _ => return Ok(())
+    let (option, desc) = match option_str.to_lowercase().as_str() {
+        "on" | "enable" => (true, "Update on Verify has succesfully been enabled"),
+        "off" | "disable" => (false, "Update on Verify has successfully been disabled"),
+        _ => return Err(CommandError::ParseArgument(option_str.into(), "Update On Verify".into(), "`on`, `off`, `enable`, `disable`".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};
@@ -83,7 +90,14 @@ pub async fn update_on_verify(ctx: &Context, msg: &Message, mut args: Arguments<
 
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Settings Modification Successful").unwrap()
+        .description(desc).unwrap()
         .build().unwrap();
     ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description(format!("Settings Modification: Update On Verify - {} -> {}", guild.settings.update_on_verify, option)).unwrap()
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

@@ -3,7 +3,6 @@ mod update;
 mod misc;
 
 use crate::framework::prelude::*;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub use verify::*;
 pub use update::*;

@@ -7,7 +7,7 @@ pub enum GuildType {
     Alpha, Beta, Normal
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, Clone)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Copy, Clone)]
 #[repr(i8)]
 pub enum BlacklistActionType {
     None, Kick, Ban
