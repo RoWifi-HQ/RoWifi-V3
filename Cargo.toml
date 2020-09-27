@@ -18,7 +18,6 @@ dotenv = "*"
 futures = "*"
 itertools = "*"
 lazy_static = "*"
-rarity-permission-calculator = { branch = "main", git = "https://github.com/rarity-rs/permission-calculator" }
 rand = "*"
 regex = "*"
 serde = "1.0"

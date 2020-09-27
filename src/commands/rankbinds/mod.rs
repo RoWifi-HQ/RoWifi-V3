@@ -19,6 +19,7 @@ pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[&RANKBINDS_NEW_COMMAND, &RANKBINDS_MODIFY_COMMAND, &RANKBINDS_DELETE_COMMAND],
     group: Some("Binds")

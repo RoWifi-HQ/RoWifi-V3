@@ -13,6 +13,7 @@ pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("custombinds modify <Field> <Bind Id> [Params...]`\n`Field`: `code`, `priority`, `prefix`, `roles-add`, `roles-remove"),
     examples: &["custombinds modify code 1 HasRank(3108077, 255)", "cb modify priority 1 23", "custombinds m prefix 2 N/A"],
     required_permissions: Permissions::empty(),
+    min_args: 3,
     hidden: false,
     sub_commands: &[],
     group: None

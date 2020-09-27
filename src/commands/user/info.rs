@@ -10,6 +10,7 @@ pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("Miscellanous")
@@ -28,6 +29,7 @@ pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("Miscellanous")

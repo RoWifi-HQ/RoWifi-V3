@@ -9,6 +9,7 @@ pub static GROUPBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("groupbinds modify <Field> <Group Id> [Roles..]`\nField: `roles-add` `roles-remove"),
     examples: &["groupbinds modify roles-add 8998774 @Role1 @Role2", "gb m roles-remove 8998774 @Role1"],
     required_permissions: Permissions::empty(),
+    min_args: 3,
     hidden: false,
     sub_commands: &[],
     group: None

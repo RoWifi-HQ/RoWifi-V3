@@ -8,6 +8,7 @@ pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings update-on-join <on/off/enable/disable>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None
@@ -21,6 +22,7 @@ pub static UPDATE_VERIFY_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings update-on-verify <on/off/enable/disable>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

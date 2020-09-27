@@ -11,6 +11,7 @@ pub static GROUPBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("groupbinds new <Group Id> [Roles..]"),
     examples: &["groupbinds new 3108077 @Role1", "gb new 5581309 @Role1 @Role2"],
     required_permissions: Permissions::empty(),
+    min_args: 2,
     hidden: false,
     sub_commands: &[],
     group: None

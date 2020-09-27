@@ -19,6 +19,7 @@ pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[&CUSTOMBINDS_NEW_COMMAND, &CUSTOMBINDS_MODIFY_COMMAND, &CUSTOMBINDS_DELETE_COMMAND],
     group: Some("Binds")

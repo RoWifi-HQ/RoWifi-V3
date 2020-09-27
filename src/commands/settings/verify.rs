@@ -8,6 +8,7 @@ pub static SETTINGS_VERIFICATION_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings verification @Verification"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None
@@ -21,6 +22,7 @@ pub static SETTINGS_VERIFIED_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings verified @Verified"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

@@ -20,6 +20,7 @@ pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     examples: &["rankbinds new 3108077 255 [CJCS] 1 @CJCS", "rb new 5581309 1-255 N/A 1 @RoWifi",
                 "rb new 5581309 1-255 auto 1 @RoWifi", "rankbinds new 3108077 1-255 auto 1 auto"],
     required_permissions: Permissions::empty(),
+    min_args: 5,
     hidden: false,
     sub_commands: &[],
     group: None

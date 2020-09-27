@@ -15,6 +15,7 @@ pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("verify <Roblox Username> <Code/Game>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("User")
@@ -28,6 +29,7 @@ pub static REVERIFY_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("reverify <Roblox Username> <Code/Game>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("User")
@@ -57,7 +59,7 @@ pub async fn verify(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> Comm
             .description("To change your verified account, use `reverify`. To get your roles, use `update`").unwrap()
             .color(Color::Red as u32).unwrap()
             .build().unwrap();
-        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
         return Ok(())
     }
     verify_common(ctx, msg, args, false).await
@@ -66,7 +68,13 @@ pub async fn verify(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> Comm
 #[command]
 pub async fn reverify(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult { 
     if ctx.database.get_user(msg.author.id.0).await?.is_none() {
-        //Give Error
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .title("User Not Verified").unwrap()
+            .description("You are not verified. Please use `verify` to link your account").unwrap()
+            .color(Color::Red as u32).unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
         return Ok(())
     }
     verify_common(ctx, msg, args, true).await

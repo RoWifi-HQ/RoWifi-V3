@@ -10,6 +10,7 @@ pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("User")

@@ -7,9 +7,10 @@ pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
     bucket: None,
     names: &["name"],
     desc: Some("Command to add a user blacklist"),
-    usage: Some("blacklist name <Username>"),
-    examples: &["blacklist name AsianIntel", "bl name Zanance"],
+    usage: Some("blacklist name <Username> <Reason>"),
+    examples: &["blacklist name AsianIntel Owner", "bl name Zanance Co-Founder"],
     required_permissions: Permissions::empty(),
+    min_args: 2,
     hidden: false,
     sub_commands: &[],
     group: None

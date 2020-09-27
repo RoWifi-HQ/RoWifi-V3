@@ -20,6 +20,7 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[&BLACKLISTS_NAME_COMMAND, &BLACKLISTS_GROUP_COMMAND, &BLACKLISTS_CUSTOM_COMMAND, &BLACKLISTS_DELETE_COMMAND],
     group: Some("Administration")

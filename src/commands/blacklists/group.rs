@@ -7,9 +7,10 @@ pub static BLACKLISTS_GROUP_OPTIONS: CommandOptions = CommandOptions {
     bucket: None,
     names: &["group"],
     desc: Some("Command to add a group blacklist"),
-    usage: Some("blacklist group <Group Id>"),
-    examples: &["blacklist group 3108077", "bl group 5581309"],
+    usage: Some("blacklist group <Group Id> <Reason>"),
+    examples: &["blacklist group 3108077 Test", "bl group 5581309 Not Allowed"],
     required_permissions: Permissions::empty(),
+    min_args: 2,
     hidden: false,
     sub_commands: &[],
     group: None

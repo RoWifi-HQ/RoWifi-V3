@@ -8,6 +8,7 @@ pub static ASSETBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("assetbinds delete <Id>"),
     examples: &["assetbinds delete 792688917", "ab remove 792688917"],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

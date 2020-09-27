@@ -74,10 +74,16 @@ impl Framework {
                 }
             },
             Invoke::Command{command} => {
-                // if !self.run_checks(&context, &msg, command).await {
-                //     return;
-                // }
+                if !self.run_checks(&context, &msg, command) {
+                    return;
+                }
                 let args = Arguments::new(stream.rest());
+                let args_count = Arguments::new(stream.rest()).count();
+                if args_count < command.options.min_args {
+                    let content = format!("```{}\n\n Expected atleast {} arguments, got only {}```", msg.content, command.options.min_args, args_count);
+                    let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                    return;
+                }
 
                 let res = (command.fun)(&mut context, &msg, args).await;
 
@@ -95,7 +101,7 @@ impl Framework {
         }
     }
 
-    async fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
+    fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
         if context.config.blocked_users.contains(&msg.author.id) {
             return false;
         }

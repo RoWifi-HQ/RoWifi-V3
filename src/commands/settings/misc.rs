@@ -9,6 +9,7 @@ pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings blacklist-action <None/Kick/Ban>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None
@@ -22,6 +23,7 @@ pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("settings commands <enable/disable/on/off>"),
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

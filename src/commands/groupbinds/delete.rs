@@ -8,6 +8,7 @@ pub static GROUPBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("groupbinds delete <Group Id>"),
     examples: &["groupbinds delete 3108077", "gb remove 5581309"],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

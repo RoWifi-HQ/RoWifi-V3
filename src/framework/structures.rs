@@ -25,6 +25,7 @@ pub struct CommandOptions {
     pub usage: Option<&'static str>,
     pub examples: &'static [&'static str],
     pub required_permissions: Permissions,
+    pub min_args: usize,
     pub hidden: bool,
     pub sub_commands: &'static [&'static Command],
     pub group: Option<&'static str>

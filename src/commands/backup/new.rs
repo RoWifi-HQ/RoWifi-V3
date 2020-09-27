@@ -9,6 +9,7 @@ pub static BACKUP_NEW_OPTIONS: CommandOptions = CommandOptions {
     usage: Some("backup new <Name>"),
     examples: &["backup new RoWifi"],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: None

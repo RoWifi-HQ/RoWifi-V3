@@ -10,6 +10,7 @@ pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 0,
     hidden: false,
     sub_commands: &[],
     group: Some("Premium")
@@ -28,6 +29,7 @@ pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
     usage: None,
     examples: &[],
     required_permissions: Permissions::empty(),
+    min_args: 1,
     hidden: false,
     sub_commands: &[],
     group: Some("Premium")
