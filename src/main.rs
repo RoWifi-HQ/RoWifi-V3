@@ -18,6 +18,7 @@ use twilight_standby::Standby;
 use cache::Cache;
 use commands::*;
 use framework::{context::Context, Framework};
+use models::configuration::Configuration;
 use services::*;
 use utils::{Database, Roblox, Logger};
 
@@ -53,14 +54,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let database = Database::new(&conn_string).await;
     let roblox = Roblox::new();
-    let logger = Logger::default();
+    let logger = Arc::new(Logger {
+        debug_webhook: env::var("LOG_DEBUG").expect("Expected the debug webhook in the environment"),
+        main_webhook: env::var("LOG_MAIN").expect("Expected the main webhook in the environment"),
+        premium_webhook: env::var("LOG_PREMIUM").expect("Expected the premium webhook in the environment")
+    });
+    let config = Arc::new(Configuration::default()
+        .default_prefix("?")
+        .on_mention(app_info.id));
 
-    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger);
+    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config);
     let framework = Framework::default()
-        .configure(|c| c
-            .default_prefix("?")
-            .on_mention(app_info.id)
-        )
         .command(&UPDATE_COMMAND)
         .command(&VERIFY_COMMAND)
         .command(&REVERIFY_COMMAND)

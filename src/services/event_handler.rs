@@ -50,8 +50,20 @@ impl EventHandler {
                     if let Some(channel) = channel {
                         let _ = ctx.http.create_message(channel.id()).content(content).unwrap().await;
                     }
+                    let log_embed = EmbedBuilder::new().default_data()
+                        .title("Guild Join").unwrap()
+                        .description(format!("Name: {}\nServer Id: {}\nOwner Id: {}\nMembercount: {}", guild.name, guild.id.0, guild.owner_id.0, guild.member_count.unwrap_or_default())).unwrap()
+                        .build().unwrap();
+                    ctx.logger.log_event(&ctx, log_embed).await;
                 }
             },
+            Event::GuildDelete(guild) => {
+                let log_embed = EmbedBuilder::new().default_data()
+                    .title("Guild Leave").unwrap()
+                    .description(format!("Server Id: {}", guild.id.0)).unwrap()
+                    .build().unwrap();
+                ctx.logger.log_event(&ctx, log_embed).await;
+            }
             Event::Ready(ready) => {
                 tracing::debug!("RoWifi ready for service!");
                 for status in ready.guilds.values() {

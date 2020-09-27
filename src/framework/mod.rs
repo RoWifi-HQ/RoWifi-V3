@@ -1,5 +1,4 @@
 pub mod context;
-mod configuration;
 mod map;
 pub mod parser;
 pub mod prelude;
@@ -12,10 +11,12 @@ use twilight_model::{
 };
 use twilight_command_parser::Arguments;
 use uwl::Stream;
-use crate::utils::error::{RoError, CommandError};
+use crate::utils::{
+    error::{RoError, CommandError}, 
+    misc::guild_wide_permissions
+};
 
 use context::Context;
-use configuration::Configuration;
 pub use map::CommandMap;
 use structures::*;
 use parser::{ParseError, Invoke};
@@ -24,15 +25,9 @@ use parser::{ParseError, Invoke};
 pub struct Framework {
     commands: Vec<(&'static Command, CommandMap)>,
     help: Option<&'static HelpCommand>,
-    config: Configuration
 }
 
 impl Framework {
-    pub fn configure<F>(mut self, f: F) -> Self where F: FnOnce(&mut Configuration) -> &mut Configuration {
-        f(&mut self.config);
-        self
-    }
-
     pub fn command(mut self, command: &'static Command) -> Self {
         let map = CommandMap::new(&[command]);
         self.commands.push((command, map));
@@ -52,9 +47,9 @@ impl Framework {
         let mut stream = Stream::new(&msg.content);
         stream.take_while_char(|c| c.is_whitespace());
 
-        let prefix = parser::find_prefix(&mut stream, &msg, &self.config).await;
+        let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref()).await;
         if prefix.is_some() && stream.rest().is_empty() {
-            let command_prefix = self.config.prefixes.get(&msg.guild_id.unwrap()).map(|g| g.to_string()).unwrap_or_else(|| self.config.default_prefix.to_string());
+            let command_prefix = context.config.prefixes.get(&msg.guild_id.unwrap()).map(|g| g.to_string()).unwrap_or_else(|| context.config.default_prefix.to_string());
             let _ = context.http.create_message(msg.channel_id).content(format!("The prefix of this server is {}", command_prefix)).unwrap().await;
             return;
         }
@@ -101,11 +96,15 @@ impl Framework {
     }
 
     async fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
-        if self.config.blocked_users.contains(&msg.author.id) {
+        if context.config.blocked_users.contains(&msg.author.id) {
             return false;
         }
 
-        if self.config.owners.contains(&msg.author.id) {
+        if context.config.blocked_guilds.contains(&msg.guild_id.unwrap()) {
+            return false;
+        }
+
+        if context.config.owners.contains(&msg.author.id) {
             return true;
         }
 
@@ -113,7 +112,7 @@ impl Framework {
         //Bucketing mechanism
 
         if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()) {
-            if self.config.blocked_users.contains(&guild.owner_id) {
+            if context.config.blocked_users.contains(&guild.owner_id) {
                 return false;
             }
 
@@ -122,15 +121,29 @@ impl Framework {
             }
 
             if let Some(member) = context.cache.member(guild.id, msg.author.id) {
-                for role in member.roles.iter() {
-                    if let Some(role) = context.cache.role(*role) {
-                        if role.permissions.contains(Permissions::ADMINISTRATOR) {
+                match command.options.perm_level {
+                    RoLevel::Normal => return true,
+                    RoLevel::Creator => {
+                        if context.config.owners.contains(&msg.author.id) {
                             return true;
                         }
-                        if role.permissions.contains(command.options.required_permissions) {
-                            return true;
+                    },
+                    RoLevel::Admin => {
+                        match guild_wide_permissions(&context, msg.guild_id.unwrap(), member.user.id, &member.roles) {
+                            Ok(permissions) => {
+                                if permissions.contains(Permissions::MANAGE_GUILD) {
+                                    return true;
+                                }
+                            },
+                            Err(why) => tracing::error!(guild = ?msg.guild_id, reason = ?why)
+                        };
+                        if let Some(admin_role) = guild.admin_role {
+                            if member.roles.contains(&admin_role) {
+                                return true;
+                            }
                         }
-                    }
+                    },
+                    RoLevel::Trainer => return true
                 }
             }
         }
