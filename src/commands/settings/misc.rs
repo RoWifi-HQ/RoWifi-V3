@@ -83,9 +83,9 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
         None => return Ok(())
     };
     
-    let (update, desc) = match option.to_lowercase().as_str() {
-        "on" | "enable" => (bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully enabled in this channel"),
-        "off" | "disable" => (bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully disabled in this channel"),
+    let (update, desc, add) = match option.to_lowercase().as_str() {
+        "on" | "enable" => (bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully enabled in this channel", false),
+        "off" | "disable" => (bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully disabled in this channel", true),
         _ => return Err(CommandError::ParseArgument(option.into(), "toggle".into(), "`enable`, `disable`, `on`, `off`".into()).into())
     };
     let filter = bson::doc! {"_id": guild.id};
@@ -96,5 +96,11 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
         .description(desc).unwrap()
         .build().unwrap();
     ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    if add {
+        ctx.config.disabled_channels.insert(msg.channel_id);
+    } else {
+        ctx.config.disabled_channels.remove(&msg.channel_id);
+    }
     Ok(())
 }

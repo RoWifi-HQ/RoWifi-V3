@@ -81,21 +81,13 @@ impl RoUser {
         }
 
         let roles_to_add = rankbinds_to_add.iter()
-            .flat_map(|r| r.discord_roles.iter().map(|r| Cow::Borrowed(r)))
-            .chain(groupbinds_to_add.flat_map(|g| g.discord_roles.iter().map(|r| Cow::Borrowed(r))))
-            .chain(custombinds_to_add.iter().flat_map(|c| c.discord_roles.iter().map(|r| Cow::Borrowed(r))))
-            .chain(assetbinds_to_add.iter().flat_map(|a| a.discord_roles.iter().map(|r| Cow::Borrowed(r))))
+            .flat_map(|r| r.discord_roles.iter().cloned())
+            .chain(groupbinds_to_add.flat_map(|g| g.discord_roles.iter().cloned()))
+            .chain(custombinds_to_add.iter().flat_map(|c| c.discord_roles.iter().cloned()))
+            .chain(assetbinds_to_add.iter().flat_map(|a| a.discord_roles.iter().cloned()))
             .collect_vec();
 
-        let all_roles = guild.rankbinds.iter()
-            .flat_map(|r| r.discord_roles.iter().map(|r| Cow::Borrowed(r)))
-            .chain(guild.groupbinds.iter().flat_map(|g| g.discord_roles.iter().map(|r| Cow::Borrowed(r))))
-            .chain(guild.custombinds.iter().flat_map(|c| c.discord_roles.iter().map(|r| Cow::Borrowed(r))))
-            .chain(guild.assetbinds.iter().flat_map(|a| a.discord_roles.iter().map(|r| Cow::Borrowed(r))))
-            .unique()
-            .collect_vec();
-
-        for bind_role in all_roles {
+        for bind_role in &guild.all_roles {
             let r = RoleId(*bind_role as u64);
             if let Some(_role) = guild_roles.get(&r) {
                 if roles_to_add.contains(&bind_role) {

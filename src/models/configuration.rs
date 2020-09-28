@@ -1,15 +1,14 @@
-use std::collections::HashSet;
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
 use twilight_model::id::{GuildId, UserId, ChannelId};
 
 #[derive(Default)]
 pub struct Configuration {
-    pub blocked_guilds: HashSet<GuildId>,
-    pub blocked_users: HashSet<UserId>,
-    pub disabled_channels: HashSet<ChannelId>,
+    pub blocked_guilds: DashSet<GuildId>,
+    pub blocked_users: DashSet<UserId>,
+    pub disabled_channels: DashSet<ChannelId>,
     pub on_mention: String,
     pub default_prefix: String,
-    pub owners: HashSet<UserId>,
+    pub owners: DashSet<UserId>,
     pub prefixes: DashMap<GuildId, String>
 }
 
@@ -19,7 +18,7 @@ impl Configuration {
         self
     }
 
-    pub fn owners(mut self, user_ids: HashSet<UserId>) -> Self {
+    pub fn owners(mut self, user_ids: DashSet<UserId>) -> Self {
         self.owners = user_ids;
         self
     }

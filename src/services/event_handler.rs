@@ -3,7 +3,7 @@ use crate::utils::{misc::{channel_permissions, EmbedExtensions}, error::RoError}
 use std::sync::Arc;
 use twilight_gateway::Event;
 use twilight_model::{
-    id::GuildId,
+    id::{GuildId, ChannelId},
     gateway::payload::RequestGuildMembers,
     guild::{GuildStatus, Permissions},
     channel::GuildChannel
@@ -76,6 +76,9 @@ impl EventHandler {
                 for guild in guilds {
                     if let Some(command_prefix) = guild.command_prefix {
                         ctx.config.prefixes.insert(GuildId(guild.id as u64), command_prefix);
+                        for channel in guild.disabled_channels {
+                            ctx.config.disabled_channels.insert(ChannelId(channel as u64));
+                        }
                     }
                 }
             },

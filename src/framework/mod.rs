@@ -114,8 +114,9 @@ impl Framework {
             return true;
         }
 
-        //Check for disabled channels (Implement after database cache)
-        //Bucketing mechanism
+        if context.config.disabled_channels.contains(&msg.channel_id) && !command.options.names.contains(&"command-channel") {
+            return false;
+        }
 
         if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()) {
             if context.config.blocked_users.contains(&guild.owner_id) {
