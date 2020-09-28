@@ -8,7 +8,7 @@ mod rolang;
 mod services;
 mod utils;
 
-use std::{env, error::Error, sync::Arc};
+use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::stream::StreamExt;
 use twilight_gateway::cluster::{ShardScheme, Cluster};
 use twilight_http::Client as HttpClient;
@@ -81,7 +81,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&SERVERINFO_COMMAND)
         .command(&BOTINFO_COMMAND)
         .command(&USERINFO_COMMAND)
-        .help(&HELP_COMMAND);
+        .help(&HELP_COMMAND)
+        .bucket("update-multiple", Duration::from_secs(12 * 3600), 3);
 
     let framework = Arc::new(Box::new(framework));
     let event_handler = EventHandler::default();

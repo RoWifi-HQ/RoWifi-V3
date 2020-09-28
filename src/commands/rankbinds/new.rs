@@ -88,7 +88,7 @@ pub async fn rankbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'fu
 
     match create_type {
         CreateType::Single(rank_id) => single_rank(ctx, msg, guild, group_id, rank_id, prefix, priority, roles).await?,
-        CreateType::SingleWithAuto(rank_id) => single_rank_with_auto(ctx, msg, group_id, rank_id, prefix, priority).await?,
+        CreateType::SingleWithAuto(rank_id) => single_rank_with_auto(ctx, msg, guild, group_id, rank_id, prefix, priority).await?,
         CreateType::Multiple(min_rank, max_rank) => multiple_rank(ctx, msg, guild, group_id, min_rank, max_rank, &prefix, priority, roles).await?,
         CreateType::MultipleWithAuto(min_rank, max_rank) => multiple_rank_with_auto(ctx, msg, guild, group_id, min_rank, max_rank, &prefix, priority).await?
     };
@@ -128,13 +128,17 @@ async fn single_rank(ctx: &Context, msg: &Message, guild: RoGuild, group_id: i64
         priority,
         discord_roles: roles
     };
-    println!("{:?}", bind);
-    add_rankbind(ctx, msg, bind).await?;
+    add_rankbind(ctx, msg, &bind).await?;
+    log_rankbind(ctx, msg, bind).await;
     Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
-async fn single_rank_with_auto(ctx: &Context, msg: &Message, group_id: i64, rank_id: i64, mut prefix: String, priority: i64) -> Result<(), RoError> {
+async fn single_rank_with_auto(ctx: &Context, msg: &Message, guild: RoGuild, group_id: i64, rank_id: i64, mut prefix: String, priority: i64) -> Result<(), RoError> {
+    if guild.rankbinds.iter().any(|r| r.group_id == group_id && r.rank_id == rank_id) {
+        return Ok(())
+    }
+    
     let roblox_rank = match ctx.roblox.get_group_rank(group_id, rank_id).await?{
         Some(r) => r,
         None => return Ok(())
@@ -164,7 +168,8 @@ async fn single_rank_with_auto(ctx: &Context, msg: &Message, group_id: i64, rank
         priority,
         discord_roles
     };
-    add_rankbind(ctx, msg, bind).await?;
+    add_rankbind(ctx, msg, &bind).await?;
+    log_rankbind(ctx, msg, bind).await;
     Ok(())
 }
 
@@ -175,8 +180,8 @@ async fn multiple_rank(ctx: &Context, msg: &Message, mut guild: RoGuild, group_i
         return Ok(())
     }
 
-    let mut added = 0;
-    let mut modified = 0;
+    let mut added = Vec::new();
+    let mut modified = Vec::new();
     for roblox_rank in roblox_ranks {
         let mut prefix_to_set = prefix.to_string();
         if prefix.eq("auto") {
@@ -197,12 +202,12 @@ async fn multiple_rank(ctx: &Context, msg: &Message, mut guild: RoGuild, group_i
 
         match guild.rankbinds.iter().find_position(|r| r.group_id == group_id && r.rank_id == rank_id) {
             Some((pos, _)) => {
-                guild.rankbinds[pos] = bind;
-                modified += 1;
+                guild.rankbinds[pos] = bind.clone();
+                modified.push(bind)
             },
             None => {
-                guild.rankbinds.push(bind);
-                added += 1;
+                guild.rankbinds.push(bind.clone());
+                added.push(bind);
             }
         }
     }
@@ -210,9 +215,15 @@ async fn multiple_rank(ctx: &Context, msg: &Message, mut guild: RoGuild, group_i
     ctx.database.add_guild(guild, true).await?;
     let embed = EmbedBuilder::new().default_data().title("Binds Addition Sucessful").unwrap()
         .color(Color::Red as u32).unwrap()
-        .description(format!("Added {} rankbinds and modified {} rankbinds", added, modified)).unwrap()
+        .description(format!("Added {} rankbinds and modified {} rankbinds", added.len(), modified.len())).unwrap()
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    for rb in added {
+        log_rankbind(ctx, msg, rb).await;
+    }
+    for rb in modified {
+        log_rankbind(ctx, msg, rb).await;
+    }
     Ok(())
 }
 
@@ -223,8 +234,8 @@ async fn multiple_rank_with_auto(ctx: &Context, msg: &Message, mut guild: RoGuil
         return Ok(())
     }
 
-    let mut added = 0;
-    let mut modified = 0;
+    let mut added = Vec::new();
+    let mut modified = Vec::new();
     for roblox_rank in roblox_ranks {
         let mut prefix_to_set = prefix.to_string();
         if prefix.eq("auto") {
@@ -255,12 +266,12 @@ async fn multiple_rank_with_auto(ctx: &Context, msg: &Message, mut guild: RoGuil
 
         match guild.rankbinds.iter().find_position(|r| r.group_id == group_id && r.rank_id == rank_id) {
             Some((pos, _)) => {
-                guild.rankbinds[pos] = bind;
-                modified += 1;
+                guild.rankbinds[pos] = bind.clone();
+                modified.push(bind);
             },
             None => {
-                guild.rankbinds.push(bind);
-                added += 1;
+                guild.rankbinds.push(bind.clone());
+                added.push(bind)
             }
         }
     }
@@ -268,13 +279,19 @@ async fn multiple_rank_with_auto(ctx: &Context, msg: &Message, mut guild: RoGuil
     ctx.database.add_guild(guild, true).await?;
     let embed = EmbedBuilder::new().default_data().title("Binds Addition Sucessful").unwrap()
         .color(Color::Red as u32).unwrap()
-        .description(format!("Added {} rankbinds and modified {} rankbinds", added, modified)).unwrap()
+        .description(format!("Added {} rankbinds and modified {} rankbinds", added.len(), modified.len())).unwrap()
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    for rb in added {
+        log_rankbind(ctx, msg, rb).await;
+    }
+    for rb in modified {
+        log_rankbind(ctx, msg, rb).await;
+    }
     Ok(())
 }
 
-async fn add_rankbind(ctx: &Context, msg: &Message, bind: RankBind) -> Result<(), RoError> {
+async fn add_rankbind(ctx: &Context, msg: &Message, bind: &RankBind) -> Result<(), RoError> {
     let filter = bson::doc! {"_id": msg.guild_id.unwrap().0 };
     let bind_bson = bson::to_bson(&bind)?;
     let update = bson::doc! {"$push": {"RankBinds": bind_bson}};
@@ -284,11 +301,23 @@ async fn add_rankbind(ctx: &Context, msg: &Message, bind: RankBind) -> Result<()
     let roles_str = bind.discord_roles.iter().map(|r| format!("<@&{}> ", r)).collect::<String>();
     let desc = format!("Prefix: {}\nPriority: {}\nDiscord Roles: {}", bind.prefix, bind.priority, roles_str);
     let embed = EmbedBuilder::new().default_data().title("Bind Addition Sucessful").unwrap()
-        .color(Color::Red as u32).unwrap()
+        .color(Color::DarkGreen as u32).unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
     Ok(())
+}
+
+async fn log_rankbind(ctx: &Context, msg: &Message, bind: RankBind) {
+    let name = format!("Group Id: {}", bind.group_id);
+    let roles_str = bind.discord_roles.iter().map(|r| format!("<@&{}> ", r)).collect::<String>();
+    let desc = format!("Rank Id: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}", bind.rank_id, bind.prefix, bind.priority, roles_str);
+    let log_embed = EmbedBuilder::new().default_data()
+        .title(format!("Action by {}", msg.author.name)).unwrap()
+        .description("Rank Bind Addition").unwrap()
+        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .build().unwrap();
+    ctx.logger.log_guild(ctx, msg.guild_id.unwrap(), log_embed).await;
 }
 
 fn extract_ids(rank_str: &str) -> Option<(i64, i64)> {

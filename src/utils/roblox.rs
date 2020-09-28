@@ -51,9 +51,11 @@ impl Roblox {
     pub async fn has_asset(&self, roblox_id: i64, item: i64, asset_type: &str) -> Result<bool> {
         let url = format!("https://inventory.roblox.com/v1/users/{}/items/{}/{}", roblox_id, asset_type, item);
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
-        
-        let resp = body["data"].as_array().unwrap();
-        Ok(resp.is_empty())
+        if let Some(data) = body.get("data") {
+            let resp = data.as_array().unwrap();
+            return Ok(resp.is_empty())
+        }
+        Ok(false)
     }
 
     pub async fn check_code(&self, roblox_id: i64, code: &str) -> Result<bool> {

@@ -1,6 +1,6 @@
 use crate::framework::prelude::Context;
 use crate::utils::{misc::{channel_permissions, EmbedExtensions}, error::RoError};
-use std::sync::Arc;
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use twilight_gateway::Event;
 use twilight_model::{
     id::{GuildId, ChannelId},
@@ -13,7 +13,8 @@ use dashmap::DashSet;
 
 #[derive(Default)]
 pub struct EventHandlerRef {
-    unavailable: DashSet<GuildId>
+    unavailable: DashSet<GuildId>,
+    ready: AtomicBool
 }
 
 #[derive(Default, Clone)]
@@ -28,6 +29,9 @@ impl EventHandler {
                     let req = RequestGuildMembers::builder(guild.id).query("", None);
                     let _res = ctx.cluster.command(shard_id, &req).await;
                 } else {
+                    if !self.0.ready.load(Ordering::SeqCst) {
+                        return Ok(());
+                    }
                     let current_user = ctx.cache.current_user().unwrap();
                     let current_member = ctx.cache.member(guild.id, current_user.id).unwrap();
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
@@ -71,6 +75,7 @@ impl EventHandler {
                         self.0.unavailable.insert(ug.id);
                     }
                 }
+                self.0.ready.store(true, Ordering::SeqCst);
                 let guild_ids = ready.guilds.keys().map(|k| k.0).collect::<Vec<u64>>();
                 let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
                 for guild in guilds {

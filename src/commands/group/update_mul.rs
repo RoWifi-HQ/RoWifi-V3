@@ -4,7 +4,7 @@ use twilight_model::id::UserId;
 
 pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
-    bucket: None,
+    bucket: Some("update-multiple"),
     names: &["update-all"],
     desc: Some("Command to update all members in the server"),
     usage: None,
@@ -23,7 +23,7 @@ pub static UPDATE_ALL_COMMAND: Command = Command {
 
 pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
-    bucket: None,
+    bucket: Some("update-multiple"),
     names: &["update-role"],
     desc: Some("Command to update all members with a certain role"),
     usage: None,
@@ -52,8 +52,10 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
         return Ok(())
     }
+    let _ = ctx.http.create_message(msg.channel_id).content("Updating all members...").unwrap().await?;
     let server = ctx.cache.guild(guild_id).unwrap();
     let members = ctx.cache.members(guild_id).into_iter().map(|m| m.0).collect::<Vec<_>>();
+    println!("{:?}", members.len());
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
@@ -63,7 +65,7 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                 if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {continue;}
                 }
-                tracing::trace!(id = user.discord_id, "Mass Update for member");
+                tracing::debug!(id = user.discord_id, "Mass Update for member");
                 let _ = user.update(c.http.clone(), member, c.roblox.clone(), server.clone(), &guild, &guild_roles).await;
             }
         }

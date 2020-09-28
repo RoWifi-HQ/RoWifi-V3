@@ -4,6 +4,9 @@ pub mod parser;
 pub mod prelude;
 pub mod structures;
 
+use dashmap::DashMap;
+use std::time::Duration;
+use transient_dashmap::TransientDashMap;
 use twilight_gateway::Event;
 use twilight_model::{
     channel::Message,
@@ -24,6 +27,7 @@ use parser::{ParseError, Invoke};
 #[derive(Default)]
 pub struct Framework {
     commands: Vec<(&'static Command, CommandMap)>,
+    buckets: DashMap<String, Bucket>,
     help: Option<&'static HelpCommand>,
 }
 
@@ -36,6 +40,11 @@ impl Framework {
 
     pub fn help(mut self, help: &'static HelpCommand) -> Self {
         self.help = Some(help);
+        self
+    }
+
+    pub fn bucket(self, name: &str, time: Duration, calls: u64) -> Self {
+        self.buckets.insert(name.to_string(), Bucket {time, guilds: TransientDashMap::new(time), calls});
         self
     }
 
@@ -77,6 +86,15 @@ impl Framework {
                 if !self.run_checks(&context, &msg, command) {
                     return;
                 }
+
+                if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
+                    if let Some(duration) = bucket.get(msg.guild_id.unwrap()) {
+                        let content = format!("Ratelimit reached. You may use this command in {:?}", duration);
+                        let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                        return;
+                    }
+                }
+
                 let args = Arguments::new(stream.rest());
                 let args_count = Arguments::new(stream.rest()).count();
                 if args_count < command.options.min_args {
@@ -88,7 +106,11 @@ impl Framework {
                 let res = (command.fun)(&mut context, &msg, args).await;
 
                 match res {
-                    Ok(()) => {},
+                    Ok(()) => {
+                        if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
+                            bucket.take(msg.guild_id.unwrap()); 
+                        }
+                    },
                     Err(error) => self.handle_error(error, &context, &msg).await
                 }
             }
