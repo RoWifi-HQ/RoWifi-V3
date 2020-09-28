@@ -40,6 +40,8 @@ pub async fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Co
             if prefix.value() == peeked {
                 stream.increment(prefix.len());
                 return Some(Cow::Borrowed(peeked))
+            } else {
+                return None
             }
         }
     }

@@ -6,7 +6,7 @@ use twilight_model::id::RoleId;
 use super::Backup;
 use crate::cache::CachedRole;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AssetBind {
     #[serde(rename = "_id")]
     pub id: i64,

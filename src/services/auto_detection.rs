@@ -2,7 +2,6 @@ use crate::framework::prelude::Context;
 use std::error::Error;
 use twilight_model::id::{GuildId, UserId};
 use tokio::time::{interval, Duration};
-use tracing::{debug, trace};
 
 pub async fn auto_detection(ctx: Context) {
     let mut interval = interval(Duration::from_secs(3 * 3600));
@@ -15,7 +14,7 @@ pub async fn auto_detection(ctx: Context) {
 
 async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
-    let mut guilds = ctx.database.get_guilds(servers, true).await?;
+    let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {
         let start = chrono::Utc::now().timestamp_millis();
@@ -32,12 +31,13 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
                 if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {continue;}
                 }
-                trace!(id = user.discord_id, "Auto Detection for member");
+                tracing::trace!(id = user.discord_id, "Auto Detection for member");
                 let _ = user.update(ctx.http.clone(), member, ctx.roblox.clone(), server.clone(), &guild, &guild_roles).await;
             }
         }
         let end = chrono::Utc::now().timestamp_millis();
-        debug!(time = end-start, "Time to complete auto detection");
+        tracing::trace!(time = end-start, "Time to complete auto detection");
+        ctx.logger.log_premium(ctx, &format!("{} - {}", server.name, end-start)).await;
     }
     Ok(())
 }

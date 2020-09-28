@@ -102,7 +102,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         context.standby.process(&event.1);
         
         tokio::spawn(async move {
-            let _ = e.handle_event(event.0, &event.1, c.clone()).await;
+            let _ = e.handle_event(event.0, &event.1, &c).await;
             f.handle_event(event.1, c).await;
         });
     }

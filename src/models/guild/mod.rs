@@ -15,7 +15,7 @@ pub use backup::*;
 pub use settings::*;
 pub use types::*;
 
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct RoGuild {
     #[serde(rename = "_id")]
     pub id: i64,

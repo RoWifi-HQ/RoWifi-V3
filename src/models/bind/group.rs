@@ -5,7 +5,7 @@ use twilight_model::id::RoleId;
 use super::Backup;
 use crate::cache::CachedRole;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupBind {
     #[serde(rename = "GroupId")]
     pub group_id: i64,

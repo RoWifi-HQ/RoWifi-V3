@@ -57,7 +57,7 @@ pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Comm
     guild.verification_role = verification_role as i64;
     guild.verified_role = verified_role as i64;
     if let Some(existing) = existing_guild {
-        guild.command_prefix = existing.command_prefix;
+        guild.command_prefix = existing.command_prefix.clone();
         replace = true;
     }
     

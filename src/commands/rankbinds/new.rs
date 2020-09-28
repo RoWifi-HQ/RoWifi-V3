@@ -38,7 +38,7 @@ lazy_static! {
 #[command]
 pub async fn rankbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?.as_ref().clone();
 
     let group_id = match args.next().map(|g| g.parse::<i64>()) {
         Some(Ok(g)) => g,

@@ -20,7 +20,7 @@ pub struct EventHandlerRef {
 pub struct EventHandler(Arc<EventHandlerRef>);
 
 impl EventHandler {
-    pub async fn handle_event(&self, shard_id: u64, event: &Event, ctx: Context) -> Result<(), RoError> {
+    pub async fn handle_event(&self, shard_id: u64, event: &Event, ctx: &Context) -> Result<(), RoError> {
         match &event {
             Event::GuildCreate(guild) => {
                 if self.0.unavailable.contains(&guild.id) {
@@ -69,6 +69,13 @@ impl EventHandler {
                 for status in ready.guilds.values() {
                     if let GuildStatus::Offline(ug) = status {
                         self.0.unavailable.insert(ug.id);
+                    }
+                }
+                let guild_ids = ready.guilds.keys().map(|k| k.0).collect::<Vec<u64>>();
+                let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
+                for guild in guilds {
+                    if let Some(command_prefix) = guild.command_prefix {
+                        ctx.config.prefixes.insert(GuildId(guild.id as u64), command_prefix);
                     }
                 }
             },

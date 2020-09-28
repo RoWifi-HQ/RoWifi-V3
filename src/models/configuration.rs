@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 use dashmap::DashMap;
 use twilight_model::id::{GuildId, UserId, ChannelId};
 
@@ -10,7 +10,7 @@ pub struct Configuration {
     pub on_mention: String,
     pub default_prefix: String,
     pub owners: HashSet<UserId>,
-    pub prefixes: Arc<DashMap<GuildId, String>>
+    pub prefixes: DashMap<GuildId, String>
 }
 
 impl Configuration {

@@ -6,7 +6,7 @@ use super::Backup;
 use crate::cache::CachedRole;
 use crate::models::command::RoCommand;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct CustomBind {
     #[serde(rename = "_id")]
     pub id: i64,
