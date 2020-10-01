@@ -1,4 +1,3 @@
-use futures::future::{BoxFuture, FutureExt};
 use std::borrow::Cow;
 use twilight_model::channel::Message;
 use uwl::Stream;
@@ -28,7 +27,7 @@ pub fn mention<'a>(stream: &mut Stream<'a>, config: &Configuration) -> Option<&'
     }
 }
 
-pub async fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configuration) -> Option<Cow<'a, str>> {
+pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configuration) -> Option<Cow<'a, str>> {
     if let Some(id) = mention(stream, config) {
         stream.take_while_char(|c| c.is_whitespace());
         return Some(Cow::Borrowed(id));
@@ -56,39 +55,30 @@ pub async fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Co
     None
 }
 
-fn parse_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> BoxFuture<'a, Result<&'static Command, ParseError>> {
-    async move {
-        let name = stream.peek_until_char(|c| c.is_whitespace());
+fn parse_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> Result<&'static Command, ParseError> {
+    let name = stream.peek_until_char(|c| c.is_whitespace());
 
-        if let Some((cmd, map)) = map.get(name) {
-            stream.increment(name.len());
+    if let Some((cmd, map)) = map.get(name) {
+        stream.increment(name.len());
 
-            stream.take_while_char(|c| c.is_whitespace());
+        stream.take_while_char(|c| c.is_whitespace());
 
 
-            if map.is_empty() {
-                return Ok(cmd);
-            }
-
-            return match parse_command(stream, &map).await {
-                Err(ParseError::UnrecognisedCommand(Some(_))) => Ok(cmd),
-                res => res,
-            };
+        if map.is_empty() {
+            return Ok(cmd);
         }
 
-        Err(ParseError::UnrecognisedCommand(Some(name.to_string())))
-    }.boxed()
-}
-
-async fn handle_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> Result<Invoke, ParseError> {
-    match parse_command(stream, map).await {
-        Ok(command) => Ok(Invoke::Command { command }),
-        Err(err) => Err(err)
+        return match parse_command(stream, &map) {
+            Err(ParseError::UnrecognisedCommand(Some(_))) => Ok(cmd),
+            res => res,
+        };
     }
+
+    Err(ParseError::UnrecognisedCommand(Some(name.to_string())))
 }
 
 
-pub async fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command, CommandMap)], help: &Option<&'static str>) -> Result<Invoke, ParseError> {
+pub fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command, CommandMap)], help: &Option<&'static str>) -> Result<Invoke, ParseError> {
     if let Some(help) = help {    
         let n = stream.peek_for_char(help.chars().count());
         if help.eq_ignore_ascii_case(n) {
@@ -101,10 +91,10 @@ pub async fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command,
     let mut last = Err(ParseError::UnrecognisedCommand(None));
 
     for (_command, map) in commands {
-        let res = handle_command(stream, map).await;
-        if res.is_ok() {
-            return res;
-        }
+        let res = match parse_command(stream, map) {
+            Ok(command) => return Ok(Invoke::Command { command }),
+            Err(err) => Err(err)
+        };
         last = res;
     }
 

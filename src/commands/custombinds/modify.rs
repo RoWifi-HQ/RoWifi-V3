@@ -76,7 +76,7 @@ pub async fn custombinds_modify(ctx: &Context, msg: &Message, mut args: Argument
         let modification = role_ids.iter().map(|r| format!("<@&{}> ", r)).collect::<String>();
         format!("Removed Roles: {}", modification)
     } else {
-        return Err(CommandError::ParseArgument(field.into(), "Field".into(), "`prefix`, `priority`, `code`, `roles-add`, `roles-remove`".into()).into())
+        return Err(CommandError::ParseArgument(field, "Field".into(), "`prefix`, `priority`, `code`, `roles-add`, `roles-remove`".into()).into())
     }; 
 
     let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
@@ -149,9 +149,9 @@ async fn modify_priority(ctx: &Context, guild: &RoGuild, bind_id: i64, priority:
     Ok(priority)
 }
 
-async fn add_roles(ctx: &Context, guild: &RoGuild, bind_id: i64, mut args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
+async fn add_roles(ctx: &Context, guild: &RoGuild, bind_id: i64, args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }
@@ -162,9 +162,9 @@ async fn add_roles(ctx: &Context, guild: &RoGuild, bind_id: i64, mut args: Argum
     Ok(role_ids)
 }
 
-async fn remove_roles(ctx: &Context, guild: &RoGuild, bind_id: i64, mut args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
+async fn remove_roles(ctx: &Context, guild: &RoGuild, bind_id: i64, args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }

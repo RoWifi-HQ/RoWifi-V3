@@ -74,7 +74,7 @@ pub async fn rankbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments<
         let modification = role_ids.iter().map(|r| format!("<@&{}> ", r)).collect::<String>();
         format!("Removed Roles: {}", modification)
     } else {
-        return Err(CommandError::ParseArgument(field.into(), "Field".into(), "`prefix`, `priority`, `roles-add`, `roles-remove`".into()).into())
+        return Err(CommandError::ParseArgument(field, "Field".into(), "`prefix`, `priority`, `roles-add`, `roles-remove`".into()).into())
     };
     let desc = format!("Rank Id: {}\n{}", bind.rank_id, desc);
 
@@ -126,9 +126,9 @@ async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id: i64, 
     Ok(role_ids)
 }
 
-async fn remove_roles(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id: i64, mut args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
+async fn remove_roles(ctx: &Context, guild: &RoGuild, group_id: i64, rank_id: i64, args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }

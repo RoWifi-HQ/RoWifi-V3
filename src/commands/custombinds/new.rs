@@ -84,7 +84,7 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'
     }
 
     let mut binds = guild.custombinds.iter().map(|c| c.id).collect_vec();
-    binds.sort();
+    binds.sort_unstable();
     let id = binds.last().unwrap_or(&0) + 1;
     let bind = CustomBind {id, code: code.to_owned(), prefix, priority, command, discord_roles};
     let bind_bson = bson::to_bson(&bind)?;

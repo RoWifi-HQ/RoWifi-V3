@@ -33,7 +33,7 @@ pub async fn backup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
 
     for backup in backups {
         let val = format!("Prefix: {}\nVerification: {}\nVerified: {}\nRankbinds: {}\nGroupbinds: {}\nCustombinds: {}\nAssetbinds: {}",
-            backup.command_prefix.unwrap_or("!".into()), backup.verification_role.unwrap_or_default(), backup.verified_role.unwrap_or_default(),
+            backup.command_prefix.unwrap_or_else(|| "!".into()), backup.verification_role.unwrap_or_default(), backup.verified_role.unwrap_or_default(),
             backup.rankbinds.len(), backup.groupbinds.len(), backup.custombinds.len(), backup.assetbinds.len()
         );
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val).unwrap());

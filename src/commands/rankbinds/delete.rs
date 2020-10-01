@@ -33,7 +33,7 @@ pub async fn rankbinds_delete(ctx: &Context, msg: &Message, mut args: Arguments<
     };
 
     let mut rank_ids_to_delete = Vec::new();
-    while let Some(arg) = args.next() {
+    for arg in args {
         if let Ok(r) = arg.parse::<i64>() {
             rank_ids_to_delete.push(r);
         }

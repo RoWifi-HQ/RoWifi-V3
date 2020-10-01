@@ -52,7 +52,7 @@ pub async fn blacklist_action(ctx: &Context, msg: &Message, mut args: Arguments<
         "none" => BlacklistActionType::None,
         "kick" => BlacklistActionType::Kick,
         "ban" => BlacklistActionType::Ban,
-        _ => return Err(CommandError::ParseArgument(option.into(), "Blacklist Action".into(), "None/Ban/Kick".into()).into())
+        _ => return Err(CommandError::ParseArgument(option, "Blacklist Action".into(), "None/Ban/Kick".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};
@@ -86,7 +86,7 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
     let (update, desc, add) = match option.to_lowercase().as_str() {
         "on" | "enable" => (bson::doc! {"$pull": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully enabled in this channel", false),
         "off" | "disable" => (bson::doc! {"$push": {"DisabledChannels": msg.channel_id.0}}, "Commands have been successfully disabled in this channel", true),
-        _ => return Err(CommandError::ParseArgument(option.into(), "toggle".into(), "`enable`, `disable`, `on`, `off`".into()).into())
+        _ => return Err(CommandError::ParseArgument(option, "toggle".into(), "`enable`, `disable`, `on`, `off`".into()).into())
     };
     let filter = bson::doc! {"_id": guild.id};
     ctx.database.modify_guild(filter, update).await?;

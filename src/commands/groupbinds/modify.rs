@@ -59,7 +59,7 @@ pub async fn groupbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments
         let desc = format!("Removed Roles: {}", modification);
         desc
     } else {
-        return Err(CommandError::ParseArgument(field.into(), "Field".into(), "`roles-add`, `roles-remove`".into()).into())
+        return Err(CommandError::ParseArgument(field, "Field".into(), "`roles-add`, `roles-remove`".into()).into())
     };
 
     let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
@@ -78,9 +78,9 @@ pub async fn groupbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments
     Ok(())
 }
 
-async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, mut args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
+async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }
@@ -91,9 +91,9 @@ async fn add_roles(ctx: &Context, guild: &RoGuild, group_id: i64, mut args: Argu
     Ok(role_ids)
 }
 
-async fn remove_roles(ctx: &Context, guild: &RoGuild, group_id: i64, mut args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
+async fn remove_roles(ctx: &Context, guild: &RoGuild, group_id: i64, args: Arguments<'_>) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }

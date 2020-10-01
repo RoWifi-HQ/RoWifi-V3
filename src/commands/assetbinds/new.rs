@@ -42,7 +42,7 @@ pub async fn assetbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
         None => return Ok(())
     };
 
-    if guild.assetbinds.iter().find(|a| a.asset_type == asset_type && a.id == asset_id).is_some() {
+    if guild.assetbinds.iter().any(|a| a.asset_type == asset_type && a.id == asset_id) {
         let embed = EmbedBuilder::new().default_data().title("Bind Addition Failed").unwrap()
             .color(Color::Red as u32).unwrap()
             .description(format!("A bind with asset id {} already exists", asset_id)).unwrap()

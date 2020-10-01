@@ -46,7 +46,7 @@ pub async fn groupbinds_new(ctx: &Context, msg: &Message, mut args: Arguments<'f
 
     let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
     let mut roles: Vec<i64> = Vec::new();
-    while let Some(r) = args.next() {
+    for r in args {
         if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId(role_id)) {
                 roles.push(role_id as i64);

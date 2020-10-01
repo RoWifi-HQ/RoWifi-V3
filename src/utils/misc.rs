@@ -123,7 +123,7 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
 
 pub trait EmbedExtensions {
     fn default_data(self) -> Self;
-    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self;
+    fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self;
 }
 
 impl EmbedExtensions for EmbedBuilder {
@@ -134,7 +134,7 @@ impl EmbedExtensions for EmbedBuilder {
             .footer(EmbedFooterBuilder::new("RoWifi").expect("Looks like the footer text screwed up"))
     }
 
-    fn update_log(self, added_roles: &Vec<RoleId>, removed_roles: &Vec<RoleId>, disc_nick: &str) -> Self {
+    fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self {
         let mut added_str = added_roles.iter()
             .map(|a| format!("- {}\n", a.mention())).collect::<String>();
         let mut removed_str = removed_roles.iter()
@@ -153,7 +153,7 @@ impl EmbedExtensions for EmbedBuilder {
     }
 }
 
-pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &Vec<RoleId>) -> Result<Permissions, String> {
+pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &[RoleId]) -> Result<Permissions, String> {
     let guild = match ctx.cache.guild(guild_id) {
         Some(g) => g,
         None => return Err("Server was not found in the cache".into())
@@ -188,7 +188,7 @@ pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserI
     Ok(permissions)
 }
 
-pub fn channel_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &Vec<RoleId>, channel_id: ChannelId) -> Result<Permissions, String> {
+pub fn channel_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &[RoleId], channel_id: ChannelId) -> Result<Permissions, String> {
     let mut permissions = guild_wide_permissions(ctx, guild_id, member_id, &member_roles)?;
     let mut member_allow = Permissions::empty();
     let mut member_deny = Permissions::empty();

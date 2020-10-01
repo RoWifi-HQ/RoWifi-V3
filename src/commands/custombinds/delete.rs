@@ -20,12 +20,12 @@ pub static CUSTOMBINDS_DELETE_COMMAND: Command = Command {
 };
 
 #[command]
-pub async fn custombinds_delete(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+pub async fn custombinds_delete(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let mut ids_to_delete = Vec::new();
-    while let Some(arg) = args.next() {
+    for arg in args {
         if let Ok(r) = arg.parse::<i64>() {
             ids_to_delete.push(r);
         }
@@ -33,7 +33,7 @@ pub async fn custombinds_delete(ctx: &Context, msg: &Message, mut args: Argument
 
     let mut binds_to_delete = Vec::new();
     for id in ids_to_delete {
-        if guild.custombinds.iter().find(|r| r.id == id).is_some() {
+        if guild.custombinds.iter().any(|r| r.id == id) {
             binds_to_delete.push(id);
         }
     }

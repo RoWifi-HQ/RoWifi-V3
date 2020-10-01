@@ -168,7 +168,7 @@ impl<'de> Deserialize<'de> for CustomBind {
                 let command = RoCommand::new(&code).unwrap();
 
                 Ok(CustomBind {
-                    id, discord_roles, prefix, priority, code: code.to_owned(), command
+                    id, discord_roles, prefix, priority, code, command
                 })
             }
         }

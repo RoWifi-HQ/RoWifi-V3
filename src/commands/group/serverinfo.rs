@@ -30,7 +30,7 @@ pub async fn serverinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         .field(EmbedFieldBuilder::new("Member Count", ctx.cache.member_count(guild_id).to_string()).unwrap().inline())
         .field(EmbedFieldBuilder::new("Shard Id", ctx.shard_id.to_string()).unwrap().inline())
         .field(EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string()).unwrap().inline())
-        .field(EmbedFieldBuilder::new("Prefix", guild.command_prefix.clone().unwrap_or("!".into())).unwrap().inline())
+        .field(EmbedFieldBuilder::new("Prefix", guild.command_prefix.clone().unwrap_or_else(|| "!".into())).unwrap().inline())
         .field(EmbedFieldBuilder::new("Verification Role", format!("<@&{}>", guild.verification_role)).unwrap().inline())
         .field(EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role)).unwrap().inline())
         .field(EmbedFieldBuilder::new("Rankbinds", guild.rankbinds.len().to_string()).unwrap().inline())

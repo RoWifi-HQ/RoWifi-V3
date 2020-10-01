@@ -65,19 +65,16 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     }
 
     let guild_type: GuildType = premium_user.premium_type.into();
-    match guild_type {
-        GuildType::Alpha => {
-            if premium_user.discord_servers.len() >= 1 {
-                let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                    .title("Premium Redeem Failed").unwrap()
-                    .description("You may only use premium in one of your servers").unwrap()
-                    .build().unwrap();
-                let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-                return Ok(())
-            }
-        },
-        _ => {}
-    };
+    if let GuildType::Alpha = guild_type {
+        if !premium_user.discord_servers.is_empty() {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Premium Redeem Failed").unwrap()
+                .description("You may only use premium in one of your servers").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+            return Ok(())
+        }
+    }
 
     let _ = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 

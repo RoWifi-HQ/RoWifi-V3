@@ -50,7 +50,7 @@ pub async fn update_on_join(ctx: &Context, msg: &Message, mut args: Arguments<'f
     let (option, desc) = match option_str.to_lowercase().as_str() {
         "on" | "enable" => (true, "Update on Join has succesfully been enabled"),
         "off" | "disable" => (false, "Update on Join has successfully been disabled"),
-        _ => return Err(CommandError::ParseArgument(option_str.into(), "Update On Join".into(), "`on`, `off`, `enable`, `disable`".into()).into())
+        _ => return Err(CommandError::ParseArgument(option_str, "Update On Join".into(), "`on`, `off`, `enable`, `disable`".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};
@@ -83,7 +83,7 @@ pub async fn update_on_verify(ctx: &Context, msg: &Message, mut args: Arguments<
     let (option, desc) = match option_str.to_lowercase().as_str() {
         "on" | "enable" => (true, "Update on Verify has succesfully been enabled"),
         "off" | "disable" => (false, "Update on Verify has successfully been disabled"),
-        _ => return Err(CommandError::ParseArgument(option_str.into(), "Update On Verify".into(), "`on`, `off`, `enable`, `disable`".into()).into())
+        _ => return Err(CommandError::ParseArgument(option_str, "Update On Verify".into(), "`on`, `off`, `enable`, `disable`".into()).into())
     };
 
     let filter = bson::doc! {"_id": guild.id};

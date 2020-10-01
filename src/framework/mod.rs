@@ -56,7 +56,7 @@ impl Framework {
         let mut stream = Stream::new(&msg.content);
         stream.take_while_char(|c| c.is_whitespace());
 
-        let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref()).await;
+        let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref());
         if prefix.is_some() && stream.rest().is_empty() {
             let command_prefix = context.config.prefixes.get(&msg.guild_id.unwrap()).map(|g| g.to_string()).unwrap_or_else(|| context.config.default_prefix.to_string());
             let _ = context.http.create_message(msg.channel_id).content(format!("The prefix of this server is {}", command_prefix)).unwrap().await;
@@ -67,7 +67,7 @@ impl Framework {
             return;
         }
 
-        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.name)).await;
+        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.name));
         let invoke = match invocation {
             Ok(i) => i,
             Err(ParseError::UnrecognisedCommand(_)) => {

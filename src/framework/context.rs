@@ -24,6 +24,7 @@ pub struct Context {
 }
 
 impl Context {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster, logger: Arc<Logger>, config: Arc<Configuration>, patreon: Patreon) -> Self {
         Self {
             shard_id,

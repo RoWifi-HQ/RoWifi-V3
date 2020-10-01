@@ -57,11 +57,11 @@ async fn specific_help(ctx: &Context, msg: &Message, args: Arguments<'_>, comman
         if let Some(usage) = command.options.usage {
             embed = embed.field(EmbedFieldBuilder::new("Usage", format!("`{}`", usage)).unwrap());
         }
-        if command.options.examples.len() > 0 {
+        if !command.options.examples.is_empty() {
             let examples = command.options.examples.iter().map(|e| format!("`{}`", e)).join("\n");
             embed = embed.field(EmbedFieldBuilder::new("Examples", examples).unwrap());
         }
-        if command.options.sub_commands.len() > 0 {
+        if !command.options.sub_commands.is_empty() {
             let subs = command.options.sub_commands.iter().map(|c| format!("`{}`", c.options.names[0])).join(", ");
             embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs).unwrap());
         }

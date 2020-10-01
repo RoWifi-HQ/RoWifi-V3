@@ -81,14 +81,14 @@ impl RoGuild {
         }
     }
 
-    pub async fn from_backup(backup: BackupGuild, ctx: &Context, guild_id: GuildId, existing_roles: &Vec<Arc<CachedRole>>) -> Self {
+    pub async fn from_backup(backup: BackupGuild, ctx: &Context, guild_id: GuildId, existing_roles: &[Arc<CachedRole>]) -> Self {
         let mut names_to_ids = HashMap::<String, RoleId>::new();
 
         let all_roles = backup.rankbinds.iter()
-            .flat_map(|r| r.discord_roles.iter().map(|r| r.clone()))
-            .chain(backup.groupbinds.iter().flat_map(|g| g.discord_roles.iter().map(|r| r.clone())))
-            .chain(backup.custombinds.iter().flat_map(|c| c.discord_roles.iter().map(|r| r.clone())))
-            .chain(backup.assetbinds.iter().flat_map(|a| a.discord_roles.iter().map(|r| r.clone())))
+            .flat_map(|r| r.discord_roles.iter().cloned())
+            .chain(backup.groupbinds.iter().flat_map(|g| g.discord_roles.iter().cloned()))
+            .chain(backup.custombinds.iter().flat_map(|c| c.discord_roles.iter().cloned()))
+            .chain(backup.assetbinds.iter().flat_map(|a| a.discord_roles.iter().cloned()))
             .unique()
             .collect::<Vec<String>>();
         for role_name in all_roles {
