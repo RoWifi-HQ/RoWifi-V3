@@ -20,7 +20,7 @@ use commands::*;
 use framework::{context::Context, Framework};
 use models::configuration::Configuration;
 use services::*;
-use utils::{Database, Roblox, Logger};
+use utils::{Database, Roblox, Logger, Patreon};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -31,6 +31,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
     let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
     let premium_features = env::var("PREMIUM_FEATURES")?.as_str().parse::<bool>().expect("Expected premium toggle");
+    let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
@@ -62,8 +63,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let config = Arc::new(Configuration::default()
         .default_prefix("?")
         .on_mention(app_info.id));
+    let patreon = Patreon::new(&patreon_key);
 
-    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config);
+    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config, patreon);
     let framework = Framework::default()
         .command(&UPDATE_COMMAND)
         .command(&VERIFY_COMMAND)

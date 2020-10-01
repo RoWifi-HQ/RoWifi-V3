@@ -8,6 +8,7 @@ mod settings;
 mod group;
 mod backup;
 mod help;
+mod premium;
 
 pub use user::*;
 pub use rankbinds::*;
@@ -19,3 +20,4 @@ pub use settings::*;
 pub use group::*;
 pub use backup::*;
 pub use help::*;
+pub use premium::*;

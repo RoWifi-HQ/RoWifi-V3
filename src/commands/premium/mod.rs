@@ -1,0 +1,56 @@
+mod patreon;
+mod redeem;
+mod admin;
+
+use crate::framework::prelude::*;
+use crate::models::user::PremiumType;
+use twilight_model::id::UserId;
+
+use patreon::*;
+use redeem::*;
+use admin::*;
+
+pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
+    perm_level: RoLevel::Normal,
+    bucket: None,
+    names: &["premium"],
+    desc: Some("Command to view the premium status about an user"),
+    usage: None,
+    examples: &[],
+    required_permissions: Permissions::empty(),
+    min_args: 0,
+    hidden: false,
+    sub_commands: &[&PREMIUM_PATREON_COMMAND, &PREMIUM_REDEEM_COMMAND, &PREMIUM_ADD_COMMAND, &PREMIUM_DELETE_COMMAND],
+    group: Some("Premium")
+};
+
+pub static PREMIUM_COMMAND: Command = Command {
+    fun: premium,
+    options: &PREMIUM_OPTIONS
+};
+
+#[command]
+pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+    let author = match args.next().and_then(parse_username).and_then(|u| ctx.cache.user(UserId(u))) {
+        Some(a) => (a.id, a.name.clone(), a.discriminator.clone()),
+        None => (msg.author.id, msg.author.name.clone(), msg.author.discriminator.clone())
+    };
+    let mut embed = EmbedBuilder::new().default_data()
+        .title(format!("{}#{}", author.1, author.2)).unwrap();
+    if let Some(premium_user) = ctx.database.get_premium(author.0.0).await? {
+        embed = match premium_user.premium_type {
+            PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours\nBackups").unwrap()),
+            PremiumType::Alpha => embed.field(EmbedFieldBuilder::new("Tier", "Alpha").unwrap())
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
+            _ => {return Ok(())}
+        };
+    } else {
+        embed = embed.field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())
+            .field(EmbedFieldBuilder::new("Perks", "None").unwrap());
+    }
+    let embed = embed.build().unwrap();
+    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    Ok(())
+}

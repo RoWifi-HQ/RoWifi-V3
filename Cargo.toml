@@ -11,6 +11,7 @@ lto = true
 
 [dependencies]
 async-trait = "*"
+attributes = { path = "./src/attributes" }
 bson = "1.1.0-beta"
 chrono = "*"
 dashmap = "*"
@@ -18,8 +19,10 @@ dotenv = "*"
 futures = "*"
 itertools = "*"
 lazy_static = "*"
+mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 rand = "*"
 regex = "*"
+reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
 serde = "1.0"
 serde_json = "1.0"
 serde_repr = "0.1"
@@ -37,16 +40,3 @@ twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twi
 twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 twilight-standby = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 uwl = "*"
-
-[dependencies.mongodb]
-git = "https://github.com/mongodb/mongo-rust-driver"
-branch = "master"
-
-[dependencies.reqwest]
-version = "0.10"
-default-features = false
-features = ["json", "rustls-tls"]
-
-[dependencies.attributes]
-path = "./src/attributes"
-version = "0.1"

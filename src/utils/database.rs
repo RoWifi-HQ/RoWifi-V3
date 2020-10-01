@@ -187,4 +187,33 @@ impl Database {
         }
         Ok(result)
     }
+
+    pub async fn get_premium(&self, user_id: u64) -> Result<Option<PremiumUser>, RoError> {
+        let premium = self.client.database("RoWifi").collection("premium");
+        let filter = doc! {"_id": user_id};
+        let result = premium.find_one(filter, FindOneOptions::default()).await?;
+        match result {
+            Some(p) => Ok(Some(bson::from_bson::<PremiumUser>(Bson::Document(p))?)),
+            None => Ok(None)
+        }
+    }
+
+    pub async fn add_premium(&self, premium_user: PremiumUser, premium_already: bool) -> Result<(), RoError> {
+        let premium = self.client.database("RoWifi").collection("premium");
+        let premium_doc = bson::to_bson(&premium_user)?;
+        if let Bson::Document(p) = premium_doc {
+            if premium_already {
+                let _ = premium.find_one_and_replace(doc! {"_id": premium_user.discord_id}, p, FindOneAndReplaceOptions::default()).await?;
+            } else {
+                let _ = premium.insert_one(p, InsertOneOptions::default()).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn modify_premium(&self, filter: Document, update: Document) -> Result<(), RoError> {
+        let premium = self.client.database("RoWifi").collection("premium");
+        let _res = premium.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?;
+        Ok(())
+    }
 }

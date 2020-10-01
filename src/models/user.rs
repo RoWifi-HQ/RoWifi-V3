@@ -1,12 +1,13 @@
 use itertools::Itertools;
 use serde::{Serialize, Deserialize};
+use serde_repr::*;
 use twilight_http::Client as Http;
 use twilight_model::id::RoleId;
 use std::{sync::Arc, borrow::Cow, collections::HashSet};
 
 use crate::utils::{Roblox, error::*};
 use crate::cache::{CachedGuild, CachedMember};
-use super::{guild::{RoGuild, BlacklistActionType}, command::RoCommandUser};
+use super::{guild::{RoGuild, BlacklistActionType, GuildType}, command::RoCommandUser};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoUser {
@@ -27,6 +28,31 @@ pub struct QueueUser{
 
     #[serde(rename = "Verified")]
     pub verified: bool
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(i16)]
+pub enum PremiumType {
+    Alpha = 0,
+    Beta = 1,
+    Staff = 2,
+    Council = 3,
+    Partner = 4,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PremiumUser {
+    #[serde(rename = "_id")]
+    pub discord_id: i64,
+
+    #[serde(rename = "Type")]
+    pub premium_type: PremiumType,
+
+    #[serde(rename = "PatreonId")]
+    pub patreon_id: Option<i64>,
+
+    #[serde(rename = "Servers")]
+    pub discord_servers: Vec<i64>
 }
 
 impl RoUser {
@@ -133,5 +159,30 @@ impl RoUser {
         }
 
         Ok((added_roles, removed_roles, disc_nick.to_string()))
+    }
+}
+
+impl From<PremiumType> for GuildType {
+    fn from(p_type: PremiumType) -> Self {
+        match p_type {
+            PremiumType::Alpha => GuildType::Alpha,
+            PremiumType::Beta => GuildType::Beta,
+            PremiumType::Staff => GuildType::Alpha,
+            PremiumType::Council => GuildType::Beta,
+            PremiumType::Partner => GuildType::Beta 
+        }
+    }
+}
+
+impl From<i32> for PremiumType {
+    fn from(p: i32) -> Self {
+        match p {
+            0 => PremiumType::Alpha,
+            1 => PremiumType::Beta,
+            2 => PremiumType::Staff,
+            3 => PremiumType::Council,
+            4 => PremiumType::Partner,
+            _ => PremiumType::Alpha
+        }
     }
 }
