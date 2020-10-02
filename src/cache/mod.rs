@@ -1,15 +1,16 @@
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
-    collections::HashSet,
+    collections::{HashSet, HashMap},
     hash::Hash,
     sync::{Arc, Mutex},
 };
 use twilight_model::{
     channel::GuildChannel,
-    guild::{Guild, Member, Role},
+    guild::{Guild, Member, Role, Permissions},
     id::{ChannelId, GuildId, RoleId, UserId},
     user::{CurrentUser, User},
 };
+use crate::utils::misc::{guild_wide_permissions, channel_permissions};
 
 mod event;
 mod models;
@@ -58,6 +59,9 @@ pub struct CacheRef {
     unavailable_guilds: DashSet<GuildId>,
 
     current_user: Mutex<Option<Arc<CurrentUser>>>,
+
+    guild_permissions: DashMap<GuildId, Permissions>,
+    channel_permissions: DashMap<ChannelId, Permissions>
 }
 
 #[derive(Clone, Debug, Default)]
@@ -77,6 +81,14 @@ impl Cache {
 
     pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
         self.0.channels.get(&channel_id).map(|c| Arc::clone(c.value()))
+    }
+
+    pub fn guild_channels(&self, guild_id: GuildId) -> HashSet<ChannelId> {
+        self.0.guild_channels.get(&guild_id).map_or_else(HashSet::new, |gc| gc.value().clone())
+    }
+
+    pub fn channel_permissions(&self, channel_id: ChannelId) -> Option<Permissions> {
+        self.0.channel_permissions.get(&channel_id).map(|c| *c.value())
     }
 
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
@@ -237,6 +249,43 @@ impl Cache {
             } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.admin_role = Some(role.id);
+            }
+        }
+    }
+
+    pub fn cache_guild_permissions(&self, guild_id: GuildId) {
+        let user = self.0.current_user.lock().expect("current user poisoned");
+        if let Some(user) = user.as_ref() {
+            let guild = self.guild(guild_id).unwrap();
+            let server_roles = self.guild_roles(guild_id).iter().map(|r| (r.id, r.clone())).collect::<HashMap<RoleId, Arc<CachedRole>>>();
+            let member= self.member(guild_id, user.id).unwrap();
+            let new_permissions = match guild_wide_permissions(guild, &server_roles, user.id, &member.roles) {
+                Ok(p) => p,
+                Err(why) => {
+                    tracing::error!(guild = ?guild_id, reason = ?why);
+                    return;
+                }
+            };
+            self.0.guild_permissions.insert(guild_id, new_permissions);
+        }
+    }
+
+    pub fn cache_channel_permissions(&self, guild_id: GuildId, channel_id: ChannelId) {
+        let channel = self.channel(channel_id).unwrap();
+        if let GuildChannel::Text(_) = channel.as_ref() {
+            let user = self.0.current_user.lock().expect("current user poisoned");
+            if let Some(user) = user.as_ref() {
+                let guild = self.guild(guild_id).unwrap();
+                let server_roles = self.guild_roles(guild_id).iter().map(|r| (r.id, r.clone())).collect::<HashMap<RoleId, Arc<CachedRole>>>();
+                let member= self.member(guild_id, user.id).unwrap();
+                let new_permissions = match channel_permissions(guild, &server_roles, user.id, &member.roles, channel) {
+                    Ok(p) => p,
+                    Err(why) => {
+                        tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
+                        return;
+                    }
+                };
+                self.0.channel_permissions.insert(channel_id, new_permissions);
             }
         }
     }

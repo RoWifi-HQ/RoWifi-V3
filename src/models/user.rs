@@ -48,11 +48,17 @@ pub struct PremiumUser {
     #[serde(rename = "Type")]
     pub premium_type: PremiumType,
 
-    #[serde(rename = "PatreonId")]
+    #[serde(rename = "PatreonId", skip_serializing_if = "Option::is_none")]
     pub patreon_id: Option<i64>,
 
     #[serde(rename = "Servers")]
-    pub discord_servers: Vec<i64>
+    pub discord_servers: Vec<i64>,
+
+    #[serde(rename = "PremiumOwner", skip_serializing_if = "Option::is_none")]
+    pub premium_owner: Option<i64>,
+
+    #[serde(rename = "PatreonOwner", skip_serializing_if = "Option::is_none")]
+    pub premium_patreon_owner: Option<i64>
 }
 
 impl RoUser {
@@ -183,6 +189,15 @@ impl From<i32> for PremiumType {
             3 => PremiumType::Council,
             4 => PremiumType::Partner,
             _ => PremiumType::Alpha
+        }
+    }
+}
+
+impl PremiumType {
+    pub fn has_backup(&self) -> bool {
+        match self {
+            PremiumType::Alpha | PremiumType::Staff => false,
+            PremiumType::Beta | PremiumType::Council | PremiumType::Partner => true
         }
     }
 }

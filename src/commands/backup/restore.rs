@@ -22,6 +22,18 @@ pub static BACKUP_RESTORE_COMMAND: Command = Command {
 
 #[command]
 pub async fn backup_restore(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+    match ctx.database.get_premium(msg.author.id.0).await? {
+        Some(p) if p.premium_type.has_backup() => {},
+        _ => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Backup Failed").unwrap()
+                .description("This module may only be used by a Beta Tier user").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+            return Ok(());
+        }
+    };
+    
     let guild_id = msg.guild_id.unwrap();
     let name = match args.next() {
         Some(g) => g.to_owned(),

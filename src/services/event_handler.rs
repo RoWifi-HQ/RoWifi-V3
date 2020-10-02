@@ -1,5 +1,5 @@
 use crate::framework::prelude::Context;
-use crate::utils::{misc::{channel_permissions, EmbedExtensions}, error::RoError};
+use crate::utils::{misc::EmbedExtensions, error::RoError};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use twilight_gateway::Event;
 use twilight_model::{
@@ -32,23 +32,18 @@ impl EventHandler {
                     if !self.0.ready.load(Ordering::SeqCst) {
                         return Ok(());
                     }
-                    let current_user = ctx.cache.current_user().unwrap();
-                    let current_member = ctx.cache.member(guild.id, current_user.id).unwrap();
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
                         \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR
                         \n\nTo view our documentation, please visit our website\nhttps://rowifi.link";
                     let mut channel = None;
                     for c in guild.channels.values() {
                         if let GuildChannel::Text(tc) = c {
-                            match channel_permissions(&ctx, guild.id, current_member.user.id, &current_member.roles, tc.id) {
-                                Ok(permissions) =>  {
-                                    if permissions.contains(Permissions::SEND_MESSAGES) {
-                                        channel = Some(c);
-                                        break;
-                                    }
-                                },
-                                Err(why) => tracing::error!(guild_id = ?guild.id, channel_id = ?tc.id, reason = ?why)
-                            } 
+                            if let Some(permissions) = ctx.cache.channel_permissions(tc.id) {
+                                if permissions.contains(Permissions::SEND_MESSAGES) {
+                                    channel = Some(c);
+                                    break;
+                                }
+                            }
                         }
                     }
                     if let Some(channel) = channel {

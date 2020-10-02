@@ -80,6 +80,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&UPDATE_ALL_COMMAND)
         .command(&UPDATE_ROLE_COMMAND)
         .command(&BACKUP_COMMAND)
+        .command(&PREMIUM_COMMAND)
         .command(&SERVERINFO_COMMAND)
         .command(&BOTINFO_COMMAND)
         .command(&USERINFO_COMMAND)

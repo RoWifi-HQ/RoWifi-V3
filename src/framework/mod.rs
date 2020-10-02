@@ -14,10 +14,7 @@ use twilight_model::{
 };
 use twilight_command_parser::Arguments;
 use uwl::Stream;
-use crate::utils::{
-    error::{RoError, CommandError}, 
-    misc::guild_wide_permissions
-};
+use crate::utils::error::{RoError, CommandError};
 
 use context::Context;
 pub use map::CommandMap;
@@ -95,6 +92,14 @@ impl Framework {
                     }
                 }
 
+                if let Some(permissions) = context.cache.channel_permissions(msg.channel_id) {
+                    if !permissions.contains(command.options.required_permissions) {
+                        let content = format!("I seem to be missing one of the following permissions: {:?}", command.options.required_permissions);
+                        let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                        return;
+                    }
+                }
+
                 let args = Arguments::new(stream.rest());
                 let args_count = Arguments::new(stream.rest()).count();
                 if args_count < command.options.min_args {
@@ -158,17 +163,16 @@ impl Framework {
                         }
                     },
                     RoLevel::Admin => {
-                        match guild_wide_permissions(&context, msg.guild_id.unwrap(), member.user.id, &member.roles) {
-                            Ok(permissions) => {
-                                if permissions.contains(Permissions::MANAGE_GUILD) {
-                                    return true;
-                                }
-                            },
-                            Err(why) => tracing::error!(guild = ?msg.guild_id, reason = ?why)
-                        };
                         if let Some(admin_role) = guild.admin_role {
                             if member.roles.contains(&admin_role) {
                                 return true;
+                            }
+                        }
+                        for role in member.roles.iter() {
+                            if let Some(role) = context.cache.role(*role) {
+                                if role.permissions.contains(Permissions::ADMINISTRATOR) {
+                                    return true;
+                                }
                             }
                         }
                     },

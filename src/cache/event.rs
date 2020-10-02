@@ -43,6 +43,7 @@ impl UpdateCache for ChannelCreate {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(guild_id, gc);
+            c.cache_channel_permissions(guild_id, self.id());
         }
 
         Ok(())
@@ -53,6 +54,7 @@ impl UpdateCache for ChannelDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             c.delete_guild_channel(gc);
+            c.0.channel_permissions.remove(&self.id());
         }
         Ok(())
     }
@@ -63,6 +65,7 @@ impl UpdateCache for ChannelUpdate {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(guild_id, gc);
+            c.cache_channel_permissions(guild_id, self.id());
         }
 
         Ok(())
@@ -72,6 +75,10 @@ impl UpdateCache for ChannelUpdate {
 impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_guild(self.0.clone());
+        c.cache_guild_permissions(self.id);
+        for channel in self.channels.keys() {
+            c.cache_channel_permissions(self.id, *channel);
+        }
         Ok(())
     }
 }
@@ -79,11 +86,13 @@ impl UpdateCache for GuildCreate {
 impl UpdateCache for GuildDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.0.guilds.remove(&self.id);
+        c.0.guild_permissions.remove(&self.id);
 
         {
             if let Some((_, ids)) = c.0.guild_channels.remove(&self.id) {
                 for id in ids {
                     c.0.channels.remove(&id);
+                    c.0.channel_permissions.remove(&id);
                 }
             }
         }
@@ -169,6 +178,15 @@ impl UpdateCache for MemberUpdate {
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
 
+        let current_user = c.current_user().unwrap();
+        if self.user.id == current_user.id {
+            c.cache_guild_permissions(self.guild_id);
+            let channels = c.guild_channels(self.guild_id);
+            for channel in channels {
+                c.cache_channel_permissions(self.guild_id, channel);
+            }
+        }
+
         Ok(())
     }
 }
@@ -180,7 +198,13 @@ impl UpdateCache for Ready {
         for status in self.guilds.values() {
             match status {
                 GuildStatus::Offline(u) => c.unavailable_guild(u.id),
-                GuildStatus::Online(g) => c.cache_guild(g.clone()),
+                GuildStatus::Online(g) => {
+                    c.cache_guild(g.clone());
+                    c.cache_guild_permissions(g.id);
+                    for channel in g.channels.keys() {
+                        c.cache_channel_permissions(g.id, *channel);
+                    }
+                },
             }
         }
 
@@ -198,6 +222,11 @@ impl UpdateCache for RoleCreate {
 impl UpdateCache for RoleDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.delete_role(self.role_id);
+        c.cache_guild_permissions(self.guild_id);
+            let channels = c.guild_channels(self.guild_id);
+            for channel in channels {
+                c.cache_channel_permissions(self.guild_id, channel);
+            }
         Ok(())
     }
 }
@@ -205,6 +234,11 @@ impl UpdateCache for RoleDelete {
 impl UpdateCache for RoleUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_role(self.guild_id, self.role.clone());
+        c.cache_guild_permissions(self.guild_id);
+            let channels = c.guild_channels(self.guild_id);
+            for channel in channels {
+                c.cache_channel_permissions(self.guild_id, channel);
+            }
         Ok(())
     }
 }

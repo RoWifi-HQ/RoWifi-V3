@@ -22,6 +22,18 @@ pub static BACKUP_NEW_COMMAND: Command = Command {
 
 #[command]
 pub async fn backup_new(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+    match ctx.database.get_premium(msg.author.id.0).await? {
+        Some(p) if p.premium_type.has_backup() => {},
+        _ => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+                .title("Backup Failed").unwrap()
+                .description("This module may only be used by a Beta Tier user").unwrap()
+                .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+            return Ok(());
+        }
+    };
+
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx.database.get_guild(guild_id.0).await?.ok_or(RoError::Command(CommandError::NoRoGuild))?;
 

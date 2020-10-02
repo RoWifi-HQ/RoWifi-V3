@@ -1,11 +1,12 @@
 use crate::framework::prelude::Context;
+use crate::cache::{CachedGuild, CachedRole};
 use super::error::{RoError, CommandError};
-use std::{time::Duration, cmp::{max, min}, collections::HashMap};
+use std::{time::Duration, cmp::{max, min}, collections::HashMap, sync::Arc};
 use twilight_http::request::prelude::RequestReactionType;
 use twilight_model::{
     channel::{Message, embed::Embed, ReactionType, GuildChannel, permission_overwrite::PermissionOverwriteType}, 
     gateway::payload::{MessageCreate, ReactionAdd},
-    id::{RoleId, GuildId, UserId, ChannelId},
+    id::{RoleId, UserId},
     guild::Permissions
 };
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
@@ -153,23 +154,9 @@ impl EmbedExtensions for EmbedBuilder {
     }
 }
 
-pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &[RoleId]) -> Result<Permissions, String> {
-    let guild = match ctx.cache.guild(guild_id) {
-        Some(g) => g,
-        None => return Err("Server was not found in the cache".into())
-    };
-
+pub fn guild_wide_permissions(guild: Arc<CachedGuild>, roles: &HashMap<RoleId, Arc<CachedRole>>, member_id: UserId, member_roles: &[RoleId]) -> Result<Permissions, String> {
     if member_id == guild.owner_id {
         return Ok(Permissions::all())
-    }
-
-    let server_roles = ctx.cache.roles(guild_id);
-    let mut roles = HashMap::new();
-    for role in server_roles {
-        let cached = ctx.cache.role(role);
-        if let Some(cached) = cached {
-            roles.insert(role, cached);
-        }
     }
 
     let mut permissions = match roles.get(&RoleId(guild.id.0)) {
@@ -188,17 +175,13 @@ pub fn guild_wide_permissions(ctx: &Context, guild_id: GuildId, member_id: UserI
     Ok(permissions)
 }
 
-pub fn channel_permissions(ctx: &Context, guild_id: GuildId, member_id: UserId, member_roles: &[RoleId], channel_id: ChannelId) -> Result<Permissions, String> {
-    let mut permissions = guild_wide_permissions(ctx, guild_id, member_id, &member_roles)?;
+pub fn channel_permissions(guild: Arc<CachedGuild>, roles: &HashMap<RoleId, Arc<CachedRole>>, member_id: UserId, member_roles: &[RoleId], channel: Arc<GuildChannel>) -> Result<Permissions, String> {
+    let guild_id = guild.id;
+    let mut permissions = guild_wide_permissions(guild, roles, member_id, &member_roles)?;
     let mut member_allow = Permissions::empty();
     let mut member_deny = Permissions::empty();
     let mut roles_allow = Permissions::empty();
     let mut roles_deny = Permissions::empty();
-
-    let channel = match ctx.cache.channel(channel_id) {
-        Some(c) => c,
-        None => return Err("Channel doesn't exist in the cache".into())
-    };
 
     if let GuildChannel::Text(tc) = channel.as_ref() {
         for overwrite in tc.permission_overwrites.iter() {

@@ -79,8 +79,10 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     let _ = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let filter = bson::doc! {"_id": guild_id.0};
-    let update = bson::doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
-    ctx.database.modify_guild(filter, update).await?;
+    let update = bson::doc! {"$set": {"Settings.Type": guild_type as i32}};
+    let update_ad = bson::doc! {"$set": {"Settings.AutoDetection": true}};
+    ctx.database.modify_guild(filter.clone(), update).await?;
+    ctx.database.modify_guild(filter, update_ad).await?;
 
     if !premium_user.discord_servers.contains(&(guild_id.0 as i64)) {
         let filter2 = bson::doc! {"_id": msg.author.id.0};
@@ -123,8 +125,10 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     let _ = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
 
     let filter = bson::doc! {"_id": guild_id.0};
-    let update = bson::doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
-    ctx.database.modify_guild(filter, update).await?;
+    let update = bson::doc! {"$set": {"Settings.Type": GuildType::Normal as i32}};
+    let update_ad = bson::doc! {"$set": {"Settings.AutoDetection": false}};
+    ctx.database.modify_guild(filter.clone(), update).await?;
+    ctx.database.modify_guild(filter, update_ad).await?;
 
     let filter2 = bson::doc! {"_id": msg.author.id.0};
     let update2 = bson::doc! {"$pull": { "Servers": guild_id.0 }};

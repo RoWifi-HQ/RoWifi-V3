@@ -57,7 +57,7 @@ pub async fn premium_add(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
         servers.push(a.parse::<i64>().unwrap());
     }
 
-    let premium_user = PremiumUser {discord_id: user_id, patreon_id: None, premium_type, discord_servers: servers};
+    let premium_user = PremiumUser {discord_id: user_id, patreon_id: None, premium_type, discord_servers: servers, premium_owner: None, premium_patreon_owner: None};
     ctx.database.add_premium(premium_user, false).await?;
 
     let _ = ctx.http.create_message(msg.channel_id).content(format!("Added Premium to {}", user_id)).unwrap().await?;

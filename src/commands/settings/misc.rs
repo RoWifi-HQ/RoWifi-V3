@@ -29,6 +29,20 @@ pub static TOGGLE_COMMANDS_OPTIONS: CommandOptions = CommandOptions {
     group: None
 };
 
+pub static SETTINGS_PREFIX_OPTIONS: CommandOptions = CommandOptions {
+    perm_level: RoLevel::Admin,
+    bucket: None,
+    names: &["prefix"],
+    desc: Some("Command to change the bot prefix"),
+    usage: Some("settings prefix <NewPrefix>"),
+    examples: &[],
+    required_permissions: Permissions::empty(),
+    min_args: 1,
+    hidden: false,
+    sub_commands: &[],
+    group: None
+};
+
 pub static BLACKLIST_ACTION_COMMAND: Command = Command {
     fun: blacklist_action,
     options: &BLACKLIST_ACTION_OPTIONS
@@ -37,6 +51,11 @@ pub static BLACKLIST_ACTION_COMMAND: Command = Command {
 pub static TOGGLE_COMMANDS_COMMAND: Command = Command {
     fun: toggle_commands,
     options: &TOGGLE_COMMANDS_OPTIONS
+};
+
+pub static SETTINGS_PREFIX_COMMAND: Command = Command {
+    fun: settings_prefix,
+    options: &SETTINGS_PREFIX_OPTIONS
 };
 
 #[command]
@@ -102,5 +121,29 @@ pub async fn toggle_commands(ctx: &Context, msg: &Message, mut args: Arguments<'
     } else {
         ctx.config.disabled_channels.remove(&msg.channel_id);
     }
+    Ok(())
+}
+
+#[command]
+pub async fn settings_prefix(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
+
+    let prefix = match args.next() {
+        Some(p) => p,
+        None => return Ok(())
+    };
+
+    let filter = bson::doc! {"_id": guild.id};
+    let update = bson::doc! {"$set": {"Settings.Prefix": prefix}};
+    ctx.database.modify_guild(filter, update).await?;
+
+    let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
+        .title("Settings Modification Successful").unwrap()
+        .description(format!("The bot prefix has been successfully changed to {}", prefix)).unwrap()
+        .build().unwrap();
+    ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+
+    ctx.config.prefixes.insert(guild_id, prefix.to_string());
     Ok(())
 }

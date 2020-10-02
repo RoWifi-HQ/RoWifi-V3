@@ -78,6 +78,7 @@ impl Database {
     pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<(), RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let res = guilds.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?.unwrap();
+        println!("{:?}", res);
         let guild = bson::from_bson::<RoGuild>(Bson::Document(res))?;
         self.guild_cache.insert(guild.id, Arc::new(guild));
         Ok(())
@@ -189,7 +190,7 @@ impl Database {
     }
 
     pub async fn get_premium(&self, user_id: u64) -> Result<Option<PremiumUser>, RoError> {
-        let premium = self.client.database("RoWifi").collection("premium");
+        let premium = self.client.database("RoWifi").collection("premium_new");
         let filter = doc! {"_id": user_id};
         let result = premium.find_one(filter, FindOneOptions::default()).await?;
         match result {
@@ -198,8 +199,18 @@ impl Database {
         }
     }
 
+    pub async fn get_transferred_premium(&self, user_id: u64) -> Result<Option<PremiumUser>, RoError> {
+        let premium = self.client.database("RoWifi").collection("premium_new");
+        let filter = doc! {"PremiumOwner": user_id};
+        let result = premium.find_one(filter, FindOneOptions::default()).await?;
+        match result {
+            Some(p) => Ok(Some(bson::from_bson::<PremiumUser>(Bson::Document(p))?)),
+            None => Ok(None)
+        }
+    }
+
     pub async fn add_premium(&self, premium_user: PremiumUser, premium_already: bool) -> Result<(), RoError> {
-        let premium = self.client.database("RoWifi").collection("premium");
+        let premium = self.client.database("RoWifi").collection("premium_new");
         let premium_doc = bson::to_bson(&premium_user)?;
         if let Bson::Document(p) = premium_doc {
             if premium_already {
@@ -212,8 +223,14 @@ impl Database {
     }
 
     pub async fn modify_premium(&self, filter: Document, update: Document) -> Result<(), RoError> {
-        let premium = self.client.database("RoWifi").collection("premium");
+        let premium = self.client.database("RoWifi").collection("premium_new");
         let _res = premium.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?;
+        Ok(())
+    }
+
+    pub async fn delete_premium(&self, user_id: u64) -> Result<(), RoError> {
+        let premium = self.client.database("RoWifi").collection("premium_new");
+        let _res = premium.find_one_and_delete(doc! {"_id": user_id}, FindOneAndDeleteOptions::default()).await?;
         Ok(())
     }
 }

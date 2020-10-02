@@ -1,6 +1,7 @@
 mod patreon;
 mod redeem;
 mod admin;
+mod transfer;
 
 use crate::framework::prelude::*;
 use crate::models::user::PremiumType;
@@ -9,6 +10,7 @@ use twilight_model::id::UserId;
 use patreon::*;
 use redeem::*;
 use admin::*;
+use transfer::*;
 
 pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
@@ -20,7 +22,8 @@ pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
-    sub_commands: &[&PREMIUM_PATREON_COMMAND, &PREMIUM_REDEEM_COMMAND, &PREMIUM_ADD_COMMAND, &PREMIUM_DELETE_COMMAND],
+    sub_commands: &[&PREMIUM_PATREON_COMMAND, &PREMIUM_REDEEM_COMMAND, &PREMIUM_ADD_COMMAND, &PREMIUM_DELETE_COMMAND, &PREMIUM_REMOVE_COMMAND,
+                    &PREMIUM_TRANSFER_COMMAND],
     group: Some("Premium")
 };
 
