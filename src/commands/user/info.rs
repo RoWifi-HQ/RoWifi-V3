@@ -40,6 +40,25 @@ pub static BOTINFO_COMMAND: Command = Command {
     options: &BOTINFO_OPTIONS
 };
 
+pub static SUPPORT_OPTIONS: CommandOptions = CommandOptions {
+    perm_level: RoLevel::Normal,
+    bucket: None,
+    names: &["support", "invite"],
+    desc: Some("Command to view the supporting links for the bot"),
+    usage: None,
+    examples: &[],
+    required_permissions: Permissions::empty(),
+    min_args: 0,
+    hidden: false,
+    sub_commands: &[],
+    group: Some("Miscellanous")
+};
+
+pub static SUPPORT_COMMAND: Command = Command {
+    fun: support,
+    options: &SUPPORT_OPTIONS
+};
+
 #[command]
 pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
     let author = match args.next().and_then(parse_username).and_then(|u| ctx.cache.user(UserId(u))) {
@@ -86,6 +105,20 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         .field(EmbedFieldBuilder::new("Shard Id", ctx.shard_id.to_string()).unwrap().inline())
         .field(EmbedFieldBuilder::new("Servers", guilds.len().to_string()).unwrap().inline())
         .field(EmbedFieldBuilder::new("Members", member_count.to_string()).unwrap().inline())
+        .build().unwrap();
+    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    Ok(())
+}
+
+#[command]
+pub async fn support(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    let disc_link = "https://www.discord.gg/h4BGGyR";
+    let invite_link = "https://discordapp.com/oauth2/authorize?client_id=508968886998269962&scope=bot&permissions=402672704";
+    let website = "https://rowifi.link";
+    let embed = EmbedBuilder::new().default_data()
+        .field(EmbedFieldBuilder::new("Support Server", format!("To know more about announcements, updates and other stuff: [Click Here]({})", disc_link)).unwrap())
+        .field(EmbedFieldBuilder::new("Invite Link", format!("To invite the bot into your server: [Click Here]({})", invite_link)).unwrap())
+        .field(EmbedFieldBuilder::new("Support Server", format!("To check out our website: [Click Here]({})", website)).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
     Ok(())

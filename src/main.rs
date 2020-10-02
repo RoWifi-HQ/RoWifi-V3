@@ -84,6 +84,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&SERVERINFO_COMMAND)
         .command(&BOTINFO_COMMAND)
         .command(&USERINFO_COMMAND)
+        .command(&SUPPORT_COMMAND)
         .help(&HELP_COMMAND)
         .bucket("update-multiple", Duration::from_secs(12 * 3600), 3);
 
