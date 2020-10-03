@@ -77,7 +77,6 @@ async fn specific_help(ctx: &Context, msg: &Message, args: Arguments<'_>, comman
 fn parse_command(mut args: Arguments, map: &CommandMap) -> Result<&'static Command, ParseError> {
     if let Some(arg) = args.next() {
         if let Some((cmd, map)) = map.get(arg) {
-            println!("{:?}", cmd.options.names);
             if map.is_empty() {
                 return Ok(cmd)
             }

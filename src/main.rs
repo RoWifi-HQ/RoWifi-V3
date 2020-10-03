@@ -36,7 +36,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let http = HttpClient::new(&token);
     let app_info = http.current_user().await?;
     let owners = DashSet::new();
-    owners.insert(http.current_user_application().await?.owner.id);
+    let owner = http.current_user_application().await?.owner.id;
+    owners.insert(owner);
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
@@ -45,11 +46,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         )
         .http_client(http.clone())
         .build().await?;
-
-    let cluster_spawn = cluster.clone();
-    tokio::spawn(async move {
-        cluster_spawn.up().await;
-    });
 
     let cache = Cache::new();
     let standby = Standby::new();
@@ -66,6 +62,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .on_mention(app_info.id)
         .owners(owners));
     let patreon = Patreon::new(&patreon_key);
+
+    let cluster_spawn = cluster.clone();
+    tokio::spawn(async move {
+        cluster_spawn.up().await;
+    });
 
     let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config, patreon);
     let framework = Framework::default()

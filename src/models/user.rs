@@ -143,9 +143,16 @@ impl RoUser {
 
         let display_name = member.nick.as_ref().map_or_else(|| Cow::Owned(member.user.name.clone()), Cow::Borrowed);
         let mut disc_nick = display_name.clone();
-        if prefix.eq_ignore_ascii_case("N/A") {disc_nick = Cow::Borrowed(&username);}
-        else if prefix.eq_ignore_ascii_case("Disable") {}
-        else {disc_nick = Cow::Owned(format!("{} {}", prefix, username));}
+        
+        let nick_bypass = match server.nickname_bypass {
+            Some(n) => member.roles.contains(&n),
+            None => false
+        };
+        if !nick_bypass {
+            if prefix.eq_ignore_ascii_case("N/A") {disc_nick = Cow::Borrowed(&username);}
+            else if prefix.eq_ignore_ascii_case("Disable") {}
+            else {disc_nick = Cow::Owned(format!("{} {}", prefix, username));}
+        }
 
         if disc_nick.len() > 32 {
             return Err(RoError::Command(CommandError::NicknameTooLong(format!("The supposed nickname {} was found to be more than 32 characters", disc_nick))))

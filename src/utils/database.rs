@@ -68,8 +68,14 @@ impl Database {
         let mut result = Vec::<RoGuild>::new();
         while let Some(res) = cursor.next().await {
             match res {
-                Ok(document) => result.push(bson::from_bson::<RoGuild>(Bson::Document(document))?),
-                Err(e) => return Err(e.into())
+                Ok(ref document) => {
+                    let doc = Bson::Document(document.to_owned());
+                    match bson::from_bson::<RoGuild>(doc) {
+                        Ok(guild) => result.push(guild),
+                        Err(e) => tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                    }
+                },
+                Err(e) => tracing::error!(error = ?e, "Error in the cursor")
             }
         }
         Ok(result)

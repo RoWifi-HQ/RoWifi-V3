@@ -118,7 +118,7 @@ pub async fn support(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
     let embed = EmbedBuilder::new().default_data()
         .field(EmbedFieldBuilder::new("Support Server", format!("To know more about announcements, updates and other stuff: [Click Here]({})", disc_link)).unwrap())
         .field(EmbedFieldBuilder::new("Invite Link", format!("To invite the bot into your server: [Click Here]({})", invite_link)).unwrap())
-        .field(EmbedFieldBuilder::new("Support Server", format!("To check out our website: [Click Here]({})", website)).unwrap())
+        .field(EmbedFieldBuilder::new("Website", format!("To check out our website: [Click Here]({})", website)).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
     Ok(())
