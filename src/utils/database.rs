@@ -78,7 +78,6 @@ impl Database {
     pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<(), RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let res = guilds.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?.unwrap();
-        println!("{:?}", res);
         let guild = bson::from_bson::<RoGuild>(Bson::Document(res))?;
         self.guild_cache.insert(guild.id, Arc::new(guild));
         Ok(())

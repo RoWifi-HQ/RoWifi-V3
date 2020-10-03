@@ -39,6 +39,7 @@ pub struct HelpCommand {
     pub name: &'static str
 }
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 #[repr(i8)]
 pub enum RoLevel {

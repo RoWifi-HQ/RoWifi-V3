@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod cache;
 mod commands;
 mod framework;
@@ -8,6 +6,7 @@ mod rolang;
 mod services;
 mod utils;
 
+use dashmap::DashSet;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::stream::StreamExt;
 use twilight_gateway::cluster::{ShardScheme, Cluster};
@@ -36,6 +35,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
     let app_info = http.current_user().await?;
+    let owners = DashSet::new();
+    owners.insert(http.current_user_application().await?.owner.id);
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
@@ -62,7 +63,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     });
     let config = Arc::new(Configuration::default()
         .default_prefix("?")
-        .on_mention(app_info.id));
+        .on_mention(app_info.id)
+        .owners(owners));
     let patreon = Patreon::new(&patreon_key);
 
     let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config, patreon);

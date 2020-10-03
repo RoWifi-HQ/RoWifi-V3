@@ -109,7 +109,7 @@ impl Framework {
                 }
 
                 let res = (command.fun)(&mut context, &msg, args).await;
-
+                tracing::debug!(command = ?command.options.names[0], author = msg.author.id.0, "Command ran");
                 match res {
                     Ok(()) => {
                         if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
@@ -221,6 +221,8 @@ impl Framework {
                 let _ = context.http.create_message(msg.channel_id)
                     .content("There was an error in executing this command. Please try again. If the issue persists, please contact the support server for more information").unwrap()
                     .await;
+                let content = format!("```{}```", error);
+                context.logger.log_debug(context, &content).await;
             }
         }
     }

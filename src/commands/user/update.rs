@@ -74,7 +74,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         }
     }
 
-    let user = match ctx.database.get_user(msg.author.id.0).await? {
+    let user = match ctx.database.get_user(user_id.0).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
