@@ -104,13 +104,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut events = context.cluster.events();
     while let Some(event) = events.next().await {
         let c = context.clone();
-        let f = Arc::clone(&framework);
+        let f = framework.clone();
         let e = event_handler.clone();
+        tracing::trace!(event = ?event.1.kind());
         context.cache.update(&event.1).expect("Failed to update cache");
         context.standby.process(&event.1);
         
         tokio::spawn(async move {
-            let _ = e.handle_event(event.0, &event.1, &c).await;
+            e.handle_event(event.0, &event.1, &c).await.unwrap();
             f.handle_event(event.1, c).await;
         });
     }

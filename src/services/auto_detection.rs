@@ -1,5 +1,6 @@
-use crate::framework::prelude::Context;
+use crate::{framework::prelude::Context, utils::misc::EmbedExtensions};
 use std::error::Error;
+use twilight_embed_builder::EmbedBuilder;
 use twilight_model::id::{GuildId, UserId};
 use tokio::time::{interval, Duration};
 
@@ -32,11 +33,20 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
                     if member.roles.contains(&bypass) {continue;}
                 }
                 tracing::trace!(id = user.discord_id, "Auto Detection for member");
-                let _ = user.update(ctx.http.clone(), member, ctx.roblox.clone(), server.clone(), &guild, &guild_roles).await;
+                let name = member.user.name.clone();
+                if let Ok((added_roles, removed_roles, disc_nick)) = user.update(ctx.http.clone(), member, ctx.roblox.clone(), server.clone(), &guild, &guild_roles).await {
+                    if !added_roles.is_empty() || !removed_roles.is_empty() {
+                        let log_embed = EmbedBuilder::new().default_data()
+                            .title(format!("Auto Detection: {}", name)).unwrap()
+                            .update_log(&added_roles, &removed_roles, &disc_nick)
+                            .build().unwrap();
+                        ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+                    }
+                }
             }
         }
         let end = chrono::Utc::now().timestamp_millis();
-        tracing::trace!(time = end-start, "Time to complete auto detection");
+        tracing::info!(time = end-start, server_name = ?server.name, "Time to complete auto detection");
         ctx.logger.log_premium(ctx, &format!("{} - {}", server.name, end-start)).await;
     }
     Ok(())

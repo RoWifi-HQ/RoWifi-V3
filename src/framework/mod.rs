@@ -144,7 +144,7 @@ impl Framework {
         if context.config.owners.contains(&msg.author.id) {
             return true;
         }
-
+        println!("{:?}", context.config.disabled_channels);
         if context.config.disabled_channels.contains(&msg.channel_id) && !command.options.names.contains(&"command-channel") {
             return false;
         }

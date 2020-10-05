@@ -135,7 +135,7 @@ pub async fn settings_prefix(ctx: &Context, msg: &Message, mut args: Arguments<'
     };
 
     let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$set": {"Settings.Prefix": prefix}};
+    let update = bson::doc! {"$set": {"Prefix": prefix}};
     ctx.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()

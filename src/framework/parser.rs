@@ -38,6 +38,7 @@ pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configur
             let peeked = stream.peek_for_char(prefix.chars().count());
             if prefix.value() == peeked {
                 stream.increment(prefix.len());
+                stream.take_while_char(|c| c.is_whitespace());
                 return Some(Cow::Borrowed(peeked))
             } else {
                 return None
@@ -49,6 +50,7 @@ pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configur
     let peeked = stream.peek_for_char(default_prefix.chars().count());
     if default_prefix == peeked {
         stream.increment(default_prefix.len());
+        stream.take_while_char(|c| c.is_whitespace());
         return Some(Cow::Borrowed(peeked))
     }
 
@@ -58,7 +60,7 @@ pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configur
 fn parse_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> Result<&'static Command, ParseError> {
     let name = stream.peek_until_char(|c| c.is_whitespace());
 
-    if let Some((cmd, map)) = map.get(name) {
+    if let Some((cmd, map)) = map.get(&name.to_ascii_lowercase()) {
         stream.increment(name.len());
 
         stream.take_while_char(|c| c.is_whitespace());

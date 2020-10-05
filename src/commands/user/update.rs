@@ -114,7 +114,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
 
-    let log_embed = EmbedBuilder::new()
+    let log_embed = EmbedBuilder::new().default_data()
         .title("Update").unwrap()
         .update_log(&added_roles, &removed_roles, &disc_nick)
         .build().unwrap();

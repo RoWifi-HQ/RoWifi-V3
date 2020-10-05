@@ -50,10 +50,10 @@ pub async fn rankbinds_modify(ctx: &Context, msg: &Message, mut args: Arguments<
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Custom Bind Modification Failed").unwrap()
+                .title("Rank Bind Modification Failed").unwrap()
                 .description(format!("There was no bind found with Group Id {} and Rank Id {}", group_id, rank_id)).unwrap()
                 .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
             return Ok(())
         }
     };

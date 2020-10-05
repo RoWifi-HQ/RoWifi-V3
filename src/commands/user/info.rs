@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use twilight_embed_builder::EmbedFieldBuilder;
+use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
 use twilight_model::id::{UserId, GuildId};
 
 pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
@@ -79,13 +79,13 @@ pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -
 
     let username = ctx.roblox.get_username_from_id(user.roblox_id).await?;
 
-    let embed = EmbedBuilder::new()
+    let embed = EmbedBuilder::new().default_data()
         .title(author.1.clone()).unwrap()
         .description("Profile Information").unwrap()
-        .field(EmbedFieldBuilder::new("Username", username).unwrap())
+        .field(EmbedFieldBuilder::new("Username", username.clone()).unwrap())
         .field(EmbedFieldBuilder::new("Roblox Id", user.roblox_id.to_string()).unwrap())
         .field(EmbedFieldBuilder::new("Discord Id", user.discord_id.to_string()).unwrap())
-        //Put premium field here
+        .thumbnail(ImageSource::url(format!("http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}", username)).unwrap())
         .build().unwrap();
     let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
     Ok(())

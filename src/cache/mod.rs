@@ -23,9 +23,7 @@ fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, HashSet<V>>, k
         Entry::Occupied(mut e) => {
             e.get_mut().insert(v);
         }
-        Entry::Vacant(_) => {
-            //PROBLEM TODO: PRINT ERROR
-        }
+        Entry::Vacant(_) => {}
     }
 }
 
@@ -372,6 +370,11 @@ impl Cache {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.nickname_bypass = None;
+            }
+        } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
+            if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
+                let mut guild = Arc::make_mut(&mut guild);
+                guild.admin_role = None;
             }
         }
         Some(role)

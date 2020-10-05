@@ -64,7 +64,7 @@ impl EventHandler {
                 ctx.logger.log_event(&ctx, log_embed).await;
             }
             Event::Ready(ready) => {
-                tracing::debug!("RoWifi ready for service!");
+                tracing::info!("RoWifi ready for service!");
                 for status in ready.guilds.values() {
                     if let GuildStatus::Offline(ug) = status {
                         self.0.unavailable.insert(ug.id);

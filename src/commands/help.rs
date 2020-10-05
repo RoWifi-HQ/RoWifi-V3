@@ -25,7 +25,7 @@ async fn global_help(ctx: &Context, msg: &Message, commands: &[(&'static Command
     let groups = commands.iter().group_by(|c| c.0.options.group);
     for (group, commands) in groups.into_iter() {
         if let Some(group) = group {
-            let commands = commands.map(|m| format!("`{}`", m.0.options.names[0])).join(" ");
+            let commands = commands.filter(|c| !c.0.options.hidden).map(|m| format!("`{}`", m.0.options.names[0])).join(" ");
             embed = embed.field(EmbedFieldBuilder::new(group, commands).unwrap());
         }
     }
@@ -62,7 +62,7 @@ async fn specific_help(ctx: &Context, msg: &Message, args: Arguments<'_>, comman
             embed = embed.field(EmbedFieldBuilder::new("Examples", examples).unwrap());
         }
         if !command.options.sub_commands.is_empty() {
-            let subs = command.options.sub_commands.iter().map(|c| format!("`{}`", c.options.names[0])).join(", ");
+            let subs = command.options.sub_commands.iter().filter(|c| !c.options.hidden).map(|c| format!("`{}`", c.options.names[0])).join(", ");
             embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs).unwrap());
         }
         let embed = embed.build().unwrap();

@@ -223,10 +223,10 @@ impl UpdateCache for RoleDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.delete_role(self.role_id);
         c.cache_guild_permissions(self.guild_id);
-            let channels = c.guild_channels(self.guild_id);
-            for channel in channels {
-                c.cache_channel_permissions(self.guild_id, channel);
-            }
+        let channels = c.guild_channels(self.guild_id);
+        for channel in channels {
+            c.cache_channel_permissions(self.guild_id, channel);
+        }
         Ok(())
     }
 }
@@ -235,10 +235,10 @@ impl UpdateCache for RoleUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_role(self.guild_id, self.role.clone());
         c.cache_guild_permissions(self.guild_id);
-            let channels = c.guild_channels(self.guild_id);
-            for channel in channels {
-                c.cache_channel_permissions(self.guild_id, channel);
-            }
+        let channels = c.guild_channels(self.guild_id);
+        for channel in channels {
+            c.cache_channel_permissions(self.guild_id, channel);
+        }
         Ok(())
     }
 }
