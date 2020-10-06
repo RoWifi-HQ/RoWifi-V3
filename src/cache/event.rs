@@ -169,14 +169,16 @@ impl UpdateCache for MemberRemove {
 impl UpdateCache for MemberUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
-        let mut member = match c.0.members.get_mut(&(self.guild_id, self.user.id)) {
-            Some(member) => member,
-            None => return Ok(()),
-        };
-        let mut member = Arc::make_mut(&mut member);
+        {
+            let mut member = match c.0.members.get_mut(&(self.guild_id, self.user.id)) {
+                Some(member) => member,
+                None => return Ok(()),
+            };
+            let mut member = Arc::make_mut(&mut member);
 
-        member.nick = self.nick.clone();
-        member.roles = self.roles.clone();
+            member.nick = self.nick.clone();
+            member.roles = self.roles.clone();
+        }
 
         let current_user = c.current_user().unwrap();
         if self.user.id == current_user.id {
