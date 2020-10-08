@@ -23,7 +23,7 @@ pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
     min_args: 0,
     hidden: false,
     sub_commands: &[&PREMIUM_PATREON_COMMAND, &PREMIUM_REDEEM_COMMAND, &PREMIUM_ADD_COMMAND, &PREMIUM_DELETE_COMMAND, &PREMIUM_REMOVE_COMMAND,
-                    &PREMIUM_TRANSFER_COMMAND],
+                    &PREMIUM_TRANSFER_COMMAND, &PREMIUM_CHECK_COMMAND],
     group: Some("Premium")
 };
 
@@ -43,10 +43,15 @@ pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) ->
     if let Some(premium_user) = ctx.database.get_premium(author.0.0).await? {
         embed = match premium_user.premium_type {
             PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours\nBackups").unwrap()),
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
             PremiumType::Alpha => embed.field(EmbedFieldBuilder::new("Tier", "Alpha").unwrap())
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
-            _ => {return Ok(())}
+            PremiumType::Partner => embed.field(EmbedFieldBuilder::new("Tier", "Partner").unwrap())
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
+            PremiumType::Council => embed.field(EmbedFieldBuilder::new("Tier", "Council").unwrap())
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
+            PremiumType::Staff => embed.field(EmbedFieldBuilder::new("Tier", "Staff").unwrap())
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
         };
     } else {
         embed = embed.field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())

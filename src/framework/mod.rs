@@ -140,13 +140,13 @@ impl Framework {
         if context.config.blocked_guilds.contains(&msg.guild_id.unwrap()) {
             return false;
         }
+        
+        if context.config.disabled_channels.contains(&msg.channel_id) && !command.options.names.contains(&"command-channel") {
+            return false;
+        }
 
         if context.config.owners.contains(&msg.author.id) {
             return true;
-        }
-        println!("{:?}", context.config.disabled_channels);
-        if context.config.disabled_channels.contains(&msg.channel_id) && !command.options.names.contains(&"command-channel") {
-            return false;
         }
 
         if let Some(guild) = context.cache.guild(msg.guild_id.unwrap()) {

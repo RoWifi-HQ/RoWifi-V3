@@ -58,7 +58,7 @@ pub async fn premium_transfer(ctx: &Context, msg: &Message, mut args: Arguments<
             discord_servers: Vec::new(), 
             premium_type: premium_user.premium_type,
             premium_owner: Some(premium_user.discord_id),
-            premium_patreon_owner: Some(premium_user.patreon_id.unwrap())
+            premium_patreon_owner: premium_user.patreon_id
         };
         ctx.database.delete_premium(msg.author.id.0).await?;
         ctx.database.add_premium(new_premium_user, false).await?;
