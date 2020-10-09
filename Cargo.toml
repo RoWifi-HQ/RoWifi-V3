@@ -20,6 +20,7 @@ futures = "*"
 itertools = "*"
 lazy_static = "*"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
+prometheus = "*"
 rand = "*"
 regex = "*"
 reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }

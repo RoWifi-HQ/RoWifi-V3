@@ -55,7 +55,6 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
     let _ = ctx.http.create_message(msg.channel_id).content("Updating all members...").unwrap().await?;
     let server = ctx.cache.guild(guild_id).unwrap();
     let members = ctx.cache.members(guild_id).into_iter().map(|m| m.0).collect::<Vec<_>>();
-    println!("{:?}", members.len());
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();

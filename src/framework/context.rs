@@ -7,7 +7,7 @@ use twilight_gateway::Cluster;
 use crate::cache::*;
 use crate::utils::{Database, Roblox, Logger, Patreon};
 use crate::utils::error::RoError;
-use crate::models::configuration::Configuration;
+use crate::models::{configuration::Configuration, stats::BotStats};
 
 #[derive(Clone)]
 pub struct Context {
@@ -20,12 +20,13 @@ pub struct Context {
     pub cluster: Cluster,
     pub logger: Arc<Logger>,
     pub config: Arc<Configuration>,
-    pub patreon: Patreon
+    pub patreon: Patreon,
+    pub stats: Arc<BotStats>
 }
 
 impl Context {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster, logger: Arc<Logger>, config: Arc<Configuration>, patreon: Patreon) -> Self {
+    pub fn new(shard_id: u64, http: Http, cache: Cache, database: Database, roblox: Roblox, standby: Standby, cluster: Cluster, logger: Arc<Logger>, config: Arc<Configuration>, patreon: Patreon, stats: Arc<BotStats>) -> Self {
         Self {
             shard_id,
             http,
@@ -36,7 +37,8 @@ impl Context {
             cluster,
             logger,
             config,
-            patreon
+            patreon,
+            stats
         }
     }
 

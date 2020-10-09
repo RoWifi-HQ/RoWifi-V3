@@ -95,7 +95,7 @@ pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -
 pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
     let current_user = ctx.cache.current_user().unwrap();
     let guilds = ctx.cache.guilds();
-    let member_count: usize = guilds.iter().map(|g| ctx.cache.member_count(GuildId(*g))).sum();
+    let member_count: i64 = guilds.iter().map(|g| ctx.cache.member_count(GuildId(*g))).sum();
     
     let embed = EmbedBuilder::new()
         .field(EmbedFieldBuilder::new("Name", format!("{}#{}", current_user.name, current_user.discriminator)).unwrap().inline())

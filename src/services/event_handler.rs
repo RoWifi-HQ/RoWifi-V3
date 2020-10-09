@@ -1,6 +1,6 @@
 use crate::framework::prelude::Context;
 use crate::utils::{misc::EmbedExtensions, error::RoError};
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use std::sync::Arc;
 use twilight_gateway::Event;
 use twilight_model::{
     id::{GuildId, ChannelId},
@@ -14,7 +14,6 @@ use dashmap::DashSet;
 #[derive(Default)]
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,
-    ready: AtomicBool
 }
 
 #[derive(Default, Clone)]
@@ -29,9 +28,6 @@ impl EventHandler {
                     let req = RequestGuildMembers::builder(guild.id).query("", None);
                     let _res = ctx.cluster.command(shard_id, &req).await;
                 } else {
-                    if !self.0.ready.load(Ordering::SeqCst) {
-                        return Ok(());
-                    }
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
                         \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR
                         \n\nTo view our documentation, please visit our website\nhttps://rowifi.link";
@@ -70,15 +66,14 @@ impl EventHandler {
                         self.0.unavailable.insert(ug.id);
                     }
                 }
-                self.0.ready.store(true, Ordering::SeqCst);
                 let guild_ids = ready.guilds.keys().map(|k| k.0).collect::<Vec<u64>>();
                 let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
                 for guild in guilds {
                     if let Some(command_prefix) = guild.command_prefix {
                         ctx.config.prefixes.insert(GuildId(guild.id as u64), command_prefix);
-                        for channel in guild.disabled_channels {
-                            ctx.config.disabled_channels.insert(ChannelId(channel as u64));
-                        }
+                    }
+                    for channel in guild.disabled_channels {
+                        ctx.config.disabled_channels.insert(ChannelId(channel as u64));
                     }
                 }
             },

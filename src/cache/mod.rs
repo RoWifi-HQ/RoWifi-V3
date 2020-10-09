@@ -2,7 +2,7 @@ use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
     collections::{HashSet, HashMap},
     hash::Hash,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, atomic::{AtomicI64, Ordering}},
 };
 use twilight_model::{
     channel::GuildChannel,
@@ -105,8 +105,8 @@ impl Cache {
         self.0.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
     }
 
-    pub fn member_count(&self, guild_id: GuildId) -> usize {
-        self.0.guild_members.get(&guild_id).map_or_else(|| 0, |g| g.value().len())
+    pub fn member_count(&self, guild_id: GuildId) -> i64 {
+        self.0.guilds.get(&guild_id).map_or_else(|| 0, |g| g.member_count.load(Ordering::SeqCst))
     }
 
     pub fn role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
@@ -315,7 +315,7 @@ impl Cache {
             description: guild.description,
             icon: guild.icon,
             joined_at: guild.joined_at,
-            member_count: guild.member_count,
+            member_count: Arc::new(AtomicI64::new(0)),
             name: guild.name,
             owner_id: guild.owner_id,
             permissions: guild.permissions,

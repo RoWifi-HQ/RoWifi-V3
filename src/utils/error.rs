@@ -2,19 +2,19 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum RoError {
-    #[error("There was an problem in connecting to the database")]
+    #[error(transparent)]
     Database(#[from] mongodb::error::Error),
 
-    #[error("There was an error in serializing your data")]
+    #[error(transparent)]
     Serialization(#[from] bson::ser::Error),
 
-    #[error("There was an error in deserializng your data")]
+    #[error(transparent)]
     Deserialization(#[from] bson::de::Error),
 
-    #[error("There was some problem in connecting to the Roblox API")]
+    #[error(transparent)]
     Roblox(#[from] reqwest::Error),
 
-    #[error("There was some error in interacting with Discord")]
+    #[error(transparent)]
     Discord(#[from] twilight_http::Error),
 
     #[error(transparent)]

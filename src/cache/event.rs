@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::{ops::Deref, sync::{Arc, atomic::Ordering}};
 use tracing::debug;
 use twilight_model::{
     channel::Channel,
@@ -75,6 +75,8 @@ impl UpdateCache for ChannelUpdate {
 impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_guild(self.0.clone());
+        let guild = c.guild(self.id).unwrap();
+        guild.member_count.store(self.member_count.unwrap() as i64, Ordering::SeqCst);
         c.cache_guild_permissions(self.id);
         for channel in self.channels.keys() {
             c.cache_channel_permissions(self.id, *channel);
@@ -140,6 +142,8 @@ impl UpdateCache for GuildUpdate {
 impl UpdateCache for MemberAdd {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_member(self.guild_id, self.0.clone());
+        let guild = c.guild(self.guild_id).unwrap();
+        guild.member_count.fetch_add(1, Ordering::SeqCst);
         Ok(())
     }
 }
@@ -159,6 +163,8 @@ impl UpdateCache for MemberRemove {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.0.members.remove(&(self.guild_id, self.user.id));
         if let Some(mut members) = c.0.guild_members.get_mut(&self.guild_id) {
+            let guild = c.guild(self.guild_id).unwrap();
+            guild.member_count.fetch_sub(1, Ordering::SeqCst);
             members.remove(&self.user.id);
         }
 
@@ -202,6 +208,8 @@ impl UpdateCache for Ready {
                 GuildStatus::Offline(u) => c.unavailable_guild(u.id),
                 GuildStatus::Online(g) => {
                     c.cache_guild(g.clone());
+                    let guild = c.guild(g.id).unwrap();
+                    guild.member_count.store(g.member_count.unwrap() as i64, Ordering::SeqCst);
                     c.cache_guild_permissions(g.id);
                     for channel in g.channels.keys() {
                         c.cache_channel_permissions(g.id, *channel);

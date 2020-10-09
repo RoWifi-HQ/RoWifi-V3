@@ -45,7 +45,7 @@ impl Framework {
         self
     }
 
-    async fn dispatch(&self, msg: Message, mut context: Context) {
+    async fn dispatch(&self, msg: Message, context: &Context) {
         if msg.author.bot || msg.webhook_id.is_some() || msg.guild_id.is_none() || msg.content.is_empty() {
             return;
         }
@@ -78,9 +78,12 @@ impl Framework {
 
         match invoke {
             Invoke::Help => {
+                if context.config.disabled_channels.contains(&msg.channel_id) {
+                    return;
+                }
                 let args = Arguments::new(stream.rest());
                 if let Some(help) = self.help {
-                    let _res = (help.fun)(&mut context, &msg, args, &self.commands).await;
+                    let _res = (help.fun)(context, &msg, args, &self.commands).await;
                 }
             },
             Invoke::Command{command} => {
@@ -112,12 +115,15 @@ impl Framework {
                     return;
                 }
 
-                let res = (command.fun)(&mut context, &msg, args).await;
+                let res = (command.fun)(context, &msg, args).await;
                 tracing::debug!(command = ?command.options.names[0], author = msg.author.id.0, "Command ran");
                 match res {
                     Ok(()) => {
                         if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
                             bucket.take(msg.guild_id.unwrap()); 
+                        }
+                        if let Ok(metric) = context.stats.command_counts.get_metric_with_label_values(&[&command.options.names[0]]) {
+                            metric.inc();
                         }
                     },
                     Err(error) => self.handle_error(error, &context, &msg).await
@@ -126,9 +132,9 @@ impl Framework {
         }
     }
 
-    pub async fn handle_event(&self, event: Event, context: Context) {
+    pub async fn handle_event(&self, event: &Event, context: &Context) {
         if let Event::MessageCreate(msg) = event {
-            self.dispatch(msg.0, context).await;
+            self.dispatch(msg.0.clone(), context).await;
         }
     }
 
@@ -198,7 +204,7 @@ impl Framework {
                     },
                     CommandError::NicknameTooLong(nick) => {
                         let _ = context.http.create_message(msg.channel_id)
-                            .content(format!("The supposed nickname {} was found to be longer than 32 characters", nick)).unwrap()
+                            .content(nick).unwrap()
                             .await;
                     },
                     CommandError::NoRoGuild => {
@@ -217,7 +223,7 @@ impl Framework {
                     },
                     CommandError::Timeout => {
                         let _ = context.http.create_message(msg.channel_id)
-                            .content("Timeout reached. Please try again").unwrap().await;
+                            .content("Commmand cancelled. Please try again").unwrap().await;
                     }
                 }
             },
