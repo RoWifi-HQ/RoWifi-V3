@@ -17,6 +17,7 @@ chrono = "*"
 dashmap = "*"
 dotenv = "*"
 futures = "*"
+hyper = "*"
 itertools = "*"
 lazy_static = "*"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }

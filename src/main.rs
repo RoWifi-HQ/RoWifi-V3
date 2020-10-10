@@ -7,6 +7,11 @@ mod services;
 mod utils;
 
 use dashmap::DashSet;
+use hyper::{
+    service::{make_service_fn, service_fn},
+    Body, Response, Server,
+};
+use prometheus::{Encoder, TextEncoder};
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::stream::StreamExt;
 use twilight_gateway::cluster::{Cluster, ShardScheme};
@@ -83,6 +88,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(async move {
         cluster_spawn.up().await;
     });
+    tokio::spawn(run_metrics_server(stats.clone()));
 
     let context = Context::new(
         0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats,
@@ -139,4 +145,26 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     }
 
     Ok(())
+}
+
+async fn run_metrics_server(stats: Arc<BotStats>) {
+    let addr = ([127, 0, 0, 1], 9898).into();
+    let metric_service = make_service_fn(move |_| {
+        let stats = stats.clone();
+        async move {
+            Ok::<_, hyper::Error>(service_fn(move |_req| {
+                let mut buffer = vec![];
+                let encoder = TextEncoder::new();
+                let metric_families = stats.registry.gather();
+                encoder.encode(&metric_families, &mut buffer).unwrap();
+
+                async move { Ok::<_, hyper::Error>(Response::new(Body::from(buffer))) }
+            }))
+        }
+    });
+
+    let server = Server::bind(&addr).serve(metric_service);
+    if let Err(err) = server.await {
+        tracing::error!(error = ?err, "Error from the metrics server: ");
+    }
 }

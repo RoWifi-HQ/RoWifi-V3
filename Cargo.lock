@@ -1580,6 +1580,7 @@ dependencies = [
  "dashmap",
  "dotenv",
  "futures",
+ "hyper",
  "itertools",
  "lazy_static",
  "mongodb",
