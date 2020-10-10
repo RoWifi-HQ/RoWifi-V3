@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
+use std::collections::HashMap;
 use twilight_model::gateway::event::Event;
 
 pub struct EventStats {
@@ -27,12 +27,12 @@ pub struct EventStats {
     pub role_delete: IntCounter,
     pub role_update: IntCounter,
     pub unavailable_guild: IntCounter,
-    pub user_update: IntCounter
+    pub user_update: IntCounter,
 }
 
 pub struct ResourceCounters {
     pub guilds: IntGauge,
-    pub users: IntGauge
+    pub users: IntGauge,
 }
 
 pub struct BotStats {
@@ -40,60 +40,126 @@ pub struct BotStats {
     pub event_counts: EventStats,
     pub resource_counts: ResourceCounters,
     pub command_counts: IntCounterVec,
-    pub update_user: IntCounter 
+    pub update_user: IntCounter,
 }
 
 impl BotStats {
     pub fn new(cluster_id: u64) -> Self {
-        let event_counter = IntCounterVec::new(Opts::new("discord_events", "Events given by discord"), &["events"]).unwrap();
-        let resource_counter = IntGaugeVec::new(Opts::new("resource_counts", "Counts of all resource"), &["count"]).unwrap();
-        let command_counts = IntCounterVec::new(Opts::new("commands", "Executed commands"), &["name"]).unwrap();
-        let update_user = IntCounter::with_opts(Opts::new("update_user", "Counts of any user updated")).unwrap();
+        let event_counter = IntCounterVec::new(
+            Opts::new("discord_events", "Events given by discord"),
+            &["events"],
+        )
+        .unwrap();
+        let resource_counter = IntGaugeVec::new(
+            Opts::new("resource_counts", "Counts of all resource"),
+            &["count"],
+        )
+        .unwrap();
+        let command_counts =
+            IntCounterVec::new(Opts::new("commands", "Executed commands"), &["name"]).unwrap();
+        let update_user =
+            IntCounter::with_opts(Opts::new("update_user", "Counts of any user updated")).unwrap();
 
         let mut static_labels = HashMap::new();
         static_labels.insert(String::from("cluster"), cluster_id.to_string());
         let registry = Registry::new_custom(Some("rowifi".into()), Some(static_labels)).unwrap();
 
         registry.register(Box::new(event_counter.clone())).unwrap();
-        registry.register(Box::new(resource_counter.clone())).unwrap();
+        registry
+            .register(Box::new(resource_counter.clone()))
+            .unwrap();
         registry.register(Box::new(command_counts.clone())).unwrap();
         registry.register(Box::new(update_user.clone())).unwrap();
 
         BotStats {
             registry,
             event_counts: EventStats {
-                ban_add: event_counter.get_metric_with_label_values(&["BanAdd"]).unwrap(),
-                ban_remove: event_counter.get_metric_with_label_values(&["BanRemove"]).unwrap(),
-                channel_create: event_counter.get_metric_with_label_values(&["ChannelCreate"]).unwrap(),
-                channel_delete: event_counter.get_metric_with_label_values(&["ChannelDelete"]).unwrap(),
-                channel_update: event_counter.get_metric_with_label_values(&["ChannelUpdate"]).unwrap(),
-                gateway_reconnect: event_counter.get_metric_with_label_values(&["GatewayReconnect"]).unwrap(),
-                guild_create: event_counter.get_metric_with_label_values(&["GuildCreate"]).unwrap(),
-                guild_delete: event_counter.get_metric_with_label_values(&["GuildDelete"]).unwrap(),
-                guild_update: event_counter.get_metric_with_label_values(&["GuildUpdate"]).unwrap(),
-                member_add: event_counter.get_metric_with_label_values(&["MemberAdd"]).unwrap(),
-                member_remove: event_counter.get_metric_with_label_values(&["MemberRemove"]).unwrap(),
-                member_chunk: event_counter.get_metric_with_label_values(&["MemberChunk"]).unwrap(),
-                member_update: event_counter.get_metric_with_label_values(&["MemberUpdate"]).unwrap(),
-                message_create: event_counter.get_metric_with_label_values(&["MessageCreate"]).unwrap(),
-                message_delete: event_counter.get_metric_with_label_values(&["MessageDelete"]).unwrap(),
-                message_delete_bulk: event_counter.get_metric_with_label_values(&["MessageDeleteBulk"]).unwrap(),
-                message_update: event_counter.get_metric_with_label_values(&["MessageUpdate"]).unwrap(),
-                reaction_add: event_counter.get_metric_with_label_values(&["ReactionAdd"]).unwrap(),
-                reaction_remove: event_counter.get_metric_with_label_values(&["ReactionRemove"]).unwrap(),
-                reaction_remove_all: event_counter.get_metric_with_label_values(&["ReactionRemoveAll"]).unwrap(),
-                role_create: event_counter.get_metric_with_label_values(&["RoleCreate"]).unwrap(),
-                role_delete: event_counter.get_metric_with_label_values(&["RoleDelete"]).unwrap(),
-                role_update: event_counter.get_metric_with_label_values(&["RoleUpdate"]).unwrap(),
-                unavailable_guild: event_counter.get_metric_with_label_values(&["UnavailableGuild"]).unwrap(),
-                user_update: event_counter.get_metric_with_label_values(&["UserUpdate"]).unwrap(),
+                ban_add: event_counter
+                    .get_metric_with_label_values(&["BanAdd"])
+                    .unwrap(),
+                ban_remove: event_counter
+                    .get_metric_with_label_values(&["BanRemove"])
+                    .unwrap(),
+                channel_create: event_counter
+                    .get_metric_with_label_values(&["ChannelCreate"])
+                    .unwrap(),
+                channel_delete: event_counter
+                    .get_metric_with_label_values(&["ChannelDelete"])
+                    .unwrap(),
+                channel_update: event_counter
+                    .get_metric_with_label_values(&["ChannelUpdate"])
+                    .unwrap(),
+                gateway_reconnect: event_counter
+                    .get_metric_with_label_values(&["GatewayReconnect"])
+                    .unwrap(),
+                guild_create: event_counter
+                    .get_metric_with_label_values(&["GuildCreate"])
+                    .unwrap(),
+                guild_delete: event_counter
+                    .get_metric_with_label_values(&["GuildDelete"])
+                    .unwrap(),
+                guild_update: event_counter
+                    .get_metric_with_label_values(&["GuildUpdate"])
+                    .unwrap(),
+                member_add: event_counter
+                    .get_metric_with_label_values(&["MemberAdd"])
+                    .unwrap(),
+                member_remove: event_counter
+                    .get_metric_with_label_values(&["MemberRemove"])
+                    .unwrap(),
+                member_chunk: event_counter
+                    .get_metric_with_label_values(&["MemberChunk"])
+                    .unwrap(),
+                member_update: event_counter
+                    .get_metric_with_label_values(&["MemberUpdate"])
+                    .unwrap(),
+                message_create: event_counter
+                    .get_metric_with_label_values(&["MessageCreate"])
+                    .unwrap(),
+                message_delete: event_counter
+                    .get_metric_with_label_values(&["MessageDelete"])
+                    .unwrap(),
+                message_delete_bulk: event_counter
+                    .get_metric_with_label_values(&["MessageDeleteBulk"])
+                    .unwrap(),
+                message_update: event_counter
+                    .get_metric_with_label_values(&["MessageUpdate"])
+                    .unwrap(),
+                reaction_add: event_counter
+                    .get_metric_with_label_values(&["ReactionAdd"])
+                    .unwrap(),
+                reaction_remove: event_counter
+                    .get_metric_with_label_values(&["ReactionRemove"])
+                    .unwrap(),
+                reaction_remove_all: event_counter
+                    .get_metric_with_label_values(&["ReactionRemoveAll"])
+                    .unwrap(),
+                role_create: event_counter
+                    .get_metric_with_label_values(&["RoleCreate"])
+                    .unwrap(),
+                role_delete: event_counter
+                    .get_metric_with_label_values(&["RoleDelete"])
+                    .unwrap(),
+                role_update: event_counter
+                    .get_metric_with_label_values(&["RoleUpdate"])
+                    .unwrap(),
+                unavailable_guild: event_counter
+                    .get_metric_with_label_values(&["UnavailableGuild"])
+                    .unwrap(),
+                user_update: event_counter
+                    .get_metric_with_label_values(&["UserUpdate"])
+                    .unwrap(),
             },
             resource_counts: ResourceCounters {
-                guilds: resource_counter.get_metric_with_label_values(&["Guilds"]).unwrap(),
-                users: resource_counter.get_metric_with_label_values(&["Users"]).unwrap()
+                guilds: resource_counter
+                    .get_metric_with_label_values(&["Guilds"])
+                    .unwrap(),
+                users: resource_counter
+                    .get_metric_with_label_values(&["Users"])
+                    .unwrap(),
             },
             command_counts,
-            update_user
+            update_user,
         }
     }
 

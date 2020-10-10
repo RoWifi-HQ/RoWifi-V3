@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use twilight_model::id::RoleId;
 
@@ -11,7 +11,7 @@ pub struct GroupBind {
     pub group_id: i64,
 
     #[serde(rename = "DiscordRoles")]
-    pub discord_roles: Vec<i64>
+    pub discord_roles: Vec<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,7 +20,7 @@ pub struct BackupGroupBind {
     pub group_id: i64,
 
     #[serde(rename = "DiscordRoles")]
-    pub discord_roles: Vec<String>
+    pub discord_roles: Vec<String>,
 }
 
 impl Backup for GroupBind {
@@ -36,7 +36,7 @@ impl Backup for GroupBind {
 
         BackupGroupBind {
             group_id: self.group_id,
-            discord_roles
+            discord_roles,
         }
     }
 
@@ -49,7 +49,7 @@ impl Backup for GroupBind {
 
         GroupBind {
             group_id: bind.group_id,
-            discord_roles
+            discord_roles,
         }
     }
 }

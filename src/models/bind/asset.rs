@@ -1,6 +1,6 @@
-use std::{fmt, str::FromStr, collections::HashMap, sync::Arc};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_repr::*;
+use std::{collections::HashMap, fmt, str::FromStr, sync::Arc};
 use twilight_model::id::RoleId;
 
 use super::Backup;
@@ -15,7 +15,7 @@ pub struct AssetBind {
     pub asset_type: AssetType,
 
     #[serde(rename = "DiscordRoles")]
-    pub discord_roles: Vec<i64>
+    pub discord_roles: Vec<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,13 +27,15 @@ pub struct BackupAssetBind {
     pub asset_type: AssetType,
 
     #[serde(rename = "DiscordRoles")]
-    pub discord_roles: Vec<String>
+    pub discord_roles: Vec<String>,
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
 #[repr(i8)]
 pub enum AssetType {
-    Asset, Badge, Gamepass
+    Asset,
+    Badge,
+    Gamepass,
 }
 
 impl fmt::Display for AssetType {
@@ -41,7 +43,7 @@ impl fmt::Display for AssetType {
         match *self {
             AssetType::Asset => f.write_str("Asset"),
             AssetType::Badge => f.write_str("Badge"),
-            AssetType::Gamepass => f.write_str("Gamepass")
+            AssetType::Gamepass => f.write_str("Gamepass"),
         }
     }
 }
@@ -53,7 +55,7 @@ impl FromStr for AssetType {
             "asset" => Ok(AssetType::Asset),
             "badge" => Ok(AssetType::Badge),
             "gamepass" => Ok(AssetType::Gamepass),
-             _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -72,7 +74,7 @@ impl Backup for AssetBind {
         BackupAssetBind {
             id: self.id,
             asset_type: self.asset_type,
-            discord_roles
+            discord_roles,
         }
     }
 
@@ -86,7 +88,7 @@ impl Backup for AssetBind {
         AssetBind {
             id: bind.id,
             asset_type: bind.asset_type,
-            discord_roles
+            discord_roles,
         }
     }
 }

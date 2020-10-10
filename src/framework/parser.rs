@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use twilight_model::channel::Message;
 use uwl::Stream;
 
-use super::{Command, map::*};
+use super::{map::*, Command};
 use crate::models::configuration::Configuration;
 
 pub fn mention<'a>(stream: &mut Stream<'a>, config: &Configuration) -> Option<&'a str> {
@@ -27,7 +27,11 @@ pub fn mention<'a>(stream: &mut Stream<'a>, config: &Configuration) -> Option<&'
     }
 }
 
-pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configuration) -> Option<Cow<'a, str>> {
+pub fn find_prefix<'a>(
+    stream: &mut Stream<'a>,
+    msg: &Message,
+    config: &Configuration,
+) -> Option<Cow<'a, str>> {
     if let Some(id) = mention(stream, config) {
         stream.take_while_char(|c| c.is_whitespace());
         return Some(Cow::Borrowed(id));
@@ -39,9 +43,9 @@ pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configur
             if prefix.value() == peeked {
                 stream.increment(prefix.len());
                 stream.take_while_char(|c| c.is_whitespace());
-                return Some(Cow::Borrowed(peeked))
+                return Some(Cow::Borrowed(peeked));
             } else {
-                return None
+                return None;
             }
         }
     }
@@ -51,20 +55,22 @@ pub fn find_prefix<'a>(stream: &mut Stream<'a>, msg: &Message, config: &Configur
     if default_prefix == peeked {
         stream.increment(default_prefix.len());
         stream.take_while_char(|c| c.is_whitespace());
-        return Some(Cow::Borrowed(peeked))
+        return Some(Cow::Borrowed(peeked));
     }
 
     None
 }
 
-fn parse_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> Result<&'static Command, ParseError> {
+fn parse_command<'a>(
+    stream: &'a mut Stream<'_>,
+    map: &'a CommandMap,
+) -> Result<&'static Command, ParseError> {
     let name = stream.peek_until_char(|c| c.is_whitespace());
 
     if let Some((cmd, map)) = map.get(&name.to_ascii_lowercase()) {
         stream.increment(name.len());
 
         stream.take_while_char(|c| c.is_whitespace());
-
 
         if map.is_empty() {
             return Ok(cmd);
@@ -79,9 +85,12 @@ fn parse_command<'a>(stream: &'a mut Stream<'_>, map: &'a CommandMap) -> Result<
     Err(ParseError::UnrecognisedCommand(Some(name.to_string())))
 }
 
-
-pub fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command, CommandMap)], help: &Option<&'static str>) -> Result<Invoke, ParseError> {
-    if let Some(help) = help {    
+pub fn command<'a>(
+    stream: &mut Stream<'a>,
+    commands: &[(&'static Command, CommandMap)],
+    help: &Option<&'static str>,
+) -> Result<Invoke, ParseError> {
+    if let Some(help) = help {
         let n = stream.peek_for_char(help.chars().count());
         if help.eq_ignore_ascii_case(n) {
             stream.increment(n.len());
@@ -95,7 +104,7 @@ pub fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command, Comma
     for (_command, map) in commands {
         let res = match parse_command(stream, map) {
             Ok(command) => return Ok(Invoke::Command { command }),
-            Err(err) => Err(err)
+            Err(err) => Err(err),
         };
         last = res;
     }
@@ -105,9 +114,7 @@ pub fn command<'a>(stream: &mut Stream<'a>, commands: &[(&'static Command, Comma
 
 #[derive(Debug)]
 pub enum Invoke {
-    Command {
-        command: &'static Command,
-    },
+    Command { command: &'static Command },
     Help,
 }
 

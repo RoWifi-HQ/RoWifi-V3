@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use super::GuildSettings;
 use super::super::{bind::*, blacklist::Blacklist};
+use super::GuildSettings;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BackupGuild {

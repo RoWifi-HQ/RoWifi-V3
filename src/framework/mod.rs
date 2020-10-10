@@ -4,22 +4,19 @@ pub mod parser;
 pub mod prelude;
 pub mod structures;
 
+use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
 use std::time::Duration;
 use transient_dashmap::TransientDashMap;
-use twilight_gateway::Event;
-use twilight_model::{
-    channel::Message,
-    guild::Permissions
-};
 use twilight_command_parser::Arguments;
+use twilight_gateway::Event;
+use twilight_model::{channel::Message, guild::Permissions};
 use uwl::Stream;
-use crate::utils::error::{RoError, CommandError};
 
 use context::Context;
 pub use map::CommandMap;
+use parser::{Invoke, ParseError};
 use structures::*;
-use parser::{ParseError, Invoke};
 
 #[derive(Default)]
 pub struct Framework {
@@ -41,12 +38,23 @@ impl Framework {
     }
 
     pub fn bucket(self, name: &str, time: Duration, calls: u64) -> Self {
-        self.buckets.insert(name.to_string(), Bucket {time, guilds: TransientDashMap::new(time), calls});
+        self.buckets.insert(
+            name.to_string(),
+            Bucket {
+                time,
+                guilds: TransientDashMap::new(time),
+                calls,
+            },
+        );
         self
     }
 
     async fn dispatch(&self, msg: Message, context: &Context) {
-        if msg.author.bot || msg.webhook_id.is_some() || msg.guild_id.is_none() || msg.content.is_empty() {
+        if msg.author.bot
+            || msg.webhook_id.is_some()
+            || msg.guild_id.is_none()
+            || msg.content.is_empty()
+        {
             return;
         }
 
@@ -55,12 +63,18 @@ impl Framework {
 
         let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref());
         if prefix.is_some() && stream.rest().is_empty() {
-           let actual_prefix = if let Some(p) = context.config.prefixes.get(&msg.guild_id.unwrap()) {
+            let actual_prefix = if let Some(p) = context.config.prefixes.get(&msg.guild_id.unwrap())
+            {
                 p.value().to_owned()
-           } else {
-               context.config.default_prefix.clone()
-           };
-           let _ = context.http.create_message(msg.channel_id).content(format!("My prefix here is {}", actual_prefix)).unwrap().await;
+            } else {
+                context.config.default_prefix.clone()
+            };
+            let _ = context
+                .http
+                .create_message(msg.channel_id)
+                .content(format!("My prefix here is {}", actual_prefix))
+                .unwrap()
+                .await;
             return;
         }
 
@@ -68,7 +82,11 @@ impl Framework {
             return;
         }
 
-        let invocation = parser::command(&mut stream, &self.commands, &self.help.as_ref().map(|h| h.name));
+        let invocation = parser::command(
+            &mut stream,
+            &self.commands,
+            &self.help.as_ref().map(|h| h.name),
+        );
         let invoke = match invocation {
             Ok(i) => i,
             Err(ParseError::UnrecognisedCommand(_)) => {
@@ -85,24 +103,40 @@ impl Framework {
                 if let Some(help) = self.help {
                     let _res = (help.fun)(context, &msg, args, &self.commands).await;
                 }
-            },
-            Invoke::Command{command} => {
+            }
+            Invoke::Command { command } => {
                 if !self.run_checks(&context, &msg, command) {
                     return;
                 }
 
                 if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
                     if let Some(duration) = bucket.get(msg.guild_id.unwrap()) {
-                        let content = format!("Ratelimit reached. You may use this command in {:?}", duration);
-                        let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                        let content = format!(
+                            "Ratelimit reached. You may use this command in {:?}",
+                            duration
+                        );
+                        let _ = context
+                            .http
+                            .create_message(msg.channel_id)
+                            .content(content)
+                            .unwrap()
+                            .await;
                         return;
                     }
                 }
 
                 if let Some(permissions) = context.cache.channel_permissions(msg.channel_id) {
                     if !permissions.contains(command.options.required_permissions) {
-                        let content = format!("I seem to be missing one of the following permissions: {:?}", command.options.required_permissions);
-                        let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                        let content = format!(
+                            "I seem to be missing one of the following permissions: {:?}",
+                            command.options.required_permissions
+                        );
+                        let _ = context
+                            .http
+                            .create_message(msg.channel_id)
+                            .content(content)
+                            .unwrap()
+                            .await;
                         return;
                     }
                 }
@@ -110,8 +144,16 @@ impl Framework {
                 let args = Arguments::new(stream.rest());
                 let args_count = Arguments::new(stream.rest()).count();
                 if args_count < command.options.min_args {
-                    let content = format!("```{}\n\n Expected atleast {} arguments, got only {}```", msg.content, command.options.min_args, args_count);
-                    let _ = context.http.create_message(msg.channel_id).content(content).unwrap().await;
+                    let content = format!(
+                        "```{}\n\n Expected atleast {} arguments, got only {}```",
+                        msg.content, command.options.min_args, args_count
+                    );
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content(content)
+                        .unwrap()
+                        .await;
                     return;
                 }
 
@@ -119,14 +161,20 @@ impl Framework {
                 tracing::debug!(command = ?command.options.names[0], author = msg.author.id.0, "Command ran");
                 match res {
                     Ok(()) => {
-                        if let Some(bucket) = command.options.bucket.and_then(|b| self.buckets.get(b)) {
-                            bucket.take(msg.guild_id.unwrap()); 
+                        if let Some(bucket) =
+                            command.options.bucket.and_then(|b| self.buckets.get(b))
+                        {
+                            bucket.take(msg.guild_id.unwrap());
                         }
-                        if let Ok(metric) = context.stats.command_counts.get_metric_with_label_values(&[&command.options.names[0]]) {
+                        if let Ok(metric) = context
+                            .stats
+                            .command_counts
+                            .get_metric_with_label_values(&[&command.options.names[0]])
+                        {
                             metric.inc();
                         }
-                    },
-                    Err(error) => self.handle_error(error, &context, &msg).await
+                    }
+                    Err(error) => self.handle_error(error, &context, &msg).await,
                 }
             }
         }
@@ -143,11 +191,17 @@ impl Framework {
             return false;
         }
 
-        if context.config.blocked_guilds.contains(&msg.guild_id.unwrap()) {
+        if context
+            .config
+            .blocked_guilds
+            .contains(&msg.guild_id.unwrap())
+        {
             return false;
         }
-        
-        if context.config.disabled_channels.contains(&msg.channel_id) && !command.options.names.contains(&"command-channel") {
+
+        if context.config.disabled_channels.contains(&msg.channel_id)
+            && !command.options.names.contains(&"command-channel")
+        {
             return false;
         }
 
@@ -171,7 +225,7 @@ impl Framework {
                         if context.config.owners.contains(&msg.author.id) {
                             return true;
                         }
-                    },
+                    }
                     RoLevel::Admin => {
                         if let Some(admin_role) = guild.admin_role {
                             if member.roles.contains(&admin_role) {
@@ -185,8 +239,8 @@ impl Framework {
                                 }
                             }
                         }
-                    },
-                    RoLevel::Trainer => return true
+                    }
+                    RoLevel::Trainer => return true,
                 }
             }
         }
@@ -195,36 +249,56 @@ impl Framework {
 
     async fn handle_error(&self, error: RoError, context: &Context, msg: &Message) {
         match error {
-            RoError::Command(cmd_err) => {
-                match cmd_err {
-                    CommandError::Blacklist(reason) => {
-                        let _ = context.http.create_message(msg.channel_id)
-                            .content(format!("User was found on the server blacklist. Reason: {}", reason)).unwrap()
-                            .await;
-                    },
-                    CommandError::NicknameTooLong(nick) => {
-                        let _ = context.http.create_message(msg.channel_id)
-                            .content(nick).unwrap()
-                            .await;
-                    },
-                    CommandError::NoRoGuild => {
-                        let _ = context.http.create_message(msg.channel_id)
+            RoError::Command(cmd_err) => match cmd_err {
+                CommandError::Blacklist(reason) => {
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content(format!(
+                            "User was found on the server blacklist. Reason: {}",
+                            reason
+                        ))
+                        .unwrap()
+                        .await;
+                }
+                CommandError::NicknameTooLong(nick) => {
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content(nick)
+                        .unwrap()
+                        .await;
+                }
+                CommandError::NoRoGuild => {
+                    let _ = context.http.create_message(msg.channel_id)
                             .content("This server was not set up. Please ask the server owner to run `setup`").unwrap()
                             .await;
-                    }
-                    CommandError::ParseArgument(arg, param, param_type) => {
-                        let idx = msg.content.find(&arg).unwrap();
-                        let size = arg.len();
-                        let content = format!("```{}\n{}{}\n\nExpected {} to be a {}```", 
-                            msg.content, " ".repeat(idx), "^".repeat(size), param, param_type
-                        );
-                        let _ = context.http.create_message(msg.channel_id)
-                            .content(content).unwrap().await;
-                    },
-                    CommandError::Timeout => {
-                        let _ = context.http.create_message(msg.channel_id)
-                            .content("Commmand cancelled. Please try again").unwrap().await;
-                    }
+                }
+                CommandError::ParseArgument(arg, param, param_type) => {
+                    let idx = msg.content.find(&arg).unwrap();
+                    let size = arg.len();
+                    let content = format!(
+                        "```{}\n{}{}\n\nExpected {} to be a {}```",
+                        msg.content,
+                        " ".repeat(idx),
+                        "^".repeat(size),
+                        param,
+                        param_type
+                    );
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content(content)
+                        .unwrap()
+                        .await;
+                }
+                CommandError::Timeout => {
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content("Commmand cancelled. Please try again")
+                        .unwrap()
+                        .await;
                 }
             },
             _ => {

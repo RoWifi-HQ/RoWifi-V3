@@ -1,16 +1,19 @@
+use crate::utils::misc::{channel_permissions, guild_wide_permissions};
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
-    collections::{HashSet, HashMap},
+    collections::{HashMap, HashSet},
     hash::Hash,
-    sync::{Arc, Mutex, atomic::{AtomicI64, Ordering}},
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        Arc, Mutex,
+    },
 };
 use twilight_model::{
     channel::GuildChannel,
-    guild::{Guild, Member, Role, Permissions},
+    guild::{Guild, Member, Permissions, Role},
     id::{ChannelId, GuildId, RoleId, UserId},
     user::{CurrentUser, User},
 };
-use crate::utils::misc::{guild_wide_permissions, channel_permissions};
 
 mod event;
 mod models;
@@ -59,7 +62,7 @@ pub struct CacheRef {
     current_user: Mutex<Option<Arc<CurrentUser>>>,
 
     guild_permissions: DashMap<GuildId, Permissions>,
-    channel_permissions: DashMap<ChannelId, Permissions>
+    channel_permissions: DashMap<ChannelId, Permissions>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -74,19 +77,32 @@ impl Cache {
     }
 
     pub fn current_user(&self) -> Option<Arc<CurrentUser>> {
-        self.0.current_user.lock().expect("Current user poisoned").clone()
+        self.0
+            .current_user
+            .lock()
+            .expect("Current user poisoned")
+            .clone()
     }
 
     pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
-        self.0.channels.get(&channel_id).map(|c| Arc::clone(c.value()))
+        self.0
+            .channels
+            .get(&channel_id)
+            .map(|c| Arc::clone(c.value()))
     }
 
     pub fn guild_channels(&self, guild_id: GuildId) -> HashSet<ChannelId> {
-        self.0.guild_channels.get(&guild_id).map_or_else(HashSet::new, |gc| gc.value().clone())
+        self.0
+            .guild_channels
+            .get(&guild_id)
+            .map_or_else(HashSet::new, |gc| gc.value().clone())
     }
 
     pub fn channel_permissions(&self, channel_id: ChannelId) -> Option<Permissions> {
-        self.0.channel_permissions.get(&channel_id).map(|c| *c.value())
+        self.0
+            .channel_permissions
+            .get(&channel_id)
+            .map(|c| *c.value())
     }
 
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
@@ -98,15 +114,24 @@ impl Cache {
     }
 
     pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
-        self.0.members.get(&(guild_id, user_id)).map(|m| Arc::clone(m.value()))
+        self.0
+            .members
+            .get(&(guild_id, user_id))
+            .map(|m| Arc::clone(m.value()))
     }
 
     pub fn members(&self, guild_id: GuildId) -> HashSet<UserId> {
-        self.0.guild_members.get(&guild_id).map_or_else(HashSet::new, |g| g.value().clone())
+        self.0
+            .guild_members
+            .get(&guild_id)
+            .map_or_else(HashSet::new, |g| g.value().clone())
     }
 
     pub fn member_count(&self, guild_id: GuildId) -> i64 {
-        self.0.guilds.get(&guild_id).map_or_else(|| 0, |g| g.member_count.load(Ordering::SeqCst))
+        self.0
+            .guilds
+            .get(&guild_id)
+            .map_or_else(|| 0, |g| g.member_count.load(Ordering::SeqCst))
     }
 
     pub fn role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
@@ -114,7 +139,10 @@ impl Cache {
     }
 
     pub fn roles(&self, guild_id: GuildId) -> HashSet<RoleId> {
-        self.0.guild_roles.get(&guild_id).map_or_else(HashSet::new, |gr| gr.value().clone())
+        self.0
+            .guild_roles
+            .get(&guild_id)
+            .map_or_else(HashSet::new, |gr| gr.value().clone())
     }
 
     pub fn guild_roles(&self, guild_id: GuildId) -> Vec<Arc<CachedRole>> {
@@ -255,15 +283,20 @@ impl Cache {
         let user = self.0.current_user.lock().expect("current user poisoned");
         if let Some(user) = user.as_ref() {
             let guild = self.guild(guild_id).unwrap();
-            let server_roles = self.guild_roles(guild_id).iter().map(|r| (r.id, r.clone())).collect::<HashMap<RoleId, Arc<CachedRole>>>();
-            let member= self.member(guild_id, user.id).unwrap();
-            let new_permissions = match guild_wide_permissions(guild, &server_roles, user.id, &member.roles) {
-                Ok(p) => p,
-                Err(why) => {
-                    tracing::error!(guild = ?guild_id, reason = ?why);
-                    return;
-                }
-            };
+            let server_roles = self
+                .guild_roles(guild_id)
+                .iter()
+                .map(|r| (r.id, r.clone()))
+                .collect::<HashMap<RoleId, Arc<CachedRole>>>();
+            let member = self.member(guild_id, user.id).unwrap();
+            let new_permissions =
+                match guild_wide_permissions(guild, &server_roles, user.id, &member.roles) {
+                    Ok(p) => p,
+                    Err(why) => {
+                        tracing::error!(guild = ?guild_id, reason = ?why);
+                        return;
+                    }
+                };
             self.0.guild_permissions.insert(guild_id, new_permissions);
         }
     }
@@ -274,16 +307,28 @@ impl Cache {
             let user = self.0.current_user.lock().expect("current user poisoned");
             if let Some(user) = user.as_ref() {
                 let guild = self.guild(guild_id).unwrap();
-                let server_roles = self.guild_roles(guild_id).iter().map(|r| (r.id, r.clone())).collect::<HashMap<RoleId, Arc<CachedRole>>>();
-                let member= self.member(guild_id, user.id).unwrap();
-                let new_permissions = match channel_permissions(guild, &server_roles, user.id, &member.roles, channel) {
+                let server_roles = self
+                    .guild_roles(guild_id)
+                    .iter()
+                    .map(|r| (r.id, r.clone()))
+                    .collect::<HashMap<RoleId, Arc<CachedRole>>>();
+                let member = self.member(guild_id, user.id).unwrap();
+                let new_permissions = match channel_permissions(
+                    guild,
+                    &server_roles,
+                    user.id,
+                    &member.roles,
+                    channel,
+                ) {
                     Ok(p) => p,
                     Err(why) => {
                         tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
                         return;
                     }
                 };
-                self.0.channel_permissions.insert(channel_id, new_permissions);
+                self.0
+                    .channel_permissions
+                    .insert(channel_id, new_permissions);
             }
         }
     }
@@ -293,16 +338,24 @@ impl Cache {
         self.0.guild_channels.insert(guild.id, HashSet::new());
         self.0.guild_members.insert(guild.id, HashSet::new());
 
-        let bypass_role  = guild.roles.iter()
+        let bypass_role = guild
+            .roles
+            .iter()
             .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Bypass"))
             .map(|(_, r)| r.id);
-        let nickname_bypass = guild.roles.iter()
+        let nickname_bypass = guild
+            .roles
+            .iter()
             .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Nickname Bypass"))
             .map(|(_, r)| r.id);
-        let log_channel = guild.channels.iter()
+        let log_channel = guild
+            .channels
+            .iter()
             .find(|(_, c)| c.name().eq_ignore_ascii_case("rowifi-logs"))
             .map(|(_, c)| c.id());
-        let admin_role = guild.roles.iter()
+        let admin_role = guild
+            .roles
+            .iter()
             .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Admin"))
             .map(|(_, r)| r.id);
 
@@ -324,7 +377,7 @@ impl Cache {
             log_channel,
             bypass_role,
             nickname_bypass,
-            admin_role
+            admin_role,
         };
 
         self.0.unavailable_guilds.remove(&guild.id);

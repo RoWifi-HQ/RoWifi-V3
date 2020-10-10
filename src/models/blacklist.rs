@@ -1,19 +1,19 @@
-use serde::{Serialize, Deserialize, Deserializer, Serializer, ser::SerializeStruct};
-use std::fmt;
 use super::command::*;
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Blacklist {
     pub id: String,
     pub reason: String,
-    pub blacklist_type: BlacklistType
+    pub blacklist_type: BlacklistType,
 }
 
 #[derive(Clone)]
 pub enum BlacklistType {
-    Name(String), 
-    Group(i64), 
-    Custom(RoCommand)
+    Name(String),
+    Group(i64),
+    Custom(RoCommand),
 }
 
 impl Blacklist {
@@ -21,20 +21,23 @@ impl Blacklist {
         match &self.blacklist_type {
             BlacklistType::Name(name) => Ok(user.user.roblox_id.to_string().eq(name)),
             BlacklistType::Group(id) => Ok(user.ranks.contains_key(id)),
-            BlacklistType::Custom(cmd) => Ok(cmd.evaluate(user)?)
+            BlacklistType::Custom(cmd) => Ok(cmd.evaluate(user)?),
         }
     }
 }
 
 impl Serialize for Blacklist {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         let mut state = serializer.serialize_struct("Blacklist", 3)?;
         state.serialize_field("_id", &self.id)?;
         state.serialize_field("Reason", &self.reason)?;
         let t = match self.blacklist_type {
             BlacklistType::Name(_) => 0,
             BlacklistType::Group(_) => 1,
-            BlacklistType::Custom(_) => 2
+            BlacklistType::Custom(_) => 2,
         };
         state.serialize_field("Type", &t)?;
         state.end()
@@ -42,7 +45,10 @@ impl Serialize for Blacklist {
 }
 
 impl<'de> Deserialize<'de> for Blacklist {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         #[derive(Deserialize)]
         struct EncodedBlacklist {
             #[serde(rename = "_id")]
@@ -60,7 +66,7 @@ impl<'de> Deserialize<'de> for Blacklist {
             0 => BlacklistType::Name(input.id.to_owned()),
             1 => BlacklistType::Group(input.id.parse::<i64>().unwrap()),
             2 => BlacklistType::Custom(RoCommand::new(&input.id).unwrap()),
-            _ => return Err(serde::de::Error::custom("Invalid blacklist type"))
+            _ => return Err(serde::de::Error::custom("Invalid blacklist type")),
         };
 
         Ok(Blacklist {
@@ -76,7 +82,7 @@ impl fmt::Debug for BlacklistType {
         match self {
             BlacklistType::Name(_) => write!(f, "Name"),
             BlacklistType::Group(_) => write!(f, "Group"),
-            BlacklistType::Custom(_) => write!(f, "Custom")
+            BlacklistType::Custom(_) => write!(f, "Custom"),
         }
     }
 }

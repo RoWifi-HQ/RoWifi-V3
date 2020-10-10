@@ -1,45 +1,56 @@
-use std::{
-    str::FromStr,
-    convert::From,
-    ops::BitXor,
-    cmp::PartialEq
-};
+use std::{cmp::PartialEq, convert::From, ops::BitXor, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum TokenType {
-    LeftParen, RightParen,
+    LeftParen,
+    RightParen,
 
-    Bang, BangEqual, Equal, EqualEqual,
-    Greater, GreaterEqual, Less, LessEqual,
+    Bang,
+    BangEqual,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
 
-    String, Number,
+    String,
+    Number,
 
-    And, Or, Not, True, False, EOF,
+    And,
+    Or,
+    Not,
+    True,
+    False,
+    EOF,
 
-    HasRank, WithString, IsInGroup, HasRole,
-    GetRank
+    HasRank,
+    WithString,
+    IsInGroup,
+    HasRole,
+    GetRank,
 }
 
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum Literal {
     String(String),
     Number(i64),
-    Bool(bool)
+    Bool(bool),
 }
 
 #[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
-    pub literal: Option<Literal>
+    pub literal: Option<Literal>,
 }
 
 impl Token {
     pub fn new(token_type: TokenType, lexeme: &str, literal: Option<Literal>) -> Token {
         Token {
-            token_type  ,
+            token_type,
             lexeme: lexeme.into(),
-            literal
+            literal,
         }
     }
 }
@@ -59,7 +70,7 @@ impl FromStr for TokenType {
             "IsInGroup" => TokenType::IsInGroup,
             "HasRole" => TokenType::HasRole,
             "GetRank" => TokenType::GetRank,
-            _ => return Err(String::from("Invalid Keyword"))
+            _ => return Err(String::from("Invalid Keyword")),
         })
     }
 }
@@ -68,7 +79,7 @@ impl From<Literal> for bool {
     fn from(l: Literal) -> Self {
         match l {
             Literal::Bool(b) => b,
-            _ => true
+            _ => true,
         }
     }
 }
@@ -79,7 +90,7 @@ impl BitXor<Literal> for bool {
     fn bitxor(self, rhs: Literal) -> Self::Output {
         match rhs {
             Literal::Bool(b) => b ^ self,
-            _ => !self
+            _ => !self,
         }
     }
 }
@@ -88,7 +99,7 @@ impl PartialEq<Literal> for i64 {
     fn eq(&self, other: &Literal) -> bool {
         match other {
             Literal::Number(n) => self == n,
-            _ => false
+            _ => false,
         }
     }
 }

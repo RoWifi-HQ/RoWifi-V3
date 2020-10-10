@@ -1,5 +1,5 @@
 use dashmap::{DashMap, DashSet};
-use twilight_model::id::{GuildId, UserId, ChannelId};
+use twilight_model::id::{ChannelId, GuildId, UserId};
 
 #[derive(Default)]
 pub struct Configuration {
@@ -9,7 +9,7 @@ pub struct Configuration {
     pub on_mention: String,
     pub default_prefix: String,
     pub owners: DashSet<UserId>,
-    pub prefixes: DashMap<GuildId, String>
+    pub prefixes: DashMap<GuildId, String>,
 }
 
 impl Configuration {

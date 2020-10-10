@@ -11,18 +11,26 @@ pub static GROUPBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     min_args: 1,
     hidden: false,
     sub_commands: &[],
-    group: None
+    group: None,
 };
 
 pub static GROUPBINDS_DELETE_COMMAND: Command = Command {
     fun: groupbinds_delete,
-    options: &GROUPBINDS_DELETE_OPTIONS
+    options: &GROUPBINDS_DELETE_OPTIONS,
 };
 
 #[command]
-pub async fn groupbinds_delete(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult {
+pub async fn groupbinds_delete(
+    ctx: &Context,
+    msg: &Message,
+    args: Arguments<'fut>,
+) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let guild = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
+    let guild = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let mut groups_to_delete = Vec::new();
     for arg in args {
@@ -39,20 +47,40 @@ pub async fn groupbinds_delete(ctx: &Context, msg: &Message, args: Arguments<'fu
     }
 
     let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"GroupBinds": {"GroupId": {"$in": binds_to_delete.clone()}}}};
+    let update =
+        bson::doc! {"$pull": {"GroupBinds": {"GroupId": {"$in": binds_to_delete.clone()}}}};
     let _ = ctx.database.modify_guild(filter, update).await?;
 
-    let e = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
-        .title("Success!").unwrap()
-        .description("The given binds were successfully deleted").unwrap()
-        .build().unwrap();
-    let _ = ctx.http.create_message(msg.channel_id).embed(e).unwrap().await?;
+    let e = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .unwrap()
+        .title("Success!")
+        .unwrap()
+        .description("The given binds were successfully deleted")
+        .unwrap()
+        .build()
+        .unwrap();
+    let _ = ctx
+        .http
+        .create_message(msg.channel_id)
+        .embed(e)
+        .unwrap()
+        .await?;
 
-    let ids_str = binds_to_delete.iter().map(|b| format!("`Group Id`: {}\n", b)).collect::<String>();
-    let log_embed = EmbedBuilder::new().default_data()
-        .title(format!("Action by {}", msg.author.name)).unwrap()
-        .description("Custom Bind Deletion").unwrap()
-        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap()).build().unwrap();
+    let ids_str = binds_to_delete
+        .iter()
+        .map(|b| format!("`Group Id`: {}\n", b))
+        .collect::<String>();
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("Action by {}", msg.author.name))
+        .unwrap()
+        .description("Custom Bind Deletion")
+        .unwrap()
+        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap())
+        .build()
+        .unwrap();
     ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

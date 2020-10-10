@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use twilight_model::id::RoleId;
 
@@ -23,7 +23,7 @@ pub struct RankBind {
     pub prefix: String,
 
     #[serde(rename = "Priority")]
-    pub priority: i64
+    pub priority: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,7 +44,7 @@ pub struct BackupRankBind {
     pub prefix: String,
 
     #[serde(rename = "Priority")]
-    pub priority: i64
+    pub priority: i64,
 }
 
 impl Backup for RankBind {
@@ -64,7 +64,7 @@ impl Backup for RankBind {
             rbx_rank_id: self.rbx_rank_id,
             prefix: self.prefix.clone(),
             priority: self.priority,
-            discord_roles
+            discord_roles,
         }
     }
 
@@ -80,7 +80,7 @@ impl Backup for RankBind {
             rbx_rank_id: bind.rbx_rank_id,
             prefix: bind.prefix.clone(),
             priority: bind.priority,
-            discord_roles
+            discord_roles,
         }
     }
 }

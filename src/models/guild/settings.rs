@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
-use super::{GuildType, BlacklistActionType};
+use super::{BlacklistActionType, GuildType};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct GuildSettings {
@@ -19,5 +19,5 @@ pub struct GuildSettings {
 
     #[serde(rename = "UpdateOnVerify")]
     #[serde(default)]
-    pub update_on_verify: bool
+    pub update_on_verify: bool,
 }

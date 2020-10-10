@@ -18,7 +18,7 @@ pub enum RoError {
     Discord(#[from] twilight_http::Error),
 
     #[error(transparent)]
-    Command(#[from] CommandError)
+    Command(#[from] CommandError),
 }
 
 #[derive(Debug, Error)]
@@ -36,5 +36,5 @@ pub enum CommandError {
     ParseArgument(String, String, String),
 
     #[error("Timeout reached. Please try again")]
-    Timeout
+    Timeout,
 }

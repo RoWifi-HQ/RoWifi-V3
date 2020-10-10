@@ -9,7 +9,7 @@ mod utils;
 use dashmap::DashSet;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::stream::StreamExt;
-use twilight_gateway::cluster::{ShardScheme, Cluster};
+use twilight_gateway::cluster::{Cluster, ShardScheme};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
 use twilight_standby::Standby;
@@ -19,7 +19,7 @@ use commands::*;
 use framework::{context::Context, Framework};
 use models::{configuration::Configuration, stats::BotStats};
 use services::*;
-use utils::{Database, Roblox, Logger, Patreon};
+use utils::{Database, Logger, Patreon, Roblox};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -29,9 +29,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
     let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
-    let premium_features = env::var("PREMIUM_FEATURES")?.as_str().parse::<bool>().expect("Expected premium toggle");
+    let premium_features = env::var("PREMIUM_FEATURES")?
+        .as_str()
+        .parse::<bool>()
+        .expect("Expected premium toggle");
     let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
-    let cluster_id = env::var("CLUSTER_ID").expect("Expected the cluster id in the enviornment").parse::<u64>().unwrap();
+    let cluster_id = env::var("CLUSTER_ID")
+        .expect("Expected the cluster id in the enviornment")
+        .parse::<u64>()
+        .unwrap();
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
@@ -43,10 +49,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         .intents(
-            Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::GUILD_MEMBERS | Intents::GUILD_MESSAGE_REACTIONS
+            Intents::GUILD_MESSAGES
+                | Intents::GUILDS
+                | Intents::GUILD_MEMBERS
+                | Intents::GUILD_MESSAGE_REACTIONS,
         )
         .http_client(http.clone())
-        .build().await?;
+        .build()
+        .await?;
 
     let cache = Cache::new();
     let standby = Standby::new();
@@ -54,14 +64,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let database = Database::new(&conn_string).await;
     let roblox = Roblox::new();
     let logger = Arc::new(Logger {
-        debug_webhook: env::var("LOG_DEBUG").expect("Expected the debug webhook in the environment"),
+        debug_webhook: env::var("LOG_DEBUG")
+            .expect("Expected the debug webhook in the environment"),
         main_webhook: env::var("LOG_MAIN").expect("Expected the main webhook in the environment"),
-        premium_webhook: env::var("LOG_PREMIUM").expect("Expected the premium webhook in the environment")
+        premium_webhook: env::var("LOG_PREMIUM")
+            .expect("Expected the premium webhook in the environment"),
     });
-    let config = Arc::new(Configuration::default()
-        .default_prefix("!")
-        .on_mention(app_info.id)
-        .owners(owners));
+    let config = Arc::new(
+        Configuration::default()
+            .default_prefix("!")
+            .on_mention(app_info.id)
+            .owners(owners),
+    );
     let patreon = Patreon::new(&patreon_key);
     let stats = Arc::new(BotStats::new(cluster_id));
 
@@ -70,7 +84,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_spawn.up().await;
     });
 
-    let context = Context::new(0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats);
+    let context = Context::new(
+        0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats,
+    );
     let framework = Framework::default()
         .command(&UPDATE_COMMAND)
         .command(&VERIFY_COMMAND)
@@ -98,7 +114,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     if premium_features {
         let context_ad = context.clone();
-        tokio::spawn(async move{
+        tokio::spawn(async move {
             let _ = auto_detection(context_ad).await;
         });
     }
@@ -109,9 +125,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let f = framework.clone();
         let e = event_handler.clone();
         tracing::trace!(event = ?event.1.kind());
-        context.cache.update(&event.1).expect("Failed to update cache");
+        context
+            .cache
+            .update(&event.1)
+            .expect("Failed to update cache");
         context.standby.process(&event.1);
-        
+
         tokio::spawn(async move {
             e.handle_event(event.0, &event.1, &c).await.unwrap();
             f.handle_event(&event.1, &c).await;

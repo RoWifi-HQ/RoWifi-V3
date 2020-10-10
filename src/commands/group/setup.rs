@@ -12,12 +12,12 @@ pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
     min_args: 0,
     hidden: false,
     sub_commands: &[],
-    group: Some("Administration")
+    group: Some("Administration"),
 };
 
 pub static SETUP_COMMAND: Command = Command {
     fun: setup,
-    options: &SETUP_OPTIONS
+    options: &SETUP_OPTIONS,
 };
 
 #[command]
@@ -29,12 +29,23 @@ pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Comm
     let verification_role = match parse_role(verification_role_str) {
         Some(v) if server_roles.contains(&RoleId(v)) => v,
         _ => {
-            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Setup Failed").unwrap()
-                .description("Invalid verification role found").unwrap()
-                .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-            return Ok(())
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Setup Failed")
+                .unwrap()
+                .description("Invalid verification role found")
+                .unwrap()
+                .build()
+                .unwrap();
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
         }
     };
 
@@ -42,12 +53,23 @@ pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Comm
     let verified_role = match parse_role(verified_role_str) {
         Some(v) if server_roles.contains(&RoleId(v)) => v,
         _ => {
-            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Setup Failed").unwrap()
-                .description("Invalid verified role found").unwrap()
-                .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-            return Ok(())
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Setup Failed")
+                .unwrap()
+                .description("Invalid verified role found")
+                .unwrap()
+                .build()
+                .unwrap();
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
         }
     };
 
@@ -60,12 +82,16 @@ pub async fn setup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Comm
         guild.command_prefix = existing.command_prefix.clone();
         replace = true;
     }
-    
+
     ctx.database.add_guild(guild, replace).await?;
     let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
         .title("Setup Successful!").unwrap()
         .description("Server has been setup successfully. Use `rankbinds new` or `groupbinds new` to start setting up your binds").unwrap()
         .build().unwrap();
-    ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    ctx.http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
     Ok(())
 }

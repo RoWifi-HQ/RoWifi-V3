@@ -1,20 +1,24 @@
-use futures::future::BoxFuture;
-use std::{fmt, time::{Duration, Instant}};
-use transient_dashmap::TransientDashMap;
-use twilight_model::{guild::Permissions, channel::Message, id::GuildId};
-use twilight_command_parser::Arguments;
 use crate::utils::error::RoError;
+use futures::future::BoxFuture;
+use std::{
+    fmt,
+    time::{Duration, Instant},
+};
+use transient_dashmap::TransientDashMap;
+use twilight_command_parser::Arguments;
+use twilight_model::{channel::Message, guild::Permissions, id::GuildId};
 
 use super::context::Context;
 use super::map::CommandMap;
 
 pub type CommandError = RoError;
 pub type CommandResult = std::result::Result<(), CommandError>;
-pub type CommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>) -> BoxFuture<'fut, CommandResult>;
+pub type CommandFn =
+    for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>) -> BoxFuture<'fut, CommandResult>;
 
 pub struct Command {
     pub fun: CommandFn,
-    pub options: &'static CommandOptions
+    pub options: &'static CommandOptions,
 }
 
 #[derive(Debug, PartialEq)]
@@ -29,30 +33,35 @@ pub struct CommandOptions {
     pub min_args: usize,
     pub hidden: bool,
     pub sub_commands: &'static [&'static Command],
-    pub group: Option<&'static str>
+    pub group: Option<&'static str>,
 }
 
-pub type HelpCommandFn = for<'fut> fn(&'fut Context, &'fut Message, Arguments<'fut>, &'fut [(&'static Command, CommandMap)]) -> BoxFuture<'fut, CommandResult>;
+pub type HelpCommandFn = for<'fut> fn(
+    &'fut Context,
+    &'fut Message,
+    Arguments<'fut>,
+    &'fut [(&'static Command, CommandMap)],
+) -> BoxFuture<'fut, CommandResult>;
 
 pub struct HelpCommand {
     pub fun: HelpCommandFn,
-    pub name: &'static str
+    pub name: &'static str,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 #[repr(i8)]
 pub enum RoLevel {
-    Creator = 3, 
+    Creator = 3,
     Admin = 2,
     Trainer = 1,
-    Normal = 0 
+    Normal = 0,
 }
 
 pub struct Bucket {
     pub time: Duration,
     pub guilds: TransientDashMap<GuildId, u64>,
-    pub calls: u64
+    pub calls: u64,
 }
 
 impl Bucket {
@@ -64,25 +73,26 @@ impl Bucket {
                     return g.expiration.checked_duration_since(Instant::now());
                 }
                 (remaining - 1, g.expiration)
-            },
+            }
             None => {
                 self.guilds.insert(guild_id, self.calls - 1);
                 return None;
             }
         };
-        self.guilds.insert_with_expiration(guild_id, new_remaining, expiration);
+        self.guilds
+            .insert_with_expiration(guild_id, new_remaining, expiration);
         None
     }
 
     pub fn get(&self, guild_id: GuildId) -> Option<Duration> {
         match self.guilds.get(&guild_id) {
             Some(g) => {
-                if g.object== 0 {
+                if g.object == 0 {
                     return g.expiration.checked_duration_since(Instant::now());
                 }
                 None
-            },
-            None => None
+            }
+            None => None,
         }
     }
 }

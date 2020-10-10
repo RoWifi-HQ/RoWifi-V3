@@ -1,4 +1,7 @@
-use std::{ops::Deref, sync::{Arc, atomic::Ordering}};
+use std::{
+    ops::Deref,
+    sync::{atomic::Ordering, Arc},
+};
 use tracing::debug;
 use twilight_model::{
     channel::Channel,
@@ -76,7 +79,9 @@ impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_guild(self.0.clone());
         let guild = c.guild(self.id).unwrap();
-        guild.member_count.store(self.member_count.unwrap() as i64, Ordering::SeqCst);
+        guild
+            .member_count
+            .store(self.member_count.unwrap() as i64, Ordering::SeqCst);
         c.cache_guild_permissions(self.id);
         for channel in self.channels.keys() {
             c.cache_channel_permissions(self.id, *channel);
@@ -121,7 +126,12 @@ impl UpdateCache for GuildDelete {
 
 impl UpdateCache for GuildUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        let mut guild = match c.0.guilds.get_mut(&self.0.id).map(|r| Arc::clone(r.value())) {
+        let mut guild = match c
+            .0
+            .guilds
+            .get_mut(&self.0.id)
+            .map(|r| Arc::clone(r.value()))
+        {
             Some(guild) => guild,
             None => return Ok(()),
         };
@@ -209,12 +219,14 @@ impl UpdateCache for Ready {
                 GuildStatus::Online(g) => {
                     c.cache_guild(g.clone());
                     let guild = c.guild(g.id).unwrap();
-                    guild.member_count.store(g.member_count.unwrap() as i64, Ordering::SeqCst);
+                    guild
+                        .member_count
+                        .store(g.member_count.unwrap() as i64, Ordering::SeqCst);
                     c.cache_guild_permissions(g.id);
                     for channel in g.channels.keys() {
                         c.cache_channel_permissions(g.id, *channel);
                     }
-                },
+                }
             }
         }
 

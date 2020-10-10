@@ -1,19 +1,19 @@
-use bson::{doc, Bson, document::Document};
-use mongodb::{Client, options::*};
-use futures::stream::StreamExt;
-use std::{time::Duration, sync::Arc};
-use transient_dashmap::TransientDashMap;
-use crate::models::{
-    guild::{RoGuild, BackupGuild}, 
-    user::*
-};
 use super::error::RoError;
+use crate::models::{
+    guild::{BackupGuild, RoGuild},
+    user::*,
+};
+use bson::{doc, document::Document, Bson};
+use futures::stream::StreamExt;
+use mongodb::{options::*, Client};
+use std::{sync::Arc, time::Duration};
+use transient_dashmap::TransientDashMap;
 
 #[derive(Clone)]
 pub struct Database {
     client: Client,
     guild_cache: TransientDashMap<i64, Arc<RoGuild>>,
-    user_cache: TransientDashMap<i64, Arc<RoUser>>
+    user_cache: TransientDashMap<i64, Arc<RoUser>>,
 }
 
 impl Database {
@@ -23,7 +23,7 @@ impl Database {
         Self {
             client,
             guild_cache: TransientDashMap::new(Duration::from_secs(6 * 3600)),
-            user_cache: TransientDashMap::new(Duration::from_secs(6 * 3600))
+            user_cache: TransientDashMap::new(Duration::from_secs(6 * 3600)),
         }
     }
 
@@ -32,7 +32,13 @@ impl Database {
         let guild_bson = bson::to_bson(&guild)?;
         if let Bson::Document(g) = guild_bson {
             if replace {
-                let _ = guilds.find_one_and_replace(doc! {"_id": guild.id}, g, FindOneAndReplaceOptions::default()).await?;
+                let _ = guilds
+                    .find_one_and_replace(
+                        doc! {"_id": guild.id},
+                        g,
+                        FindOneAndReplaceOptions::default(),
+                    )
+                    .await?;
             } else {
                 let _ = guilds.insert_one(g, InsertOneOptions::default()).await?;
             }
@@ -47,10 +53,12 @@ impl Database {
             Some(g) => Ok(Some(g.value().object.clone())),
             None => {
                 let guilds = self.client.database("RoWifi").collection("guilds");
-                let result = guilds.find_one(doc! {"_id": guild_id}, FindOneOptions::default()).await?;
+                let result = guilds
+                    .find_one(doc! {"_id": guild_id}, FindOneOptions::default())
+                    .await?;
                 let guild = match result {
                     None => return Ok(None),
-                    Some(res) => Arc::new(bson::from_bson::<RoGuild>(Bson::Document(res))?)
+                    Some(res) => Arc::new(bson::from_bson::<RoGuild>(Bson::Document(res))?),
                 };
                 self.guild_cache.insert(guild_id, guild.clone());
                 Ok(Some(guild))
@@ -58,11 +66,15 @@ impl Database {
         }
     }
 
-    pub async fn get_guilds(&self, guild_ids: &[u64], premium_only: bool) -> Result<Vec<RoGuild>, RoError> {
+    pub async fn get_guilds(
+        &self,
+        guild_ids: &[u64],
+        premium_only: bool,
+    ) -> Result<Vec<RoGuild>, RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let filter = match premium_only {
             true => doc! {"Settings.AutoDetection": true, "_id": {"$in": guild_ids}},
-            false => doc! {"_id": {"$in": guild_ids}}
+            false => doc! {"_id": {"$in": guild_ids}},
         };
         let mut cursor = guilds.find(filter, FindOptions::default()).await?;
         let mut result = Vec::<RoGuild>::new();
@@ -72,10 +84,12 @@ impl Database {
                     let doc = Bson::Document(document.to_owned());
                     match bson::from_bson::<RoGuild>(doc) {
                         Ok(guild) => result.push(guild),
-                        Err(e) => tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                        Err(e) => {
+                            tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                        }
                     }
-                },
-                Err(e) => tracing::error!(error = ?e, "Error in the cursor")
+                }
+                Err(e) => tracing::error!(error = ?e, "Error in the cursor"),
             }
         }
         Ok(result)
@@ -83,7 +97,10 @@ impl Database {
 
     pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<(), RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
-        let res = guilds.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?.unwrap();
+        let res = guilds
+            .find_one_and_update(filter, update, FindOneAndUpdateOptions::default())
+            .await?
+            .unwrap();
         let guild = bson::from_bson::<RoGuild>(Bson::Document(res))?;
         self.guild_cache.insert(guild.id, Arc::new(guild));
         Ok(())
@@ -92,12 +109,21 @@ impl Database {
     pub async fn add_queue_user(&self, user: QueueUser) -> Result<(), RoError> {
         let queue = self.client.database("RoWifi").collection("queue");
 
-        let exists = queue.find_one(doc! {"_id": user.roblox_id}, FindOneOptions::default()).await?.is_some();
+        let exists = queue
+            .find_one(doc! {"_id": user.roblox_id}, FindOneOptions::default())
+            .await?
+            .is_some();
 
         let user_doc = bson::to_bson(&user)?;
         if let Bson::Document(u) = user_doc {
             if exists {
-                let _ = queue.find_one_and_replace(doc! {"_id": user.roblox_id}, u, FindOneAndReplaceOptions::default()).await?;
+                let _ = queue
+                    .find_one_and_replace(
+                        doc! {"_id": user.roblox_id},
+                        u,
+                        FindOneAndReplaceOptions::default(),
+                    )
+                    .await?;
             } else {
                 let _ = queue.insert_one(u, InsertOneOptions::default()).await?;
             }
@@ -112,7 +138,13 @@ impl Database {
             if !verified {
                 let _ = users.insert_one(u, InsertOneOptions::default()).await?;
             } else {
-                let _ = users.find_one_and_replace(doc! {"_id": user.discord_id}, u, FindOneAndReplaceOptions::default()).await?;
+                let _ = users
+                    .find_one_and_replace(
+                        doc! {"_id": user.discord_id},
+                        u,
+                        FindOneAndReplaceOptions::default(),
+                    )
+                    .await?;
             }
             self.user_cache.insert(user.discord_id, Arc::new(user));
         }
@@ -125,10 +157,12 @@ impl Database {
             Some(u) => Ok(Some(u.value().object.clone())),
             None => {
                 let users = self.client.database("RoWifi").collection("users");
-                let result = users.find_one(doc! {"_id": user_id}, FindOneOptions::default()).await?;
+                let result = users
+                    .find_one(doc! {"_id": user_id}, FindOneOptions::default())
+                    .await?;
                 let user = match result {
                     None => return Ok(None),
-                    Some(res) => Arc::new(bson::from_bson::<RoUser>(Bson::Document(res))?)
+                    Some(res) => Arc::new(bson::from_bson::<RoUser>(Bson::Document(res))?),
                 };
                 self.user_cache.insert(user_id, user.clone());
                 Ok(Some(user))
@@ -144,12 +178,12 @@ impl Database {
         while let Some(res) = cursor.next().await {
             match res {
                 Ok(document) => result.push(bson::from_bson::<RoUser>(Bson::Document(document))?),
-                Err(e) => return Err(e.into())
+                Err(e) => return Err(e.into()),
             }
         }
         Ok(result)
     }
-    
+
     pub async fn add_backup(&self, mut backup: BackupGuild, name: &str) -> Result<(), RoError> {
         let backups = self.client.database("RoWifi").collection("backups");
         match self.get_backup(backup.user_id as u64, name).await? {
@@ -157,9 +191,15 @@ impl Database {
                 backup.id = b.id;
                 let backup_bson = bson::to_bson(&backup)?;
                 if let Bson::Document(b) = backup_bson {
-                    let _ = backups.find_one_and_replace(doc! {"UserId": backup.user_id, "Name": backup.name}, b, FindOneAndReplaceOptions::default()).await?;
+                    let _ = backups
+                        .find_one_and_replace(
+                            doc! {"UserId": backup.user_id, "Name": backup.name},
+                            b,
+                            FindOneAndReplaceOptions::default(),
+                        )
+                        .await?;
                 }
-            },
+            }
             None => {
                 let backup_bson = bson::to_bson(&backup)?;
                 if let Bson::Document(b) = backup_bson {
@@ -170,13 +210,17 @@ impl Database {
         Ok(())
     }
 
-    pub async fn get_backup(&self, user_id: u64, name: &str) -> Result<Option<BackupGuild>, RoError> {
+    pub async fn get_backup(
+        &self,
+        user_id: u64,
+        name: &str,
+    ) -> Result<Option<BackupGuild>, RoError> {
         let backups = self.client.database("RoWifi").collection("backups");
         let filter = doc! {"UserId": user_id, "Name": name};
         let result = backups.find_one(filter, FindOneOptions::default()).await?;
         match result {
             Some(b) => Ok(Some(bson::from_bson::<BackupGuild>(Bson::Document(b))?)),
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 
@@ -187,8 +231,10 @@ impl Database {
         let mut result = Vec::<BackupGuild>::new();
         while let Some(res) = cursor.next().await {
             match res {
-                Ok(document) => result.push(bson::from_bson::<BackupGuild>(Bson::Document(document))?),
-                Err(e) => return Err(e.into())
+                Ok(document) => {
+                    result.push(bson::from_bson::<BackupGuild>(Bson::Document(document))?)
+                }
+                Err(e) => return Err(e.into()),
             }
         }
         Ok(result)
@@ -200,26 +246,39 @@ impl Database {
         let result = premium.find_one(filter, FindOneOptions::default()).await?;
         match result {
             Some(p) => Ok(Some(bson::from_bson::<PremiumUser>(Bson::Document(p))?)),
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 
-    pub async fn get_transferred_premium(&self, user_id: u64) -> Result<Option<PremiumUser>, RoError> {
+    pub async fn get_transferred_premium(
+        &self,
+        user_id: u64,
+    ) -> Result<Option<PremiumUser>, RoError> {
         let premium = self.client.database("RoWifi").collection("premium_new");
         let filter = doc! {"PremiumOwner": user_id};
         let result = premium.find_one(filter, FindOneOptions::default()).await?;
         match result {
             Some(p) => Ok(Some(bson::from_bson::<PremiumUser>(Bson::Document(p))?)),
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 
-    pub async fn add_premium(&self, premium_user: PremiumUser, premium_already: bool) -> Result<(), RoError> {
+    pub async fn add_premium(
+        &self,
+        premium_user: PremiumUser,
+        premium_already: bool,
+    ) -> Result<(), RoError> {
         let premium = self.client.database("RoWifi").collection("premium_new");
         let premium_doc = bson::to_bson(&premium_user)?;
         if let Bson::Document(p) = premium_doc {
             if premium_already {
-                let _ = premium.find_one_and_replace(doc! {"_id": premium_user.discord_id}, p, FindOneAndReplaceOptions::default()).await?;
+                let _ = premium
+                    .find_one_and_replace(
+                        doc! {"_id": premium_user.discord_id},
+                        p,
+                        FindOneAndReplaceOptions::default(),
+                    )
+                    .await?;
             } else {
                 let _ = premium.insert_one(p, InsertOneOptions::default()).await?;
             }
@@ -229,13 +288,17 @@ impl Database {
 
     pub async fn modify_premium(&self, filter: Document, update: Document) -> Result<(), RoError> {
         let premium = self.client.database("RoWifi").collection("premium_new");
-        let _res = premium.find_one_and_update(filter, update, FindOneAndUpdateOptions::default()).await?;
+        let _res = premium
+            .find_one_and_update(filter, update, FindOneAndUpdateOptions::default())
+            .await?;
         Ok(())
     }
 
     pub async fn delete_premium(&self, user_id: u64) -> Result<(), RoError> {
         let premium = self.client.database("RoWifi").collection("premium_new");
-        let _res = premium.find_one_and_delete(doc! {"_id": user_id}, FindOneAndDeleteOptions::default()).await?;
+        let _res = premium
+            .find_one_and_delete(doc! {"_id": user_id}, FindOneAndDeleteOptions::default())
+            .await?;
         Ok(())
     }
 }

@@ -5,7 +5,7 @@ use super::*;
 
 #[derive(Debug, Default)]
 pub struct CommandMap {
-    cmds: HashMap<String, (&'static Command, Arc<CommandMap>)>
+    cmds: HashMap<String, (&'static Command, Arc<CommandMap>)>,
 }
 
 impl CommandMap {

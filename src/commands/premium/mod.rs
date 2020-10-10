@@ -1,15 +1,15 @@
+mod admin;
 mod patreon;
 mod redeem;
-mod admin;
 mod transfer;
 
 use crate::framework::prelude::*;
 use crate::models::user::PremiumType;
 use twilight_model::id::UserId;
 
+use admin::*;
 use patreon::*;
 use redeem::*;
-use admin::*;
 use transfer::*;
 
 pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
@@ -22,25 +22,42 @@ pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
     required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
-    sub_commands: &[&PREMIUM_PATREON_COMMAND, &PREMIUM_REDEEM_COMMAND, &PREMIUM_ADD_COMMAND, &PREMIUM_DELETE_COMMAND, &PREMIUM_REMOVE_COMMAND,
-                    &PREMIUM_TRANSFER_COMMAND, &PREMIUM_CHECK_COMMAND],
-    group: Some("Premium")
+    sub_commands: &[
+        &PREMIUM_PATREON_COMMAND,
+        &PREMIUM_REDEEM_COMMAND,
+        &PREMIUM_ADD_COMMAND,
+        &PREMIUM_DELETE_COMMAND,
+        &PREMIUM_REMOVE_COMMAND,
+        &PREMIUM_TRANSFER_COMMAND,
+        &PREMIUM_CHECK_COMMAND,
+    ],
+    group: Some("Premium"),
 };
 
 pub static PREMIUM_COMMAND: Command = Command {
     fun: premium,
-    options: &PREMIUM_OPTIONS
+    options: &PREMIUM_OPTIONS,
 };
 
 #[command]
 pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let author = match args.next().and_then(parse_username).and_then(|u| ctx.cache.user(UserId(u))) {
+    let author = match args
+        .next()
+        .and_then(parse_username)
+        .and_then(|u| ctx.cache.user(UserId(u)))
+    {
         Some(a) => (a.id, a.name.clone(), a.discriminator.clone()),
-        None => (msg.author.id, msg.author.name.clone(), msg.author.discriminator.clone())
+        None => (
+            msg.author.id,
+            msg.author.name.clone(),
+            msg.author.discriminator.clone(),
+        ),
     };
-    let mut embed = EmbedBuilder::new().default_data()
-        .title(format!("{}#{}", author.1, author.2)).unwrap();
-    if let Some(premium_user) = ctx.database.get_premium(author.0.0).await? {
+    let mut embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("{}#{}", author.1, author.2))
+        .unwrap();
+    if let Some(premium_user) = ctx.database.get_premium((author.0).0).await? {
         embed = match premium_user.premium_type {
             PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
@@ -54,11 +71,17 @@ pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) ->
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
         };
     } else {
-        embed = embed.field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())
+        embed = embed
+            .field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())
             .field(EmbedFieldBuilder::new("Perks", "None").unwrap());
     }
     let embed = embed.build().unwrap();
-    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    let _ = ctx
+        .http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
 
     Ok(())
 }

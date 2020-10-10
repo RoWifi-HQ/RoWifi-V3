@@ -1,13 +1,13 @@
 use std::{collections::HashMap, fmt, sync::Arc};
 
-use crate::rolang::{expression::Expression, scanner::Scanner, parser::Parser, token::Literal};
-use crate::cache::CachedMember;
 use super::user::RoUser;
+use crate::cache::CachedMember;
+use crate::rolang::{expression::Expression, parser::Parser, scanner::Scanner, token::Literal};
 
 #[derive(Clone)]
 pub struct RoCommand {
     pub code: String,
-    pub expr: Expression
+    pub expr: Expression,
 }
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct RoCommandUser<'rc> {
     pub user: &'rc RoUser,
     pub member: Arc<CachedMember>,
     pub ranks: &'rc HashMap<i64, i64>,
-    pub username: &'rc str
+    pub username: &'rc str,
 }
 
 impl RoCommand {
@@ -26,14 +26,14 @@ impl RoCommand {
         let expr = parser.expression().map_err(|e| e.1)?;
         Ok(Self {
             code: code.into(),
-            expr
+            expr,
         })
     }
 
     pub fn evaluate(&self, user: &RoCommandUser) -> Result<bool, String> {
         let success = match self.expr.evaluate(user)? {
             Literal::Bool(b) => b,
-            _ => true
+            _ => true,
         };
         Ok(success)
     }
@@ -41,6 +41,8 @@ impl RoCommand {
 
 impl fmt::Display for RoCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RoCommand").field("Code", &self.code).finish()
+        f.debug_struct("RoCommand")
+            .field("Code", &self.code)
+            .finish()
     }
 }

@@ -1,7 +1,7 @@
-use std::sync::{Arc, atomic::AtomicI64};
+use std::sync::{atomic::AtomicI64, Arc};
 use twilight_model::{
     guild::Permissions,
-    id::{ChannelId, GuildId, UserId, RoleId},
+    id::{ChannelId, GuildId, RoleId, UserId},
 };
 
 #[derive(Debug, Clone)]
@@ -21,5 +21,5 @@ pub struct CachedGuild {
     pub bypass_role: Option<RoleId>,
     pub nickname_bypass: Option<RoleId>,
     pub admin_role: Option<RoleId>,
-    pub member_count: Arc<AtomicI64>
+    pub member_count: Arc<AtomicI64>,
 }

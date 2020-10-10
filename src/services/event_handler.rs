@@ -1,15 +1,15 @@
 use crate::framework::prelude::Context;
-use crate::utils::{misc::EmbedExtensions, error::RoError};
+use crate::utils::{error::RoError, misc::EmbedExtensions};
+use dashmap::DashSet;
 use std::sync::Arc;
+use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
 use twilight_model::{
-    id::{GuildId, ChannelId},
+    channel::GuildChannel,
     gateway::payload::RequestGuildMembers,
     guild::{GuildStatus, Permissions},
-    channel::GuildChannel
+    id::{ChannelId, GuildId},
 };
-use twilight_embed_builder::EmbedBuilder;
-use dashmap::DashSet;
 
 #[derive(Default)]
 pub struct EventHandlerRef {
@@ -20,7 +20,12 @@ pub struct EventHandlerRef {
 pub struct EventHandler(Arc<EventHandlerRef>);
 
 impl EventHandler {
-    pub async fn handle_event(&self, shard_id: u64, event: &Event, ctx: &Context) -> Result<(), RoError> {
+    pub async fn handle_event(
+        &self,
+        shard_id: u64,
+        event: &Event,
+        ctx: &Context,
+    ) -> Result<(), RoError> {
         match &event {
             Event::GuildCreate(guild) => {
                 if self.0.unavailable.contains(&guild.id) {
@@ -43,20 +48,39 @@ impl EventHandler {
                         }
                     }
                     if let Some(channel) = channel {
-                        let _ = ctx.http.create_message(channel.id()).content(content).unwrap().await;
+                        let _ = ctx
+                            .http
+                            .create_message(channel.id())
+                            .content(content)
+                            .unwrap()
+                            .await;
                     }
-                    let log_embed = EmbedBuilder::new().default_data()
-                        .title("Guild Join").unwrap()
-                        .description(format!("Name: {}\nServer Id: {}\nOwner Id: {}\nMembercount: {}", guild.name, guild.id.0, guild.owner_id.0, guild.member_count.unwrap_or_default())).unwrap()
-                        .build().unwrap();
+                    let log_embed = EmbedBuilder::new()
+                        .default_data()
+                        .title("Guild Join")
+                        .unwrap()
+                        .description(format!(
+                            "Name: {}\nServer Id: {}\nOwner Id: {}\nMembercount: {}",
+                            guild.name,
+                            guild.id.0,
+                            guild.owner_id.0,
+                            guild.member_count.unwrap_or_default()
+                        ))
+                        .unwrap()
+                        .build()
+                        .unwrap();
                     ctx.logger.log_event(&ctx, log_embed).await;
                 }
-            },
+            }
             Event::GuildDelete(guild) => {
-                let log_embed = EmbedBuilder::new().default_data()
-                    .title("Guild Leave").unwrap()
-                    .description(format!("Server Id: {}", guild.id.0)).unwrap()
-                    .build().unwrap();
+                let log_embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Guild Leave")
+                    .unwrap()
+                    .description(format!("Server Id: {}", guild.id.0))
+                    .unwrap()
+                    .build()
+                    .unwrap();
                 ctx.logger.log_event(&ctx, log_embed).await;
             }
             Event::Ready(ready) => {
@@ -70,45 +94,60 @@ impl EventHandler {
                 let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
                 for guild in guilds {
                     if let Some(command_prefix) = guild.command_prefix {
-                        ctx.config.prefixes.insert(GuildId(guild.id as u64), command_prefix);
+                        ctx.config
+                            .prefixes
+                            .insert(GuildId(guild.id as u64), command_prefix);
                     }
                     for channel in guild.disabled_channels {
-                        ctx.config.disabled_channels.insert(ChannelId(channel as u64));
+                        ctx.config
+                            .disabled_channels
+                            .insert(ChannelId(channel as u64));
                     }
                 }
-            },
+            }
             Event::UnavailableGuild(g) => {
                 self.0.unavailable.insert(g.id);
-            },
+            }
             Event::MemberAdd(m) => {
                 let server = match ctx.cache.guild(m.guild_id) {
                     Some(s) => s,
-                    None => return Ok(())
+                    None => return Ok(()),
                 };
                 let member = match ctx.cache.member(m.guild_id, m.user.id) {
                     Some(m) => m,
-                    None => return Ok(())
+                    None => return Ok(()),
                 };
                 let guild = match ctx.database.get_guild(m.guild_id.0).await? {
                     Some(g) => g,
-                    None => return Ok(())
+                    None => return Ok(()),
                 };
                 if !guild.settings.update_on_join {
-                    return Ok(())
+                    return Ok(());
                 }
                 let user = match ctx.database.get_user(m.user.id.0).await? {
                     Some(u) => u,
-                    None => return Ok(())
+                    None => return Ok(()),
                 };
                 if server.owner_id == m.user.id {
-                    return Ok(())
+                    return Ok(());
                 }
                 let guild_roles = ctx.cache.roles(m.guild_id);
-                let (added_roles, removed_roles, disc_nick) = user.update(ctx.http.clone(), member, ctx.roblox.clone(), server, &guild, &guild_roles).await?;
+                let (added_roles, removed_roles, disc_nick) = user
+                    .update(
+                        ctx.http.clone(),
+                        member,
+                        ctx.roblox.clone(),
+                        server,
+                        &guild,
+                        &guild_roles,
+                    )
+                    .await?;
                 let log_embed = EmbedBuilder::new()
-                    .title("Update On Join").unwrap()
+                    .title("Update On Join")
+                    .unwrap()
                     .update_log(&added_roles, &removed_roles, &disc_nick)
-                    .build().unwrap();
+                    .build()
+                    .unwrap();
                 ctx.logger.log_guild(&ctx, m.guild_id, log_embed).await;
             }
             _ => {}

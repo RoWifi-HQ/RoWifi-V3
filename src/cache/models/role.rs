@@ -1,6 +1,6 @@
 use twilight_model::{
     guild::Permissions,
-    id::{RoleId, GuildId},
+    id::{GuildId, RoleId},
 };
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -9,5 +9,5 @@ pub struct CachedRole {
     pub guild_id: GuildId,
     pub name: String,
     pub position: i64,
-    pub permissions: Permissions
+    pub permissions: Permissions,
 }

@@ -12,7 +12,7 @@ pub static PREMIUM_REDEEM_OPTIONS: CommandOptions = CommandOptions {
     min_args: 0,
     hidden: false,
     sub_commands: &[],
-    group: None
+    group: None,
 };
 
 pub static PREMIUM_REMOVE_OPTIONS: CommandOptions = CommandOptions {
@@ -26,18 +26,17 @@ pub static PREMIUM_REMOVE_OPTIONS: CommandOptions = CommandOptions {
     min_args: 0,
     hidden: false,
     sub_commands: &[],
-    group: None
+    group: None,
 };
-
 
 pub static PREMIUM_REDEEM_COMMAND: Command = Command {
     fun: premium_redeem,
-    options: &PREMIUM_REDEEM_OPTIONS
+    options: &PREMIUM_REDEEM_OPTIONS,
 };
 
 pub static PREMIUM_REMOVE_COMMAND: Command = Command {
     fun: premium_remove,
-    options: &PREMIUM_REMOVE_OPTIONS
+    options: &PREMIUM_REMOVE_OPTIONS,
 };
 
 #[command]
@@ -50,34 +49,65 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
                 .title("Premium Redeem Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-            return Ok(())
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
         }
     };
 
     let server = ctx.cache.guild(guild_id).unwrap();
     if !(server.owner_id == msg.author.id || ctx.config.owners.contains(&msg.author.id)) {
-        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-            .title("Premium Redeem Failed").unwrap()
-            .description("You must be the server owner to redeem premium in a server").unwrap()
-            .build().unwrap();
-        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Premium Redeem Failed")
+            .unwrap()
+            .description("You must be the server owner to redeem premium in a server")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
         return Ok(());
     }
 
     let guild_type: GuildType = premium_user.premium_type.into();
     if let GuildType::Alpha = guild_type {
         if !premium_user.discord_servers.is_empty() {
-            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Premium Redeem Failed").unwrap()
-                .description("You may only use premium in one of your servers").unwrap()
-                .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-            return Ok(())
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Premium Redeem Failed")
+                .unwrap()
+                .description("You may only use premium in one of your servers")
+                .unwrap()
+                .build()
+                .unwrap();
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
         }
     }
 
-    let _ = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
+    let _ = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let filter = bson::doc! {"_id": guild_id.0};
     let update = bson::doc! {"$set": {"Settings.Type": guild_type as i32}};
@@ -91,11 +121,22 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     }
     ctx.database.modify_guild(filter, update_ad).await?;
 
-    let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
-        .title("Premium Redeem Successful").unwrap()
-        .description(format!("Added Premium Features to {}", server.name)).unwrap()
-        .build().unwrap();
-    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .unwrap()
+        .title("Premium Redeem Successful")
+        .unwrap()
+        .description(format!("Added Premium Features to {}", server.name))
+        .unwrap()
+        .build()
+        .unwrap();
+    let _ = ctx
+        .http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
     Ok(())
 }
 
@@ -109,8 +150,13 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
                 .title("Premium Disable Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-            return Ok(())
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
         }
     };
 
@@ -119,11 +165,20 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
             .title("Premium Disable Failed").unwrap()
             .description("This server either does not have premium enabled or the premium is owned by an another member").unwrap()
             .build().unwrap();
-        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-        return Ok(())
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
     }
 
-    let _ = ctx.database.get_guild(guild_id.0).await?.ok_or_else(|| RoError::Command(CommandError::NoRoGuild))?;
+    let _ = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let filter = bson::doc! {"_id": guild_id.0};
     let update = bson::doc! {"$set": {"Settings.Type": GuildType::Normal as i32}};
@@ -136,11 +191,22 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     ctx.database.modify_guild(filter, update_ad).await?;
 
     let server = ctx.cache.guild(guild_id).unwrap();
-    let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
-        .title("Premium Disable Successful").unwrap()
-        .description(format!("Removed Premium Features from {}", server.name)).unwrap()
-        .build().unwrap();
-    let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await?;
-    
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .unwrap()
+        .title("Premium Disable Successful")
+        .unwrap()
+        .description(format!("Removed Premium Features from {}", server.name))
+        .unwrap()
+        .build()
+        .unwrap();
+    let _ = ctx
+        .http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
+
     Ok(())
 }

@@ -1,5 +1,8 @@
-use serde::{Serialize, Deserialize, de::{Deserializer, Visitor, MapAccess, Error as DeError}};
-use std::{collections::HashMap, sync::Arc, fmt};
+use serde::{
+    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    Deserialize, Serialize,
+};
+use std::{collections::HashMap, fmt, sync::Arc};
 use twilight_model::id::RoleId;
 
 use super::Backup;
@@ -24,7 +27,7 @@ pub struct CustomBind {
     pub priority: i64,
 
     #[serde(skip_serializing)]
-    pub command: RoCommand
+    pub command: RoCommand,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -73,7 +76,7 @@ impl Backup for CustomBind {
             discord_roles,
             code: self.code.clone(),
             priority: self.priority,
-            prefix: self.prefix.clone()
+            prefix: self.prefix.clone(),
         }
     }
 
@@ -92,21 +95,25 @@ impl Backup for CustomBind {
             code: bind.code.clone(),
             priority: bind.priority,
             prefix: bind.prefix.clone(),
-            command
+            command,
         }
     }
 }
 
 impl<'de> Deserialize<'de> for CustomBind {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         #[derive(Debug, Deserialize)]
         #[serde(field_identifier)]
         enum Field {
-            #[serde(rename = "_id")] Id,
+            #[serde(rename = "_id")]
+            Id,
             DiscordRoles,
             Code,
             Prefix,
-            Priority
+            Priority,
         }
 
         struct CustomBindVisitor;
@@ -132,25 +139,25 @@ impl<'de> Deserialize<'de> for CustomBind {
                                 return Err(DeError::duplicate_field("_id"));
                             }
                             id = Some(map.next_value()?);
-                        },
+                        }
                         Field::DiscordRoles => {
                             if discord_roles.is_some() {
                                 return Err(DeError::duplicate_field("DiscordRoles"));
                             }
                             discord_roles = Some(map.next_value()?);
-                        },
+                        }
                         Field::Code => {
                             if code.is_some() {
                                 return Err(DeError::duplicate_field("Coe"));
                             }
                             code = Some(map.next_value()?);
-                        },
+                        }
                         Field::Prefix => {
                             if prefix.is_some() {
                                 return Err(DeError::duplicate_field("Prefix"));
                             }
                             prefix = Some(map.next_value()?);
-                        },
+                        }
                         Field::Priority => {
                             if priority.is_some() {
                                 return Err(DeError::duplicate_field("Priority"));
@@ -161,21 +168,25 @@ impl<'de> Deserialize<'de> for CustomBind {
                 }
 
                 let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
-                let discord_roles = discord_roles.ok_or_else(|| DeError::missing_field("DiscordRoles"))?;
+                let discord_roles =
+                    discord_roles.ok_or_else(|| DeError::missing_field("DiscordRoles"))?;
                 let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
                 let priority = priority.ok_or_else(|| DeError::missing_field("Priority"))?;
                 let code = code.ok_or_else(|| DeError::missing_field("Code"))?;
                 let command = RoCommand::new(&code).unwrap();
 
                 Ok(CustomBind {
-                    id, discord_roles, prefix, priority, code, command
+                    id,
+                    discord_roles,
+                    prefix,
+                    priority,
+                    code,
+                    command,
                 })
             }
         }
 
-        const FIELDS: &[&str] = &[
-            "_id", "DiscordRoles", "Code", "Priority", "Prefix"
-        ];
+        const FIELDS: &[&str] = &["_id", "DiscordRoles", "Code", "Priority", "Prefix"];
 
         deserializer.deserialize_struct("CustomBind", FIELDS, CustomBindVisitor)
     }
