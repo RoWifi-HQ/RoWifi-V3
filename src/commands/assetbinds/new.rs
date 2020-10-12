@@ -89,6 +89,7 @@ pub async fn assetbinds_new(
             .embed(embed)
             .unwrap()
             .await?;
+        return Ok(());
     }
 
     let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
@@ -117,6 +118,7 @@ pub async fn assetbinds_new(
             .embed(embed)
             .unwrap()
             .await?;
+        return Ok(());
     }
 
     let bind = AssetBind {

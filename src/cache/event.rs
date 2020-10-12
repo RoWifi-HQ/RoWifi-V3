@@ -126,24 +126,17 @@ impl UpdateCache for GuildDelete {
 
 impl UpdateCache for GuildUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        let mut guild = match c
-            .0
-            .guilds
-            .get_mut(&self.0.id)
-            .map(|r| Arc::clone(r.value()))
-        {
-            Some(guild) => guild,
-            None => return Ok(()),
-        };
+        debug!(id = ?self.id, "Received event for Guild Update for");
 
-        let g = &self.0;
-        let mut guild = Arc::make_mut(&mut guild);
-        guild.description = g.description.clone();
-        guild.icon = g.icon.clone();
-        guild.name = g.name.clone();
-        guild.owner_id = g.owner_id;
-        guild.permissions = g.permissions;
-        guild.preferred_locale = g.preferred_locale.clone();
+        if let Some(mut guild) = c.0.guilds.get_mut(&self.0.id) {
+            let mut guild = Arc::make_mut(&mut guild);
+            guild.description = self.description.clone();
+            guild.icon = self.icon.clone();
+            guild.name = self.name.clone();
+            guild.owner_id = self.owner_id;
+            guild.permissions = self.permissions;
+            guild.preferred_locale = self.preferred_locale.clone();
+        }
 
         Ok(())
     }
@@ -186,14 +179,12 @@ impl UpdateCache for MemberUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
         {
-            let mut member = match c.0.members.get_mut(&(self.guild_id, self.user.id)) {
-                Some(member) => member,
-                None => return Ok(()),
-            };
-            let mut member = Arc::make_mut(&mut member);
+            if let Some(mut member) = c.0.members.get_mut(&(self.guild_id, self.user.id)) {
+                let mut member = Arc::make_mut(&mut member);
 
-            member.nick = self.nick.clone();
-            member.roles = self.roles.clone();
+                member.nick = self.nick.clone();
+                member.roles = self.roles.clone();
+            }
         }
 
         let current_user = c.current_user().unwrap();

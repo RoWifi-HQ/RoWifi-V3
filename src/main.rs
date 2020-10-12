@@ -51,17 +51,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let owner = http.current_user_application().await?.owner.id;
     owners.insert(owner);
 
-    let cluster = Cluster::builder(&token)
-        .shard_scheme(scheme)
-        .intents(
-            Intents::GUILD_MESSAGES
-                | Intents::GUILDS
-                | Intents::GUILD_MEMBERS
-                | Intents::GUILD_MESSAGE_REACTIONS,
-        )
-        .http_client(http.clone())
-        .build()
-        .await?;
+    let cluster = Cluster::builder(
+        &token,
+        Intents::GUILD_MESSAGES
+            | Intents::GUILDS
+            | Intents::GUILD_MEMBERS
+            | Intents::GUILD_MESSAGE_REACTIONS,
+    )
+    .shard_scheme(scheme)
+    .http_client(http.clone())
+    .build()
+    .await?;
 
     let cache = Cache::new();
     let standby = Standby::new();
