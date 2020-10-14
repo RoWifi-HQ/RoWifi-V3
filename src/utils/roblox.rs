@@ -61,9 +61,8 @@ impl Roblox {
             roblox_id, asset_type, item
         );
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
-        if let Some(data) = body.get("data") {
-            let resp = data.as_array().unwrap();
-            return Ok(resp.is_empty());
+        if let Some(data) = body["data"].as_array() {
+            return Ok(!data.is_empty());
         }
         Ok(false)
     }

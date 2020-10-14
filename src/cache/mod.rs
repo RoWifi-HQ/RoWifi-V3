@@ -20,6 +20,7 @@ mod models;
 use event::UpdateCache;
 pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole};
 
+/// Add an element to the structure that maps the server ids to the set of the resource they hold
 fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, HashSet<V>>, k: K, v: V) {
     match map.entry(k) {
         Entry::Occupied(e) if e.get().contains(&v) => {}
@@ -30,6 +31,7 @@ fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, HashSet<V>>, k
     }
 }
 
+/// Add or modify an element that maps the resource ids to their respective structures
 fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V) -> Arc<V> {
     match map.entry(k) {
         Entry::Occupied(e) if **e.get() == v => Arc::clone(e.get()),
@@ -65,6 +67,7 @@ pub struct CacheRef {
     channel_permissions: DashMap<ChannelId, Permissions>,
 }
 
+/// An wrapper around the actual structure that hold all the cache field allowing this to be sent across multiple threads
 #[derive(Clone, Debug, Default)]
 pub struct Cache(Arc<CacheRef>);
 
@@ -76,6 +79,7 @@ impl Cache {
         Self::default()
     }
 
+    /// Returns the bot user
     pub fn current_user(&self) -> Option<Arc<CurrentUser>> {
         self.0
             .current_user
@@ -84,6 +88,7 @@ impl Cache {
             .clone()
     }
 
+    /// Get a immutable reference to a channel
     pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
         self.0
             .channels
@@ -91,6 +96,7 @@ impl Cache {
             .map(|c| Arc::clone(c.value()))
     }
 
+    /// Get a cloned list of the channel ids of a particular guild
     pub fn guild_channels(&self, guild_id: GuildId) -> HashSet<ChannelId> {
         self.0
             .guild_channels
@@ -98,6 +104,7 @@ impl Cache {
             .map_or_else(HashSet::new, |gc| gc.value().clone())
     }
 
+    /// Get the permissions of the bot in a certain channel
     pub fn channel_permissions(&self, channel_id: ChannelId) -> Option<Permissions> {
         self.0
             .channel_permissions
@@ -105,14 +112,17 @@ impl Cache {
             .map(|c| *c.value())
     }
 
+    /// Get an immutable reference to the guild struct
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
         self.0.guilds.get(&guild_id).map(|g| Arc::clone(g.value()))
     }
 
+    /// Get a list of all guild ids inside the cache
     pub fn guilds(&self) -> Vec<u64> {
         self.0.guilds.iter().map(|g| g.id.0).collect::<Vec<_>>()
     }
 
+    /// Get an immutable reference to a certain user in a certain guild
     pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
         self.0
             .members
@@ -120,6 +130,7 @@ impl Cache {
             .map(|m| Arc::clone(m.value()))
     }
 
+    /// Get a list of all member ids inside a guild
     pub fn members(&self, guild_id: GuildId) -> HashSet<UserId> {
         self.0
             .guild_members
@@ -127,6 +138,7 @@ impl Cache {
             .map_or_else(HashSet::new, |g| g.value().clone())
     }
 
+    /// Get the membercount of a guild. Returns 0 if the guild is not present inside the cache
     pub fn member_count(&self, guild_id: GuildId) -> i64 {
         self.0
             .guilds
@@ -134,10 +146,12 @@ impl Cache {
             .map_or_else(|| 0, |g| g.member_count.load(Ordering::SeqCst))
     }
 
+    /// Get an immutable reference of a certain role
     pub fn role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
         self.0.roles.get(&role_id).map(|r| Arc::clone(r.value()))
     }
 
+    /// Get a list of all role ids inside a guild
     pub fn roles(&self, guild_id: GuildId) -> HashSet<RoleId> {
         self.0
             .guild_roles
@@ -145,6 +159,7 @@ impl Cache {
             .map_or_else(HashSet::new, |gr| gr.value().clone())
     }
 
+    /// Get a list of all role structs inside a guild
     pub fn guild_roles(&self, guild_id: GuildId) -> Vec<Arc<CachedRole>> {
         let roles = self.roles(guild_id);
         let mut guild_roles = Vec::new();
@@ -156,10 +171,12 @@ impl Cache {
         guild_roles
     }
 
+    /// Get an immutable reference to a certain user
     pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
         self.0.users.get(&user_id).map(|u| Arc::clone(u.value()))
     }
 
+    /// Update a resource inside a cache
     pub fn update<T: UpdateCache>(&self, value: &T) -> Result<(), CacheError> {
         value.update(self)
     }

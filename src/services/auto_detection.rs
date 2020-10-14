@@ -1,19 +1,22 @@
 use crate::{framework::prelude::Context, utils::misc::EmbedExtensions};
-use std::error::Error;
+use std::{error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, Duration};
 use twilight_embed_builder::EmbedBuilder;
-use twilight_model::id::{GuildId, UserId};
+use twilight_model::{
+    gateway::payload::RequestGuildMembers,
+    id::{GuildId, UserId},
+};
 
-pub async fn auto_detection(ctx: Context) {
+pub async fn auto_detection(ctx: Context, total_shards: u64) {
     let mut interval = interval(Duration::from_secs(3 * 3600));
     std::thread::sleep(Duration::from_secs(15));
     loop {
         interval.tick().await;
-        let _ = execute(&ctx).await;
+        let _ = execute(&ctx, total_shards).await;
     }
 }
 
-async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
+async fn execute(ctx: &Context, total_shards: u64) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
@@ -30,6 +33,12 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
             .into_iter()
             .map(|m| m.0)
             .collect::<Vec<_>>();
+        if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+            let req = RequestGuildMembers::builder(server.id).query("", None);
+            let shard_id = (guild_id.0 >> 22) % total_shards;
+            let _res = ctx.cluster.command(shard_id, &req).await;
+            continue;
+        }
         let users = ctx.database.get_users(members).await?;
         let guild_roles = ctx.cache.roles(guild_id);
         for user in users {

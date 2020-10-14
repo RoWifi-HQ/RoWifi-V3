@@ -43,6 +43,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .expect("Expected the cluster id in the enviornment")
         .parse::<u64>()
         .unwrap();
+    let total_shards = env::var("TOTAL_SHARDS")
+        .expect("Expected the number of shards in the environment")
+        .parse::<u64>()
+        .unwrap();
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
@@ -121,7 +125,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if premium_features {
         let context_ad = context.clone();
         tokio::spawn(async move {
-            let _ = auto_detection(context_ad).await;
+            let _ = auto_detection(context_ad, total_shards).await;
         });
     }
 

@@ -6,7 +6,6 @@ use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
 use twilight_model::{
     channel::GuildChannel,
-    gateway::payload::RequestGuildMembers,
     guild::{GuildStatus, Permissions},
     id::{ChannelId, GuildId},
 };
@@ -22,7 +21,7 @@ pub struct EventHandler(Arc<EventHandlerRef>);
 impl EventHandler {
     pub async fn handle_event(
         &self,
-        shard_id: u64,
+        _shard_id: u64,
         event: &Event,
         ctx: &Context,
     ) -> Result<(), RoError> {
@@ -30,8 +29,6 @@ impl EventHandler {
             Event::GuildCreate(guild) => {
                 if self.0.unavailable.contains(&guild.id) {
                     self.0.unavailable.remove(&guild.id);
-                    let req = RequestGuildMembers::builder(guild.id).query("", None);
-                    let _res = ctx.cluster.command(shard_id, &req).await;
                 } else {
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
                         \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR
@@ -143,6 +140,7 @@ impl EventHandler {
                     )
                     .await?;
                 let log_embed = EmbedBuilder::new()
+                    .default_data()
                     .title("Update On Join")
                     .unwrap()
                     .update_log(&added_roles, &removed_roles, &disc_nick)
