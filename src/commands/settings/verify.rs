@@ -52,9 +52,9 @@ pub async fn settings_verification(
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let verification_role = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
+        Some(a) => match parse_role(a) {
+            Some(a) => a,
+            None => {
                 return Err(CommandError::ParseArgument(
                     a.into(),
                     "Verification Role".into(),
@@ -118,9 +118,9 @@ pub async fn settings_verified(
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let verified_role = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
+        Some(a) => match parse_role(a) {
+            Some(a) => a,
+            None => {
                 return Err(CommandError::ParseArgument(
                     a.into(),
                     "Verified Role".into(),

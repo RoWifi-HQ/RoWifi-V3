@@ -16,7 +16,7 @@ use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::stream::StreamExt;
 use twilight_gateway::cluster::{Cluster, ShardScheme};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::Intents;
+use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
 
 use cache::Cache;
@@ -47,13 +47,24 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .expect("Expected the number of shards in the environment")
         .parse::<u64>()
         .unwrap();
+    let council_members = env::var("COUNCIL")
+        .expect("Expected council members in the enviornment")
+        .split('|')
+        .map(|c| c.parse::<u64>().unwrap())
+        .collect::<Vec<_>>();
 
     let scheme = ShardScheme::Auto;
     let http = HttpClient::new(&token);
     let app_info = http.current_user().await?;
+
     let owners = DashSet::new();
     let owner = http.current_user_application().await?.owner.id;
     owners.insert(owner);
+
+    let council = DashSet::new();
+    for c in council_members {
+        council.insert(UserId(c));
+    }
 
     let cluster = Cluster::builder(
         &token,
@@ -83,7 +94,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         Configuration::default()
             .default_prefix("!")
             .on_mention(app_info.id)
-            .owners(owners),
+            .owners(owners)
+            .council(council),
     );
     let patreon = Patreon::new(&patreon_key);
     let stats = Arc::new(BotStats::new(cluster_id));

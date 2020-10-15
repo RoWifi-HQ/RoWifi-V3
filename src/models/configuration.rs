@@ -9,6 +9,7 @@ pub struct Configuration {
     pub on_mention: String,
     pub default_prefix: String,
     pub owners: DashSet<UserId>,
+    pub council: DashSet<UserId>,
     pub prefixes: DashMap<GuildId, String>,
 }
 
@@ -25,6 +26,11 @@ impl Configuration {
 
     pub fn on_mention(mut self, id_to_mention: UserId) -> Self {
         self.on_mention = id_to_mention.to_string();
+        self
+    }
+
+    pub fn council(mut self, user_ids: DashSet<UserId>) -> Self {
+        self.council = user_ids;
         self
     }
 }

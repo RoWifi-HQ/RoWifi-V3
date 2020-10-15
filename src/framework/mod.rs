@@ -226,6 +226,11 @@ impl Framework {
                             return true;
                         }
                     }
+                    RoLevel::Council => {
+                        if context.config.council.contains(&msg.author.id) {
+                            return true;
+                        }
+                    }
                     RoLevel::Admin => {
                         if let Some(admin_role) = guild.admin_role {
                             if member.roles.contains(&admin_role) {

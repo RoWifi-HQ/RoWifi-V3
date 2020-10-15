@@ -52,7 +52,8 @@ pub struct HelpCommand {
 #[derive(Debug, PartialEq)]
 #[repr(i8)]
 pub enum RoLevel {
-    Creator = 3,
+    Creator = 4,
+    Council = 3,
     Admin = 2,
     Trainer = 1,
     Normal = 0,

@@ -2,7 +2,7 @@ use crate::framework::prelude::*;
 use crate::models::user::{PremiumType, PremiumUser};
 
 pub static PREMIUM_ADD_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Creator,
+    perm_level: RoLevel::Council,
     bucket: None,
     names: &["insert"],
     desc: None,
