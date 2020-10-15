@@ -7,7 +7,6 @@ pub static CUSTOMBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to delete a custombind"),
     usage: Some("custombinds delete <Id>"),
     examples: &["custombinds delete 1", "cb remove 2"],
-    required_permissions: Permissions::empty(),
     min_args: 1,
     hidden: false,
     sub_commands: &[],

@@ -12,7 +12,6 @@ pub static CUSTOMBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to add a custombind"),
     usage: Some("custombinds new <Code>"),
     examples: &["custombinds new HasRank(3108077, 255) and GetRank(3455445) >= 120"],
-    required_permissions: Permissions::empty(),
     min_args: 1,
     hidden: false,
     sub_commands: &[],

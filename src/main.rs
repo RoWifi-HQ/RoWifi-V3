@@ -52,8 +52,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .split('|')
         .map(|c| c.parse::<u64>().unwrap())
         .collect::<Vec<_>>();
+    let shards_per_cluster = env::var("SHARDS_PER_CLUSTER")
+        .expect("Expected shards per cluster in the environment")
+        .parse::<u64>()
+        .unwrap();
 
-    let scheme = ShardScheme::Auto;
+    let scheme = ShardScheme::Range {
+        from: cluster_id * shards_per_cluster,
+        to: cluster_id * shards_per_cluster + shards_per_cluster - 1,
+        total: total_shards,
+    };
     let http = HttpClient::new(&token);
     let app_info = http.current_user().await?;
 

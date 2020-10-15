@@ -305,4 +305,38 @@ impl Database {
             .await?;
         Ok(())
     }
+
+    #[allow(dead_code)]
+    pub async fn compare_premium(&self) -> Result<(), RoError> {
+        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium_new = self.client.database("RoWifi").collection("premium");
+        let mut cursor = premium.find(None, None).await?;
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(document) => {
+                    let old_premium = bson::from_bson::<PremiumUser>(Bson::Document(document))?;
+                    let new_premium = premium_new
+                        .find_one(doc! {"_id": old_premium.discord_id}, None)
+                        .await?;
+                    if let Some(new_premium_doc) = new_premium {
+                        let new_premium_user =
+                            bson::from_bson::<PremiumUser>(Bson::Document(new_premium_doc))?;
+                        println!(
+                            "{} {:?} {:?}",
+                            old_premium.discord_id,
+                            old_premium.premium_type,
+                            new_premium_user.premium_type
+                        );
+                    } else {
+                        println!(
+                            "{} {:?} None",
+                            old_premium.discord_id, old_premium.premium_type
+                        );
+                    }
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
+        Ok(())
+    }
 }

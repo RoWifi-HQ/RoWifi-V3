@@ -8,7 +8,6 @@ pub static SETUP_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to set up the server. May also be used to reset all configurations."),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],

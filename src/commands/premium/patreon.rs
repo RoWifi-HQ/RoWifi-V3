@@ -8,7 +8,6 @@ pub static PREMIUM_PATREON_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to link/update patreon status"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],

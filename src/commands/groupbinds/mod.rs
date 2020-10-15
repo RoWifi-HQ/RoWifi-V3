@@ -18,7 +18,6 @@ pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view groupbinds"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[

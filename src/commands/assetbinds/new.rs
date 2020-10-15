@@ -13,7 +13,6 @@ pub static ASSETBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
         "ab new Gamepass 79820839 @Role2",
         "assetbinds new Badge 8799292 @Role1 @Role2",
     ],
-    required_permissions: Permissions::empty(),
     hidden: false,
     min_args: 3,
     sub_commands: &[],

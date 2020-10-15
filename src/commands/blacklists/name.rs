@@ -12,7 +12,6 @@ pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
         "blacklist name AsianIntel Owner",
         "bl name Zanance Co-Founder",
     ],
-    required_permissions: Permissions::empty(),
     min_args: 2,
     hidden: false,
     sub_commands: &[],

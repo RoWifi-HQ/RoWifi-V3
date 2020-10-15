@@ -9,7 +9,6 @@ pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to update an user"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],

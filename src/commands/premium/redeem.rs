@@ -1,5 +1,7 @@
 use crate::framework::prelude::*;
 use crate::models::guild::GuildType;
+use std::env;
+use twilight_model::gateway::payload::RequestGuildMembers;
 
 pub static PREMIUM_REDEEM_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
@@ -8,7 +10,6 @@ pub static PREMIUM_REDEEM_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to add premium to a server"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
@@ -22,7 +23,6 @@ pub static PREMIUM_REMOVE_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to remove premium status of a server"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
@@ -136,6 +136,11 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         .embed(embed)
         .unwrap()
         .await?;
+
+    let req = RequestGuildMembers::builder(server.id).query("", None);
+    let total_shards = env::var("TOTAL_SHARDS").unwrap().parse::<u64>().unwrap();
+    let shard_id = (guild_id.0 >> 22) % total_shards;
+    let _res = ctx.cluster.command(shard_id, &req).await;
     Ok(())
 }
 

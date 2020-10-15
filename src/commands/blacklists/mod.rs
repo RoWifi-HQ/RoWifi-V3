@@ -19,7 +19,6 @@ pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view the blacklists"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[

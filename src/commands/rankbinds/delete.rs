@@ -7,7 +7,6 @@ pub static RANKBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to delete a rankbind"),
     usage: Some("rankbinds delete <Group Id> <Rank Id>"),
     examples: &["rankbinds delete 3108077 255", "rb remove 5581309 10"],
-    required_permissions: Permissions::empty(),
     min_args: 2,
     hidden: false,
     sub_commands: &[],

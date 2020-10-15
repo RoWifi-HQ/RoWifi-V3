@@ -9,7 +9,6 @@ pub static BLACKLISTS_CUSTOM_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to add a custom blacklist"),
     usage: Some("blacklists custom <Code>"),
     examples: &["blacklists custom not IsInGroup(3108077)"],
-    required_permissions: Permissions::empty(),
     min_args: 1,
     hidden: false,
     sub_commands: &[],

@@ -8,7 +8,6 @@ pub static RANKBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to modify a rankbind"),
     usage: Some("rankbinds modify <Field> <Bind Id> [Params...]`\n`Field`: `priority`, `prefix`, `roles-add`, `roles-remove"),
     examples: &["rankbinds modify priority 3108077 255 2", "rb modify prefix 5581309 35 [CUS]", "rankbinds m roles-add 5581309 255 @Role1"],
-    required_permissions: Permissions::empty(),
     min_args: 3,
     hidden: false,
     sub_commands: &[],

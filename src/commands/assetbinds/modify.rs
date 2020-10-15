@@ -13,7 +13,6 @@ pub static ASSETBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
         "assetbinds modify roles-add 8998774 @Role1 @Role2",
         "ab m roles-remove 8998774 @Role1",
     ],
-    required_permissions: Permissions::empty(),
     min_args: 3,
     hidden: false,
     sub_commands: &[],

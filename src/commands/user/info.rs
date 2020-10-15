@@ -9,7 +9,6 @@ pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view the information about an user"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
@@ -28,7 +27,6 @@ pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view the information about the bot"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
@@ -47,7 +45,6 @@ pub static SUPPORT_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view the supporting links for the bot"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
@@ -131,6 +128,7 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         .sum();
 
     let embed = EmbedBuilder::new()
+        .default_data()
         .field(
             EmbedFieldBuilder::new(
                 "Name",

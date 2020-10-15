@@ -6,6 +6,7 @@ pub mod structures;
 
 use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
+use lazy_static::lazy_static;
 use std::time::Duration;
 use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
@@ -17,6 +18,14 @@ use context::Context;
 pub use map::CommandMap;
 use parser::{Invoke, ParseError};
 use structures::*;
+
+lazy_static! {
+    static ref ROWIFI_PERMS: Permissions = Permissions::SEND_MESSAGES
+        | Permissions::EMBED_LINKS
+        | Permissions::MANAGE_ROLES
+        | Permissions::MANAGE_NICKNAMES
+        | Permissions::ADD_REACTIONS;
+}
 
 #[derive(Default)]
 pub struct Framework {
@@ -82,6 +91,24 @@ impl Framework {
             return;
         }
 
+        match context.cache.channel_permissions(msg.channel_id) {
+            Some(p) => {
+                if !p.contains(*ROWIFI_PERMS) && !p.contains(Permissions::ADMINISTRATOR) {
+                    let _ = context
+                        .http
+                        .create_message(msg.channel_id)
+                        .content(format!(
+                            "I seem to be missing one of the following permissions: `{:?}`",
+                            *ROWIFI_PERMS
+                        ))
+                        .unwrap()
+                        .await;
+                    return;
+                }
+            }
+            None => return,
+        }
+
         let invocation = parser::command(
             &mut stream,
             &self.commands,
@@ -114,22 +141,6 @@ impl Framework {
                         let content = format!(
                             "Ratelimit reached. You may use this command in {:?}",
                             duration
-                        );
-                        let _ = context
-                            .http
-                            .create_message(msg.channel_id)
-                            .content(content)
-                            .unwrap()
-                            .await;
-                        return;
-                    }
-                }
-
-                if let Some(permissions) = context.cache.channel_permissions(msg.channel_id) {
-                    if !permissions.contains(command.options.required_permissions) {
-                        let content = format!(
-                            "I seem to be missing one of the following permissions: {:?}",
-                            command.options.required_permissions
                         );
                         let _ = context
                             .http

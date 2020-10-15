@@ -12,7 +12,6 @@ pub static BLACKLISTS_GROUP_OPTIONS: CommandOptions = CommandOptions {
         "blacklist group 3108077 Test",
         "bl group 5581309 Not Allowed",
     ],
-    required_permissions: Permissions::empty(),
     min_args: 2,
     hidden: false,
     sub_commands: &[],

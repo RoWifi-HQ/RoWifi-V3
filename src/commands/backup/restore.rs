@@ -8,7 +8,6 @@ pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to restore a backup"),
     usage: Some("backup restore <Name>"),
     examples: &["backup restore RoWifi"],
-    required_permissions: Permissions::empty(),
     min_args: 1,
     hidden: false,
     sub_commands: &[],

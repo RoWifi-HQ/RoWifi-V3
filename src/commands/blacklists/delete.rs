@@ -12,7 +12,6 @@ pub static BLACKLISTS_DELETE_OPTIONS: CommandOptions = CommandOptions {
         "bl delete 3108077",
         "blacklists d IsInGroup(3108077)",
     ],
-    required_permissions: Permissions::empty(),
     min_args: 1,
     hidden: false,
     sub_commands: &[],

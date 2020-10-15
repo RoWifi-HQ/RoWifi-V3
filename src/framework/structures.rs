@@ -6,7 +6,7 @@ use std::{
 };
 use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
-use twilight_model::{channel::Message, guild::Permissions, id::GuildId};
+use twilight_model::{channel::Message, id::GuildId};
 
 use super::context::Context;
 use super::map::CommandMap;
@@ -29,7 +29,6 @@ pub struct CommandOptions {
     pub desc: Option<&'static str>,
     pub usage: Option<&'static str>,
     pub examples: &'static [&'static str],
-    pub required_permissions: Permissions,
     pub min_args: usize,
     pub hidden: bool,
     pub sub_commands: &'static [&'static Command],

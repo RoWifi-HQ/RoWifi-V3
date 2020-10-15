@@ -13,7 +13,6 @@ pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view saved backups"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND],

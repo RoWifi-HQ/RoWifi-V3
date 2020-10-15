@@ -18,7 +18,6 @@ pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Command to view the custom binds"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[

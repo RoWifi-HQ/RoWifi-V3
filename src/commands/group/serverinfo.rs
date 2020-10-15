@@ -8,7 +8,6 @@ pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {
     desc: Some("Shows the information about the server"),
     usage: None,
     examples: &[],
-    required_permissions: Permissions::empty(),
     min_args: 0,
     hidden: false,
     sub_commands: &[],
