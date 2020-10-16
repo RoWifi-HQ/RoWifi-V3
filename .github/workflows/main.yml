@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Build container image
-        run: docker build -t registry.digitalocean.com/rowifi-hq/rowifi:latest
+        run: docker build -t registry.digitalocean.com/asianintel/rowifi:latest .
       
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -23,4 +23,4 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       
       - name: Push image to DigitalOcean Container Registry
-        run: docker push registry.digitalocean.com/rowifi-hq/rowifi
+        run: docker push registry.digitalocean.com/asianintel/rowifi
