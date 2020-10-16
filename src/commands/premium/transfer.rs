@@ -4,7 +4,7 @@ use crate::models::user::PremiumUser;
 pub static PREMIUM_TRANSFER_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
-    names: &["transfer"],
+    names: &["transfer", "surrender"],
     desc: Some("Command to transfer your premium"),
     usage: None,
     examples: &[],

@@ -1,6 +1,6 @@
 use super::error::RoError;
 use crate::models::{
-    guild::{BackupGuild, RoGuild},
+    guild::{BackupGuild, RoGuild, GuildType},
     user::*,
 };
 use bson::{doc, document::Document, Bson};
@@ -300,9 +300,17 @@ impl Database {
 
     pub async fn delete_premium(&self, user_id: u64) -> Result<(), RoError> {
         let premium = self.client.database("RoWifi").collection("premium_new");
-        let _res = premium
+        let res = premium
             .find_one_and_delete(doc! {"_id": user_id}, FindOneAndDeleteOptions::default())
             .await?;
+        if let Some(doc) = res {
+            let premium_user = bson::from_bson::<PremiumUser>(Bson::Document(doc))?;
+            for s in premium_user.discord_servers {
+                let filter = bson::doc! {"_id": s};
+                let update = bson::doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
+                self.modify_guild(filter, update).await?;
+            }
+        }
         Ok(())
     }
 
