@@ -34,10 +34,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
     let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
-    let premium_features = env::var("PREMIUM_FEATURES")?
-        .as_str()
-        .parse::<bool>()
-        .expect("Expected premium toggle");
     let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
     let cluster_id = env::var("CLUSTER_ID")
         .expect("Expected the cluster id in the enviornment")
@@ -142,12 +138,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let framework = Arc::new(Box::new(framework));
     let event_handler = EventHandler::default();
 
-    if premium_features {
-        let context_ad = context.clone();
-        tokio::spawn(async move {
-            let _ = auto_detection(context_ad, total_shards).await;
-        });
-    }
+    let context_ad = context.clone();
+    tokio::spawn(async move {
+        let _ = auto_detection(context_ad, total_shards).await;
+    });
 
     let mut events = context.cluster.events();
     while let Some(event) = events.next().await {

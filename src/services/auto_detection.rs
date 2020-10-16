@@ -9,7 +9,7 @@ use twilight_model::{
 
 pub async fn auto_detection(ctx: Context, total_shards: u64) {
     let mut interval = interval(Duration::from_secs(3 * 3600));
-    std::thread::sleep(Duration::from_secs(15));
+    std::thread::sleep(Duration::from_secs(60));
     loop {
         interval.tick().await;
         let _ = execute(&ctx, total_shards).await;
