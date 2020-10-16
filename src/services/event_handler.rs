@@ -1,3 +1,4 @@
+use super::auto_detection;
 use crate::framework::prelude::Context;
 use crate::utils::{error::RoError, misc::EmbedExtensions};
 use dashmap::DashSet;
@@ -29,6 +30,12 @@ impl EventHandler {
             Event::GuildCreate(guild) => {
                 if self.0.unavailable.contains(&guild.id) {
                     self.0.unavailable.remove(&guild.id);
+                    if self.0.unavailable.is_empty() {
+                        let context_ad = ctx.clone();
+                        tokio::spawn(async move {
+                            let _ = auto_detection(context_ad).await;
+                        });
+                    }
                 } else {
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
                         \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR

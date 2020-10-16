@@ -1,6 +1,6 @@
 use super::error::RoError;
 use crate::models::{
-    guild::{BackupGuild, RoGuild, GuildType},
+    guild::{BackupGuild, GuildType, RoGuild},
     user::*,
 };
 use bson::{doc, document::Document, Bson};

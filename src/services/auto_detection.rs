@@ -7,12 +7,17 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
-pub async fn auto_detection(ctx: Context, total_shards: u64) {
+pub async fn auto_detection(ctx: Context) {
+    let total_shards = std::env::var("TOTAL_SHARDS")
+        .expect("Expected the number of shards in the environment")
+        .parse::<u64>()
+        .unwrap();
     let mut interval = interval(Duration::from_secs(3 * 3600));
-    std::thread::sleep(Duration::from_secs(60));
     loop {
         interval.tick().await;
-        let _ = execute(&ctx, total_shards).await;
+        if let Err(err) = execute(&ctx, total_shards).await {
+            tracing::error!(err = ?err, "Error in auto detection");
+        }
     }
 }
 
@@ -36,7 +41,7 @@ async fn execute(ctx: &Context, total_shards: u64) -> Result<(), Box<dyn Error>>
         if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
             let req = RequestGuildMembers::builder(server.id).query("", None);
             let shard_id = (guild_id.0 >> 22) % total_shards;
-            let _res = ctx.cluster.command(shard_id, &req).await;
+            ctx.cluster.command(shard_id, &req).await?;
             continue;
         }
         let users = ctx.database.get_users(members).await?;
