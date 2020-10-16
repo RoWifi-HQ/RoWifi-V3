@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(async move {
         cluster_spawn.up().await;
     });
-    tokio::spawn(run_metrics_server(stats.clone()));
+    tokio::spawn(run_metrics_server(stats.clone(), cluster_id as u16));
 
     let context = Context::new(
         0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats,
@@ -171,8 +171,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ok(())
 }
 
-async fn run_metrics_server(stats: Arc<BotStats>) {
-    let addr = ([127, 0, 0, 1], 9898).into();
+async fn run_metrics_server(stats: Arc<BotStats>, cluster_id: u16) {
+    let addr = ([127, 0, 0, 1], 9000 + cluster_id).into();
     let metric_service = make_service_fn(move |_| {
         let stats = stats.clone();
         async move {
