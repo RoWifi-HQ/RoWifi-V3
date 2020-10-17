@@ -8,6 +8,7 @@ use twilight_model::{
 };
 
 pub async fn auto_detection(ctx: Context) {
+    tracing::info!("Auto Detection starting");
     let total_shards = std::env::var("TOTAL_SHARDS")
         .expect("Expected the number of shards in the environment")
         .parse::<u64>()

@@ -2,7 +2,10 @@ use super::auto_detection;
 use crate::framework::prelude::Context;
 use crate::utils::{error::RoError, misc::EmbedExtensions};
 use dashmap::DashSet;
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
 use twilight_model::{
@@ -14,6 +17,7 @@ use twilight_model::{
 #[derive(Default)]
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,
+    auto_detection_started: AtomicBool,
 }
 
 #[derive(Default, Clone)]
@@ -30,7 +34,10 @@ impl EventHandler {
             Event::GuildCreate(guild) => {
                 if self.0.unavailable.contains(&guild.id) {
                     self.0.unavailable.remove(&guild.id);
-                    if self.0.unavailable.is_empty() {
+                    if self.0.unavailable.is_empty()
+                        && !self.0.auto_detection_started.load(Ordering::SeqCst)
+                    {
+                        self.0.auto_detection_started.store(true, Ordering::SeqCst);
                         let context_ad = ctx.clone();
                         tokio::spawn(async move {
                             let _ = auto_detection(context_ad).await;

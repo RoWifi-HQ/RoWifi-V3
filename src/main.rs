@@ -13,7 +13,7 @@ use hyper::{
 };
 use prometheus::{Encoder, TextEncoder};
 use std::{env, error::Error, sync::Arc, time::Duration};
-use tokio::stream::StreamExt;
+use tokio::{stream::StreamExt, time::delay_for};
 use twilight_gateway::cluster::{Cluster, ShardScheme};
 use twilight_http::Client as HttpClient;
 use twilight_model::{gateway::Intents, id::UserId};
@@ -56,6 +56,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .parse::<u64>()
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
+    delay_for(Duration::from_secs(cluster_id * 40)).await;
 
     let scheme = ShardScheme::Range {
         from: cluster_id * shards_per_cluster,
