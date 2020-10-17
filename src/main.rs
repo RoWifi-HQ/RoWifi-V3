@@ -52,6 +52,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .expect("Expected shards per cluster in the environment")
         .parse::<u64>()
         .unwrap();
+    let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
 
     let scheme = ShardScheme::Range {
         from: cluster_id * shards_per_cluster,
@@ -108,7 +109,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(async move {
         cluster_spawn.up().await;
     });
-    tokio::spawn(run_metrics_server(stats.clone(), cluster_id as u16));
+    tokio::spawn(run_metrics_server(pod_ip, stats.clone(), cluster_id as u16));
 
     let context = Context::new(
         0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats,
@@ -160,8 +161,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ok(())
 }
 
-async fn run_metrics_server(stats: Arc<BotStats>, cluster_id: u16) {
-    let addr = ([127, 0, 0, 1], 9000 + cluster_id).into();
+async fn run_metrics_server(pod_ip: String, stats: Arc<BotStats>, cluster_id: u16) {
+    let addr = format!("{}:{}", pod_ip, cluster_id).parse().unwrap();
     let metric_service = make_service_fn(move |_| {
         let stats = stats.clone();
         async move {
