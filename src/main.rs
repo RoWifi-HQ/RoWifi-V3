@@ -37,6 +37,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
     let cluster_id = env::var("CLUSTER_ID")
         .expect("Expected the cluster id in the enviornment")
+        .split('-')
+        .last()
+        .unwrap()
         .parse::<u64>()
         .unwrap();
     let total_shards = env::var("TOTAL_SHARDS")
