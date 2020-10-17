@@ -230,6 +230,7 @@ impl RoUser {
         let mut roles = member.roles.clone();
         roles.extend_from_slice(&added_roles);
         roles.retain(|r| !removed_roles.contains(r));
+        roles = roles.into_iter().unique().collect::<Vec<RoleId>>();
 
         let nick_changes = disc_nick != display_name;
 
