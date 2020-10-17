@@ -132,7 +132,7 @@ impl Framework {
                 }
             }
             Invoke::Command { command } => {
-                if !self.run_checks(&context, &msg, command) {
+                if !self.run_checks(&context, &msg, command).await {
                     return;
                 }
 
@@ -197,7 +197,7 @@ impl Framework {
         }
     }
 
-    fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
+    async fn run_checks(&self, context: &Context, msg: &Message, command: &Command) -> bool {
         if context.config.blocked_users.contains(&msg.author.id) {
             return false;
         }
@@ -229,7 +229,7 @@ impl Framework {
                 return true;
             }
 
-            if let Some(member) = context.cache.member(guild.id, msg.author.id) {
+            if let Ok(Some(member)) = context.member(guild.id, msg.author.id).await {
                 match command.options.perm_level {
                     RoLevel::Normal => return true,
                     RoLevel::Creator => {
