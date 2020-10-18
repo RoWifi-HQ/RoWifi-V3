@@ -23,8 +23,7 @@ lazy_static! {
     static ref ROWIFI_PERMS: Permissions = Permissions::SEND_MESSAGES
         | Permissions::EMBED_LINKS
         | Permissions::MANAGE_ROLES
-        | Permissions::MANAGE_NICKNAMES
-        | Permissions::ADD_REACTIONS;
+        | Permissions::MANAGE_NICKNAMES;
 }
 
 #[derive(Default)]
