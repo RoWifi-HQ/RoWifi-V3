@@ -308,14 +308,13 @@ pub fn channel_permissions(
         }
 
         let role_view_channel_denied = roles_deny.contains(Permissions::VIEW_CHANNEL)
-            && !roles_allow.contains(Permissions::VIEW_CHANNEL)
             && !roles_allow.contains(Permissions::VIEW_CHANNEL);
 
         let member_view_channel_denied = member_deny.contains(Permissions::VIEW_CHANNEL)
             && !member_allow.contains(Permissions::VIEW_CHANNEL);
 
         if member_view_channel_denied || role_view_channel_denied {
-            return Ok(Permissions::empty());
+            return Ok(permissions);
         }
 
         permissions.remove(roles_deny);

@@ -49,11 +49,20 @@ pub async fn rankbinds_new(
         .as_ref()
         .clone();
 
-    let group_id = match args.next().map(|g| g.parse::<i64>()) {
-        Some(Ok(g)) => g,
-        Some(Err(_)) => return Ok(()),
-        None => return Ok(()),
-    };
+        let group_id = match args.next() {
+            Some(a) => match a.parse::<i64>() {
+                Ok(a) => a,
+                Err(_) => {
+                    return Err(CommandError::ParseArgument(
+                        a.into(),
+                        "Group ID".into(),
+                        "Number".into(),
+                    )
+                    .into())
+                }
+            },
+            None => return Ok(()),
+        };
 
     let mut create_type = match args.next() {
         None => return Ok(()),
@@ -63,7 +72,12 @@ pub async fn rankbinds_new(
             } else {
                 match extract_ids(s) {
                     Some((r1, r2)) => CreateType::Multiple(r1, r2),
-                    None => return Ok(()),
+                    None => return Err(CommandError::ParseArgument(
+                        s.into(),
+                        "Rank".into(),
+                        "Number or a Range".into(),
+                    )
+                    .into()),
                 }
             }
         }
@@ -74,9 +88,18 @@ pub async fn rankbinds_new(
         None => return Ok(()),
     };
 
-    let priority = match args.next().map(|g| g.parse::<i64>()) {
-        Some(Ok(p)) => p,
-        Some(Err(_)) => return Ok(()),
+    let priority = match args.next() {
+        Some(a) => match a.parse::<i64>() {
+            Ok(a) => a,
+            Err(_) => {
+                return Err(CommandError::ParseArgument(
+                    a.into(),
+                    "Priority".into(),
+                    "Number".into(),
+                )
+                .into())
+            }
+        },
         None => return Ok(()),
     };
 
@@ -147,12 +170,24 @@ async fn single_rank(
         .iter()
         .any(|r| r.group_id == group_id && r.rank_id == rank_id)
     {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Rankbind Addition Failed").unwrap()
+            .description(format!("A rankbind with group id {} and rank id {} already exists", group_id, rank_id)).unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
         return Ok(());
     }
 
     let roblox_rank = match ctx.roblox.get_group_rank(group_id, rank_id).await? {
         Some(r) => r,
-        None => return Ok(()),
+        None => {
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Rankbind Addition Failed").unwrap()
+            .description(format!("The Rank {} does not exist in Group {}", rank_id, group_id)).unwrap()
+            .build().unwrap();
+            let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
+            return Ok(())
+        },
     };
 
     if prefix.eq("auto") {
@@ -190,6 +225,11 @@ async fn single_rank_with_auto(
         .iter()
         .any(|r| r.group_id == group_id && r.rank_id == rank_id)
     {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Rankbind Addition Failed").unwrap()
+            .description(format!("A rankbind with group id {} and rank id {} already exists", group_id, rank_id)).unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
         return Ok(());
     }
 
@@ -251,6 +291,11 @@ async fn multiple_rank(
         .get_group_ranks(group_id, min_rank, max_rank)
         .await?;
     if roblox_ranks.is_empty() {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Rankbind Addition Failed").unwrap()
+            .description("There were no ranks found in the given range").unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
         return Ok(());
     }
 
@@ -336,6 +381,11 @@ async fn multiple_rank_with_auto(
         .get_group_ranks(group_id, min_rank, max_rank)
         .await?;
     if roblox_ranks.is_empty() {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
+            .title("Rankbind Addition Failed").unwrap()
+            .description("There were no ranks found in the given range").unwrap()
+            .build().unwrap();
+        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
         return Ok(());
     }
 
