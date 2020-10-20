@@ -1,6 +1,9 @@
 use super::auto_detection;
 use crate::framework::prelude::Context;
-use crate::utils::{error::RoError, misc::EmbedExtensions};
+use crate::utils::{
+    error::{CommandError, RoError},
+    misc::EmbedExtensions,
+};
 use dashmap::DashSet;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -143,7 +146,7 @@ impl EventHandler {
                     return Ok(());
                 }
                 let guild_roles = ctx.cache.roles(m.guild_id);
-                let (added_roles, removed_roles, disc_nick) = user
+                let (added_roles, removed_roles, disc_nick) = match user
                     .update(
                         ctx.http.clone(),
                         member,
@@ -152,7 +155,26 @@ impl EventHandler {
                         &guild,
                         &guild_roles,
                     )
-                    .await?;
+                    .await
+                {
+                    Ok(a) => a,
+                    Err(e) => {
+                        if let RoError::Command(CommandError::Blacklist(ref b)) = e {
+                            if let Ok(channel) = ctx.http.create_private_channel(m.user.id).await {
+                                let _ = ctx
+                                    .http
+                                    .create_message(channel.id)
+                                    .content(format!(
+                                        "You were found on the server blacklist. Reason: {}",
+                                        b
+                                    ))
+                                    .unwrap()
+                                    .await;
+                            }
+                        }
+                        return Err(e);
+                    }
+                };
                 let log_embed = EmbedBuilder::new()
                     .default_data()
                     .title("Update On Join")

@@ -134,7 +134,7 @@ pub async fn paginate_embed(
                 }
                 false
             })
-            .timeout(Duration::from_secs(60));
+            .timeout(Duration::from_secs(300));
 
         let mut page_pointer: usize = 0;
         while let Some(Ok(reaction)) = reactions.next().await {

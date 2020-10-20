@@ -45,6 +45,25 @@ pub async fn custombinds_delete(
         }
     }
 
+    if binds_to_delete.is_empty() {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Binds Deletion Failed")
+            .unwrap()
+            .description("There were no binds found associated with given ids")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await;
+    }
+
     let filter = bson::doc! {"_id": guild.id};
     let update = bson::doc! {"$pull": {"CustomBinds": {"_id": {"$in": binds_to_delete.clone()}}}};
     let _ = ctx.database.modify_guild(filter, update).await?;

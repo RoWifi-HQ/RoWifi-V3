@@ -67,10 +67,10 @@ pub async fn rankbinds_modify(
         None => return Ok(()),
     };
 
-    let bind = match guild
+    let bind_index = match guild
         .rankbinds
         .iter()
-        .find(|r| r.group_id == group_id && r.rank_id == rank_id)
+        .position(|r| r.group_id == group_id && r.rank_id == rank_id)
     {
         Some(b) => b,
         None => {
@@ -96,23 +96,24 @@ pub async fn rankbinds_modify(
             return Ok(());
         }
     };
+    let bind = &guild.rankbinds[bind_index];
 
     let name = format!("Group Id: {}", bind.group_id);
     let desc = if field.eq_ignore_ascii_case("prefix") {
-        let new_prefix = modify_prefix(ctx, &guild, group_id, rank_id, args.next()).await?;
+        let new_prefix = modify_prefix(ctx, &guild, bind_index, args.next()).await?;
         format!("`Prefix`: {} -> {}", bind.prefix, new_prefix)
     } else if field.eq_ignore_ascii_case("priority") {
-        let new_priority = modify_priority(ctx, &guild, group_id, rank_id, args.next()).await?;
+        let new_priority = modify_priority(ctx, &guild, bind_index, args.next()).await?;
         format!("`Priority`: {} -> {}", bind.priority, new_priority)
     } else if field.eq_ignore_ascii_case("roles-add") {
-        let role_ids = add_roles(ctx, &guild, group_id, rank_id, args).await?;
+        let role_ids = add_roles(ctx, &guild, bind_index, args).await?;
         let modification = role_ids
             .iter()
             .map(|r| format!("<@&{}> ", r))
             .collect::<String>();
         format!("Added Roles: {}", modification)
     } else if field.eq_ignore_ascii_case("roles-remove") {
-        let role_ids = remove_roles(ctx, &guild, group_id, rank_id, args).await?;
+        let role_ids = remove_roles(ctx, &guild, bind_index, args).await?;
         let modification = role_ids
             .iter()
             .map(|r| format!("<@&{}> ", r))
@@ -162,14 +163,13 @@ pub async fn rankbinds_modify(
 async fn modify_prefix(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
-    rank_id: i64,
+    bind_index: usize,
     prefix: Option<&str>,
 ) -> Result<String, RoError> {
     let prefix = prefix.unwrap();
-    let filter =
-        bson::doc! {"_id": guild.id, "RankBinds.GroupId": group_id, "RankBinds.RbxRankId": rank_id};
-    let update = bson::doc! {"$set": {"RankBinds.$.Prefix": prefix}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("RankBinds.{}.Prefix", bind_index);
+    let update = bson::doc! {"$set": {index_str: prefix}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(prefix.to_string())
 }
@@ -177,8 +177,7 @@ async fn modify_prefix(
 async fn modify_priority(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
-    rank_id: i64,
+    bind_index: usize,
     priority: Option<&str>,
 ) -> Result<i64, RoError> {
     let priority = match priority.unwrap().parse::<i64>() {
@@ -192,9 +191,9 @@ async fn modify_priority(
             .into())
         }
     };
-    let filter =
-        bson::doc! {"_id": guild.id, "RankBinds.GroupId": group_id, "RankBinds.RbxRankId": rank_id};
-    let update = bson::doc! {"$set": {"RankBinds.$.Priority": priority}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("RankBinds.{}.Priority", bind_index);
+    let update = bson::doc! {"$set": {index_str: priority}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(priority)
 }
@@ -202,8 +201,7 @@ async fn modify_priority(
 async fn add_roles(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
-    rank_id: i64,
+    bind_index: usize,
     args: Arguments<'_>,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
@@ -212,9 +210,9 @@ async fn add_roles(
             role_ids.push(r);
         }
     }
-    let filter =
-        bson::doc! {"_id": guild.id, "RankBinds.GroupId": group_id, "RankBinds.RbxRankId": rank_id};
-    let update = bson::doc! {"$push": {"RankBinds.$.DiscordRoles": {"$each": role_ids.clone()}}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("RankBinds.{}.DiscordRoles", bind_index);
+    let update = bson::doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }
@@ -222,8 +220,7 @@ async fn add_roles(
 async fn remove_roles(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
-    rank_id: i64,
+    bind_index: usize,
     args: Arguments<'_>,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
@@ -232,9 +229,9 @@ async fn remove_roles(
             role_ids.push(r);
         }
     }
-    let filter =
-        bson::doc! {"_id": guild.id, "RankBinds.GroupId": group_id, "RankBinds.RbxRankId": rank_id};
-    let update = bson::doc! {"$pullAll": {"RankBinds.$.DiscordRoles": role_ids.clone()}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("RankBinds.{}.DiscordRoles", bind_index);
+    let update = bson::doc! {"$pullAll": {index_str: role_ids.clone()}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }

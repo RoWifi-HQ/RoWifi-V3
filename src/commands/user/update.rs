@@ -1,8 +1,8 @@
 use crate::framework::prelude::*;
-use twilight_embed_builder::EmbedFooterBuilder;
-use twilight_model::id::UserId;
-use twilight_http::Error as DiscordHttpError;
 use reqwest::StatusCode;
+use twilight_embed_builder::EmbedFooterBuilder;
+use twilight_http::Error as DiscordHttpError;
+use twilight_model::id::UserId;
 
 pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
@@ -160,27 +160,51 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
             &guild,
             &guild_roles,
         )
-        .await {
-            Ok(a) => a,
-            Err(e) => {
-                if let RoError::Discord(DiscordHttpError::Response{body: _, error: _, status}) = e {
-                    if status == StatusCode::FORBIDDEN {
-                        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                            .title("Update Failed").unwrap()
-                            .description("You seem to have a role higher than or equal to mine").unwrap()
-                            .build().unwrap();
-                        let _ = ctx.http.create_message(msg.channel_id).embed(embed).unwrap().await;
-                        return Ok(());
-                    }
+        .await
+    {
+        Ok(a) => a,
+        Err(e) => {
+            if let RoError::Discord(DiscordHttpError::Response {
+                body: _,
+                error: _,
+                status,
+            }) = e
+            {
+                if status == StatusCode::FORBIDDEN {
+                    let embed = EmbedBuilder::new()
+                        .default_data()
+                        .color(Color::Red as u32)
+                        .unwrap()
+                        .title("Update Failed")
+                        .unwrap()
+                        .description("You seem to have a role higher than or equal to mine")
+                        .unwrap()
+                        .build()
+                        .unwrap();
+                    let _ = ctx
+                        .http
+                        .create_message(msg.channel_id)
+                        .embed(embed)
+                        .unwrap()
+                        .await;
+                    return Ok(());
                 }
-                else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
-                    if let Ok(channel) = ctx.http.create_private_channel(user_id).await {
-                        let _ = ctx.http.create_message(channel.id).content(format!("You were found on the server blacklist. Reason: {}", b)).unwrap().await;
-                    }
+            } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
+                if let Ok(channel) = ctx.http.create_private_channel(user_id).await {
+                    let _ = ctx
+                        .http
+                        .create_message(channel.id)
+                        .content(format!(
+                            "You were found on the server blacklist. Reason: {}",
+                            b
+                        ))
+                        .unwrap()
+                        .await;
                 }
-                return Err(e)
             }
-        };
+            return Err(e);
+        }
+    };
     let end = chrono::Utc::now().timestamp_millis();
     let embed = EmbedBuilder::new()
         .default_data()

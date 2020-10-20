@@ -57,28 +57,31 @@ pub async fn groupbinds_modify(
         None => return Ok(()),
     };
 
-    if guild.groupbinds.iter().any(|c| c.group_id == group_id) {
-        let embed = EmbedBuilder::new()
-            .default_data()
-            .color(Color::Red as u32)
-            .unwrap()
-            .title("Group Bind Modification Failed")
-            .unwrap()
-            .description(format!("There was no bind found with id {}", group_id))
-            .unwrap()
-            .build()
-            .unwrap();
-        let _ = ctx
-            .http
-            .create_message(msg.channel_id)
-            .embed(embed)
-            .unwrap();
-        return Ok(());
+    let bind_index = match guild.groupbinds.iter().position(|g| g.group_id == group_id) {
+        Some(b) => b,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Group Bind Modification Failed")
+                .unwrap()
+                .description(format!("There was no bind found with id {}", group_id))
+                .unwrap()
+                .build()
+                .unwrap();
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap();
+            return Ok(());
+        }
     };
 
     let name = format!("Id: {}", group_id);
     let desc = if field.eq_ignore_ascii_case("roles-add") {
-        let role_ids = add_roles(ctx, &guild, group_id, args).await?;
+        let role_ids = add_roles(ctx, &guild, bind_index, args).await?;
         let modification = role_ids
             .iter()
             .map(|r| format!("<@&{}> ", r))
@@ -86,7 +89,7 @@ pub async fn groupbinds_modify(
         let desc = format!("Added Roles: {}", modification);
         desc
     } else if field.eq_ignore_ascii_case("roles-remove") {
-        let role_ids = remove_roles(ctx, &guild, group_id, args).await?;
+        let role_ids = remove_roles(ctx, &guild, bind_index, args).await?;
         let modification = role_ids
             .iter()
             .map(|r| format!("<@&{}> ", r))
@@ -136,7 +139,7 @@ pub async fn groupbinds_modify(
 async fn add_roles(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
+    bind_index: usize,
     args: Arguments<'_>,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
@@ -145,8 +148,9 @@ async fn add_roles(
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id, "GroupBinds.GroupId": group_id};
-    let update = bson::doc! {"$push": {"GroupBinds.$.DiscordRoles": {"$each": role_ids.clone()}}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
+    let update = bson::doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }
@@ -154,7 +158,7 @@ async fn add_roles(
 async fn remove_roles(
     ctx: &Context,
     guild: &RoGuild,
-    group_id: i64,
+    bind_index: usize,
     args: Arguments<'_>,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
@@ -163,8 +167,9 @@ async fn remove_roles(
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id, "GroupBinds.GroupId": group_id};
-    let update = bson::doc! {"$pullAll": {"GroupBinds.$.DiscordRoles": role_ids.clone()}};
+    let filter = bson::doc! {"_id": guild.id};
+    let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
+    let update = bson::doc! {"$pullAll": {index_str: role_ids.clone()}};
     ctx.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }

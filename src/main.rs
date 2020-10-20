@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .parse::<u64>()
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
-    delay_for(Duration::from_secs(cluster_id * 40)).await;
+    delay_for(Duration::from_secs(cluster_id * 60)).await;
 
     let scheme = ShardScheme::Range {
         from: cluster_id * shards_per_cluster,
@@ -156,7 +156,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         context.standby.process(&event.1);
 
         tokio::spawn(async move {
-            e.handle_event(event.0, &event.1, &c).await.unwrap();
+            if let Err(err) = e.handle_event(event.0, &event.1, &c).await {
+                tracing::error!(err = ?err, "Error in event handler");
+            }
             f.handle_event(&event.1, &c).await;
             c.stats.update(&event.1);
         });
