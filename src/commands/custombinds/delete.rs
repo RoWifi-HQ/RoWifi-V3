@@ -62,6 +62,7 @@ pub async fn custombinds_delete(
             .embed(embed)
             .unwrap()
             .await;
+        return Ok(());
     }
 
     let filter = bson::doc! {"_id": guild.id};

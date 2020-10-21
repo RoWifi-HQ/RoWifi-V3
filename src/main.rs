@@ -22,7 +22,10 @@ use twilight_standby::Standby;
 use cache::Cache;
 use commands::*;
 use framework::{context::Context, Framework};
-use models::{configuration::Configuration, stats::BotStats};
+use models::{
+    configuration::{BotConfig, Configuration},
+    stats::BotStats,
+};
 use services::*;
 use utils::{Database, Logger, Patreon, Roblox};
 
@@ -108,6 +111,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     );
     let patreon = Patreon::new(&patreon_key);
     let stats = Arc::new(BotStats::new(cluster_id));
+    let bot_config = Arc::new(BotConfig {
+        cluster_id,
+        shards_per_cluster,
+        total_shards,
+    });
 
     let cluster_spawn = cluster.clone();
     tokio::spawn(async move {
@@ -116,7 +124,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(run_metrics_server(pod_ip, stats.clone()));
 
     let context = Context::new(
-        0, http, cache, database, roblox, standby, cluster, logger, config, patreon, stats,
+        http, cache, database, roblox, standby, cluster, logger, config, patreon, stats, bot_config,
     );
     let framework = Framework::default()
         .command(&UPDATE_COMMAND)

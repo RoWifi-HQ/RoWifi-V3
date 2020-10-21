@@ -3,27 +3,24 @@ use std::{error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, Duration};
 use twilight_embed_builder::EmbedBuilder;
 use twilight_model::{
-    gateway::payload::RequestGuildMembers,
+    gateway::{event::Event, payload::RequestGuildMembers},
     id::{GuildId, UserId},
 };
 
 pub async fn auto_detection(ctx: Context) {
     tracing::info!("Auto Detection starting");
-    let total_shards = std::env::var("TOTAL_SHARDS")
-        .expect("Expected the number of shards in the environment")
-        .parse::<u64>()
-        .unwrap();
     let mut interval = interval(Duration::from_secs(3 * 3600));
     loop {
         interval.tick().await;
-        if let Err(err) = execute(&ctx, total_shards).await {
+        if let Err(err) = execute(&ctx).await {
             tracing::error!(err = ?err, "Error in auto detection");
         }
     }
 }
 
-async fn execute(ctx: &Context, total_shards: u64) -> Result<(), Box<dyn Error>> {
+async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
+    println!("{}", servers.len());
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {
@@ -33,7 +30,7 @@ async fn execute(ctx: &Context, total_shards: u64) -> Result<(), Box<dyn Error>>
             Some(g) => g,
             None => continue,
         };
-        let members = ctx
+        let mut members = ctx
             .cache
             .members(guild_id)
             .into_iter()
@@ -41,9 +38,25 @@ async fn execute(ctx: &Context, total_shards: u64) -> Result<(), Box<dyn Error>>
             .collect::<Vec<_>>();
         if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
             let req = RequestGuildMembers::builder(server.id).query("", None);
-            let shard_id = (guild_id.0 >> 22) % total_shards;
+            let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
             ctx.cluster.command(shard_id, &req).await?;
-            continue;
+            let _ = ctx
+                .standby
+                .wait_for_event(move |event: &Event| {
+                    if let Event::MemberChunk(mc) = event {
+                        if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                            return true;
+                        }
+                    }
+                    false
+                })
+                .await;
+            members = ctx
+                .cache
+                .members(guild_id)
+                .into_iter()
+                .map(|m| m.0)
+                .collect::<Vec<_>>();
         }
         let users = ctx.database.get_users(members).await?;
         let guild_roles = ctx.cache.roles(guild_id);

@@ -5,13 +5,15 @@ use twilight_model::id::*;
 use twilight_standby::Standby;
 
 use crate::cache::*;
-use crate::models::{configuration::Configuration, stats::BotStats};
+use crate::models::{
+    configuration::{BotConfig, Configuration},
+    stats::BotStats,
+};
 use crate::utils::error::RoError;
 use crate::utils::{Database, Logger, Patreon, Roblox};
 
 #[derive(Clone)]
 pub struct Context {
-    pub shard_id: u64,
     pub http: Http,
     pub cache: Cache,
     pub database: Database,
@@ -22,12 +24,12 @@ pub struct Context {
     pub config: Arc<Configuration>,
     pub patreon: Patreon,
     pub stats: Arc<BotStats>,
+    pub bot_config: Arc<BotConfig>,
 }
 
 impl Context {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        shard_id: u64,
         http: Http,
         cache: Cache,
         database: Database,
@@ -38,9 +40,9 @@ impl Context {
         config: Arc<Configuration>,
         patreon: Patreon,
         stats: Arc<BotStats>,
+        bot_config: Arc<BotConfig>,
     ) -> Self {
         Self {
-            shard_id,
             http,
             cache,
             database,
@@ -51,6 +53,7 @@ impl Context {
             config,
             patreon,
             stats,
+            bot_config,
         }
     }
 

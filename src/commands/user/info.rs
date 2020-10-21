@@ -140,15 +140,12 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         .field(EmbedFieldBuilder::new("Version", "2.5.0").unwrap().inline())
         .field(EmbedFieldBuilder::new("Language", "Rust").unwrap().inline())
         .field(
-            EmbedFieldBuilder::new(
-                "Shards",
-                ctx.cluster.config().shard_config().shard()[1].to_string(),
-            )
-            .unwrap()
-            .inline(),
+            EmbedFieldBuilder::new("Shards", ctx.bot_config.total_shards.to_string())
+                .unwrap()
+                .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Shard Id", ctx.shard_id.to_string())
+            EmbedFieldBuilder::new("Cluster Id", ctx.bot_config.cluster_id.to_string())
                 .unwrap()
                 .inline(),
         )

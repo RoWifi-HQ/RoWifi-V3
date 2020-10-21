@@ -81,6 +81,7 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
+    let channel_id = msg.channel_id;
     tokio::spawn(async move {
         for user in users {
             if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
@@ -89,8 +90,9 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                         continue;
                     }
                 }
-                tracing::debug!(id = user.discord_id, "Mass Update for member");
-                let _ = user
+                tracing::trace!(id = user.discord_id, "Mass Update for member");
+                let name = member.user.name.clone();
+                if let Ok((added_roles, removed_roles, disc_nick)) = user
                     .update(
                         c.http.clone(),
                         member,
@@ -99,9 +101,27 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                         &guild,
                         &guild_roles,
                     )
-                    .await;
+                    .await
+                {
+                    if !added_roles.is_empty() || !removed_roles.is_empty() {
+                        let log_embed = EmbedBuilder::new()
+                            .default_data()
+                            .title(format!("Mass Update: {}", name))
+                            .unwrap()
+                            .update_log(&added_roles, &removed_roles, &disc_nick)
+                            .build()
+                            .unwrap();
+                        c.logger.log_guild(&c, guild_id, log_embed).await;
+                    }
+                }
             }
         }
+        let _ = c
+            .http
+            .create_message(channel_id)
+            .content("Finished updating all members")
+            .unwrap()
+            .await;
     });
     Ok(())
 }
@@ -161,6 +181,7 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
+    let channel_id = msg.channel_id;
     tokio::spawn(async move {
         for user in users {
             if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
@@ -173,7 +194,8 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
                     }
                 }
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
-                let _ = user
+                let name = member.user.name.clone();
+                if let Ok((added_roles, removed_roles, disc_nick)) = user
                     .update(
                         c.http.clone(),
                         member,
@@ -182,9 +204,27 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
                         &guild,
                         &guild_roles,
                     )
-                    .await;
+                    .await
+                {
+                    if !added_roles.is_empty() || !removed_roles.is_empty() {
+                        let log_embed = EmbedBuilder::new()
+                            .default_data()
+                            .title(format!("Mass Update: {}", name))
+                            .unwrap()
+                            .update_log(&added_roles, &removed_roles, &disc_nick)
+                            .build()
+                            .unwrap();
+                        c.logger.log_guild(&c, guild_id, log_embed).await;
+                    }
+                }
             }
         }
+        let _ = c
+            .http
+            .create_message(channel_id)
+            .content("Finished updating all members")
+            .unwrap()
+            .await;
     });
     Ok(())
 }

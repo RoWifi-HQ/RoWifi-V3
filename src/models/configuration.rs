@@ -13,6 +13,12 @@ pub struct Configuration {
     pub prefixes: DashMap<GuildId, String>,
 }
 
+pub struct BotConfig {
+    pub cluster_id: u64,
+    pub shards_per_cluster: u64,
+    pub total_shards: u64,
+}
+
 impl Configuration {
     pub fn default_prefix(mut self, prefix: &str) -> Self {
         self.default_prefix = prefix.to_string();

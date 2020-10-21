@@ -41,7 +41,7 @@ pub async fn serverinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                 .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Shard Id", ctx.shard_id.to_string())
+            EmbedFieldBuilder::new("Cluster Id", ctx.bot_config.cluster_id.to_string())
                 .unwrap()
                 .inline(),
         )

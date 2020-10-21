@@ -353,7 +353,9 @@ impl Cache {
     pub fn cache_guild(&self, guild: Guild) {
         self.0.guild_roles.insert(guild.id, HashSet::new());
         self.0.guild_channels.insert(guild.id, HashSet::new());
-        self.0.guild_members.insert(guild.id, HashSet::new());
+        if !self.0.guild_members.contains_key(&guild.id) {
+            self.0.guild_members.insert(guild.id, HashSet::new());
+        }
 
         let bypass_role = guild
             .roles

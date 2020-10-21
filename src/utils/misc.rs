@@ -53,6 +53,7 @@ pub async fn paginate_embed(
     pages: Vec<Embed>,
     page_count: usize,
 ) -> Result<(), RoError> {
+    let page_count = page_count as isize;
     if page_count <= 1 {
         let _ = ctx
             .http
@@ -136,7 +137,7 @@ pub async fn paginate_embed(
             })
             .timeout(Duration::from_secs(300));
 
-        let mut page_pointer: usize = 0;
+        let mut page_pointer: isize = 0;
         while let Some(Ok(reaction)) = reactions.next().await {
             if let ReactionType::Unicode { name } = &reaction.emoji {
                 if name == "⏮️" {
@@ -154,7 +155,7 @@ pub async fn paginate_embed(
                 let _ = ctx
                     .http
                     .update_message(channel_id, message_id)
-                    .embed(pages[page_pointer].clone())
+                    .embed(pages[page_pointer as usize].clone())
                     .unwrap()
                     .await;
                 let _ = ctx

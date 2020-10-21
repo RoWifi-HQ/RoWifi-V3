@@ -29,7 +29,7 @@ pub struct EventHandler(Arc<EventHandlerRef>);
 impl EventHandler {
     pub async fn handle_event(
         &self,
-        _shard_id: u64,
+        shard_id: u64,
         event: &Event,
         ctx: &Context,
     ) -> Result<(), RoError> {
@@ -39,6 +39,8 @@ impl EventHandler {
                     self.0.unavailable.remove(&guild.id);
                     if self.0.unavailable.is_empty()
                         && !self.0.auto_detection_started.load(Ordering::SeqCst)
+                        && shard_id % ctx.bot_config.shards_per_cluster
+                            == ctx.bot_config.shards_per_cluster - 1
                     {
                         self.0.auto_detection_started.store(true, Ordering::SeqCst);
                         let context_ad = ctx.clone();
