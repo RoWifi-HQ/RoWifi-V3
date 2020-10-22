@@ -77,7 +77,7 @@ impl UpdateCache for ChannelUpdate {
 
 impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_guild(self.0.clone());
+        let old_guild = c.cache_guild(self.0.clone());
         let guild = c.guild(self.id).unwrap();
         guild
             .member_count
@@ -86,38 +86,44 @@ impl UpdateCache for GuildCreate {
         for channel in self.channels.keys() {
             c.cache_channel_permissions(self.id, *channel);
         }
+        if old_guild.is_none() {
+            c.0.stats.resource_counts.guilds.inc();
+            c.0.stats
+                .resource_counts
+                .users
+                .add(self.member_count.unwrap() as i64);
+        }
         Ok(())
     }
 }
 
 impl UpdateCache for GuildDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.0.guilds.remove(&self.id);
+        let guild = c.0.guilds.remove(&self.id);
         c.0.guild_permissions.remove(&self.id);
-
-        {
-            if let Some((_, ids)) = c.0.guild_channels.remove(&self.id) {
-                for id in ids {
-                    c.0.channels.remove(&id);
-                    c.0.channel_permissions.remove(&id);
-                }
+        if let Some((_, ids)) = c.0.guild_channels.remove(&self.id) {
+            for id in ids {
+                c.0.channels.remove(&id);
+                c.0.channel_permissions.remove(&id);
+            }
+        }
+        if let Some((_, ids)) = c.0.guild_roles.remove(&self.id) {
+            for id in ids {
+                c.0.roles.remove(&id);
+            }
+        }
+        if let Some((_, ids)) = c.0.guild_members.remove(&self.id) {
+            for id in ids {
+                c.0.members.remove(&(self.id, id));
             }
         }
 
-        {
-            if let Some((_, ids)) = c.0.guild_roles.remove(&self.id) {
-                for id in ids {
-                    c.0.roles.remove(&id);
-                }
-            }
-        }
-
-        {
-            if let Some((_, ids)) = c.0.guild_members.remove(&self.id) {
-                for id in ids {
-                    c.0.members.remove(&(self.id, id));
-                }
-            }
+        if let Some(guild) = guild {
+            c.0.stats.resource_counts.guilds.dec();
+            c.0.stats
+                .resource_counts
+                .users
+                .sub(guild.1.member_count.load(Ordering::SeqCst));
         }
 
         Ok(())
@@ -147,6 +153,7 @@ impl UpdateCache for MemberAdd {
         c.cache_member(self.guild_id, self.0.clone());
         let guild = c.guild(self.guild_id).unwrap();
         guild.member_count.fetch_add(1, Ordering::SeqCst);
+        c.0.stats.resource_counts.users.inc();
         Ok(())
     }
 }
@@ -170,7 +177,7 @@ impl UpdateCache for MemberRemove {
             guild.member_count.fetch_sub(1, Ordering::SeqCst);
             members.remove(&self.user.id);
         }
-
+        c.0.stats.resource_counts.users.dec();
         Ok(())
     }
 }

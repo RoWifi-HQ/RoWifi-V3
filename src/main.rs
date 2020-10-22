@@ -90,7 +90,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .build()
     .await?;
 
-    let cache = Cache::new();
+    let stats = Arc::new(BotStats::new(cluster_id));
+    let cache = Cache::new(stats.clone());
     let standby = Standby::new();
 
     let database = Database::new(&conn_string).await;
@@ -110,7 +111,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             .council(council),
     );
     let patreon = Patreon::new(&patreon_key);
-    let stats = Arc::new(BotStats::new(cluster_id));
     let bot_config = Arc::new(BotConfig {
         cluster_id,
         shards_per_cluster,

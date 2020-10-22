@@ -20,7 +20,6 @@ pub async fn auto_detection(ctx: Context) {
 
 async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
-    println!("{}", servers.len());
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {

@@ -2,10 +2,17 @@ use itertools::Itertools;
 use reqwest::Client;
 use serde_json::Value;
 use std::collections::HashMap;
+use thiserror::Error;
 
-use super::error::RoError;
+#[derive(Debug, Error)]
+pub enum RobloxError {
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+    #[error("There was a problem in calling the Roblox API")]
+    MissingField,
+}
 
-type Result<T> = std::result::Result<T, RoError>;
+type Result<T> = std::result::Result<T, RobloxError>;
 
 #[derive(Clone)]
 pub struct Roblox {
@@ -25,24 +32,29 @@ impl Roblox {
         );
         let body: Value = self.client.get(&url).send().await?.json::<Value>().await?;
 
-        let resp = body["data"].as_array().unwrap();
-
-        let mut ranks = HashMap::new();
-        for rank in resp.iter() {
-            ranks.insert(
-                rank["group"]["id"].as_i64().unwrap(),
-                rank["role"]["rank"].as_i64().unwrap(),
-            );
+        if let Some(resp) = body["data"].as_array() {
+            let mut ranks = HashMap::new();
+            for rank in resp.iter() {
+                ranks.insert(
+                    rank["group"]["id"].as_i64().unwrap(),
+                    rank["role"]["rank"].as_i64().unwrap(),
+                );
+            }
+            return Ok(ranks);
         }
-        Ok(ranks)
+
+        Err(RobloxError::MissingField)
     }
 
     pub async fn get_username_from_id(&self, roblox_id: i64) -> Result<String> {
         let url = format!("https://api.roblox.com/users/{}", roblox_id);
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
 
-        let resp = body["Username"].as_str().unwrap();
-        Ok(resp.to_string())
+        if let Some(resp) = body["Username"].as_str() {
+            Ok(resp.to_string())
+        } else {
+            Err(RobloxError::MissingField)
+        }
     }
 
     pub async fn get_id_from_username(&self, username: &str) -> Result<Option<i64>> {

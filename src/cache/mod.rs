@@ -1,3 +1,4 @@
+use crate::models::stats::BotStats;
 use crate::utils::misc::{channel_permissions, guild_wide_permissions};
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
@@ -48,7 +49,6 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V)
     }
 }
 
-#[derive(Debug, Default)]
 pub struct CacheRef {
     channels: DashMap<ChannelId, Arc<GuildChannel>>,
     guilds: DashMap<GuildId, Arc<CachedGuild>>,
@@ -65,18 +65,36 @@ pub struct CacheRef {
 
     guild_permissions: DashMap<GuildId, Permissions>,
     channel_permissions: DashMap<ChannelId, Permissions>,
+
+    stats: Arc<BotStats>,
 }
 
 /// An wrapper around the actual structure that hold all the cache field allowing this to be sent across multiple threads
-#[derive(Clone, Debug, Default)]
+#[derive(Clone)]
 pub struct Cache(Arc<CacheRef>);
 
 #[derive(Debug, Clone)]
 pub struct CacheError;
 
 impl Cache {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(stats: Arc<BotStats>) -> Self {
+        Self {
+            0: Arc::new(CacheRef {
+                channels: DashMap::new(),
+                guilds: DashMap::new(),
+                members: DashMap::new(),
+                roles: DashMap::new(),
+                users: DashMap::new(),
+                guild_roles: DashMap::new(),
+                guild_channels: DashMap::new(),
+                guild_members: DashMap::new(),
+                unavailable_guilds: DashSet::new(),
+                current_user: Mutex::new(None),
+                guild_permissions: DashMap::new(),
+                channel_permissions: DashMap::new(),
+                stats,
+            }),
+        }
     }
 
     /// Returns the bot user
@@ -350,7 +368,7 @@ impl Cache {
         }
     }
 
-    pub fn cache_guild(&self, guild: Guild) {
+    pub fn cache_guild(&self, guild: Guild) -> Option<Arc<CachedGuild>> {
         self.0.guild_roles.insert(guild.id, HashSet::new());
         self.0.guild_channels.insert(guild.id, HashSet::new());
         if !self.0.guild_members.contains_key(&guild.id) {
@@ -400,7 +418,7 @@ impl Cache {
         };
 
         self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, Arc::new(cached));
+        self.0.guilds.insert(guild.id, Arc::new(cached))
     }
 
     pub fn cache_user(&self, user: User) -> Arc<User> {

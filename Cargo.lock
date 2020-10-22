@@ -49,18 +49,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
-name = "async-tls"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7e7fbc0843fc5ad3d5ca889c5b2bea9130984d34cd0e62db57ab70c2529a8e3"
-dependencies = [
- "futures",
- "rustls 0.18.1",
- "webpki",
- "webpki-roots 0.20.0",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -68,22 +56,23 @@ checksum = "b246867b8b3b6ae56035f1eb1ed557c1d8eae97f0d53696138a50fa0e3a3b8c0"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
 name = "async-tungstenite"
-version = "0.8.0"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5c45a0dd44b7e6533ac4e7acc38ead1a3b39885f5bbb738140d30ea528abc7c"
+checksum = "9ce503a5cb1e7450af7d211b86b84807791b251f335b2f43f1e26b85a416f315"
 dependencies = [
- "async-tls",
  "futures-io",
  "futures-util",
  "log",
- "pin-project",
+ "pin-project 1.0.1",
  "tokio",
+ "tokio-rustls 0.14.1",
  "tungstenite",
+ "webpki-roots 0.20.0",
 ]
 
 [[package]]
@@ -92,7 +81,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -289,11 +278,11 @@ checksum = "8aebca1129a03dc6dc2b127edd729435bbc4a37e1d5f4d7513165089ceb02634"
 
 [[package]]
 name = "crc32fast"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba125de2af0df55319f41944744ad91c71113bf74a4646efff39afe1f6842db1"
+checksum = "81156fece84ab6a9f2afdb109ce3ae577e42b1228441eded99bd77f627953b1a"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -327,7 +316,7 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
  "strsim 0.9.3",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -338,7 +327,7 @@ checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
 dependencies = [
  "darling_core",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -360,7 +349,7 @@ checksum = "cb582b60359da160a9477ee80f15c8d784c477e69c217ef2cdd4169c24ea380f"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -417,7 +406,7 @@ dependencies = [
  "heck",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -430,7 +419,7 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
  "rustversion",
- "syn 1.0.45",
+ "syn 1.0.46",
  "synstructure",
 ]
 
@@ -552,7 +541,7 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -583,7 +572,7 @@ dependencies = [
  "futures-sink",
  "futures-task",
  "memchr",
- "pin-project",
+ "pin-project 0.4.27",
  "pin-utils",
  "proc-macro-hack",
  "proc-macro-nested",
@@ -776,7 +765,7 @@ dependencies = [
  "httparse",
  "httpdate",
  "itoa",
- "pin-project",
+ "pin-project 0.4.27",
  "socket2",
  "tokio",
  "tower-service",
@@ -1104,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "1.1.1"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#09e1193f93dcd850ebebb7fb82f6ab786fd85de1"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#9c0f1f1095370a54dd0b6740d9bbd886419aa57e"
 dependencies = [
  "async-trait",
  "base64 0.11.0",
@@ -1301,7 +1290,16 @@ version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ffbc8e94b38ea3d2d8ba92aea2983b503cd75d0888d75b86bb37970b5698e15"
 dependencies = [
- "pin-project-internal",
+ "pin-project-internal 0.4.27",
+]
+
+[[package]]
+name = "pin-project"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee41d838744f60d959d7074e3afb6b35c7456d0f61cad38a24e35e6553f73841"
+dependencies = [
+ "pin-project-internal 1.0.1",
 ]
 
 [[package]]
@@ -1312,14 +1310,25 @@ checksum = "65ad2ae56b6abe3a1ee25f15ee605bacadb9a764edaba9c2bf4103800d4a1895"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
+]
+
+[[package]]
+name = "pin-project-internal"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81a4ffa594b66bff340084d4081df649a7dc049ac8d7fc458d8e628bfbbb2f86"
+dependencies = [
+ "proc-macro2 1.0.24",
+ "quote 1.0.7",
+ "syn 1.0.46",
 ]
 
 [[package]]
 name = "pin-project-lite"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e555d9e657502182ac97b539fb3dae8b79cda19e3e4f8ffb5e8de4f18df93c95"
+checksum = "c917123afa01924fc84bb20c4c03f004d9c38e5127e3c039bbf7f4b9c76a2f6b"
 
 [[package]]
 name = "pin-utils"
@@ -1348,7 +1357,7 @@ dependencies = [
  "proc-macro-error-attr",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
  "version_check",
 ]
 
@@ -1615,9 +1624,9 @@ dependencies = [
 
 [[package]]
 name = "rustc-demangle"
-version = "0.1.17"
+version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2610b7f643d18c87dff3b489950269617e6601a51f1f05aa5daefee36f64f0b"
+checksum = "6e3bad0ee36814ca07d7968269dd4b7ec89ec2da10c4bb613928d3077083c232"
 
 [[package]]
 name = "rustls"
@@ -1653,7 +1662,7 @@ checksum = "b9bdc5e856e51e685846fb6c13a1f5e5432946c2c90501bdc76a1319f19e29da"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -1723,7 +1732,7 @@ checksum = "cbd1ae72adb44aab48f325a02444a5fc079349a8d804c1fc922aed3f7454c74e"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -1746,7 +1755,7 @@ checksum = "2dc6b7951b17b051f3210b063f12cc17320e2fe30ae05b0fe2a3abb068551c76"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -1780,7 +1789,7 @@ dependencies = [
  "darling",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -1922,9 +1931,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.45"
+version = "1.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea9c5432ff16d6152371f808fb5a871cd67368171b09bb21b43df8e4a47a3556"
+checksum = "5ad5de3220ea04da322618ded2c42233d02baca219d6f160a3e9c87cda16c942"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
@@ -1939,7 +1948,7 @@ checksum = "b834f2d66f734cb897113e34aaff2f1ab4719ca946f9a7358dba8f8064148701"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
  "unicode-xid 0.2.1",
 ]
 
@@ -1966,7 +1975,7 @@ checksum = "cae2447b6282786c3493999f40a9be2a6ad20cb8bd268b0a0dbf5a065535c0ab"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -2027,7 +2036,7 @@ checksum = "f0c3acc6aa564495a0f2e1d59fab677cd7f81a19994cfc7f3ad0e64301560389"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -2095,7 +2104,7 @@ checksum = "80e0ccfc3378da0cce270c946b676a376943f5cd16aeba64568e7939806f4ada"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
 ]
 
 [[package]]
@@ -2226,7 +2235,7 @@ dependencies = [
 [[package]]
 name = "twilight-command-parser"
 version = "0.2.0-beta.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "unicase",
 ]
@@ -2234,7 +2243,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.2.0-beta.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "twilight-model",
 ]
@@ -2242,7 +2251,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.2.0-beta.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2265,7 +2274,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.1.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2277,7 +2286,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.2.0-beta.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2296,7 +2305,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.2.0-beta.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "twilight-model",
 ]
@@ -2304,7 +2313,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.2.0-beta.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "bitflags",
  "serde",
@@ -2317,7 +2326,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.2.0-beta.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#650e1d283787df54adf92afed5fb95ee0ba39fd9"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#618e17469843632e4b7197a9d3ddd067cf49bf62"
 dependencies = [
  "dashmap",
  "futures-channel",
@@ -2495,7 +2504,7 @@ dependencies = [
  "log",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
  "wasm-bindgen-shared",
 ]
 
@@ -2529,7 +2538,7 @@ checksum = "f249f06ef7ee334cc3b8ff031bfc11ec99d00f34d86da7498396dc1e3b1498fe"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.45",
+ "syn 1.0.46",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]

@@ -1,3 +1,4 @@
+use super::roblox::RobloxError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -12,13 +13,16 @@ pub enum RoError {
     Deserialization(#[from] bson::de::Error),
 
     #[error(transparent)]
-    Roblox(#[from] reqwest::Error),
+    Roblox(#[from] RobloxError),
 
     #[error(transparent)]
     Discord(#[from] twilight_http::Error),
 
     #[error(transparent)]
     Command(#[from] CommandError),
+
+    #[error(transparent)]
+    Patreon(#[from] reqwest::Error),
 }
 
 #[derive(Debug, Error)]

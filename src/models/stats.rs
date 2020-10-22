@@ -171,28 +171,13 @@ impl BotStats {
             Event::ChannelDelete(_) => self.event_counts.channel_delete.inc(),
             Event::ChannelUpdate(_) => self.event_counts.channel_update.inc(),
             Event::GatewayReconnect => self.event_counts.gateway_reconnect.inc(),
-            Event::GuildCreate(_) => {
-                self.event_counts.guild_create.inc();
-                self.resource_counts.guilds.inc();
-            }
-            Event::GuildDelete(_) => {
-                self.event_counts.guild_delete.inc();
-                self.resource_counts.guilds.dec();
-            }
+            Event::GuildCreate(_) => self.event_counts.guild_create.inc(),
+            Event::GuildDelete(_) => self.event_counts.guild_delete.inc(),
             Event::GuildUpdate(_) => self.event_counts.guild_update.inc(),
-            Event::MemberAdd(_) => {
-                self.event_counts.member_add.inc();
-                self.resource_counts.users.inc();
-            }
-            Event::MemberRemove(_) => {
-                self.event_counts.member_remove.inc();
-                self.resource_counts.users.dec();
-            }
+            Event::MemberAdd(_) => self.event_counts.member_add.inc(),
+            Event::MemberRemove(_) => self.event_counts.member_remove.inc(),
             Event::MemberUpdate(_) => self.event_counts.member_update.inc(),
-            Event::MemberChunk(mc) => {
-                self.event_counts.member_chunk.inc();
-                self.resource_counts.users.add(mc.members.len() as i64);
-            }
+            Event::MemberChunk(_) => self.event_counts.member_chunk.inc(),
             Event::MessageCreate(_) => self.event_counts.message_create.inc(),
             Event::MessageDelete(_) => self.event_counts.message_delete.inc(),
             Event::MessageDeleteBulk(_) => self.event_counts.message_delete_bulk.inc(),
