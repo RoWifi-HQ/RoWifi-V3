@@ -472,6 +472,5 @@ impl Cache {
 
     pub fn unavailable_guild(&self, guild_id: GuildId) {
         self.0.unavailable_guilds.insert(guild_id);
-        self.0.guilds.remove(&guild_id);
     }
 }

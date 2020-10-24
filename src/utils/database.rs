@@ -32,17 +32,19 @@ impl Database {
         let guild_bson = bson::to_bson(&guild)?;
         if let Bson::Document(g) = guild_bson {
             if replace {
-                let _ = guilds
-                    .find_one_and_replace(
-                        doc! {"_id": guild.id},
-                        g,
-                        FindOneAndReplaceOptions::default(),
-                    )
+                let mut options = FindOneAndReplaceOptions::default();
+                options.return_document = Some(ReturnDocument::After);
+                let res = guilds
+                    .find_one_and_replace(doc! {"_id": guild.id}, g, options)
                     .await?;
+                if let Some(res) = res {
+                    let guild = Arc::new(bson::from_bson::<RoGuild>(Bson::Document(res))?);
+                    self.guild_cache.insert(guild.id, guild);
+                }
             } else {
                 let _ = guilds.insert_one(g, InsertOneOptions::default()).await?;
+                self.guild_cache.insert(guild.id, Arc::new(guild));
             }
-            self.guild_cache.insert(guild.id, Arc::new(guild));
         }
         Ok(())
     }

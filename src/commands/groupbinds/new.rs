@@ -69,6 +69,7 @@ pub async fn groupbinds_new(
             .embed(embed)
             .unwrap()
             .await?;
+        return Ok(());
     }
 
     let server_roles = ctx.cache.roles(msg.guild_id.unwrap());

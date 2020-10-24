@@ -1,6 +1,9 @@
+use std::sync::atomic::Ordering;
+
 use crate::framework::prelude::*;
 use crate::models::guild::GuildType;
-use twilight_model::id::UserId;
+use twilight_gateway::Event;
+use twilight_model::{gateway::payload::RequestGuildMembers, id::UserId};
 
 pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -72,12 +75,37 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         .unwrap()
         .await?;
     let server = ctx.cache.guild(guild_id).unwrap();
-    let members = ctx
+    let mut members = ctx
         .cache
         .members(guild_id)
         .into_iter()
         .map(|m| m.0)
         .collect::<Vec<_>>();
+    if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+        let req = RequestGuildMembers::builder(server.id).query("", None);
+        let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
+        if ctx.cluster.command(shard_id, &req).await.is_err() {
+            let _ = ctx.http.create_message(msg.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await;
+            return Ok(());
+        }
+        let _ = ctx
+            .standby
+            .wait_for_event(move |event: &Event| {
+                if let Event::MemberChunk(mc) = event {
+                    if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                        return true;
+                    }
+                }
+                false
+            })
+            .await;
+        members = ctx
+            .cache
+            .members(guild_id)
+            .into_iter()
+            .map(|m| m.0)
+            .collect::<Vec<_>>();
+    }
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
@@ -172,12 +200,37 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
     };
 
     let server = ctx.cache.guild(guild_id).unwrap();
-    let members = ctx
+    let mut members = ctx
         .cache
         .members(guild_id)
         .into_iter()
         .map(|m| m.0)
         .collect::<Vec<_>>();
+    if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+        let req = RequestGuildMembers::builder(server.id).query("", None);
+        let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
+        if ctx.cluster.command(shard_id, &req).await.is_err() {
+            let _ = ctx.http.create_message(msg.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await;
+            return Ok(());
+        }
+        let _ = ctx
+            .standby
+            .wait_for_event(move |event: &Event| {
+                if let Event::MemberChunk(mc) = event {
+                    if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                        return true;
+                    }
+                }
+                false
+            })
+            .await;
+        members = ctx
+            .cache
+            .members(guild_id)
+            .into_iter()
+            .map(|m| m.0)
+            .collect::<Vec<_>>();
+    }
     let users = ctx.database.get_users(members).await?;
     let guild_roles = ctx.cache.roles(guild_id);
     let c = ctx.clone();
