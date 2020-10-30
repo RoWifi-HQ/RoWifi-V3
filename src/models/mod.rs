@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod bind;
 pub mod blacklist;
 pub mod command;

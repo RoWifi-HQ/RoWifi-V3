@@ -1,3 +1,4 @@
+mod analytics;
 mod assetbinds;
 mod backup;
 mod blacklists;
@@ -10,6 +11,7 @@ mod rankbinds;
 mod settings;
 mod user;
 
+pub use analytics::*;
 pub use assetbinds::*;
 pub use backup::*;
 pub use blacklists::*;

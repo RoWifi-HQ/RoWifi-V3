@@ -57,6 +57,10 @@ pub struct RoGuild {
     #[serde(default)]
     pub disabled_channels: Vec<i64>,
 
+    #[serde(rename = "RegisteredGroups")]
+    #[serde(default)]
+    pub registered_groups: Vec<i64>,
+
     #[serde(skip_serializing)]
     pub all_roles: Vec<i64>,
 }
@@ -251,6 +255,7 @@ impl RoGuild {
             assetbinds,
             blacklists: backup.blacklists,
             disabled_channels: Vec::new(),
+            registered_groups: Vec::new(),
             all_roles,
         }
     }
@@ -276,6 +281,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             AssetBinds,
             Blacklists,
             DisabledChannels,
+            RegisteredGroups,
         }
 
         struct RoGuildVisitor;
@@ -299,6 +305,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let mut assetbinds = None::<Vec<AssetBind>>;
                 let mut blacklists = None;
                 let mut disabled_channels = None;
+                let mut registered_groups = None;
 
                 while let Some(key) = map.next_key()? {
                     match key {
@@ -368,6 +375,12 @@ impl<'de> Deserialize<'de> for RoGuild {
                             }
                             disabled_channels = Some(map.next_value()?);
                         }
+                        Field::RegisteredGroups => {
+                            if registered_groups.is_some() {
+                                return Err(DeError::duplicate_field("RegisteredGroups"));
+                            }
+                            registered_groups = Some(map.next_value()?);
+                        }
                     }
                 }
 
@@ -384,6 +397,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let assetbinds = assetbinds.unwrap_or_default();
                 let blacklists = blacklists.unwrap_or_default();
                 let disabled_channels = disabled_channels.unwrap_or_default();
+                let registered_groups = registered_groups.unwrap_or_default();
                 let all_roles = rankbinds
                     .iter()
                     .flat_map(|r| r.discord_roles.iter().cloned())
@@ -416,6 +430,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                     assetbinds,
                     blacklists,
                     disabled_channels,
+                    registered_groups,
                     all_roles,
                 })
             }
@@ -433,6 +448,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             "AssetBinds",
             "Blacklists",
             "DisabledChannels",
+            "RegisteredGroups",
         ];
 
         deserializer.deserialize_struct("RoGuild", FIELDS, RoGuildVisitor)

@@ -311,7 +311,7 @@ impl Framework {
                     let _ = context
                         .http
                         .create_message(msg.channel_id)
-                        .content("Commmand cancelled. Please try again")
+                        .content("Command cancelled. Please try again")
                         .unwrap()
                         .await;
                 }

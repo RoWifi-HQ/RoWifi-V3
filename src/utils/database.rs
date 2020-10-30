@@ -1,5 +1,6 @@
 use super::error::RoError;
 use crate::models::{
+    analytics::Group,
     guild::{BackupGuild, GuildType, RoGuild},
     user::*,
 };
@@ -348,5 +349,26 @@ impl Database {
             }
         }
         Ok(())
+    }
+
+    pub async fn get_analytics_membercount(&self, filter: Document) -> Result<Vec<Group>, RoError> {
+        let member_count = self.client.database("Analytics").collection("member_count");
+        let mut cursor = member_count.find(filter, FindOptions::default()).await?;
+        let mut result = Vec::<Group>::new();
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(ref document) => {
+                    let doc = Bson::Document(document.to_owned());
+                    match bson::from_bson::<Group>(doc) {
+                        Ok(group) => result.push(group),
+                        Err(e) => {
+                            tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                        }
+                    }
+                }
+                Err(e) => tracing::error!(error = ?e, "Error in the cursor"),
+            }
+        }
+        Ok(result)
     }
 }

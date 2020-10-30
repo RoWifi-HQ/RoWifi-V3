@@ -135,6 +135,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .command(&CUSTOMBINDS_COMMAND)
         .command(&ASSETBINDS_COMMAND)
         .command(&BLACKLISTS_COMMAND)
+        .command(&ANALYTICS_COMMAND)
         .command(&SETTINGS_COMMAND)
         .command(&SETUP_COMMAND)
         .command(&UPDATE_ALL_COMMAND)
