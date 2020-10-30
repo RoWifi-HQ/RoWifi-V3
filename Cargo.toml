@@ -12,12 +12,13 @@ lto = true
 [dependencies]
 async-trait = "*"
 attributes = { path = "./src/attributes" }
-bson = "1.1.0-beta"
+bson = "1.1"
 chrono = "*"
 dashmap = "*"
 dotenv = "*"
 futures = "*"
 hyper = "*"
+image = "0.23"
 itertools = "*"
 lazy_static = "*"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
@@ -25,7 +26,7 @@ prometheus = "*"
 rand = "*"
 regex = "*"
 reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
-plotters = "0.3"
+plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 serde = "1.0"
 serde_json = "1.0"
 serde_repr = "0.1"

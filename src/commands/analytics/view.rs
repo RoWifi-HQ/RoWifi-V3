@@ -1,9 +1,9 @@
 use crate::framework::prelude::{Color as DiscordColor, *};
 use crate::models::guild::GuildType;
 use chrono::{Duration, Utc};
+use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
-use std::fs::File;
-use std::io::prelude::*;
+use std::io::Cursor;
 
 pub static ANALYTICS_VIEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -122,9 +122,10 @@ pub async fn analytics_view(
     max_members += diff / 10;
     let iterator = group_data.iter().map(|g| (g.timestamp.0, g.member_count));
 
-    let name = format!("images/{}.png", msg.guild_id.unwrap().0);
+    let mut buffer = vec![0u8; 1024 * 768 * 3];
     {
-        let root_drawing_area = BitMapBackend::new(&name, (1024, 768)).into_drawing_area();
+        let root_drawing_area =
+            BitMapBackend::with_buffer(&mut buffer, (1024, 768)).into_drawing_area();
         root_drawing_area.fill(&WHITE).unwrap();
         let mut chart = ChartBuilder::on(&root_drawing_area)
             .caption(server.name.clone(), ("Arial", 30))
@@ -139,13 +140,14 @@ pub async fn analytics_view(
         chart.draw_series(LineSeries::new(iterator, &RED)).unwrap();
     }
 
-    let mut file = File::open(name).unwrap();
-    let mut contents = Vec::new();
-    file.read_to_end(&mut contents).unwrap();
+    let mut bytes = Vec::new();
+    let img = PngEncoder::new(Cursor::new(&mut bytes));
+    img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
+
     let _ = ctx
         .http
         .create_message(msg.channel_id)
-        .attachment("analytics.png", contents)
+        .attachment("analytics.png", bytes)
         .await?;
     Ok(())
 }
