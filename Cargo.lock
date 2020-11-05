@@ -2,9 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "addr2line"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b6a2d3371669ab3ca9797670853d61402b03d0b4b9ebf33d677dfa720203072"
+checksum = "7c0929d69e78dd9bf5408269919fcbcaeb2e35e5d43e5815517cdc6a8e11a423"
 dependencies = [
  "gimli",
 ]
@@ -32,9 +32,9 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.7.14"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b476ce7103678b0c6d3d395dbbae31d48ff910bd28be979ba5d48c6351131d0d"
+checksum = "7404febffaa47dac81aa44dba71523c9d069b1bdc50a77db41195149e17f68e5"
 dependencies = [
  "memchr",
 ]
@@ -56,12 +56,6 @@ checksum = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
 dependencies = [
  "num-traits",
 ]
-
-[[package]]
-name = "arc-swap"
-version = "0.4.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d25d88fd6b8041580a654f9d0c581a047baee2b3efee13275f2fc392fc75034"
 
 [[package]]
 name = "arrayref"
@@ -119,9 +113,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "backtrace"
-version = "0.3.53"
+version = "0.3.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707b586e0e2f247cbde68cdd2c3ce69ea7b7be43e1c5b426e37c9319c4b9838e"
+checksum = "2baad346b2d4e94a24347adeee9c7a93f412ee94b9cc26e5b59dea23848e9f28"
 dependencies = [
  "addr2line",
  "cfg-if 1.0.0",
@@ -151,9 +145,9 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "blake2b_simd"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8fb2d74254a3a0b5cac33ac9f8ed0e44aa50378d9dbb2e5d83bd21ed1dc2c8a"
+checksum = "afa748e348ad3be8263be728124b24a24f268266f6f5d58af9d75f6a40b5c587"
 dependencies = [
  "arrayref",
  "arrayvec",
@@ -322,9 +316,9 @@ dependencies = [
 
 [[package]]
 name = "const_fn"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce90df4c658c62f12d78f7508cf92f9173e5184a539c10bfe54a3107b3ffd0f2"
+checksum = "c478836e029dcef17fb47c89023448c64f781a046e0300e257ad8225ae59afab"
 
 [[package]]
 name = "constant_time_eq"
@@ -593,11 +587,11 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.24"
+version = "0.8.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a51b8cf747471cb9499b6d59e59b0444f4c90eba8968c4e44874e92b5b64ace2"
+checksum = "801bbab217d7f79c0062f4f7205b5d4427c6d1a7bd7aafdd1475f7c59d62b283"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -644,11 +638,11 @@ checksum = "e88a8acf291dafb59c2d96e8f59828f3838bb1a70398823ade51a84de6a6deed"
 
 [[package]]
 name = "flate2"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da80be589a72651dcda34d8b35bcdc9b7254ad06325611074d9cc0fbb19f60ee"
+checksum = "7411863d55df97a419aa64cb4d2f167103ea9d767e2c54a1868b7ac3f6b47129"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "crc32fast",
  "libc",
  "libz-sys",
@@ -914,9 +908,9 @@ dependencies = [
 
 [[package]]
 name = "gimli"
-version = "0.22.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aaf91faf136cb47367fa430cd46e37a788775e7fa104f8b4bcb3861dc389b724"
+checksum = "f6503fe142514ca4799d4c26297c4248239fe8838d827db6bd6065c6ed29a6ce"
 
 [[package]]
 name = "h2"
@@ -1044,9 +1038,9 @@ checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
 
 [[package]]
 name = "hyper"
-version = "0.13.8"
+version = "0.13.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f3afcfae8af5ad0576a31e768415edb627824129e8e5a29b8bfccb2f234e835"
+checksum = "f6ad767baac13b44d4529fcf58ba2cd0995e36e7b435bc5b039de6f47e880dbf"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1058,7 +1052,7 @@ dependencies = [
  "httparse",
  "httpdate",
  "itoa",
- "pin-project 0.4.27",
+ "pin-project 1.0.1",
  "socket2",
  "tokio",
  "tower-service",
@@ -1446,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "1.1.1"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#4eb171cd412a4d4227bd3c6690838a3a84b5158c"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#89a8e9cf17292b56b7e7e7791416426896c6f48f"
 dependencies = [
  "async-trait",
  "base64 0.11.0",
@@ -1552,9 +1546,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.21.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37fd5004feb2ce328a52b0b3d01dbf4ffff72583493900ed15f22d4111c51693"
+checksum = "8d3b63360ec3cb337817c2dbd47ab4a0f170d285d8e5a2064600f3def1402397"
 
 [[package]]
 name = "once_cell"
@@ -1791,9 +1785,9 @@ dependencies = [
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.9"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
+checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 
 [[package]]
 name = "proc-macro-error"
@@ -1979,9 +1973,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.4.1"
+version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8963b85b8ce3074fecffde43b4b0dded83ce2f367dc8d363afc56679f3ee820b"
+checksum = "38cf2c13ed4745de91a5eb834e11c00bcc3709e773173b2ce4c56c9fbde04b9c"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -2001,9 +1995,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.20"
+version = "0.6.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cab7a364d15cde1e505267766a2d3c4e22a843e1a601f0fa7564c0f82ced11c"
+checksum = "3b181ba2dcf07aaccad5448e8ead58db5b742cf85dfe035e2227f137a539a189"
 
 [[package]]
 name = "reqwest"
@@ -2385,12 +2379,12 @@ dependencies = [
 
 [[package]]
 name = "sha-1"
-version = "0.9.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "170a36ea86c864a3f16dd2687712dd6646f7019f301e57537c7f4dc9f5916770"
+checksum = "ce3cdf1b5e620a498ee6f2a171885ac7e22f0e12089ec4b3d22b84921792507c"
 dependencies = [
  "block-buffer 0.9.0",
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "cpuid-bool",
  "digest 0.9.0",
  "opaque-debug 0.3.0",
@@ -2420,19 +2414,18 @@ dependencies = [
 
 [[package]]
 name = "signal-hook-registry"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3e12110bc539e657a646068aaf5eb5b63af9d0c1f7b29c97113fad80e15f035"
+checksum = "ce32ea0c6c56d5eacaeb814fbed9960547021d3edd010ded1425f180536b20ab"
 dependencies = [
- "arc-swap",
  "libc",
 ]
 
 [[package]]
 name = "simd-json"
-version = "0.3.21"
+version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b86b00ac02e31a16d790de22dfed01b0255360a4a394f0481633fa2394ac21c"
+checksum = "854cd3144f6703b7b52da17b8c0ecb410c408bb99f79c52d711cf6617b8da07b"
 dependencies = [
  "halfbrown",
  "serde",
@@ -2549,18 +2542,18 @@ checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
 
 [[package]]
 name = "thiserror"
-version = "1.0.21"
+version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "318234ffa22e0920fe9a40d7b8369b5f649d490980cf7aadcf1eb91594869b42"
+checksum = "0e9ae34b84616eedaaf1e9dd6026dbe00dcafa92aa0c8077cb69df1fcfe5e53e"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.21"
+version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cae2447b6282786c3493999f40a9be2a6ad20cb8bd268b0a0dbf5a065535c0ab"
+checksum = "9ba20f23e85b10754cd195504aebf6a27e2e6cbe28c17778a0c930724628dd56"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
@@ -2749,9 +2742,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.2.14"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2810660b9d5b18895d140caba6401765749a6a162e5d0736cfc44ea50db9d79d"
+checksum = "a1fa8f0c8f4c594e4fc9debc1990deab13238077271ba84dd853d54902ee3401"
 dependencies = [
  "ansi_term",
  "chrono",
@@ -2837,32 +2830,31 @@ dependencies = [
  "input_buffer",
  "log",
  "rand",
- "sha-1 0.9.1",
+ "sha-1 0.9.2",
  "url",
  "utf-8",
 ]
 
 [[package]]
 name = "twilight-command-parser"
-version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+version = "0.2.2"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "unicase",
- "unicode-segmentation",
 ]
 
 [[package]]
 name = "twilight-embed-builder"
 version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "twilight-model",
 ]
 
 [[package]]
 name = "twilight-gateway"
-version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+version = "0.2.1"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2885,7 +2877,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2896,8 +2888,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-http"
-version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+version = "0.2.1"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2916,7 +2908,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "twilight-model",
 ]
@@ -2924,7 +2916,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "bitflags",
  "serde",
@@ -2937,7 +2929,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.2.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=trunk#c0d022527daf22ac00bf658688d740f99c3f3890"
+source = "git+https://github.com/twilight-rs/twilight?branch=trunk#ef31c7347562a26ec170f27bd24b6cd385ccd9e8"
 dependencies = [
  "dashmap",
  "futures-channel",

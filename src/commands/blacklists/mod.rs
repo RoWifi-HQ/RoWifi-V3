@@ -15,7 +15,7 @@ pub use name::*;
 pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
-    names: &["blacklists", "bl"],
+    names: &["blacklists", "bl", "blacklist"],
     desc: Some("Command to view the blacklists"),
     usage: None,
     examples: &[],

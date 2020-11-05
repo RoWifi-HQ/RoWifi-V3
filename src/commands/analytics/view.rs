@@ -90,7 +90,7 @@ pub async fn analytics_view(
 
     let server = ctx.cache.guild(msg.guild_id.unwrap()).unwrap();
 
-    let start_time = Utc::now().checked_sub_signed(Duration::days(7)).unwrap();
+    let start_time = Utc::now() - Duration::days(5);
     let filter = bson::doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
     let group_data = ctx.database.get_analytics_membercount(filter).await?;
 

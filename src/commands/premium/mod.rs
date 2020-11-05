@@ -59,13 +59,13 @@ pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) ->
     if let Some(premium_user) = ctx.database.get_premium((author.0).0).await? {
         embed = match premium_user.premium_type {
             PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System (Upcoming)").unwrap()),
             PremiumType::Alpha => embed.field(EmbedFieldBuilder::new("Tier", "Alpha").unwrap())
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
             PremiumType::Partner => embed.field(EmbedFieldBuilder::new("Tier", "Partner").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System (Upcoming)").unwrap()),
             PremiumType::Council => embed.field(EmbedFieldBuilder::new("Tier", "Council").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups").unwrap()),
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System (Upcoming)").unwrap()),
             PremiumType::Staff => embed.field(EmbedFieldBuilder::new("Tier", "Staff").unwrap())
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
         };

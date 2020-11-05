@@ -1,4 +1,4 @@
-use super::auto_detection;
+use super::{activity, auto_detection};
 use crate::framework::prelude::Context;
 use crate::utils::{
     error::{CommandError, RoError},
@@ -47,6 +47,10 @@ impl EventHandler {
                         tokio::spawn(async move {
                             let _ = auto_detection(context_ad).await;
                         });
+                        let context_ac = ctx.clone();
+                        tokio::spawn(async move {
+                            let _ = activity(context_ac).await;
+                        });
                     }
                 } else {
                     let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
@@ -89,15 +93,19 @@ impl EventHandler {
                 }
             }
             Event::GuildDelete(guild) => {
-                let log_embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Guild Leave")
-                    .unwrap()
-                    .description(format!("Server Id: {}", guild.id.0))
-                    .unwrap()
-                    .build()
-                    .unwrap();
-                ctx.logger.log_event(&ctx, log_embed).await;
+                if guild.unavailable {
+                    self.0.unavailable.insert(guild.id);
+                } else {
+                    let log_embed = EmbedBuilder::new()
+                        .default_data()
+                        .title("Guild Leave")
+                        .unwrap()
+                        .description(format!("Server Id: {}", guild.id.0))
+                        .unwrap()
+                        .build()
+                        .unwrap();
+                    ctx.logger.log_event(&ctx, log_embed).await;
+                }
             }
             Event::Ready(ready) => {
                 tracing::info!("RoWifi ready for service!");
