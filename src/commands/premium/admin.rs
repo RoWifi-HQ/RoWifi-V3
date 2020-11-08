@@ -115,10 +115,41 @@ pub async fn premium_delete(
 }
 
 #[command]
-pub async fn premium_check(
-    _ctx: &Context,
-    _msg: &Message,
-    _args: Arguments<'fut>,
-) -> CommandResult {
+pub async fn premium_check(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    let premium_users = ctx.database.get_all_premium().await?;
+    for user in premium_users {
+        if user.premium_patreon_owner.is_some() {
+            let (_patreon_id, tier) = ctx
+                .patreon
+                .get_patron(user.premium_owner.unwrap() as u64)
+                .await?;
+            if tier.is_none() {
+                ctx.http
+                    .create_message(msg.channel_id)
+                    .content(format!(
+                        "Transferred user {} with owner {} deleted from {:?}",
+                        user.discord_id,
+                        user.premium_owner.unwrap(),
+                        user.premium_type
+                    ))
+                    .unwrap()
+                    .await?;
+                ctx.database.delete_premium(user.discord_id as u64).await?;
+            }
+        } else if user.patreon_id.is_some() {
+            let (_patreon_id, tier) = ctx.patreon.get_patron(user.discord_id as u64).await?;
+            if tier.is_none() {
+                ctx.http
+                    .create_message(msg.channel_id)
+                    .content(format!(
+                        "User {} deleted from {:?}",
+                        user.discord_id, user.premium_type
+                    ))
+                    .unwrap()
+                    .await?;
+                ctx.database.delete_premium(user.discord_id as u64).await?;
+            }
+        }
+    }
     Ok(())
 }
