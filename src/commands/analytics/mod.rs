@@ -21,7 +21,7 @@ pub static ANALYTICS_OPTIONS: CommandOptions = CommandOptions {
         &ANALYTICS_UNREGISTER_COMMAND,
         &ANALYTICS_VIEW_COMMAND,
     ],
-    group: Some("Administration"),
+    group: Some("Premium"),
 };
 
 pub static ANALYTICS_COMMAND: Command = Command {
