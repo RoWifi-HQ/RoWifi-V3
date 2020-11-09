@@ -12,7 +12,7 @@ lto = true
 [dependencies]
 async-trait = "*"
 attributes = { path = "./src/attributes" }
-bson = "1.1"
+bson = "1"
 chrono = "*"
 dashmap = "*"
 dotenv = "*"
