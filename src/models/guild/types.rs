@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use serde_repr::*;
 use std::fmt;
 
@@ -15,6 +16,18 @@ pub enum BlacklistActionType {
     None,
     Kick,
     Ban,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EventType {
+    #[serde(rename = "Id")]
+    pub id: i64,
+
+    #[serde(rename = "Name")]
+    pub name: String,
+
+    #[serde(rename = "XP")]
+    pub xp: i64,
 }
 
 impl Default for GuildType {
