@@ -4,7 +4,7 @@ mod types;
 
 use itertools::Itertools;
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::{collections::HashMap, default::Default, fmt, sync::Arc};
@@ -42,24 +42,22 @@ pub struct RoGuild {
     pub groupbinds: Vec<GroupBind>,
 
     #[serde(rename = "CustomBinds")]
-    #[serde(default)]
     pub custombinds: Vec<CustomBind>,
 
     #[serde(rename = "AssetBinds")]
-    #[serde(default)]
     pub assetbinds: Vec<AssetBind>,
 
     #[serde(rename = "Blacklists")]
-    #[serde(default)]
     pub blacklists: Vec<Blacklist>,
 
     #[serde(rename = "DisabledChannels")]
-    #[serde(default)]
     pub disabled_channels: Vec<i64>,
 
     #[serde(rename = "RegisteredGroups")]
-    #[serde(default)]
     pub registered_groups: Vec<i64>,
+
+    #[serde(rename = "EventTypes")]
+    pub event_types: Vec<EventType>,
 
     #[serde(skip_serializing)]
     pub all_roles: Vec<i64>,
@@ -256,6 +254,7 @@ impl RoGuild {
             blacklists: backup.blacklists,
             disabled_channels: Vec::new(),
             registered_groups: Vec::new(),
+            event_types: Vec::new(),
             all_roles,
         }
     }
@@ -282,6 +281,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             Blacklists,
             DisabledChannels,
             RegisteredGroups,
+            EventTypes,
         }
 
         struct RoGuildVisitor;
@@ -306,8 +306,18 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let mut blacklists = None;
                 let mut disabled_channels = None;
                 let mut registered_groups = None;
+                let mut event_types = None;
 
-                while let Some(key) = map.next_key()? {
+                loop {
+                    let key = match map.next_key() {
+                        Ok(Some(key)) => key,
+                        Ok(None) => break,
+                        Err(_) => {
+                            map.next_value::<IgnoredAny>()?;
+                            continue;
+                        }
+                    };
+
                     match key {
                         Field::Id => {
                             if id.is_some() {
@@ -381,6 +391,12 @@ impl<'de> Deserialize<'de> for RoGuild {
                             }
                             registered_groups = Some(map.next_value()?);
                         }
+                        Field::EventTypes => {
+                            if event_types.is_some() {
+                                return Err(DeError::duplicate_field("EventTypes"));
+                            }
+                            event_types = Some(map.next_value()?);
+                        }
                     }
                 }
 
@@ -398,6 +414,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let blacklists = blacklists.unwrap_or_default();
                 let disabled_channels = disabled_channels.unwrap_or_default();
                 let registered_groups = registered_groups.unwrap_or_default();
+                let event_types = event_types.unwrap_or_default();
                 let all_roles = rankbinds
                     .iter()
                     .flat_map(|r| r.discord_roles.iter().cloned())
@@ -431,6 +448,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                     blacklists,
                     disabled_channels,
                     registered_groups,
+                    event_types,
                     all_roles,
                 })
             }
@@ -449,6 +467,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             "Blacklists",
             "DisabledChannels",
             "RegisteredGroups",
+            "EventTypes",
         ];
 
         deserializer.deserialize_struct("RoGuild", FIELDS, RoGuildVisitor)
