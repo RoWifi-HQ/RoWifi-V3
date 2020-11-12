@@ -1,10 +1,13 @@
 use crate::framework::prelude::*;
+use crate::models::events::*;
+use bson::oid::ObjectId;
+use twilight_mention::Mention;
 
 pub static EVENT_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
     bucket: None,
     names: &["new"],
-    desc: Some("Command to view statistics about the events module of the server"),
+    desc: Some("Command to register a new event"),
     usage: None,
     examples: &[],
     min_args: 0,
@@ -19,6 +22,115 @@ pub static EVENT_NEW_COMMAND: Command = Command {
 };
 
 #[command]
-pub async fn event_new(_ctx: &Context, _msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+    let guild = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(CommandError::NoRoGuild)?;
+
+    let event_type_id = match await_reply("Enter the id type of event", ctx, msg)
+        .await?
+        .parse::<i64>()
+    {
+        Ok(i) => i,
+        Err(_) => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Event Addition Failed")
+                .unwrap()
+                .description("The event id has to be a number")
+                .unwrap()
+                .build()
+                .unwrap();
+            ctx.http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
+        }
+    };
+    let event_type = match guild.event_types.iter().find(|e| e.id == event_type_id) {
+        Some(e) => e,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Event Addition Failed")
+                .unwrap()
+                .description(format!(
+                    "An event type with event id {} does not exist",
+                    event_type_id
+                ))
+                .unwrap()
+                .build()
+                .unwrap();
+            ctx.http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
+        }
+    };
+
+    let attendees_str = await_reply("Enter the list of attendees in this event", ctx, msg).await?;
+    let event_id = ObjectId::new();
+    let guild_id = guild_id.0 as i64;
+
+    let mut attendees = Vec::new();
+    for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
+        if let Ok(Some(roblox_id)) = ctx.roblox.get_id_from_username(&attendee).await {
+            let a = EventAttendee {
+                id: ObjectId::new(),
+                event_id: event_id.clone(),
+                guild_id,
+                attendee_id: roblox_id,
+            };
+            attendees.push(a);
+        }
+    }
+
+    let new_event = EventLog {
+        id: event_id,
+        guild_id,
+        event_type: event_type_id,
+        guild_event_id: guild.event_counter + 1,
+        host_id: msg.author.id.0 as i64,
+        attendees: attendees.len() as i32,
+    };
+
+    ctx.database
+        .add_event(guild_id, &new_event, attendees)
+        .await?;
+
+    let value = format!(
+        "Host: {}\nType: {}\nAttendees: {}",
+        msg.author.id.mention(),
+        event_type.name,
+        new_event.attendees
+    );
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .unwrap()
+        .title("Event Addition Successful")
+        .unwrap()
+        .field(
+            EmbedFieldBuilder::new(format!("Event Id: {}", guild.event_counter + 1), value)
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    ctx.http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
     Ok(())
 }
