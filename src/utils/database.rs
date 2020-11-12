@@ -1,6 +1,7 @@
 use super::error::RoError;
 use crate::models::{
     analytics::Group,
+    events::*,
     guild::{BackupGuild, GuildType, RoGuild},
     user::*,
 };
@@ -352,5 +353,36 @@ impl Database {
             }
         }
         Ok(result)
+    }
+
+    pub async fn add_event(
+        &self,
+        guild_id: i64,
+        event_log: &EventLog,
+        event_attendees: Vec<EventAttendee>,
+    ) -> Result<(), RoError> {
+        let events_log_collection = self.client.database("Events").collection("Logs");
+        let events_attendees_collection = self.client.database("Events").collection("Attendees");
+
+        let event_log_doc = bson::to_bson(event_log)?;
+        if let Bson::Document(doc) = event_log_doc {
+            events_log_collection.insert_one(doc, None).await?;
+        }
+
+        let mut event_attendees_docs = Vec::new();
+        for ea in event_attendees {
+            let ea_doc = bson::to_bson(&ea)?;
+            if let Bson::Document(doc) = ea_doc {
+                event_attendees_docs.push(doc);
+            }
+        }
+        events_attendees_collection
+            .insert_many(event_attendees_docs, None)
+            .await?;
+
+        let filter = doc! {"_id": guild_id};
+        let update = doc! {"$inc": {"EventCounter": 1}};
+        self.modify_guild(filter, update).await?;
+        Ok(())
     }
 }

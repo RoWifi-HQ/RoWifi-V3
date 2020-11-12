@@ -59,6 +59,9 @@ pub struct RoGuild {
     #[serde(rename = "EventTypes")]
     pub event_types: Vec<EventType>,
 
+    #[serde(rename = "EventCounter")]
+    pub event_counter: i64,
+
     #[serde(skip_serializing)]
     pub all_roles: Vec<i64>,
 }
@@ -255,6 +258,7 @@ impl RoGuild {
             disabled_channels: Vec::new(),
             registered_groups: Vec::new(),
             event_types: Vec::new(),
+            event_counter: 0,
             all_roles,
         }
     }
@@ -282,6 +286,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             DisabledChannels,
             RegisteredGroups,
             EventTypes,
+            EventCounter,
         }
 
         struct RoGuildVisitor;
@@ -307,6 +312,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let mut disabled_channels = None;
                 let mut registered_groups = None;
                 let mut event_types = None;
+                let mut event_counter = None;
 
                 loop {
                     let key = match map.next_key() {
@@ -397,6 +403,12 @@ impl<'de> Deserialize<'de> for RoGuild {
                             }
                             event_types = Some(map.next_value()?);
                         }
+                        Field::EventCounter => {
+                            if event_counter.is_some() {
+                                return Err(DeError::duplicate_field("EventCounter"));
+                            }
+                            event_counter = Some(map.next_value()?);
+                        }
                     }
                 }
 
@@ -415,6 +427,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let disabled_channels = disabled_channels.unwrap_or_default();
                 let registered_groups = registered_groups.unwrap_or_default();
                 let event_types = event_types.unwrap_or_default();
+                let event_counter = event_counter.unwrap_or_default();
                 let all_roles = rankbinds
                     .iter()
                     .flat_map(|r| r.discord_roles.iter().cloned())
@@ -449,6 +462,7 @@ impl<'de> Deserialize<'de> for RoGuild {
                     disabled_channels,
                     registered_groups,
                     event_types,
+                    event_counter,
                     all_roles,
                 })
             }
@@ -468,6 +482,7 @@ impl<'de> Deserialize<'de> for RoGuild {
             "DisabledChannels",
             "RegisteredGroups",
             "EventTypes",
+            "EventCounter",
         ];
 
         deserializer.deserialize_struct("RoGuild", FIELDS, RoGuildVisitor)

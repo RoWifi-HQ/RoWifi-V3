@@ -30,6 +30,9 @@ pub struct EventAttendee {
     #[serde(rename = "EventId")]
     pub event_id: ObjectId,
 
+    #[serde(rename = "GuildId")]
+    pub guild_id: i64,
+
     #[serde(rename = "AttendeeId")]
     pub attendee_id: i64,
 }
