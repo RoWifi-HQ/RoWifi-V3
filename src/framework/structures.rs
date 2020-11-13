@@ -47,14 +47,13 @@ pub struct HelpCommand {
     pub name: &'static str,
 }
 
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Ord, PartialOrd, Eq)]
 #[repr(i8)]
 pub enum RoLevel {
     Creator = 4,
-    Council = 3,
-    Admin = 2,
-    Trainer = 1,
+    Admin = 3,
+    Trainer = 2,
+    Council = 1,
     Normal = 0,
 }
 

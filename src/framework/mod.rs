@@ -4,10 +4,11 @@ pub mod parser;
 pub mod prelude;
 pub mod structures;
 
+use crate::cache::{CachedGuild, CachedMember};
 use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
-use std::time::Duration;
+use std::{time::Duration, sync::Arc};
 use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
 use twilight_gateway::Event;
@@ -229,37 +230,35 @@ impl Framework {
             }
 
             if let Ok(Some(member)) = context.member(guild.id, msg.author.id).await {
-                match command.options.perm_level {
-                    RoLevel::Normal => return true,
-                    RoLevel::Creator => {
-                        if context.config.owners.contains(&msg.author.id) {
-                            return true;
-                        }
-                    }
-                    RoLevel::Council => {
-                        if context.config.council.contains(&msg.author.id) {
-                            return true;
-                        }
-                    }
-                    RoLevel::Admin => {
-                        if let Some(admin_role) = guild.admin_role {
-                            if member.roles.contains(&admin_role) {
-                                return true;
-                            }
-                        }
-                        for role in member.roles.iter() {
-                            if let Some(role) = context.cache.role(*role) {
-                                if role.permissions.contains(Permissions::ADMINISTRATOR) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    RoLevel::Trainer => return true,
-                }
+                return command.options.perm_level <= self.get_perm_level(context, guild, member);
             }
         }
         false
+    }
+
+    fn get_perm_level(&self, context: &Context, guild: Arc<CachedGuild>, member: Arc<CachedMember>) -> RoLevel {
+        if context.config.owners.contains(&member.user.id) {
+            return RoLevel::Creator;
+        }
+
+        if let Some(admin_role) = guild.admin_role {
+            if member.roles.contains(&admin_role) {
+                return RoLevel::Admin;
+            }
+        }
+        for role in member.roles.iter() {
+            if let Some(role) = context.cache.role(*role) {
+                if role.permissions.contains(Permissions::ADMINISTRATOR) {
+                    return RoLevel::Admin;
+                }
+            }
+        }
+
+        if context.config.council.contains(&member.user.id) {
+            return RoLevel::Council;
+        }
+
+        RoLevel::Normal
     }
 
     async fn handle_error(&self, error: RoError, context: &Context, msg: &Message) {

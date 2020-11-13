@@ -4,7 +4,7 @@ use bson::oid::ObjectId;
 use twilight_mention::Mention;
 
 pub static EVENT_NEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
+    perm_level: RoLevel::Trainer,
     bucket: None,
     names: &["new"],
     desc: Some("Command to register a new event"),

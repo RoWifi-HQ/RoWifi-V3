@@ -25,6 +25,8 @@ pub struct CachedGuild {
     pub nickname_bypass: Option<RoleId>,
     /// The role id giving full access to RoWifi commands. Currently held by `RoWifi Admin`
     pub admin_role: Option<RoleId>,
+    /// The role id giving access to the events module. Currently held by `RoWifi Trainer`
+    pub trainer_role: Option<RoleId>,
     /// The atomic field holding the current member count.
     /// We don't wanna depend on calling the API everytime we need a member count
     pub member_count: Arc<AtomicI64>,
