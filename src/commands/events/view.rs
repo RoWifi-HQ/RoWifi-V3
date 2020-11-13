@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
 
 pub static EVENT_ATTENDEE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["attendee"],
     desc: Some("Command to view the last 12 events attended by the given user"),

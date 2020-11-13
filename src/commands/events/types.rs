@@ -3,7 +3,7 @@ use crate::models::events::EventType;
 use itertools::Itertools;
 
 pub static EVENT_TYPE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
+    perm_level: RoLevel::Trainer,
     bucket: None,
     names: &["types", "type"],
     desc: Some("Command to view the created event types"),

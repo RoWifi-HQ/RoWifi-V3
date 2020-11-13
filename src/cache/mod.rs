@@ -310,6 +310,9 @@ impl Cache {
             } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.admin_role = Some(role.id);
+            } else if role.name.eq_ignore_ascii_case("RoWifi Trainer") {
+                let mut guild = Arc::make_mut(&mut guild);
+                guild.trainer_role = Some(role.id);
             }
         }
     }
@@ -395,6 +398,11 @@ impl Cache {
             .iter()
             .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Admin"))
             .map(|(_, r)| r.id);
+        let trainer_role = guild
+            .roles
+            .iter()
+            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Trainer"))
+            .map(|(_, r)| r.id);
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
         self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, r)| r));
@@ -415,6 +423,7 @@ impl Cache {
             bypass_role,
             nickname_bypass,
             admin_role,
+            trainer_role
         };
 
         self.0.unavailable_guilds.remove(&guild.id);
@@ -465,6 +474,11 @@ impl Cache {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.admin_role = None;
+            }
+        } else if role.name.eq_ignore_ascii_case("RoWifi Trainer") {
+            if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
+                let mut guild = Arc::make_mut(&mut guild);
+                guild.trainer_role = None;
             }
         }
         Some(role)
