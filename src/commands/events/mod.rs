@@ -1,10 +1,12 @@
 mod new;
 mod types;
+mod view;
 
 use crate::framework::prelude::*;
 
 use new::*;
 use types::*;
+use view::*;
 
 pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -15,7 +17,11 @@ pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
     examples: &[],
     min_args: 0,
     hidden: false,
-    sub_commands: &[&EVENT_TYPE_COMMAND, &EVENT_NEW_COMMAND],
+    sub_commands: &[
+        &EVENT_TYPE_COMMAND,
+        &EVENT_NEW_COMMAND,
+        &EVENT_ATTENDEE_COMMAND,
+    ],
     group: Some("Premium"),
 };
 

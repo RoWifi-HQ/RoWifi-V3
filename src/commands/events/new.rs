@@ -30,7 +30,7 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         .await?
         .ok_or(CommandError::NoRoGuild)?;
 
-    let event_type_id = match await_reply("Enter the id type of event", ctx, msg)
+    let event_type_id = match await_reply("Enter the id of the type of event", ctx, msg)
         .await?
         .parse::<i64>()
     {
@@ -86,13 +86,7 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
     let mut attendees = Vec::new();
     for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
         if let Ok(Some(roblox_id)) = ctx.roblox.get_id_from_username(&attendee).await {
-            let a = EventAttendee {
-                id: ObjectId::new(),
-                event_id: event_id.clone(),
-                guild_id,
-                attendee_id: roblox_id,
-            };
-            attendees.push(a);
+            attendees.push(roblox_id);
         }
     }
 
@@ -102,18 +96,19 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         event_type: event_type_id,
         guild_event_id: guild.event_counter + 1,
         host_id: msg.author.id.0 as i64,
-        attendees: attendees.len() as i32,
+        attendees,
+        timestamp: bson::DateTime {
+            0: chrono::Utc::now(),
+        },
     };
 
-    ctx.database
-        .add_event(guild_id, &new_event, attendees)
-        .await?;
+    ctx.database.add_event(guild_id, &new_event).await?;
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",
         msg.author.id.mention(),
         event_type.name,
-        new_event.attendees
+        new_event.attendees.len()
     );
     let embed = EmbedBuilder::new()
         .default_data()

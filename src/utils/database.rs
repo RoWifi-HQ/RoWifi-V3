@@ -355,34 +355,52 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn add_event(
-        &self,
-        guild_id: i64,
-        event_log: &EventLog,
-        event_attendees: Vec<EventAttendee>,
-    ) -> Result<(), RoError> {
-        let events_log_collection = self.client.database("Events").collection("Logs");
-        let events_attendees_collection = self.client.database("Events").collection("Attendees");
+    pub async fn add_event(&self, guild_id: i64, event_log: &EventLog) -> Result<(), RoError> {
+        let events = self.client.database("Events").collection("Logs");
 
         let event_log_doc = bson::to_bson(event_log)?;
         if let Bson::Document(doc) = event_log_doc {
-            events_log_collection.insert_one(doc, None).await?;
+            events.insert_one(doc, None).await?;
         }
-
-        let mut event_attendees_docs = Vec::new();
-        for ea in event_attendees {
-            let ea_doc = bson::to_bson(&ea)?;
-            if let Bson::Document(doc) = ea_doc {
-                event_attendees_docs.push(doc);
-            }
-        }
-        events_attendees_collection
-            .insert_many(event_attendees_docs, None)
-            .await?;
 
         let filter = doc! {"_id": guild_id};
         let update = doc! {"$inc": {"EventCounter": 1}};
         self.modify_guild(filter, update).await?;
         Ok(())
+    }
+
+    pub async fn get_events(
+        &self,
+        guild_id: i64,
+        attendee_id: i64,
+    ) -> Result<Vec<EventLog>, RoError> {
+        let events_attendees_collection = self.client.database("Events").collection("Logs");
+        let pipeline = vec![
+            doc! {"$match": {"GuildId": guild_id}},
+            doc! {"$sort": {"Timestamp": -1}},
+            doc! {"$unwind": "$Attendees"},
+            doc! {"$match": {"Attendees": attendee_id}},
+            doc! {"$limit": 12},
+            doc! {"$unset": "Attendees"},
+        ];
+        let mut cursor = events_attendees_collection
+            .aggregate(pipeline, None)
+            .await?;
+        let mut result = Vec::new();
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(document) => {
+                    let doc = Bson::Document(document);
+                    match bson::from_bson::<EventLog>(doc) {
+                        Ok(event) => result.push(event),
+                        Err(e) => {
+                            tracing::error!(error = ?e, "Error in deserializing")
+                        }
+                    }
+                }
+                Err(err) => tracing::error!(err = ?err, "Error in cursor"),
+            }
+        }
+        Ok(result)
     }
 }
