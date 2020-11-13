@@ -1,4 +1,4 @@
-use bson::oid::ObjectId;
+use bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -18,23 +18,12 @@ pub struct EventLog {
     #[serde(rename = "HostId")]
     pub host_id: i64,
 
+    #[serde(rename = "Timestamp")]
+    pub timestamp: DateTime,
+
     #[serde(rename = "Attendees")]
-    pub attendees: i32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EventAttendee {
-    #[serde(rename = "_id")]
-    pub id: ObjectId,
-
-    #[serde(rename = "EventId")]
-    pub event_id: ObjectId,
-
-    #[serde(rename = "GuildId")]
-    pub guild_id: i64,
-
-    #[serde(rename = "AttendeeId")]
-    pub attendee_id: i64,
+    #[serde(default)]
+    pub attendees: Vec<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
