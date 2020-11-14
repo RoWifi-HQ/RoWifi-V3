@@ -21,6 +21,7 @@ pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
         &EVENT_TYPE_COMMAND,
         &EVENT_NEW_COMMAND,
         &EVENT_ATTENDEE_COMMAND,
+        &EVENT_HOST_COMMAND
     ],
     group: Some("Premium"),
 };
@@ -32,5 +33,6 @@ pub static EVENTS_COMMAND: Command = Command {
 
 #[command]
 pub async fn events(_ctx: &Context, _msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    // Check for beta tier
     Ok(())
 }

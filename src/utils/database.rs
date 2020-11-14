@@ -369,20 +369,8 @@ impl Database {
         Ok(())
     }
 
-    pub async fn get_events(
-        &self,
-        guild_id: i64,
-        attendee_id: i64,
-    ) -> Result<Vec<EventLog>, RoError> {
+    pub async fn get_events(&self, pipeline: Vec<Document>) -> Result<Vec<EventLog>, RoError> {
         let events_attendees_collection = self.client.database("Events").collection("Logs");
-        let pipeline = vec![
-            doc! {"$match": {"GuildId": guild_id}},
-            doc! {"$sort": {"Timestamp": -1}},
-            doc! {"$unwind": "$Attendees"},
-            doc! {"$match": {"Attendees": attendee_id}},
-            doc! {"$limit": 12},
-            doc! {"$unset": "Attendees"},
-        ];
         let mut cursor = events_attendees_collection
             .aggregate(pipeline, None)
             .await?;

@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::events::*;
+use crate::models::{events::*, guild::GuildType};
 use bson::oid::ObjectId;
 use twilight_mention::Mention;
 
@@ -29,6 +29,49 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         .get_guild(guild_id.0)
         .await?
         .ok_or(CommandError::NoRoGuild)?;
+    
+    if guild.settings.guild_type != GuildType::Beta {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Command Failed")
+            .unwrap()
+            .description("This module may only be used in Beta Tier Servers")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
+
+    let user = match ctx.database.get_user(msg.author.id.0).await? {
+        Some(u) => u,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .title("Event Addition Failed")
+                .unwrap()
+                .description("This command may only be used by verified users")
+                .unwrap()
+                .color(Color::Red as u32)
+                .unwrap()
+                .build()
+                .unwrap();
+            let _ = ctx
+                .http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await;
+            return Ok(());
+        }
+    };
 
     let event_type_id = match await_reply("Enter the id of the type of event", ctx, msg)
         .await?
@@ -95,7 +138,7 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         guild_id,
         event_type: event_type_id,
         guild_event_id: guild.event_counter + 1,
-        host_id: msg.author.id.0 as i64,
+        host_id: user.roblox_id,
         attendees,
         timestamp: bson::DateTime {
             0: chrono::Utc::now(),

@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::events::EventType;
+use crate::models::{events::EventType, guild::GuildType};
 use itertools::Itertools;
 
 pub static EVENT_TYPE_OPTIONS: CommandOptions = CommandOptions {
@@ -58,6 +58,7 @@ pub static EVENT_TYPE_MODIFY_COMMAND: Command = Command {
 
 #[command]
 pub async fn event_type(_ctx: &Context, _msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    //Check for beta tier
     Ok(())
 }
 
@@ -73,6 +74,26 @@ pub async fn event_type_new(
         .get_guild(guild_id.0)
         .await?
         .ok_or(CommandError::NoRoGuild)?;
+    
+    if guild.settings.guild_type != GuildType::Beta {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Command Failed")
+            .unwrap()
+            .description("This module may only be used in Beta Tier Servers")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
 
     let event_id = match args.next() {
         Some(a) => match a.parse::<i64>() {
@@ -144,5 +165,6 @@ pub async fn event_type_modify(
     _msg: &Message,
     _args: Arguments<'fut>,
 ) -> CommandResult {
+    //Check for beta tier
     Ok(())
 }
