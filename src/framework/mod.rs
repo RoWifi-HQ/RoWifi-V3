@@ -8,7 +8,7 @@ use crate::cache::{CachedGuild, CachedMember};
 use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
-use std::{time::Duration, sync::Arc};
+use std::{sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
 use twilight_gateway::Event;
@@ -236,7 +236,12 @@ impl Framework {
         false
     }
 
-    fn get_perm_level(&self, context: &Context, guild: Arc<CachedGuild>, member: Arc<CachedMember>) -> RoLevel {
+    fn get_perm_level(
+        &self,
+        context: &Context,
+        guild: Arc<CachedGuild>,
+        member: Arc<CachedMember>,
+    ) -> RoLevel {
         if context.config.owners.contains(&member.user.id) {
             return RoLevel::Creator;
         }
@@ -251,6 +256,12 @@ impl Framework {
                 if role.permissions.contains(Permissions::ADMINISTRATOR) {
                     return RoLevel::Admin;
                 }
+            }
+        }
+
+        if let Some(trainer_role) = guild.trainer_role {
+            if member.roles.contains(&trainer_role) {
+                return RoLevel::Trainer;
             }
         }
 

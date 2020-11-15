@@ -21,7 +21,8 @@ pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
         &EVENT_TYPE_COMMAND,
         &EVENT_NEW_COMMAND,
         &EVENT_ATTENDEE_COMMAND,
-        &EVENT_HOST_COMMAND
+        &EVENT_HOST_COMMAND,
+        &EVENT_VIEW_COMMAND,
     ],
     group: Some("Premium"),
 };

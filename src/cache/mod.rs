@@ -423,7 +423,7 @@ impl Cache {
             bypass_role,
             nickname_bypass,
             admin_role,
-            trainer_role
+            trainer_role,
         };
 
         self.0.unavailable_guilds.remove(&guild.id);
