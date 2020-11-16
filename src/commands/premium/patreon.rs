@@ -25,7 +25,7 @@ pub async fn premium_patreon(
     msg: &Message,
     mut args: Arguments<'fut>,
 ) -> CommandResult {
-    let author = match args.next().map(|a| a.parse::<u64>()) {
+    let author = match args.next().map(str::parse) {
         Some(Ok(s)) => s,
         _ => msg.author.id.0,
     };
@@ -67,7 +67,7 @@ pub async fn premium_patreon(
 
     let patreon_id = patreon_id.unwrap().parse::<i64>().unwrap();
     let tier = tier.unwrap().parse::<i64>().unwrap();
-    if tier == 4014582 {
+    if tier == 4_014_582 {
         premium_user = PremiumUser {
             discord_id: author as i64,
             patreon_id: Some(patreon_id),
@@ -76,7 +76,7 @@ pub async fn premium_patreon(
             premium_owner: None,
             premium_patreon_owner: None,
         };
-    } else if tier == 4656839 {
+    } else if tier == 4_656_839 {
         premium_user = PremiumUser {
             discord_id: author as i64,
             patreon_id: Some(patreon_id),

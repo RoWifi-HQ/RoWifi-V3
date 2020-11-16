@@ -1,5 +1,8 @@
 use crate::framework::prelude::*;
-use crate::models::{command::*, guild::RoGuild};
+use crate::models::{
+    command::{RoCommand, RoCommandUser},
+    guild::RoGuild,
+};
 use itertools::Itertools;
 
 pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {

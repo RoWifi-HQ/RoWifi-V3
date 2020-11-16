@@ -66,7 +66,7 @@ pub async fn blacklist(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for bls in guild.blacklists.iter().chunks(12).into_iter() {
+    for bls in &guild.blacklists.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Blacklists")

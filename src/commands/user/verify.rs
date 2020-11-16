@@ -297,7 +297,7 @@ pub async fn verify_common(
             discord_id: msg.author.id.0 as i64,
             verified,
         };
-        let _ = ctx.database.add_queue_user(q_user).await?;
+        ctx.database.add_queue_user(q_user).await?;
     } else {
         let embed = EmbedBuilder::new()
             .default_data()

@@ -22,9 +22,9 @@ use twilight_model::{
 };
 
 pub enum Color {
-    Red = 0xE74C3C,
-    Blue = 0x3498DB,
-    DarkGreen = 0x1F8B4C,
+    Red = 0x00E7_4C3C,
+    Blue = 0x0034_98DB,
+    DarkGreen = 0x001F_8B4C,
 }
 
 pub async fn await_reply(question: &str, ctx: &Context, msg: &Message) -> Result<String, RoError> {
@@ -244,7 +244,7 @@ impl EmbedExtensions for EmbedBuilder {
 }
 
 pub fn guild_wide_permissions(
-    guild: Arc<CachedGuild>,
+    guild: &Arc<CachedGuild>,
     roles: &HashMap<RoleId, Arc<CachedRole>>,
     member_id: UserId,
     member_roles: &[RoleId],
@@ -270,21 +270,21 @@ pub fn guild_wide_permissions(
 }
 
 pub fn channel_permissions(
-    guild: Arc<CachedGuild>,
+    guild: &Arc<CachedGuild>,
     roles: &HashMap<RoleId, Arc<CachedRole>>,
     member_id: UserId,
     member_roles: &[RoleId],
-    channel: Arc<GuildChannel>,
+    channel: &Arc<GuildChannel>,
 ) -> Result<Permissions, String> {
     let guild_id = guild.id;
-    let mut permissions = guild_wide_permissions(guild, roles, member_id, &member_roles)?;
+    let mut permissions = guild_wide_permissions(&guild, roles, member_id, &member_roles)?;
     let mut member_allow = Permissions::empty();
     let mut member_deny = Permissions::empty();
     let mut roles_allow = Permissions::empty();
     let mut roles_deny = Permissions::empty();
 
     if let GuildChannel::Text(tc) = channel.as_ref() {
-        for overwrite in tc.permission_overwrites.iter() {
+        for overwrite in &tc.permission_overwrites {
             match overwrite.kind {
                 PermissionOverwriteType::Role(role) => {
                     if role.0 == guild_id.0 {

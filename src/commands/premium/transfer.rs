@@ -46,7 +46,7 @@ pub async fn premium_transfer(
                 .await?;
             return Ok(());
         }
-        let to_transfer_id = match args.next().map(|a| a.parse::<i64>()) {
+        let to_transfer_id = match args.next().map(str::parse) {
             Some(Ok(s)) => s,
             _ => {
                 let embed = EmbedBuilder::new()

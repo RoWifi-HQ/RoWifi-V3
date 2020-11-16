@@ -1,4 +1,7 @@
-use super::{expression::Expression, token::*};
+use super::{
+    expression::Expression,
+    token::{Literal, Token, TokenType},
+};
 
 pub struct Parser {
     tokens: Vec<Token>,

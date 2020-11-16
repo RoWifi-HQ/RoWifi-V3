@@ -45,11 +45,11 @@ impl EventHandler {
                         self.0.auto_detection_started.store(true, Ordering::SeqCst);
                         let context_ad = ctx.clone();
                         tokio::spawn(async move {
-                            let _ = auto_detection(context_ad).await;
+                            auto_detection(context_ad).await;
                         });
                         let context_ac = ctx.clone();
                         tokio::spawn(async move {
-                            let _ = activity(context_ac).await;
+                            activity(context_ac).await;
                         });
                     }
                 } else {

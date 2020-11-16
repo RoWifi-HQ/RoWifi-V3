@@ -57,12 +57,12 @@ pub static PREMIUM_CHECK_COMMAND: Command = Command {
 
 #[command]
 pub async fn premium_add(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let user_id = match args.next().map(|a| a.parse::<i64>()) {
+    let user_id: i64 = match args.next().map(str::parse) {
         Some(Ok(u)) => u,
         _ => return Ok(()),
     };
 
-    let premium_type = match args.next().map(|a| a.parse::<i32>()) {
+    let premium_type: i32 = match args.next().map(str::parse) {
         Some(Ok(p)) => p,
         _ => return Ok(()),
     };
@@ -99,7 +99,7 @@ pub async fn premium_delete(
     msg: &Message,
     mut args: Arguments<'fut>,
 ) -> CommandResult {
-    let user_id = match args.next().map(|a| a.parse::<u64>()) {
+    let user_id: u64 = match args.next().map(str::parse) {
         Some(Ok(u)) => u,
         _ => return Ok(()),
     };

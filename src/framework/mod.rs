@@ -18,7 +18,7 @@ use uwl::Stream;
 use context::Context;
 pub use map::CommandMap;
 use parser::{Invoke, ParseError};
-use structures::*;
+use structures::{Bucket, Command, HelpCommand, RoLevel};
 
 lazy_static! {
     static ref ROWIFI_PERMS: Permissions = Permissions::SEND_MESSAGES
@@ -68,16 +68,18 @@ impl Framework {
         }
 
         let mut stream = Stream::new(&msg.content);
-        stream.take_while_char(|c| c.is_whitespace());
+        stream.take_while_char(char::is_whitespace);
 
         let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref());
         if prefix.is_some() && stream.rest().is_empty() {
-            let actual_prefix = if let Some(p) = context.config.prefixes.get(&msg.guild_id.unwrap())
-            {
-                p.value().to_owned()
-            } else {
-                context.config.default_prefix.clone()
-            };
+            let actual_prefix = context
+                .config
+                .prefixes
+                .get(&msg.guild_id.unwrap())
+                .map_or_else(
+                    || context.config.default_prefix.clone(),
+                    |p| p.value().to_owned(),
+                );
             let _ = context
                 .http
                 .create_message(msg.channel_id)
@@ -112,7 +114,7 @@ impl Framework {
         let invocation = parser::command(
             &mut stream,
             &self.commands,
-            &self.help.as_ref().map(|h| h.name),
+            self.help.as_ref().map(|h| h.name),
         );
         let invoke = match invocation {
             Ok(i) => i,
@@ -230,46 +232,10 @@ impl Framework {
             }
 
             if let Ok(Some(member)) = context.member(guild.id, msg.author.id).await {
-                return command.options.perm_level <= self.get_perm_level(context, guild, member);
+                return command.options.perm_level <= get_perm_level(context, &guild, &member);
             }
         }
         false
-    }
-
-    fn get_perm_level(
-        &self,
-        context: &Context,
-        guild: Arc<CachedGuild>,
-        member: Arc<CachedMember>,
-    ) -> RoLevel {
-        if context.config.owners.contains(&member.user.id) {
-            return RoLevel::Creator;
-        }
-
-        if let Some(admin_role) = guild.admin_role {
-            if member.roles.contains(&admin_role) {
-                return RoLevel::Admin;
-            }
-        }
-        for role in member.roles.iter() {
-            if let Some(role) = context.cache.role(*role) {
-                if role.permissions.contains(Permissions::ADMINISTRATOR) {
-                    return RoLevel::Admin;
-                }
-            }
-        }
-
-        if let Some(trainer_role) = guild.trainer_role {
-            if member.roles.contains(&trainer_role) {
-                return RoLevel::Trainer;
-            }
-        }
-
-        if context.config.council.contains(&member.user.id) {
-            return RoLevel::Council;
-        }
-
-        RoLevel::Normal
     }
 
     async fn handle_error(&self, error: RoError, context: &Context, msg: &Message) {
@@ -335,4 +301,39 @@ impl Framework {
             }
         }
     }
+}
+
+fn get_perm_level(
+    context: &Context,
+    guild: &Arc<CachedGuild>,
+    member: &Arc<CachedMember>,
+) -> RoLevel {
+    if context.config.owners.contains(&member.user.id) {
+        return RoLevel::Creator;
+    }
+
+    if let Some(admin_role) = guild.admin_role {
+        if member.roles.contains(&admin_role) {
+            return RoLevel::Admin;
+        }
+    }
+    for role in &member.roles {
+        if let Some(role) = context.cache.role(*role) {
+            if role.permissions.contains(Permissions::ADMINISTRATOR) {
+                return RoLevel::Admin;
+            }
+        }
+    }
+
+    if let Some(trainer_role) = guild.trainer_role {
+        if member.roles.contains(&trainer_role) {
+            return RoLevel::Trainer;
+        }
+    }
+
+    if context.config.council.contains(&member.user.id) {
+        return RoLevel::Council;
+    }
+
+    RoLevel::Normal
 }

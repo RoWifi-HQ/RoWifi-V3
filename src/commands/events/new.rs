@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::{events::*, guild::GuildType};
+use crate::models::{events::EventLog, guild::GuildType};
 use bson::oid::ObjectId;
 use twilight_mention::Mention;
 

@@ -1,6 +1,7 @@
 use super::error::RoError;
 use reqwest::{header, Client, ClientBuilder};
 use serde_json::Value;
+use std::borrow::ToOwned;
 
 #[derive(Clone)]
 pub struct Patreon {
@@ -39,7 +40,7 @@ impl Patreon {
             for user in info {
                 if user["type"].as_str().unwrap().eq("user") {
                     let disc = &user["attributes"]["social_connections"]["discord"]["user_id"];
-                    if let Some(Ok(disc)) = disc.as_str().map(|s| s.parse::<u64>()) {
+                    if let Some(Ok(disc)) = disc.as_str().map::<Result<u64, _>, _>(str::parse) {
                         if disc == discord_id {
                             let patreon_id = user["id"].as_str().unwrap();
                             for u in users {
@@ -53,7 +54,7 @@ impl Patreon {
                                     if !tiers.is_empty() {
                                         return Ok((
                                             Some(patreon_id.to_string()),
-                                            tiers[0]["id"].as_str().map(|s| s.to_owned()),
+                                            tiers[0]["id"].as_str().map(ToOwned::to_owned),
                                         ));
                                     }
                                     return Ok((Some(patreon_id.to_string()), None));
@@ -63,7 +64,7 @@ impl Patreon {
                     }
                 }
             }
-            link = res["links"]["next"].as_str().map(|s| s.to_owned());
+            link = res["links"]["next"].as_str().map(ToOwned::to_owned);
         }
         Ok((None, None))
     }

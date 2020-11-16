@@ -3,9 +3,9 @@ use proc_macro::TokenStream;
 use proc_macro2::Span;
 
 use syn::parse_macro_input;
-use syn::{Token, FnArg, ItemFn, Signature, Type, ReturnType, Lifetime};
-use syn::spanned::Spanned;
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
+use syn::{FnArg, ItemFn, Lifetime, ReturnType, Signature, Token, Type};
 
 use quote::quote;
 
@@ -30,7 +30,9 @@ pub fn command(_attr: TokenStream, input: TokenStream) -> TokenStream {
     } = sig;
 
     if asyncness.is_none() {
-        return syn::Error::new(sig_span, "`async` keyword is missing").to_compile_error().into();
+        return syn::Error::new(sig_span, "`async` keyword is missing")
+            .to_compile_error()
+            .into();
     }
 
     let output = match output {

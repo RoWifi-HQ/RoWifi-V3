@@ -87,7 +87,7 @@ pub async fn rankbinds_delete(
     let filter = bson::doc! {"_id": guild.id};
     let update =
         bson::doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": binds_to_delete.clone()}}}};
-    let _ = ctx.database.modify_guild(filter, update).await?;
+    ctx.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new()
         .default_data()

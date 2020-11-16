@@ -81,7 +81,7 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         .into_iter()
         .map(|m| m.0)
         .collect::<Vec<_>>();
-    if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+    if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
         if ctx.cluster.command(shard_id, &req).await.is_err() {
@@ -206,7 +206,7 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
         .into_iter()
         .map(|m| m.0)
         .collect::<Vec<_>>();
-    if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+    if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
         if ctx.cluster.command(shard_id, &req).await.is_err() {

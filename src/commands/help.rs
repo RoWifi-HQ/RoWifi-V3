@@ -35,7 +35,7 @@ async fn global_help(
         .unwrap();
 
     let groups = commands.iter().group_by(|c| c.0.options.group);
-    for (group, commands) in groups.into_iter() {
+    for (group, commands) in &groups {
         if let Some(group) = group {
             let commands = commands
                 .filter(|c| !c.0.options.hidden)

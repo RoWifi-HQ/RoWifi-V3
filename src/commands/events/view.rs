@@ -90,8 +90,29 @@ pub async fn event_attendee(
         return Ok(());
     }
 
-    let user_id = match args.next().and_then(|x| x.parse::<i64>().ok()) {
-        Some(s) => s,
+    let roblox_id = match args.next() {
+        Some(s) => match ctx.roblox.get_id_from_username(s).await? {
+            Some(i) => i,
+            None => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Event Viewing Failed")
+                    .unwrap()
+                    .description("Given roblox username does not have an associated id")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .http
+                    .create_message(msg.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+                return Ok(());
+            }
+        },
         None => {
             let user = ctx.database.get_user(msg.author.id.0).await?;
             match user {
@@ -123,7 +144,7 @@ pub async fn event_attendee(
         doc! {"$match": {"GuildId": guild_id.0}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$unwind": "$Attendees"},
-        doc! {"$match": {"Attendees": user_id}},
+        doc! {"$match": {"Attendees": roblox_id}},
         doc! {"$limit": 12},
         doc! {"$unset": "Attendees"},
     ];
@@ -187,8 +208,29 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
         return Ok(());
     }
 
-    let user_id = match args.next().and_then(|x| x.parse::<i64>().ok()) {
-        Some(s) => s,
+    let roblox_id = match args.next() {
+        Some(s) => match ctx.roblox.get_id_from_username(s).await? {
+            Some(i) => i,
+            None => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Event Viewing Failed")
+                    .unwrap()
+                    .description("Given roblox username does not have an associated id")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .http
+                    .create_message(msg.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+                return Ok(());
+            }
+        },
         None => {
             let user = ctx.database.get_user(msg.author.id.0).await?;
             match user {
@@ -218,7 +260,7 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
 
     let pipeline = vec![
         doc! {"$match": {"GuildId": guild_id.0}},
-        doc! {"$match": {"HostId": user_id}},
+        doc! {"$match": {"HostId": roblox_id}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$limit": 12},
     ];

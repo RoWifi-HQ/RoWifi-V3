@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
-use twilight_model::id::*;
+use twilight_model::id::{GuildId, UserId};
 use twilight_standby::Standby;
 
-use crate::cache::*;
+use crate::cache::{Cache, CachedMember};
 use crate::models::{
     configuration::{BotConfig, Configuration},
     stats::BotStats,
