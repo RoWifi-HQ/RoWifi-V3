@@ -57,8 +57,49 @@ pub static EVENT_TYPE_MODIFY_COMMAND: Command = Command {
 };
 
 #[command]
-pub async fn event_type(_ctx: &Context, _msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    //Check for beta tier
+pub async fn event_type(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    let guild_id = msg.guild_id.unwrap();
+    let guild = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(CommandError::NoRoGuild)?;
+
+    if guild.settings.guild_type != GuildType::Beta {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Command Failed")
+            .unwrap()
+            .description("This module may only be used in Beta Tier Servers")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
+
+    let mut embed = EmbedBuilder::new()
+        .default_data()
+        .title("Event Types")
+        .unwrap();
+    for event_type in &guild.event_types {
+        let name = format!("Id: {}", event_type.id);
+        let value = format!("Name: {}", event_type.name);
+        embed = embed.field(EmbedFieldBuilder::new(name, value).unwrap().inline());
+    }
+    let embed = embed.build().unwrap();
+    ctx.http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
     Ok(())
 }
 
@@ -161,10 +202,97 @@ pub async fn event_type_new(
 
 #[command]
 pub async fn event_type_modify(
-    _ctx: &Context,
-    _msg: &Message,
-    _args: Arguments<'fut>,
+    ctx: &Context,
+    msg: &Message,
+    mut args: Arguments<'fut>,
 ) -> CommandResult {
-    //Check for beta tier
+    let guild_id = msg.guild_id.unwrap();
+    let guild = ctx
+        .database
+        .get_guild(guild_id.0)
+        .await?
+        .ok_or(CommandError::NoRoGuild)?;
+
+    if guild.settings.guild_type != GuildType::Beta {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Command Failed")
+            .unwrap()
+            .description("This module may only be used in Beta Tier Servers")
+            .unwrap()
+            .build()
+            .unwrap();
+        let _ = ctx
+            .http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
+
+    let event_id = match args.next() {
+        Some(a) => match a.parse::<i64>() {
+            Ok(a) => a,
+            Err(_) => {
+                return Err(CommandError::ParseArgument(
+                    a.into(),
+                    "Event ID".into(),
+                    "Number".into(),
+                )
+                .into())
+            }
+        },
+        None => return Ok(()),
+    };
+
+    let event_type_index = match guild.event_types.iter().position(|e| e.id == event_id) {
+        Some(i) => i,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Event Type Modification Failed")
+                .unwrap()
+                .description(format!("An event type with id {} does not exist", event_id))
+                .unwrap()
+                .build()
+                .unwrap();
+            ctx.http
+                .create_message(msg.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
+        }
+    };
+    let event = &guild.event_types[event_type_index];
+
+    let event_name = args.join(" ");
+
+    let filter = bson::doc! {"_id": guild_id.0};
+    let index_str = format!("EventType.{}.Name", event_type_index);
+    let update = bson::doc! {"$set": {index_str: event_name.clone()}};
+    ctx.database.modify_guild(filter, update).await?;
+
+    let name = format!("Event Type Id: {}", event.id);
+    let desc = format!("Name: {} -> {}", event.name.clone(), event_name);
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .unwrap()
+        .title("Event Type Modification Successful")
+        .unwrap()
+        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .build()
+        .unwrap();
+    ctx.http
+        .create_message(msg.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
     Ok(())
 }
