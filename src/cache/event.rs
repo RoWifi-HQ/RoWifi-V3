@@ -5,7 +5,14 @@ use std::{
 use tracing::{debug, info};
 use twilight_model::{
     channel::Channel,
-    gateway::{event::Event, payload::*},
+    gateway::{
+        event::Event,
+        payload::{
+            ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
+            MemberAdd, MemberChunk, MemberRemove, MemberUpdate, Ready, RoleCreate, RoleDelete,
+            RoleUpdate, UnavailableGuild, UserUpdate,
+        },
+    },
     guild::GuildStatus,
 };
 
@@ -17,7 +24,11 @@ pub trait UpdateCache {
 
 impl UpdateCache for Event {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        use Event::*;
+        use Event::{
+            ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
+            MemberAdd, MemberChunk, MemberRemove, MemberUpdate, Ready, RoleCreate, RoleDelete,
+            RoleUpdate, UnavailableGuild, UserUpdate,
+        };
 
         match self {
             ChannelCreate(v) => c.update(v),
@@ -56,7 +67,7 @@ impl UpdateCache for ChannelCreate {
 impl UpdateCache for ChannelDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
-            c.delete_guild_channel(gc);
+            c.delete_guild_channel(&gc);
             c.0.channel_permissions.remove(&self.id());
         }
         Ok(())

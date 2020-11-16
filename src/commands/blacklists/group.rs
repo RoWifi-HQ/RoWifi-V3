@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::blacklist::*;
+use crate::models::blacklist::{Blacklist, BlacklistType};
 use itertools::Itertools;
 
 pub static BLACKLISTS_GROUP_OPTIONS: CommandOptions = CommandOptions {

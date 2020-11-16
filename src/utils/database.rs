@@ -1,13 +1,19 @@
 use super::error::RoError;
 use crate::models::{
     analytics::Group,
-    events::*,
+    events::EventLog,
     guild::{BackupGuild, GuildType, RoGuild},
-    user::*,
+    user::{PremiumUser, QueueUser, RoUser},
 };
 use bson::{doc, document::Document, Bson};
 use futures::stream::StreamExt;
-use mongodb::{options::*, Client};
+use mongodb::{
+    options::{
+        ClientOptions, FindOneAndDeleteOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions,
+        FindOneOptions, FindOptions, InsertOneOptions, ReturnDocument,
+    },
+    Client,
+};
 use std::{sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
 
@@ -76,9 +82,10 @@ impl Database {
         premium_only: bool,
     ) -> Result<Vec<RoGuild>, RoError> {
         let guilds = self.client.database("RoWifi").collection("guilds");
-        let filter = match premium_only {
-            true => doc! {"Settings.AutoDetection": true, "_id": {"$in": guild_ids}},
-            false => doc! {"_id": {"$in": guild_ids}},
+        let filter = if premium_only {
+            doc! {"Settings.AutoDetection": true, "_id": {"$in": guild_ids}}
+        } else {
+            doc! {"_id": {"$in": guild_ids}}
         };
         let mut cursor = guilds.find(filter, FindOptions::default()).await?;
         let mut result = Vec::<RoGuild>::new();

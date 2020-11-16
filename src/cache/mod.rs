@@ -217,7 +217,7 @@ impl Cache {
         channels: impl IntoIterator<Item = GuildChannel>,
     ) -> HashSet<ChannelId> {
         let mut c = HashSet::new();
-        for channel in channels.into_iter() {
+        for channel in channels {
             let id = channel.id();
             self.cache_guild_channel(guild, channel);
             c.insert(id);
@@ -245,7 +245,7 @@ impl Cache {
         members: impl IntoIterator<Item = Member>,
     ) -> HashSet<UserId> {
         let mut m = HashSet::new();
-        for member in members.into_iter() {
+        for member in members {
             let id = member.user.id;
             self.cache_member(guild, member);
             m.insert(id);
@@ -277,7 +277,7 @@ impl Cache {
         roles: impl IntoIterator<Item = Role>,
     ) -> HashSet<RoleId> {
         let mut r = HashSet::new();
-        for role in roles.into_iter() {
+        for role in roles {
             let id = role.id;
             self.cache_role(guild, role);
             r.insert(id);
@@ -286,7 +286,7 @@ impl Cache {
     }
 
     pub fn cache_role(&self, guild: GuildId, role: Role) -> Arc<CachedRole> {
-        self.cache_extra_roles(guild, role.clone());
+        self.cache_extra_roles(guild, &role);
 
         let role = CachedRole {
             id: role.id,
@@ -299,7 +299,7 @@ impl Cache {
         upsert_item(&self.0.roles, role.id, role)
     }
 
-    pub fn cache_extra_roles(&self, guild: GuildId, role: Role) {
+    pub fn cache_extra_roles(&self, guild: GuildId, role: &Role) {
         if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
             if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
                 let mut guild = Arc::make_mut(&mut guild);
@@ -328,7 +328,7 @@ impl Cache {
                 .collect::<HashMap<RoleId, Arc<CachedRole>>>();
             let member = self.member(guild_id, user.id).unwrap();
             let new_permissions =
-                match guild_wide_permissions(guild, &server_roles, user.id, &member.roles) {
+                match guild_wide_permissions(&guild, &server_roles, user.id, &member.roles) {
                     Ok(p) => p,
                     Err(why) => {
                         tracing::error!(guild = ?guild_id, reason = ?why);
@@ -352,11 +352,11 @@ impl Cache {
                     .collect::<HashMap<RoleId, Arc<CachedRole>>>();
                 let member = self.member(guild_id, user.id).unwrap();
                 let new_permissions = match channel_permissions(
-                    guild,
+                    &guild,
                     &server_roles,
                     user.id,
                     &member.roles,
-                    channel,
+                    &channel,
                 ) {
                     Ok(p) => p,
                     Err(why) => {
@@ -441,7 +441,7 @@ impl Cache {
         user
     }
 
-    pub fn delete_guild_channel(&self, tc: GuildChannel) -> Option<Arc<GuildChannel>> {
+    pub fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
         let channel = self.0.channels.remove(&tc.id()).map(|(_, c)| c)?;
         if let Some(mut channels) = self.0.guild_channels.get_mut(&tc.guild_id().unwrap()) {
             channels.remove(&tc.id());

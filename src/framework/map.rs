@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::*;
+use super::Command;
 
 #[derive(Debug, Default)]
 pub struct CommandMap {

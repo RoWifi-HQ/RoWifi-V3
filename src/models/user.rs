@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use serde_repr::*;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{borrow::Cow, collections::HashSet, sync::Arc};
 use twilight_http::Client as Http;
 use twilight_model::id::RoleId;
@@ -10,7 +10,10 @@ use super::{
     guild::{BlacklistActionType, GuildType, RoGuild},
 };
 use crate::cache::{CachedGuild, CachedMember};
-use crate::utils::{error::*, Roblox};
+use crate::utils::{
+    error::{CommandError, RoError},
+    Roblox,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoUser {
@@ -249,11 +252,8 @@ impl RoUser {
 impl From<PremiumType> for GuildType {
     fn from(p_type: PremiumType) -> Self {
         match p_type {
-            PremiumType::Alpha => GuildType::Alpha,
-            PremiumType::Beta => GuildType::Beta,
-            PremiumType::Staff => GuildType::Alpha,
-            PremiumType::Council => GuildType::Beta,
-            PremiumType::Partner => GuildType::Beta,
+            PremiumType::Alpha | PremiumType::Staff => GuildType::Alpha,
+            PremiumType::Beta | PremiumType::Council | PremiumType::Partner => GuildType::Beta,
         }
     }
 }
@@ -261,7 +261,6 @@ impl From<PremiumType> for GuildType {
 impl From<i32> for PremiumType {
     fn from(p: i32) -> Self {
         match p {
-            0 => PremiumType::Alpha,
             1 => PremiumType::Beta,
             2 => PremiumType::Staff,
             3 => PremiumType::Council,

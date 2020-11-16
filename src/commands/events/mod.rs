@@ -5,15 +5,15 @@ mod view;
 use crate::framework::prelude::*;
 use crate::models::guild::GuildType;
 
-use new::*;
-use types::*;
-use view::*;
+use new::EVENT_NEW_COMMAND;
+use types::EVENT_TYPE_COMMAND;
+use view::{EVENT_ATTENDEE_COMMAND, EVENT_HOST_COMMAND, EVENT_VIEW_COMMAND};
 
 pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
+    perm_level: RoLevel::Normal,
     bucket: None,
     names: &["events", "event"],
-    desc: Some("Command to view statistics about the events module of the server"),
+    desc: Some("Command to view information about the events module of the server"),
     usage: None,
     examples: &[],
     min_args: 0,

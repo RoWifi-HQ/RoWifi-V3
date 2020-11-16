@@ -4,8 +4,10 @@ mod view;
 use crate::framework::prelude::*;
 use crate::models::guild::GuildType;
 use itertools::Itertools;
-use register::*;
-use view::*;
+use std::string::ToString;
+
+use register::{ANALYTICS_REGISTER_COMMAND, ANALYTICS_UNREGISTER_COMMAND};
+use view::ANALYTICS_VIEW_COMMAND;
 
 pub static ANALYTICS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -80,7 +82,7 @@ pub async fn analytics(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
     let registered_groups = guild
         .registered_groups
         .iter()
-        .map(|g| g.to_string())
+        .map(ToString::to_string)
         .join("\n");
 
     let embed = EmbedBuilder::new()

@@ -65,8 +65,8 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
     let mut pages = Vec::new();
     let mut page_count: usize = 0;
     let distinct_groups = guild.rankbinds.iter().group_by(|r| r.group_id);
-    for group in distinct_groups.into_iter() {
-        for rbs in group.1.collect_vec().iter().chunks(12).into_iter() {
+    for group in &distinct_groups {
+        for rbs in &group.1.collect_vec().iter().chunks(12) {
             let mut embed = EmbedBuilder::new()
                 .default_data()
                 .title("Rankbinds")

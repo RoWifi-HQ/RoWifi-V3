@@ -1,3 +1,20 @@
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::similar_names,
+    clippy::if_not_else,
+    clippy::non_ascii_literal,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::find_map,
+    clippy::single_match_else,
+    clippy::filter_map,
+    clippy::too_many_lines,
+    clippy::match_on_vec_items,
+    clippy::map_err_ignore,
+    clippy::field_reassign_with_default
+)]
+
 mod cache;
 mod commands;
 mod framework;
@@ -20,13 +37,19 @@ use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
 
 use cache::Cache;
-use commands::*;
+use commands::{
+    ANALYTICS_COMMAND, ASSETBINDS_COMMAND, BACKUP_COMMAND, BLACKLISTS_COMMAND, BOTINFO_COMMAND,
+    CUSTOMBINDS_COMMAND, EVENTS_COMMAND, GROUPBINDS_COMMAND, HELP_COMMAND, PREMIUM_COMMAND,
+    RANKBINDS_COMMAND, REVERIFY_COMMAND, SERVERINFO_COMMAND, SETTINGS_COMMAND, SETUP_COMMAND,
+    SUPPORT_COMMAND, UPDATE_ALL_COMMAND, UPDATE_COMMAND, UPDATE_ROLE_COMMAND, USERINFO_COMMAND,
+    VERIFY_COMMAND,
+};
 use framework::{context::Context, Framework};
 use models::{
     configuration::{BotConfig, Configuration},
     stats::BotStats,
 };
-use services::*;
+use services::EventHandler;
 use utils::{Database, Logger, Patreon, Roblox};
 
 #[tokio::main]

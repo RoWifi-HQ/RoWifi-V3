@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::*;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{collections::HashMap, fmt, str::FromStr, sync::Arc};
 use twilight_model::id::RoleId;
 
@@ -65,7 +65,7 @@ impl Backup for AssetBind {
 
     fn to_backup(&self, roles: &HashMap<RoleId, Arc<CachedRole>>) -> Self::Bind {
         let mut discord_roles = Vec::new();
-        for role_id in self.discord_roles.iter() {
+        for role_id in &self.discord_roles {
             if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
                 discord_roles.push(role.name.clone());
             }
@@ -80,7 +80,7 @@ impl Backup for AssetBind {
 
     fn from_backup(bind: &Self::Bind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
-        for role_name in bind.discord_roles.iter() {
+        for role_name in &bind.discord_roles {
             let role = roles.get(role_name).unwrap().0 as i64;
             discord_roles.push(role);
         }

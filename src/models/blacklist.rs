@@ -1,4 +1,4 @@
-use super::command::*;
+use super::command::{RoCommand, RoCommandUser};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 

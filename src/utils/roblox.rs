@@ -50,11 +50,9 @@ impl Roblox {
         let url = format!("https://api.roblox.com/users/{}", roblox_id);
         let body = self.client.get(&url).send().await?.json::<Value>().await?;
 
-        if let Some(resp) = body["Username"].as_str() {
-            Ok(resp.to_string())
-        } else {
-            Err(RobloxError::MissingField)
-        }
+        body["Username"]
+            .as_str()
+            .map_or(Err(RobloxError::MissingField), |r| Ok(r.to_string()))
     }
 
     pub async fn get_id_from_username(&self, username: &str) -> Result<Option<i64>> {

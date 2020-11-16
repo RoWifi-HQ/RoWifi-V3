@@ -1,4 +1,4 @@
-use super::token::*;
+use super::token::{Literal, Token, TokenType};
 
 pub struct Scanner {
     source: Vec<char>,
@@ -7,6 +7,7 @@ pub struct Scanner {
     tokens: Vec<Token>,
 }
 
+#[allow(clippy::unused_self)]
 impl Scanner {
     pub fn new(source: &str) -> Self {
         Self {
@@ -135,11 +136,11 @@ impl Scanner {
     }
 
     fn is_digit(&self, c: char) -> bool {
-        c >= '0' && c <= '9'
+        ('0'..='9').contains(&c)
     }
 
     fn is_alpha(&self, c: char) -> bool {
-        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+        ('a'..='z').contains(&c) || ('A'..='Z').contains(&c) || c == '_'
     }
 
     fn is_at_end(&self) -> bool {

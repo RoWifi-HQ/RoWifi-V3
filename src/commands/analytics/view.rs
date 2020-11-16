@@ -122,7 +122,7 @@ pub async fn analytics_view(
     max_members += diff / 10;
     let iterator = group_data.iter().map(|g| (g.timestamp.0, g.member_count));
 
-    let mut buffer = vec![0u8; 1024 * 768 * 3];
+    let mut buffer = vec![0_u8; 1024 * 768 * 3];
     {
         let root_drawing_area =
             BitMapBackend::with_buffer(&mut buffer, (1024, 768)).into_drawing_area();

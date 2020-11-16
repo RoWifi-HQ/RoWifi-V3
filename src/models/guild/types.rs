@@ -1,4 +1,4 @@
-use serde_repr::*;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt;
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Clone)]

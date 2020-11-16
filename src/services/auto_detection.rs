@@ -35,7 +35,7 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
             .into_iter()
             .map(|m| m.0)
             .collect::<Vec<_>>();
-        if members.len() < (server.member_count.load(Ordering::SeqCst) / 2) as usize {
+        if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
             let req = RequestGuildMembers::builder(server.id).query("", None);
             let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
             ctx.cluster.command(shard_id, &req).await?;
