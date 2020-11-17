@@ -1,4 +1,4 @@
-FROM rustlang/rust:latest as builder
+FROM rustlang/rust:nightly as builder
 WORKDIR /usr/src/rowifi
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.sh \
       -q -O /tmp/cmake-install.sh \
