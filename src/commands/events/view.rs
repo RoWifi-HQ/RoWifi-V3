@@ -378,7 +378,7 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
         attendees.push(roblox_name);
     }
 
-    let embed = EmbedBuilder::new()
+    let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Event Id: {}", event.guild_event_id))
         .unwrap()
@@ -391,9 +391,12 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
             )
             .unwrap(),
         )
-        .timestamp(event.timestamp.to_rfc3339())
-        .build()
-        .unwrap();
+        .timestamp(event.timestamp.to_rfc3339());
+    if let Some(notes) = &event.notes {
+        embed = embed.field(EmbedFieldBuilder::new("Notes", notes).unwrap());
+    }
+    let embed = embed.build().unwrap();
+
     ctx.http
         .create_message(msg.channel_id)
         .embed(embed)

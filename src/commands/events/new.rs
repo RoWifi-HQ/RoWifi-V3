@@ -107,7 +107,7 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
                 .title("Event Addition Failed")
                 .unwrap()
                 .description(format!(
-                    "An event type with event id {} does not exist",
+                    "An event type with id {} does not exist",
                     event_type_id
                 ))
                 .unwrap()
@@ -123,6 +123,13 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
     };
 
     let attendees_str = await_reply("Enter the list of attendees in this event", ctx, msg).await?;
+    let notes_raw = await_reply("Would you like to add any notes to this event log? Say N/A if you would like to not add any notes", ctx, msg).await?;
+    let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
+        None
+    } else {
+        Some(notes_raw)
+    };
+
     let event_id = ObjectId::new();
     let guild_id = guild_id.0 as i64;
 
@@ -143,6 +150,7 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         timestamp: bson::DateTime {
             0: chrono::Utc::now(),
         },
+        notes,
     };
 
     ctx.database.add_event(guild_id, &new_event).await?;
