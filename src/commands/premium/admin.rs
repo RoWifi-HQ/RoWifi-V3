@@ -57,6 +57,10 @@ pub static PREMIUM_CHECK_COMMAND: Command = Command {
 
 #[command]
 pub async fn premium_add(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+    if !ctx.config.council.contains(&msg.author.id) {
+        return Ok(());
+    }
+
     let user_id: i64 = match args.next().map(str::parse) {
         Some(Ok(u)) => u,
         _ => return Ok(()),

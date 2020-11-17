@@ -13,7 +13,7 @@ pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
     bucket: None,
     names: &["events", "event"],
-    desc: Some("Command to view information about the events module of the server"),
+    desc: Some("Command to view information about the events module"),
     usage: None,
     examples: &[],
     min_args: 0,
