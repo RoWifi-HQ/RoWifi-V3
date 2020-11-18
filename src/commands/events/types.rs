@@ -274,7 +274,7 @@ pub async fn event_type_modify(
     let event_name = args.join(" ");
 
     let filter = bson::doc! {"_id": guild_id.0};
-    let index_str = format!("EventType.{}.Name", event_type_index);
+    let index_str = format!("EventTypes.{}.Name", event_type_index);
     let update = bson::doc! {"$set": {index_str: event_name.clone()}};
     ctx.database.modify_guild(filter, update).await?;
 

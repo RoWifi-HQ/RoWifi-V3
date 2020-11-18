@@ -384,14 +384,18 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
         .unwrap()
         .field(EmbedFieldBuilder::new("Event Type", event_type.name.clone()).unwrap())
         .field(EmbedFieldBuilder::new("Host", host).unwrap())
-        .field(
+        .timestamp(event.timestamp.to_rfc3339());
+
+    if !event.attendees.is_empty() {
+        embed = embed.field(
             EmbedFieldBuilder::new(
                 "Attendees",
                 attendees.iter().map(|a| format!("- {}", a)).join("\n"),
             )
             .unwrap(),
-        )
-        .timestamp(event.timestamp.to_rfc3339());
+        );
+    }
+
     if let Some(notes) = &event.notes {
         embed = embed.field(EmbedFieldBuilder::new("Notes", notes).unwrap());
     }

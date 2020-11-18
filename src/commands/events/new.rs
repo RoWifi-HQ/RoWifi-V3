@@ -123,6 +123,32 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
     };
 
     let attendees_str = await_reply("Enter the list of attendees in this event", ctx, msg).await?;
+    let mut attendees = Vec::new();
+    for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
+        if let Ok(Some(roblox_id)) = ctx.roblox.get_id_from_username(&attendee).await {
+            attendees.push(roblox_id);
+        }
+    }
+
+    if attendees.is_empty() {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .unwrap()
+            .title("Event Addition Failed")
+            .unwrap()
+            .description("The number of valid attendees was found to be zero")
+            .unwrap()
+            .build()
+            .unwrap();
+        ctx.http
+            .create_message(msg.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
+
     let notes_raw = await_reply("Would you like to add any notes to this event log? Say N/A if you would like to not add any notes", ctx, msg).await?;
     let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
         None
@@ -132,13 +158,6 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
 
     let event_id = ObjectId::new();
     let guild_id = guild_id.0 as i64;
-
-    let mut attendees = Vec::new();
-    for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
-        if let Ok(Some(roblox_id)) = ctx.roblox.get_id_from_username(&attendee).await {
-            attendees.push(roblox_id);
-        }
-    }
 
     let new_event = EventLog {
         id: event_id,
