@@ -24,11 +24,7 @@ pub static CUSTOMBINDS_NEW_COMMAND: Command = Command {
 };
 
 #[command]
-pub async fn custombinds_new(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
+pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx
         .database
@@ -36,7 +32,7 @@ pub async fn custombinds_new(
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let code = args.join(" ");
+    let code = args.as_str();
 
     let user = match ctx.database.get_user(msg.author.id.0).await? {
         Some(u) => u,
@@ -47,7 +43,7 @@ pub async fn custombinds_new(
                 .unwrap()
                 .title("Custom Bind Addition Failed")
                 .unwrap()
-                .description("You must be verified to create a custom blacklist")
+                .description("You must be verified to create a custom bind")
                 .unwrap()
                 .build()
                 .unwrap();
@@ -70,7 +66,7 @@ pub async fn custombinds_new(
         ranks: &ranks,
         username: &username,
     };
-    let command = match RoCommand::new(&code) {
+    let command = match RoCommand::new(code) {
         Ok(c) => c,
         Err(s) => {
             let _ = ctx

@@ -3,7 +3,6 @@ use crate::models::{
     blacklist::{Blacklist, BlacklistType},
     command::{RoCommand, RoCommandUser},
 };
-use itertools::Itertools;
 
 pub static BLACKLISTS_CUSTOM_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -27,7 +26,7 @@ pub static BLACKLISTS_CUSTOM_COMMAND: Command = Command {
 pub async fn blacklists_custom(
     ctx: &Context,
     msg: &Message,
-    mut args: Arguments<'fut>,
+    args: Arguments<'fut>,
 ) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     let guild = ctx
@@ -36,7 +35,7 @@ pub async fn blacklists_custom(
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let code = args.join(" ");
+    let code = args.as_str();
     if code.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -115,7 +114,7 @@ pub async fn blacklists_custom(
     let reason = await_reply("Enter the reason of this blacklist.", ctx, msg).await?;
 
     let blacklist = Blacklist {
-        id: code,
+        id: code.to_string(),
         reason,
         blacklist_type: BlacklistType::Custom(command),
     };

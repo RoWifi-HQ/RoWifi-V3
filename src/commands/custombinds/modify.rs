@@ -3,7 +3,6 @@ use crate::models::{
     command::{RoCommand, RoCommandUser},
     guild::RoGuild,
 };
-use itertools::Itertools;
 
 pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -150,9 +149,9 @@ async fn modify_code(
     msg: &Message,
     guild: &RoGuild,
     bind_id: i64,
-    mut args: Arguments<'_>,
+    args: Arguments<'_>,
 ) -> Result<Option<String>, RoError> {
-    let code = args.join(" ");
+    let code = args.as_str();
     let user = match ctx.database.get_user(msg.author.id.0).await? {
         Some(u) => u,
         None => {
@@ -188,7 +187,7 @@ async fn modify_code(
         ranks: &ranks,
         username: &username,
     };
-    let command = match RoCommand::new(&code) {
+    let command = match RoCommand::new(code) {
         Ok(c) => c,
         Err(s) => {
             let _ = ctx
@@ -210,9 +209,9 @@ async fn modify_code(
         return Ok(None);
     }
     let filter = bson::doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = bson::doc! {"$set": {"CustomBinds.$.Code": code.clone()}};
+    let update = bson::doc! {"$set": {"CustomBinds.$.Code": code.to_string()}};
     ctx.database.modify_guild(filter, update).await?;
-    Ok(Some(code))
+    Ok(Some(code.to_string()))
 }
 
 async fn modify_prefix(
