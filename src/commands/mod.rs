@@ -10,6 +10,7 @@ mod help;
 mod premium;
 mod rankbinds;
 mod settings;
+mod test;
 mod user;
 
 pub use analytics::*;
@@ -24,4 +25,5 @@ pub use help::*;
 pub use premium::*;
 pub use rankbinds::*;
 pub use settings::*;
+pub use test::*;
 pub use user::*;

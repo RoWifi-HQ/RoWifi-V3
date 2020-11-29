@@ -64,14 +64,15 @@ pub async fn groupbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for binds in &guild.groupbinds.iter().chunks(12) {
+    for gbs in &guild.groupbinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Groupbinds")
             .unwrap()
             .description(format!("Page {}", page_count + 1))
             .unwrap();
-        for gb in binds {
+        let gbs = gbs.sorted_by_key(|g| g.group_id);
+        for gb in gbs {
             let name = format!("Group Id: {}", gb.group_id);
             let desc = format!(
                 "Roles: {}",

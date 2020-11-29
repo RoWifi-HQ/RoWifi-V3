@@ -73,6 +73,7 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
                 .unwrap()
                 .description(format!("Group {} | Page {}", group.0, page_count + 1))
                 .unwrap();
+            let rbs = rbs.sorted_by_key(|r| r.rank_id);
             for rb in rbs {
                 let name = format!("Rank: {}", rb.rank_id);
                 let desc = format!(

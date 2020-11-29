@@ -296,7 +296,12 @@ impl Framework {
                 let _ = context.http.create_message(msg.channel_id)
                     .content("There was an error in executing this command. Please try again. If the issue persists, please contact the support server for more information").unwrap()
                     .await;
-                let content = format!("```{}```", error);
+                let content = format!(
+                    "```Guild Id: {}\nCluster Id: {}\nError: {}```",
+                    msg.guild_id.unwrap(),
+                    context.bot_config.cluster_id,
+                    error
+                );
                 context.logger.log_debug(context, &content).await;
             }
         }

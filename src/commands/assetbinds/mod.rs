@@ -64,14 +64,15 @@ pub async fn assetbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for binds in &guild.assetbinds.iter().chunks(12) {
+    for abs in &guild.assetbinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("AssetBinds")
             .unwrap()
             .description(format!("Page {}", page_count + 1))
             .unwrap();
-        for ab in binds {
+        let abs = abs.sorted_by_key(|a| a.id);
+        for ab in abs {
             let name = format!("Id: {}", ab.id);
             let roles_str = ab
                 .discord_roles

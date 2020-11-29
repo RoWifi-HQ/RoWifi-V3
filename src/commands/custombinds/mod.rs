@@ -64,14 +64,15 @@ pub async fn custombind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for binds in &guild.custombinds.iter().chunks(12) {
+    for cbs in &guild.custombinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Custombinds")
             .unwrap()
             .description(format!("Page {}", page_count + 1))
             .unwrap();
-        for cb in binds {
+        let cbs = cbs.sorted_by_key(|c| c.id);
+        for cb in cbs {
             let name = format!("Bind Id: {}", cb.id);
             let roles_str = cb
                 .discord_roles

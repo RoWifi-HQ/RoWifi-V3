@@ -143,6 +143,7 @@ impl Database {
                 let _ = queue.insert_one(u, InsertOneOptions::default()).await?;
             }
         }
+        self.user_cache.remove(&user.discord_id);
         Ok(())
     }
 
