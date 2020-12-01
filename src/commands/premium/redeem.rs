@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::guild::GuildType;
+use rowifi_models::guild::GuildType;
 use std::env;
 use twilight_model::gateway::payload::RequestGuildMembers;
 

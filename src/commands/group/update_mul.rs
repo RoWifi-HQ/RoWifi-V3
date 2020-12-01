@@ -1,7 +1,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::framework::prelude::*;
-use crate::models::guild::GuildType;
+use rowifi_models::guild::GuildType;
 use twilight_gateway::Event;
 use twilight_model::{gateway::payload::RequestGuildMembers, id::UserId};
 
@@ -120,15 +120,8 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                 }
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
                 let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = user
-                    .update(
-                        c.http.clone(),
-                        member,
-                        c.roblox.clone(),
-                        server.clone(),
-                        &guild,
-                        &guild_roles,
-                    )
+                if let Ok((added_roles, removed_roles, disc_nick)) = c
+                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -248,15 +241,8 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
                 }
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
                 let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = user
-                    .update(
-                        c.http.clone(),
-                        member,
-                        c.roblox.clone(),
-                        server.clone(),
-                        &guild,
-                        &guild_roles,
-                    )
+                if let Ok((added_roles, removed_roles, disc_nick)) = c
+                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {

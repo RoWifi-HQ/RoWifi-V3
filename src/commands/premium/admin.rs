@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::user::{PremiumType, PremiumUser};
+use rowifi_models::user::{PremiumType, PremiumUser};
 
 pub static PREMIUM_ADD_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Council,

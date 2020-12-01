@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::guild::RoGuild;
+use rowifi_models::guild::RoGuild;
 
 pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -86,11 +86,11 @@ pub async fn backup_restore(
     for role in server_roles {
         let cached = ctx.cache.role(role);
         if let Some(cached) = cached {
-            roles.push(cached);
+            roles.push((cached.id, cached.name.clone()));
         }
     }
 
-    let guild = RoGuild::from_backup(backup, ctx, guild_id, &roles).await;
+    let guild = RoGuild::from_backup(backup, ctx.http.clone(), guild_id, &roles).await;
     ctx.database.add_guild(guild, existing).await?;
     let _ = ctx
         .http

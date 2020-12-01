@@ -4,7 +4,7 @@ mod redeem;
 mod transfer;
 
 use crate::framework::prelude::*;
-use crate::models::user::PremiumType;
+use rowifi_models::user::PremiumType;
 use twilight_model::id::UserId;
 
 use admin::{PREMIUM_ADD_COMMAND, PREMIUM_CHECK_COMMAND, PREMIUM_DELETE_COMMAND};

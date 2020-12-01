@@ -5,7 +5,7 @@ use tokio::time::timeout;
 use twilight_model::gateway::payload::MessageCreate;
 
 use super::update;
-use crate::models::user::{QueueUser, RoUser};
+use rowifi_models::user::{QueueUser, RoUser};
 
 pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,

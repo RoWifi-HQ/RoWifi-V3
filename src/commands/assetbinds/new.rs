@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::bind::{AssetBind, AssetType};
+use rowifi_models::bind::{AssetBind, AssetType};
 use twilight_mention::Mention;
 
 pub static ASSETBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {

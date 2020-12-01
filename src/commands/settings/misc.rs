@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::guild::BlacklistActionType;
+use rowifi_models::guild::BlacklistActionType;
 
 pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

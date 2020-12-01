@@ -1,10 +1,4 @@
 use super::error::RoError;
-use crate::models::{
-    analytics::Group,
-    events::EventLog,
-    guild::{BackupGuild, GuildType, RoGuild},
-    user::{PremiumUser, QueueUser, RoUser},
-};
 use bson::{doc, document::Document, Bson};
 use futures::stream::StreamExt;
 use mongodb::{
@@ -13,6 +7,12 @@ use mongodb::{
         FindOneOptions, FindOptions, InsertOneOptions, ReturnDocument,
     },
     Client,
+};
+use rowifi_models::{
+    analytics::Group,
+    events::EventLog,
+    guild::{BackupGuild, GuildType, RoGuild},
+    user::{PremiumUser, QueueUser, RoUser},
 };
 use std::{sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;

@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
-use crate::models::{
+use rowifi_models::{
     blacklist::{Blacklist, BlacklistType},
-    command::{RoCommand, RoCommandUser},
+    rolang::{RoCommand, RoCommandUser},
 };
 
 pub static BLACKLISTS_CUSTOM_OPTIONS: CommandOptions = CommandOptions {
@@ -86,7 +86,7 @@ pub async fn blacklists_custom(
 
     let command_user = RoCommandUser {
         user: &user,
-        member,
+        roles: &member.roles,
         ranks: &ranks,
         username: &username,
     };

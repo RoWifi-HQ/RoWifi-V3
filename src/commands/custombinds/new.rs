@@ -1,9 +1,9 @@
 use crate::framework::prelude::*;
-use crate::models::{
-    bind::CustomBind,
-    command::{RoCommand, RoCommandUser},
-};
 use itertools::Itertools;
+use rowifi_models::{
+    bind::CustomBind,
+    rolang::{RoCommand, RoCommandUser},
+};
 
 pub static CUSTOMBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -62,7 +62,7 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
 
     let command_user = RoCommandUser {
         user: &user,
-        member,
+        roles: &member.roles,
         ranks: &ranks,
         username: &username,
     };

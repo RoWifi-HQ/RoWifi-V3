@@ -1,6 +1,6 @@
 use crate::framework::prelude::*;
-use crate::models::blacklist::{Blacklist, BlacklistType};
 use itertools::Itertools;
+use rowifi_models::blacklist::{Blacklist, BlacklistType};
 
 pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

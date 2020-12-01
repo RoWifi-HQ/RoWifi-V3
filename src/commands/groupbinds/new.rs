@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::bind::GroupBind;
+use rowifi_models::bind::GroupBind;
 use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_mention::Mention;
 

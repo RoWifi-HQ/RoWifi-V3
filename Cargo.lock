@@ -2115,6 +2115,7 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
+ "rowifi-models",
  "serde",
  "serde_json",
  "serde_repr",
@@ -2132,6 +2133,19 @@ dependencies = [
  "twilight-model",
  "twilight-standby",
  "uwl",
+]
+
+[[package]]
+name = "rowifi-models"
+version = "1.0.0"
+dependencies = [
+ "bson",
+ "itertools",
+ "prometheus",
+ "serde",
+ "serde_repr",
+ "twilight-http",
+ "twilight-model",
 ]
 
 [[package]]

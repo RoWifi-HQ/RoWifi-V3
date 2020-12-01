@@ -2,10 +2,9 @@ use crate::framework::prelude::*;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
+use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_model::id::RoleId;
-
-use crate::models::{bind::RankBind, guild::RoGuild};
 
 pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

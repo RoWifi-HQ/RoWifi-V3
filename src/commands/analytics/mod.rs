@@ -2,8 +2,8 @@ mod register;
 mod view;
 
 use crate::framework::prelude::*;
-use crate::models::guild::GuildType;
 use itertools::Itertools;
+use rowifi_models::guild::GuildType;
 use std::string::ToString;
 
 use register::{ANALYTICS_REGISTER_COMMAND, ANALYTICS_UNREGISTER_COMMAND};
