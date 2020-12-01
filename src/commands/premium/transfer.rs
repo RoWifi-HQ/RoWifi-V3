@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::user::PremiumUser;
+use rowifi_models::user::PremiumUser;
 
 pub static PREMIUM_TRANSFER_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,

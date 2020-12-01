@@ -2,8 +2,7 @@ use std::borrow::Cow;
 use twilight_model::channel::Message;
 use uwl::Stream;
 
-use super::{map::CommandMap, Command};
-use crate::models::configuration::Configuration;
+use super::{map::CommandMap, Command, Configuration};
 
 pub fn mention<'a>(stream: &mut Stream<'a>, config: &Configuration) -> Option<&'a str> {
     let on_mention = &config.on_mention;

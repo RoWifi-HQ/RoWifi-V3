@@ -151,15 +151,8 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
     };
     let guild_roles = ctx.cache.roles(guild_id);
 
-    let (added_roles, removed_roles, disc_nick) = match user
-        .update(
-            ctx.http.clone(),
-            member,
-            ctx.roblox.clone(),
-            server,
-            &guild,
-            &guild_roles,
-        )
+    let (added_roles, removed_roles, disc_nick) = match ctx
+        .update_user(member, &user, server, &guild, &guild_roles)
         .await
     {
         Ok(a) => a,

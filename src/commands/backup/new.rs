@@ -61,7 +61,7 @@ pub async fn backup_new(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
     for role in server_roles {
         let cached = ctx.cache.role(role);
         if let Some(cached) = cached {
-            roles.insert(role, cached);
+            roles.insert(role, cached.name.clone());
         }
     }
 

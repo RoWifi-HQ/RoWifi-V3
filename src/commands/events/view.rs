@@ -1,7 +1,7 @@
 use crate::framework::prelude::*;
-use crate::models::guild::GuildType;
 use bson::doc;
 use itertools::Itertools;
+use rowifi_models::guild::GuildType;
 
 pub static EVENT_ATTENDEE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,

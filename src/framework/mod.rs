@@ -1,3 +1,4 @@
+pub mod configuration;
 pub mod context;
 mod map;
 pub mod parser;
@@ -15,6 +16,7 @@ use twilight_gateway::Event;
 use twilight_model::{channel::Message, guild::Permissions};
 use uwl::Stream;
 
+pub use configuration::{BotConfig, Configuration};
 use context::Context;
 pub use map::CommandMap;
 use parser::{Invoke, ParseError};

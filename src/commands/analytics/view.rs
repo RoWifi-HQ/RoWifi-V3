@@ -1,8 +1,8 @@
 use crate::framework::prelude::{Color as DiscordColor, *};
-use crate::models::guild::GuildType;
 use chrono::{Duration, Utc};
 use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
+use rowifi_models::guild::GuildType;
 use std::io::Cursor;
 
 pub static ANALYTICS_VIEW_OPTIONS: CommandOptions = CommandOptions {

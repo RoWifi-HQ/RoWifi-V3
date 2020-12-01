@@ -1,6 +1,6 @@
-use crate::models::stats::BotStats;
 use crate::utils::misc::{channel_permissions, guild_wide_permissions};
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
+use rowifi_models::stats::BotStats;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,

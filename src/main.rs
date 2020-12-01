@@ -18,8 +18,6 @@
 mod cache;
 mod commands;
 mod framework;
-mod models;
-mod rolang;
 mod services;
 mod utils;
 
@@ -29,6 +27,7 @@ use hyper::{
     Body, Response, Server,
 };
 use prometheus::{Encoder, TextEncoder};
+use rowifi_models::stats::BotStats;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::{stream::StreamExt, time::delay_for};
 use twilight_gateway::cluster::{Cluster, ShardScheme};
@@ -44,11 +43,7 @@ use commands::{
     SUPPORT_COMMAND, TEST_COMMAND, UPDATE_ALL_COMMAND, UPDATE_COMMAND, UPDATE_ROLE_COMMAND,
     USERINFO_COMMAND, VERIFY_COMMAND,
 };
-use framework::{context::Context, Framework};
-use models::{
-    configuration::{BotConfig, Configuration},
-    stats::BotStats,
-};
+use framework::{context::Context, BotConfig, Configuration, Framework};
 use services::EventHandler;
 use utils::{Database, Logger, Patreon, Roblox};
 

@@ -1,6 +1,6 @@
 use crate::framework::prelude::*;
-use crate::models::{events::EventLog, guild::GuildType};
 use bson::oid::ObjectId;
+use rowifi_models::{events::EventLog, guild::GuildType};
 use twilight_mention::Mention;
 
 pub static EVENT_NEW_OPTIONS: CommandOptions = CommandOptions {

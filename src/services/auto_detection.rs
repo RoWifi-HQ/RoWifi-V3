@@ -68,15 +68,8 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
                 }
                 tracing::trace!(id = user.discord_id, "Auto Detection for member");
                 let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = user
-                    .update(
-                        ctx.http.clone(),
-                        member,
-                        ctx.roblox.clone(),
-                        server.clone(),
-                        &guild,
-                        &guild_roles,
-                    )
+                if let Ok((added_roles, removed_roles, disc_nick)) = ctx
+                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {

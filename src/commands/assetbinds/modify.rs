@@ -1,5 +1,5 @@
 use crate::framework::prelude::*;
-use crate::models::guild::RoGuild;
+use rowifi_models::guild::RoGuild;
 
 pub static ASSETBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

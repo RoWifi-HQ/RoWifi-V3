@@ -1,9 +1,9 @@
 use crate::framework::prelude::*;
-use crate::models::{
-    command::{RoCommand, RoCommandUser},
-    guild::RoGuild,
-};
 use itertools::Itertools;
+use rowifi_models::{
+    guild::RoGuild,
+    rolang::{RoCommand, RoCommandUser},
+};
 
 pub static CUSTOMBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,
@@ -184,7 +184,7 @@ async fn modify_code(
 
     let command_user = RoCommandUser {
         user: &user,
-        member,
+        roles: &member.roles,
         ranks: &ranks,
         username: &username,
     };

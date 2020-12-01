@@ -1,8 +1,17 @@
-use std::{collections::HashMap, fmt, sync::Arc};
+mod expression;
+mod parser;
+mod scanner;
+mod token;
 
-use super::user::RoUser;
-use crate::cache::CachedMember;
-use crate::rolang::{expression::Expression, parser::Parser, scanner::Scanner, token::Literal};
+use crate::user::RoUser;
+
+use std::{collections::HashMap, fmt::{Display, Formatter, Result as FmtResult}};
+use twilight_model::id::RoleId;
+
+use expression::Expression;
+use scanner::Scanner;
+use parser::Parser;
+use token::Literal;
 
 #[derive(Clone)]
 pub struct RoCommand {
@@ -13,7 +22,7 @@ pub struct RoCommand {
 #[derive(Debug)]
 pub struct RoCommandUser<'rc> {
     pub user: &'rc RoUser,
-    pub member: Arc<CachedMember>,
+    pub roles: &'rc [RoleId],
     pub ranks: &'rc HashMap<i64, i64>,
     pub username: &'rc str,
 }
@@ -39,10 +48,11 @@ impl RoCommand {
     }
 }
 
-impl fmt::Display for RoCommand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for RoCommand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("RoCommand")
             .field("Code", &self.code)
             .finish()
     }
 }
+

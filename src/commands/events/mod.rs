@@ -3,7 +3,7 @@ mod types;
 mod view;
 
 use crate::framework::prelude::*;
-use crate::models::guild::GuildType;
+use rowifi_models::guild::GuildType;
 
 use new::EVENT_NEW_COMMAND;
 use types::EVENT_TYPE_COMMAND;

@@ -1,6 +1,6 @@
 use crate::framework::prelude::*;
-use crate::models::{events::EventType, guild::GuildType};
 use itertools::Itertools;
+use rowifi_models::{events::EventType, guild::GuildType};
 
 pub static EVENT_TYPE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Trainer,

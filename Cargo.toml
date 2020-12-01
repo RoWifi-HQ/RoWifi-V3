@@ -26,6 +26,7 @@ prometheus = "*"
 rand = "*"
 regex = "*"
 reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
+rowifi-models = { path = "./models" }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 serde = "1.0"
 serde_json = "1.0"
