@@ -5,10 +5,10 @@ pub mod parser;
 pub mod prelude;
 pub mod structures;
 
-use crate::cache::{CachedGuild, CachedMember};
 use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
+use rowifi_cache::{CachedGuild, CachedMember};
 use std::{sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;

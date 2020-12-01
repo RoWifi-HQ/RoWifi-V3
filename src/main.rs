@@ -15,7 +15,6 @@
     clippy::field_reassign_with_default
 )]
 
-mod cache;
 mod commands;
 mod framework;
 mod services;
@@ -35,7 +34,6 @@ use twilight_http::Client as HttpClient;
 use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
 
-use cache::Cache;
 use commands::{
     ANALYTICS_COMMAND, ASSETBINDS_COMMAND, BACKUP_COMMAND, BLACKLISTS_COMMAND, BOTINFO_COMMAND,
     CUSTOMBINDS_COMMAND, EVENTS_COMMAND, GROUPBINDS_COMMAND, HELP_COMMAND, PREMIUM_COMMAND,
@@ -44,6 +42,7 @@ use commands::{
     USERINFO_COMMAND, VERIFY_COMMAND,
 };
 use framework::{context::Context, BotConfig, Configuration, Framework};
+use rowifi_cache::Cache;
 use services::EventHandler;
 use utils::{Database, Logger, Patreon, Roblox};
 
