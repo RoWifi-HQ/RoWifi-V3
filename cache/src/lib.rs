@@ -1,4 +1,3 @@
-use crate::utils::misc::{channel_permissions, guild_wide_permissions};
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use rowifi_models::stats::BotStats;
 use std::{
@@ -9,12 +8,7 @@ use std::{
         Arc, Mutex,
     },
 };
-use twilight_model::{
-    channel::GuildChannel,
-    guild::{Guild, Member, Permissions, Role},
-    id::{ChannelId, GuildId, RoleId, UserId},
-    user::{CurrentUser, User},
-};
+use twilight_model::{channel::{GuildChannel, permission_overwrite::PermissionOverwriteType}, guild::{Guild, Member, Permissions, Role}, id::{ChannelId, GuildId, RoleId, UserId}, user::{CurrentUser, User}};
 
 mod event;
 mod models;
@@ -487,4 +481,79 @@ impl Cache {
     pub fn unavailable_guild(&self, guild_id: GuildId) {
         self.0.unavailable_guilds.insert(guild_id);
     }
+}
+
+pub fn guild_wide_permissions(
+    guild: &Arc<CachedGuild>,
+    roles: &HashMap<RoleId, Arc<CachedRole>>,
+    member_id: UserId,
+    member_roles: &[RoleId],
+) -> Result<Permissions, String> {
+    if member_id == guild.owner_id {
+        return Ok(Permissions::all());
+    }
+
+    let mut permissions = match roles.get(&RoleId(guild.id.0)) {
+        Some(r) => r.permissions,
+        None => return Err("`@everyone` role is missing from the cache.".into()),
+    };
+
+    for role in member_roles {
+        let role_permissions = match roles.get(&role) {
+            Some(r) => r.permissions,
+            None => return Err("Found a role on the member that doesn't exist on the cache".into()),
+        };
+
+        permissions |= role_permissions;
+    }
+    Ok(permissions)
+}
+
+pub fn channel_permissions(
+    guild: &Arc<CachedGuild>,
+    roles: &HashMap<RoleId, Arc<CachedRole>>,
+    member_id: UserId,
+    member_roles: &[RoleId],
+    channel: &Arc<GuildChannel>,
+) -> Result<Permissions, String> {
+    let guild_id = guild.id;
+    let mut permissions = guild_wide_permissions(&guild, roles, member_id, &member_roles)?;
+    let mut member_allow = Permissions::empty();
+    let mut member_deny = Permissions::empty();
+    let mut roles_allow = Permissions::empty();
+    let mut roles_deny = Permissions::empty();
+
+    if let GuildChannel::Text(tc) = channel.as_ref() {
+        for overwrite in &tc.permission_overwrites {
+            match overwrite.kind {
+                PermissionOverwriteType::Role(role) => {
+                    if role.0 == guild_id.0 {
+                        permissions.remove(overwrite.deny);
+                        permissions.insert(overwrite.allow);
+                        continue;
+                    }
+
+                    if !member_roles.contains(&role) {
+                        continue;
+                    }
+
+                    roles_allow.insert(overwrite.allow);
+                    roles_deny.insert(overwrite.deny);
+                }
+                PermissionOverwriteType::Member(user) if user == member_id => {
+                    member_allow.insert(overwrite.allow);
+                    member_deny.insert(overwrite.deny);
+                }
+                PermissionOverwriteType::Member(_) => {}
+            }
+        }
+        permissions.remove(roles_deny);
+        permissions.insert(roles_allow);
+        permissions.remove(member_deny);
+        permissions.insert(member_allow);
+
+        return Ok(permissions);
+    }
+
+    Err("Not implemented for non text guild channels".into())
 }

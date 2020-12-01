@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_models::{
     guild::{BlacklistActionType, RoGuild},
     rolang::RoCommandUser,
@@ -11,7 +12,6 @@ use twilight_http::Client as Http;
 use twilight_model::id::{GuildId, RoleId, UserId};
 use twilight_standby::Standby;
 
-use crate::cache::{Cache, CachedGuild, CachedMember};
 use crate::utils::error::{CommandError, RoError};
 use crate::utils::{Database, Logger, Patreon, Roblox};
 

@@ -2115,6 +2115,7 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
+ "rowifi-cache",
  "rowifi-models",
  "serde",
  "serde_json",
@@ -2133,6 +2134,16 @@ dependencies = [
  "twilight-model",
  "twilight-standby",
  "uwl",
+]
+
+[[package]]
+name = "rowifi-cache"
+version = "1.0.0"
+dependencies = [
+ "dashmap",
+ "rowifi-models",
+ "tracing",
+ "twilight-model",
 ]
 
 [[package]]
