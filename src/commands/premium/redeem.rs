@@ -103,8 +103,7 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         }
     }
 
-    let _ = ctx
-        .database
+    ctx.database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
@@ -178,8 +177,7 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         return Ok(());
     }
 
-    let _ = ctx
-        .database
+    ctx.database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;

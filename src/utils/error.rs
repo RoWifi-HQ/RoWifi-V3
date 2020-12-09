@@ -1,44 +1,87 @@
-use super::roblox::RobloxError;
-use thiserror::Error;
+use bson::{de::Error as DeserializationError, ser::Error as SerializationError};
+use mongodb::error::Error as MongoError;
+use reqwest::Error as PatreonError;
+use roblox::RobloxError;
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+use twilight_http::Error as DiscordHttpError;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum RoError {
-    #[error(transparent)]
-    Database(#[from] mongodb::error::Error),
-
-    #[error(transparent)]
-    Serialization(#[from] bson::ser::Error),
-
-    #[error(transparent)]
-    Deserialization(#[from] bson::de::Error),
-
-    #[error(transparent)]
-    Roblox(#[from] RobloxError),
-
-    #[error(transparent)]
-    Discord(#[from] twilight_http::Error),
-
-    #[error(transparent)]
-    Command(#[from] CommandError),
-
-    #[error(transparent)]
-    Patreon(#[from] reqwest::Error),
+    Database(MongoError),
+    Serialization(SerializationError),
+    Deserialization(DeserializationError),
+    Roblox(RobloxError),
+    Discord(DiscordHttpError),
+    Command(CommandError),
+    Patreon(PatreonError),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum CommandError {
-    #[error("{0}")]
     NicknameTooLong(String),
-
-    #[error("You were found on the server blacklist. Reason: {0}")]
     Blacklist(String),
-
-    #[error("This server has not been setup. Please ask the server owner to set it up")]
     NoRoGuild,
-
-    #[error("Error in parsing the argument")]
     ParseArgument(String, String, String),
-
-    #[error("Timeout reached. Please try again")]
     Timeout,
 }
+
+impl Display for RoError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            RoError::Database(err) => write!(f, "Database Error - {}", err),
+            RoError::Serialization(err) => write!(f, "Serialization Error - {}", err),
+            RoError::Deserialization(err) => write!(f, "Deserialization Error - {}", err),
+            RoError::Roblox(err) => write!(f, "Roblox Error - {:?}", err),
+            RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
+            RoError::Command(err) => write!(f, "Command Error - {:?}", err),
+            RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
+        }
+    }
+}
+
+impl From<MongoError> for RoError {
+    fn from(err: MongoError) -> Self {
+        RoError::Database(err)
+    }
+}
+
+impl From<SerializationError> for RoError {
+    fn from(err: SerializationError) -> Self {
+        RoError::Serialization(err)
+    }
+}
+
+impl From<DeserializationError> for RoError {
+    fn from(err: DeserializationError) -> Self {
+        RoError::Deserialization(err)
+    }
+}
+
+impl From<RobloxError> for RoError {
+    fn from(err: RobloxError) -> Self {
+        RoError::Roblox(err)
+    }
+}
+
+impl From<DiscordHttpError> for RoError {
+    fn from(err: DiscordHttpError) -> Self {
+        RoError::Discord(err)
+    }
+}
+
+impl From<CommandError> for RoError {
+    fn from(err: CommandError) -> Self {
+        RoError::Command(err)
+    }
+}
+
+impl From<PatreonError> for RoError {
+    fn from(err: PatreonError) -> Self {
+        RoError::Patreon(err)
+    }
+}
+
+impl StdError for RoError {}
