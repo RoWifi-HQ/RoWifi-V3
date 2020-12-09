@@ -299,7 +299,7 @@ impl Framework {
                     .content("There was an error in executing this command. Please try again. If the issue persists, please contact the support server for more information").unwrap()
                     .await;
                 let content = format!(
-                    "```Guild Id: {}\nCluster Id: {}\nError: {}```",
+                    "```Guild Id: {}\nCluster Id: {}\nError: {:?}```",
                     msg.guild_id.unwrap(),
                     context.bot_config.cluster_id,
                     error

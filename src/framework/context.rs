@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use roblox::Client as RobloxClient;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_models::{
     guild::{BlacklistActionType, RoGuild},
@@ -13,7 +14,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 use twilight_standby::Standby;
 
 use crate::utils::error::{CommandError, RoError};
-use crate::utils::{Database, Logger, Patreon, Roblox};
+use crate::utils::{Database, Logger, Patreon};
 
 use super::{BotConfig, Configuration};
 
@@ -22,7 +23,7 @@ pub struct Context {
     pub http: Http,
     pub cache: Cache,
     pub database: Database,
-    pub roblox: Roblox,
+    pub roblox: RobloxClient,
     pub standby: Standby,
     pub cluster: Cluster,
     pub logger: Arc<Logger>,
@@ -38,7 +39,7 @@ impl Context {
         http: Http,
         cache: Cache,
         database: Database,
-        roblox: Roblox,
+        roblox: RobloxClient,
         standby: Standby,
         cluster: Cluster,
         logger: Arc<Logger>,

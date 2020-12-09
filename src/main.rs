@@ -26,6 +26,7 @@ use hyper::{
     Body, Response, Server,
 };
 use prometheus::{Encoder, TextEncoder};
+use roblox::Client as RobloxClient;
 use rowifi_models::stats::BotStats;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::{stream::StreamExt, time::delay_for};
@@ -44,7 +45,7 @@ use commands::{
 use framework::{context::Context, BotConfig, Configuration, Framework};
 use rowifi_cache::Cache;
 use services::EventHandler;
-use utils::{Database, Logger, Patreon, Roblox};
+use utils::{Database, Logger, Patreon};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -112,7 +113,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let standby = Standby::new();
 
     let database = Database::new(&conn_string).await;
-    let roblox = Roblox::new();
+    let roblox = RobloxClient::default();
     let logger = Arc::new(Logger {
         debug_webhook: env::var("LOG_DEBUG")
             .expect("Expected the debug webhook in the environment"),
