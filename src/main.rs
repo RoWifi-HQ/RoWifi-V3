@@ -25,6 +25,7 @@ use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
 };
+use patreon::Client as PatreonClient;
 use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_models::stats::BotStats;
@@ -45,7 +46,7 @@ use commands::{
 use framework::{context::Context, BotConfig, Configuration, Framework};
 use rowifi_cache::Cache;
 use services::EventHandler;
-use utils::{Database, Logger, Patreon};
+use utils::{Database, Logger};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -128,7 +129,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             .owners(owners)
             .council(council),
     );
-    let patreon = Patreon::new(&patreon_key);
+    let patreon = PatreonClient::new(&patreon_key);
     let bot_config = Arc::new(BotConfig {
         cluster_id,
         shards_per_cluster,

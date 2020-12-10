@@ -1,6 +1,6 @@
 use bson::{de::Error as DeserializationError, ser::Error as SerializationError};
 use mongodb::error::Error as MongoError;
-use reqwest::Error as PatreonError;
+use patreon::PatreonError;
 use roblox::RobloxError;
 use std::{
     error::Error as StdError,

@@ -7,8 +7,8 @@ use crate::framework::prelude::*;
 use rowifi_models::user::PremiumType;
 use twilight_model::id::UserId;
 
+use self::patreon::PREMIUM_PATREON_COMMAND;
 use admin::{PREMIUM_ADD_COMMAND, PREMIUM_CHECK_COMMAND, PREMIUM_DELETE_COMMAND};
-use patreon::PREMIUM_PATREON_COMMAND;
 use redeem::{PREMIUM_REDEEM_COMMAND, PREMIUM_REMOVE_COMMAND};
 use transfer::PREMIUM_TRANSFER_COMMAND;
 
