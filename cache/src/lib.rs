@@ -1,3 +1,13 @@
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::cast_possible_wrap,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::find_map,
+    clippy::implicit_hasher
+)]
+
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use rowifi_models::stats::BotStats;
 use std::{
@@ -76,6 +86,7 @@ pub struct Cache(Arc<CacheRef>);
 pub struct CacheError;
 
 impl Cache {
+    #[must_use]
     pub fn new(stats: Arc<BotStats>) -> Self {
         Self {
             0: Arc::new(CacheRef {

@@ -7,7 +7,7 @@ use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
 use twilight_model::{channel::Message, id::GuildId};
 
-use super::{Context, RoError, map::CommandMap};
+use super::{map::CommandMap, Context, RoError};
 
 pub type CommandError = RoError;
 pub type CommandResult = std::result::Result<(), CommandError>;

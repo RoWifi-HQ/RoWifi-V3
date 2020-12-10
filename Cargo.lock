@@ -1491,51 +1491,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mongodb"
-version = "1.1.1"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#32d67deb1aa970a385e16a1142ec072a1d6f0be7"
-dependencies = [
- "async-trait",
- "base64 0.11.0",
- "bitflags",
- "bson",
- "chrono",
- "derivative",
- "err-derive",
- "futures",
- "futures-intrusive",
- "hex",
- "hmac",
- "lazy_static",
- "md-5",
- "os_info",
- "pbkdf2",
- "percent-encoding",
- "rand",
- "reqwest",
- "rustls 0.17.0",
- "serde",
- "serde_bytes",
- "serde_with",
- "sha-1 0.8.2",
- "sha2",
- "socket2",
- "stringprep",
- "strsim 0.10.0",
- "take_mut",
- "time",
- "tokio",
- "tokio-rustls 0.13.1",
- "trust-dns-proto",
- "trust-dns-resolver",
- "typed-builder",
- "uuid",
- "version_check",
- "webpki",
- "webpki-roots 0.18.0",
-]
-
-[[package]]
 name = "net2"
 version = "0.2.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1966,7 +1921,6 @@ dependencies = [
  "rand_chacha",
  "rand_core",
  "rand_hc",
- "rand_pcg",
 ]
 
 [[package]]
@@ -1993,15 +1947,6 @@ name = "rand_hc"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
-dependencies = [
- "rand_core",
-]
-
-[[package]]
-name = "rand_pcg"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
 dependencies = [
  "rand_core",
 ]
@@ -2152,8 +2097,6 @@ dependencies = [
 name = "rowifi"
 version = "2.7.1"
 dependencies = [
- "async-trait",
- "attributes",
  "bson",
  "chrono",
  "dashmap",
@@ -2163,7 +2106,7 @@ dependencies = [
  "image",
  "itertools",
  "lazy_static",
- "mongodb 1.1.1 (git+https://github.com/mongodb/mongo-rust-driver)",
+ "mongodb",
  "patreon",
  "plotters",
  "prometheus",
@@ -2175,23 +2118,15 @@ dependencies = [
  "rowifi-database",
  "rowifi-framework",
  "rowifi-models",
- "serde",
- "serde_json",
- "serde_repr",
- "thiserror",
  "tokio",
  "tracing",
- "tracing-log",
  "tracing-subscriber",
- "transient-dashmap",
- "twilight-command-parser",
  "twilight-embed-builder",
  "twilight-gateway",
  "twilight-http",
  "twilight-mention",
  "twilight-model",
  "twilight-standby",
- "uwl",
 ]
 
 [[package]]
@@ -2209,7 +2144,7 @@ name = "rowifi-database"
 version = "1.0.0"
 dependencies = [
  "futures",
- "mongodb 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mongodb",
  "rowifi-models",
  "tracing",
  "transient-dashmap",

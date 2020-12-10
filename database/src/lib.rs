@@ -1,4 +1,12 @@
-#![allow(clippy::field_reassign_with_default)]
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::field_reassign_with_default,
+    clippy::module_name_repetitions,
+    clippy::missing_errors_doc,
+    clippy::cast_possible_wrap,
+    clippy::single_match_else,
+    clippy::cast_sign_loss
+)]
 
 pub mod error;
 
@@ -154,9 +162,7 @@ impl Database {
         let users = self.client.database("RoWifi").collection("users");
         let user_doc = bson::to_bson(&user)?;
         if let Bson::Document(u) = user_doc {
-            if !verified {
-                let _ = users.insert_one(u, InsertOneOptions::default()).await?;
-            } else {
+            if verified {
                 let _ = users
                     .find_one_and_replace(
                         doc! {"_id": user.discord_id},
@@ -164,6 +170,8 @@ impl Database {
                         FindOneAndReplaceOptions::default(),
                     )
                     .await?;
+            } else {
+                let _ = users.insert_one(u, InsertOneOptions::default()).await?;
             }
             self.user_cache.insert(user.discord_id, Arc::new(user));
         }
