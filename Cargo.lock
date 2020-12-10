@@ -1672,6 +1672,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "patreon"
+version = "0.1.0"
+source = "git+https://github.com/AsianIntel/patreon?branch=main#5ce25f3567819975b769b2b7d1ea5be399347071"
+dependencies = [
+ "reqwest",
+ "serde_json",
+]
+
+[[package]]
 name = "pbkdf2"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2109,6 +2118,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "mongodb",
+ "patreon",
  "plotters",
  "prometheus",
  "rand",

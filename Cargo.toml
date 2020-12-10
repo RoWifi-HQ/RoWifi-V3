@@ -22,6 +22,7 @@ image = "0.23"
 itertools = "*"
 lazy_static = "*"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
+patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 prometheus = "*"
 rand = "*"
 regex = "*"

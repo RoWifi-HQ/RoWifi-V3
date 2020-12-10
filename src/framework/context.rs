@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use patreon::Client as PatreonClient;
 use roblox::Client as RobloxClient;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_models::{
@@ -14,7 +15,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 use twilight_standby::Standby;
 
 use crate::utils::error::{CommandError, RoError};
-use crate::utils::{Database, Logger, Patreon};
+use crate::utils::{Database, Logger};
 
 use super::{BotConfig, Configuration};
 
@@ -28,7 +29,7 @@ pub struct Context {
     pub cluster: Cluster,
     pub logger: Arc<Logger>,
     pub config: Arc<Configuration>,
-    pub patreon: Patreon,
+    pub patreon: PatreonClient,
     pub stats: Arc<BotStats>,
     pub bot_config: Arc<BotConfig>,
 }
@@ -44,7 +45,7 @@ impl Context {
         cluster: Cluster,
         logger: Arc<Logger>,
         config: Arc<Configuration>,
-        patreon: Patreon,
+        patreon: PatreonClient,
         stats: Arc<BotStats>,
         bot_config: Arc<BotConfig>,
     ) -> Self {
