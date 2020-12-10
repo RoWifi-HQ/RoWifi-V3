@@ -8,7 +8,12 @@ use std::{
         Arc, Mutex,
     },
 };
-use twilight_model::{channel::{GuildChannel, permission_overwrite::PermissionOverwriteType}, guild::{Guild, Member, Permissions, Role}, id::{ChannelId, GuildId, RoleId, UserId}, user::{CurrentUser, User}};
+use twilight_model::{
+    channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
+    guild::{Guild, Member, Permissions, Role},
+    id::{ChannelId, GuildId, RoleId, UserId},
+    user::{CurrentUser, User},
+};
 
 mod event;
 mod models;

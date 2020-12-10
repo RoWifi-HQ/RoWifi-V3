@@ -28,6 +28,7 @@ use hyper::{
 use patreon::Client as PatreonClient;
 use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
+use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::{stream::StreamExt, time::delay_for};
@@ -46,7 +47,7 @@ use commands::{
 use framework::{context::Context, BotConfig, Configuration, Framework};
 use rowifi_cache::Cache;
 use services::EventHandler;
-use utils::{Database, Logger};
+use utils::Logger;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

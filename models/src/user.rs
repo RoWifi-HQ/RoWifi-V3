@@ -1,6 +1,6 @@
+use super::guild::GuildType;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use super::guild::GuildType;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RoUser {

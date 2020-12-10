@@ -29,6 +29,7 @@ regex = "*"
 reqwest = { version = "0.10", default-features = false, features = ["json", "rustls-tls"] }
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "./cache" }
+rowifi-database = { path = './database' }
 rowifi-models = { path = "./models" }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 serde = "1.0"

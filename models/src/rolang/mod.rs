@@ -5,12 +5,15 @@ mod token;
 
 use crate::user::RoUser;
 
-use std::{collections::HashMap, fmt::{Display, Formatter, Result as FmtResult}};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::id::RoleId;
 
 use expression::Expression;
-use scanner::Scanner;
 use parser::Parser;
+use scanner::Scanner;
 use token::Literal;
 
 #[derive(Clone)]
@@ -55,4 +58,3 @@ impl Display for RoCommand {
             .finish()
     }
 }
-

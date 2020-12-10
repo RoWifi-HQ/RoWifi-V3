@@ -2,6 +2,7 @@ use itertools::Itertools;
 use patreon::Client as PatreonClient;
 use roblox::Client as RobloxClient;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
+use rowifi_database::Database;
 use rowifi_models::{
     guild::{BlacklistActionType, RoGuild},
     rolang::RoCommandUser,
@@ -15,7 +16,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 use twilight_standby::Standby;
 
 use crate::utils::error::{CommandError, RoError};
-use crate::utils::{Database, Logger};
+use crate::utils::Logger;
 
 use super::{BotConfig, Configuration};
 
