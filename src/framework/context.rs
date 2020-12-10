@@ -15,10 +15,7 @@ use twilight_http::Client as Http;
 use twilight_model::id::{GuildId, RoleId, UserId};
 use twilight_standby::Standby;
 
-use crate::utils::error::{CommandError, RoError};
-use crate::utils::Logger;
-
-use super::{BotConfig, Configuration};
+use super::{BotConfig, Configuration, CommandError, RoError, logger::Logger};
 
 #[derive(Clone)]
 pub struct Context {

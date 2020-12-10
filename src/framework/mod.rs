@@ -1,11 +1,13 @@
-pub mod configuration;
-pub mod context;
+mod configuration;
+mod context;
+pub mod error;
+pub mod logger;
 mod map;
 pub mod parser;
 pub mod prelude;
 pub mod structures;
+mod utils;
 
-use crate::utils::error::{CommandError, RoError};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
 use rowifi_cache::{CachedGuild, CachedMember};
@@ -17,7 +19,8 @@ use twilight_model::{channel::Message, guild::Permissions};
 use uwl::Stream;
 
 pub use configuration::{BotConfig, Configuration};
-use context::Context;
+pub use context::Context;
+pub use error::{CommandError, RoError};
 pub use map::CommandMap;
 use parser::{Invoke, ParseError};
 use structures::{Bucket, Command, HelpCommand, RoLevel};

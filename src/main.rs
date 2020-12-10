@@ -18,7 +18,6 @@
 mod commands;
 mod framework;
 mod services;
-mod utils;
 
 use dashmap::DashSet;
 use hyper::{
@@ -44,10 +43,9 @@ use commands::{
     SUPPORT_COMMAND, TEST_COMMAND, UPDATE_ALL_COMMAND, UPDATE_COMMAND, UPDATE_ROLE_COMMAND,
     USERINFO_COMMAND, VERIFY_COMMAND,
 };
-use framework::{context::Context, BotConfig, Configuration, Framework};
+use framework::{Context, BotConfig, Configuration, Framework, logger::Logger};
 use rowifi_cache::Cache;
 use services::EventHandler;
-use utils::Logger;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

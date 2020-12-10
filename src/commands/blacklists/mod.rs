@@ -4,7 +4,6 @@ mod group;
 mod name;
 
 use crate::framework::prelude::*;
-use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
 
 pub use custom::*;

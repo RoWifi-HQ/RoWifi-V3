@@ -1,4 +1,3 @@
-use crate::utils::error::RoError;
 use futures::future::BoxFuture;
 use std::{
     fmt,
@@ -8,8 +7,7 @@ use transient_dashmap::TransientDashMap;
 use twilight_command_parser::Arguments;
 use twilight_model::{channel::Message, id::GuildId};
 
-use super::context::Context;
-use super::map::CommandMap;
+use super::{Context, RoError, map::CommandMap};
 
 pub type CommandError = RoError;
 pub type CommandResult = std::result::Result<(), CommandError>;

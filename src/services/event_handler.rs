@@ -1,9 +1,5 @@
 use super::{activity, auto_detection};
-use crate::framework::prelude::Context;
-use crate::utils::{
-    error::{CommandError, RoError},
-    misc::EmbedExtensions,
-};
+use crate::framework::prelude::{Context, CommandError, RoError, EmbedExtensions};
 use dashmap::DashSet;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
