@@ -2,7 +2,7 @@ mod delete;
 mod modify;
 mod new;
 
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use itertools::Itertools;
 use twilight_mention::Mention;
 

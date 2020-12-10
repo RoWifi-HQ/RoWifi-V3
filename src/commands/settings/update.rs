@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 
 pub static UPDATE_JOIN_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

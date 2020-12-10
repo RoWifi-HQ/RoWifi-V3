@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::RoGuild;
 
 pub static SETUP_OPTIONS: CommandOptions = CommandOptions {

@@ -2,7 +2,7 @@ mod misc;
 mod update;
 mod verify;
 
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 
 pub use misc::*;
 pub use update::*;

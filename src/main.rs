@@ -16,7 +16,6 @@
 )]
 
 mod commands;
-mod framework;
 mod services;
 
 use dashmap::DashSet;
@@ -43,7 +42,7 @@ use commands::{
     SUPPORT_COMMAND, TEST_COMMAND, UPDATE_ALL_COMMAND, UPDATE_COMMAND, UPDATE_ROLE_COMMAND,
     USERINFO_COMMAND, VERIFY_COMMAND,
 };
-use framework::{Context, BotConfig, Configuration, Framework, logger::Logger};
+use rowifi_framework::{Context, BotConfig, Configuration, Framework, logger::Logger};
 use rowifi_cache::Cache;
 use services::EventHandler;
 

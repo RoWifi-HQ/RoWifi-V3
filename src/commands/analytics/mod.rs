@@ -1,7 +1,7 @@
 mod register;
 mod view;
 
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use itertools::Itertools;
 use rowifi_models::guild::GuildType;
 use std::string::ToString;

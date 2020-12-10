@@ -3,7 +3,7 @@ mod patreon;
 mod redeem;
 mod transfer;
 
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::user::PremiumType;
 use twilight_model::id::UserId;
 

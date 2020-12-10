@@ -1,4 +1,4 @@
-use crate::framework::{parser::ParseError, prelude::*, structures::HelpCommand, CommandMap};
+use rowifi_framework::{parser::ParseError, prelude::*, structures::HelpCommand, CommandMap};
 use itertools::Itertools;
 use twilight_embed_builder::EmbedFieldBuilder;
 

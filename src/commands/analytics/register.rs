@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 pub static ANALYTICS_REGISTER_OPTIONS: CommandOptions = CommandOptions {

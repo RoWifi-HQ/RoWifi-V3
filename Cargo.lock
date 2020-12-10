@@ -2173,6 +2173,7 @@ dependencies = [
  "roblox",
  "rowifi-cache",
  "rowifi-database",
+ "rowifi-framework",
  "rowifi-models",
  "serde",
  "serde_json",
@@ -2212,6 +2213,34 @@ dependencies = [
  "rowifi-models",
  "tracing",
  "transient-dashmap",
+]
+
+[[package]]
+name = "rowifi-framework"
+version = "1.0.0"
+dependencies = [
+ "attributes",
+ "chrono",
+ "dashmap",
+ "futures",
+ "itertools",
+ "lazy_static",
+ "patreon",
+ "roblox",
+ "rowifi-cache",
+ "rowifi-database",
+ "rowifi-models",
+ "tokio",
+ "tracing",
+ "transient-dashmap",
+ "twilight-command-parser",
+ "twilight-embed-builder",
+ "twilight-gateway",
+ "twilight-http",
+ "twilight-mention",
+ "twilight-model",
+ "twilight-standby",
+ "uwl",
 ]
 
 [[package]]

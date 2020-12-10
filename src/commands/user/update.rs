@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use reqwest::StatusCode;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::Error as DiscordHttpError;
