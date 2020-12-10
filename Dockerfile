@@ -8,7 +8,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2
       && rm /tmp/cmake-install.sh
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
 COPY . .
-RUN cargo install --path .
+RUN cargo build --release
 
 FROM debian:buster-slim
 RUN apt-get update && apt-get install -y libfontconfig libfontconfig1-dev && rm -rf /var/lib/apt/lists/*
