@@ -1,7 +1,6 @@
-use bson::{de::Error as DeserializationError, ser::Error as SerializationError};
-use mongodb::error::Error as MongoError;
 use patreon::PatreonError;
 use roblox::RobloxError;
+use rowifi_database::error::{DatabaseError, SerializationError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -10,9 +9,7 @@ use twilight_http::Error as DiscordHttpError;
 
 #[derive(Debug)]
 pub enum RoError {
-    Database(MongoError),
-    Serialization(SerializationError),
-    Deserialization(DeserializationError),
+    Database(DatabaseError),
     Roblox(RobloxError),
     Discord(DiscordHttpError),
     Command(CommandError),
@@ -31,9 +28,7 @@ pub enum CommandError {
 impl Display for RoError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            RoError::Database(err) => write!(f, "Database Error - {}", err),
-            RoError::Serialization(err) => write!(f, "Serialization Error - {}", err),
-            RoError::Deserialization(err) => write!(f, "Deserialization Error - {}", err),
+            RoError::Database(err) => write!(f, "Database Error - {:?}", err),
             RoError::Roblox(err) => write!(f, "Roblox Error - {:?}", err),
             RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
             RoError::Command(err) => write!(f, "Command Error - {:?}", err),
@@ -42,21 +37,9 @@ impl Display for RoError {
     }
 }
 
-impl From<MongoError> for RoError {
-    fn from(err: MongoError) -> Self {
+impl From<DatabaseError> for RoError {
+    fn from(err: DatabaseError) -> Self {
         RoError::Database(err)
-    }
-}
-
-impl From<SerializationError> for RoError {
-    fn from(err: SerializationError) -> Self {
-        RoError::Serialization(err)
-    }
-}
-
-impl From<DeserializationError> for RoError {
-    fn from(err: DeserializationError) -> Self {
-        RoError::Deserialization(err)
     }
 }
 
@@ -81,6 +64,12 @@ impl From<CommandError> for RoError {
 impl From<PatreonError> for RoError {
     fn from(err: PatreonError) -> Self {
         RoError::Patreon(err)
+    }
+}
+
+impl From<SerializationError> for RoError {
+    fn from(err: SerializationError) -> Self {
+        RoError::Database(DatabaseError::Serialization(err))
     }
 }
 

@@ -1447,6 +1447,52 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a726495d7418c4579ecc9465b53ddade8187c0299e5db0e7250672b67d196913"
+dependencies = [
+ "async-trait",
+ "base64 0.11.0",
+ "bitflags",
+ "bson",
+ "chrono",
+ "derivative",
+ "err-derive",
+ "futures",
+ "futures-intrusive",
+ "hex",
+ "hmac",
+ "lazy_static",
+ "md-5",
+ "os_info",
+ "pbkdf2",
+ "percent-encoding",
+ "rand",
+ "reqwest",
+ "rustls 0.17.0",
+ "serde",
+ "serde_bytes",
+ "serde_with",
+ "sha-1 0.8.2",
+ "sha2",
+ "socket2",
+ "stringprep",
+ "strsim 0.10.0",
+ "take_mut",
+ "time",
+ "tokio",
+ "tokio-rustls 0.13.1",
+ "trust-dns-proto",
+ "trust-dns-resolver",
+ "typed-builder",
+ "uuid",
+ "version_check",
+ "webpki",
+ "webpki-roots 0.18.0",
+]
+
+[[package]]
+name = "mongodb"
+version = "1.1.1"
 source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#32d67deb1aa970a385e16a1142ec072a1d6f0be7"
 dependencies = [
  "async-trait",
@@ -2117,7 +2163,7 @@ dependencies = [
  "image",
  "itertools",
  "lazy_static",
- "mongodb",
+ "mongodb 1.1.1 (git+https://github.com/mongodb/mongo-rust-driver)",
  "patreon",
  "plotters",
  "prometheus",
@@ -2126,6 +2172,7 @@ dependencies = [
  "reqwest",
  "roblox",
  "rowifi-cache",
+ "rowifi-database",
  "rowifi-models",
  "serde",
  "serde_json",
@@ -2154,6 +2201,17 @@ dependencies = [
  "rowifi-models",
  "tracing",
  "twilight-model",
+]
+
+[[package]]
+name = "rowifi-database"
+version = "1.0.0"
+dependencies = [
+ "futures",
+ "mongodb 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rowifi-models",
+ "tracing",
+ "transient-dashmap",
 ]
 
 [[package]]

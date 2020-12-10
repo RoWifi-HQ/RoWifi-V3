@@ -103,10 +103,8 @@ impl RoGuild {
             name: name.to_string(),
             command_prefix: self.command_prefix.clone(),
             settings: self.settings.clone(),
-            verification_role: roles
-                .get(&RoleId(self.verification_role as u64)).cloned(),
-            verified_role: roles
-                .get(&RoleId(self.verified_role as u64)).cloned(),
+            verification_role: roles.get(&RoleId(self.verification_role as u64)).cloned(),
+            verified_role: roles.get(&RoleId(self.verified_role as u64)).cloned(),
             rankbinds,
             groupbinds,
             custombinds,
@@ -188,10 +186,7 @@ impl RoGuild {
         let verification_role = if let Some(verification_name) = backup.verification_role {
             if let Some(r) = names_to_ids.get(&verification_name) {
                 r.0 as i64
-            } else if let Some(r) = existing_roles
-                .iter()
-                .find(|e| e.1.eq(&verification_name))
-            {
+            } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&verification_name)) {
                 (r.0).0 as i64
             } else {
                 let role = http

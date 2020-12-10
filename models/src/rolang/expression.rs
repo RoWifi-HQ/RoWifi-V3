@@ -2,8 +2,8 @@ use twilight_model::id::RoleId;
 
 use super::{
     parser::ParseError,
-    RoCommandUser,
     token::{Literal, Token, TokenType},
+    RoCommandUser,
 };
 
 #[derive(Clone)]
