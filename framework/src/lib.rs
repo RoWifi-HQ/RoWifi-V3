@@ -1,3 +1,16 @@
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::similar_names,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::too_many_lines,
+    clippy::cast_sign_loss,
+    clippy::single_match_else,
+    clippy::cast_possible_wrap,
+    clippy::non_ascii_literal
+)]
+
 mod configuration;
 mod context;
 pub mod error;
