@@ -3,7 +3,6 @@ mod modify;
 mod new;
 
 use crate::framework::prelude::*;
-use crate::utils::misc::paginate_embed;
 use itertools::Itertools;
 use twilight_mention::Mention;
 

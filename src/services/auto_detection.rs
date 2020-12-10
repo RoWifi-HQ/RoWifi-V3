@@ -1,4 +1,4 @@
-use crate::{framework::prelude::Context, utils::misc::EmbedExtensions};
+use crate::framework::prelude::{Context, EmbedExtensions};
 use std::{error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, Duration};
 use twilight_embed_builder::EmbedBuilder;
