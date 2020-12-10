@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {

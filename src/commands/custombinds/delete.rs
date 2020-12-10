@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 
 pub static CUSTOMBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Admin,

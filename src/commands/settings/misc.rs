@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::BlacklistActionType;
 
 pub static BLACKLIST_ACTION_OPTIONS: CommandOptions = CommandOptions {

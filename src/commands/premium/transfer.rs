@@ -1,4 +1,4 @@
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::user::PremiumUser;
 
 pub static PREMIUM_TRANSFER_OPTIONS: CommandOptions = CommandOptions {

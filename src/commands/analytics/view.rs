@@ -1,4 +1,4 @@
-use crate::framework::prelude::{Color as DiscordColor, *};
+use rowifi_framework::prelude::{Color as DiscordColor, *};
 use chrono::{Duration, Utc};
 use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;

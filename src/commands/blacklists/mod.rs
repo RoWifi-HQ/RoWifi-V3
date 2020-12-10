@@ -3,7 +3,7 @@ mod delete;
 mod group;
 mod name;
 
-use crate::framework::prelude::*;
+use rowifi_framework::prelude::*;
 use itertools::Itertools;
 
 pub use custom::*;

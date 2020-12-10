@@ -1,0 +1,31 @@
+[package]
+name = "rowifi-framework"
+version = "1.0.0"
+authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+attributes = { path = "../attributes" }
+chrono = "0"
+dashmap = "3"
+futures = "0"
+itertools = "0"
+lazy_static = "1"
+patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
+roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
+rowifi-cache = { path = "../cache" }
+rowifi-database = { path = '../database' }
+rowifi-models = { path = "../models" }
+tokio = { version = "0.2", features = ["full"] }
+tracing = "0"
+transient-dashmap = {branch = "main", git = "https://github.com/AsianIntel/transient-dashmap"}
+twilight-command-parser = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-gateway = { branch = "trunk", git = "https://github.com/twilight-rs/twilight", features = ["simd-zlib", "simd-json"] }
+twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-standby = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+uwl = "0"
