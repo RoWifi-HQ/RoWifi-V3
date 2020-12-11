@@ -12,5 +12,5 @@ RUN cargo build --release
 
 FROM debian:buster-slim
 RUN apt-get update && apt-get install -y libfontconfig libfontconfig1-dev && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /usr/local/cargo/bin/rowifi /usr/local/bin/rowifi
+COPY --from=builder /usr/src/rowifi/target/release/rowifi /usr/local/bin/rowifi
 CMD ["rowifi"]
