@@ -89,7 +89,7 @@ impl Framework {
         stream.take_while_char(char::is_whitespace);
 
         let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref());
-        if prefix.is_some() && stream.rest().is_empty() {
+        if prefix.is_some() && stream.rest().is_empty() && !context.config.disabled_channels.contains(&msg.channel_id) {
             let actual_prefix = context
                 .config
                 .prefixes
@@ -245,10 +245,6 @@ impl Framework {
                 return false;
             }
 
-            if msg.author.id.0 == guild.owner_id.0 {
-                return true;
-            }
-
             if let Ok(Some(member)) = context.member(guild.id, msg.author.id).await {
                 return command.options.perm_level <= get_perm_level(context, &guild, &member);
             }
@@ -333,6 +329,10 @@ fn get_perm_level(
 ) -> RoLevel {
     if context.config.owners.contains(&member.user.id) {
         return RoLevel::Creator;
+    }
+
+    if member.user.id == guild.owner_id {
+        return RoLevel::Admin;
     }
 
     if let Some(admin_role) = guild.admin_role {
