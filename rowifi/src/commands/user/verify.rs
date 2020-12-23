@@ -168,9 +168,9 @@ pub async fn verify_common(
     };
 
     if option.eq_ignore_ascii_case("Code") {
-        let code1 = thread_rng().gen_range(0, CODES.len());
-        let code2 = thread_rng().gen_range(0, CODES.len());
-        let code3 = thread_rng().gen_range(0, CODES.len());
+        let code1 = thread_rng().gen_range(0..CODES.len());
+        let code2 = thread_rng().gen_range(0..CODES.len());
+        let code3 = thread_rng().gen_range(0..CODES.len());
         let code = format!("{} {} {}", CODES[code1], CODES[code2], CODES[code3]);
         let e = EmbedBuilder::new()
             .default_data()

@@ -1,6 +1,6 @@
 [package]
 name = "rowifi"
-version = "2.7.1"
+version = "2.7.2"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -28,7 +28,7 @@ rowifi-database = { path = '../database' }
 rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "0.2", features = ["rt-threaded", "macros", "time"] }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
