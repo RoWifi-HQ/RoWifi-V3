@@ -5,6 +5,8 @@ members = [
     "cache",
     "database",
     "framework",
+    "framework_new",
+    "framework_new/framework-derive",
     "models"
 ]
 

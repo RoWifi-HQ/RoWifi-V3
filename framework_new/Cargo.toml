@@ -1,0 +1,16 @@
+[package]
+name = "framework_new"
+version = "0.1.0"
+authors = ["AsianIntel <gautam.abhyankar@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "*"
+framework-derive = { path = "./framework-derive" }
+futures = "0"
+tower = "0"
+twilight-command-parser = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
+twilight-model = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
+twilight-http = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
