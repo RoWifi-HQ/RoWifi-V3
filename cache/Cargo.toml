@@ -10,4 +10,4 @@ edition = "2018"
 dashmap = "3"
 rowifi-models = { path = "../models" }
 tracing = "0"
-twilight-model = { version = "0.2" }
+twilight-model = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
