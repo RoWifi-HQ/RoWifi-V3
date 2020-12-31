@@ -60,7 +60,7 @@ where
 
     fn call(&self, req: (CommandContext, Message)) -> Self::Future {
         let mut arguments = Arguments::new(&req.1.content);
-        let args = FromArgs::from_args(&mut arguments);
+        let args = FromArgs::from_args(&mut arguments).ok().unwrap();
         let fut = self.hnd.call((req.0, args));
         Box::pin(fut)
     }

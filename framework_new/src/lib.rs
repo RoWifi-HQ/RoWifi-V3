@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+#[macro_use]
+extern crate framework_derive;
+
+pub mod arguments;
 pub mod command;
 pub mod context;
 pub mod error;
@@ -13,6 +17,7 @@ use twilight_model::{gateway::event::Event, id::{UserId, ChannelId}};
 use twilight_http::Client as Http;
 use twilight_command_parser::Arguments;
 
+use arguments::{FromArg, FromArgs, ArgumentError};
 use command::Command;
 use context::CommandContext;
 use handler::{Handler, HandlerService};
@@ -21,9 +26,6 @@ use service::Service;
 
 pub type CommandResult = Result<(), RoError>;
 
-pub trait FromArgs {
-    fn from_args(args: &mut Arguments<'_>) -> Self where Self: Sized;
-}
 
 pub struct Framework {
     ctx: CommandContext,
@@ -65,17 +67,40 @@ impl Service<&Event> for Framework {
     }
 }
 
+#[derive(Debug)]
 pub struct UpdateArguments {
     pub user_id: UserId
 }
 
 impl FromArgs for UpdateArguments {
-    fn from_args(args: &mut Arguments<'_>) -> Self {
-        UpdateArguments {user_id: UserId(1)}
+    type Error = String;
+    fn from_args(args: &mut Arguments<'_>) -> Result<Self, Self::Error> {
+        let user_id = match args.next() {
+            Some(s) => UserId::from_arg(s).map_err(|_| String::from("Failed to parse integer"))?,
+            None => return Err(String::from("Insufficient arguments"))
+        };
+
+        Ok(UpdateArguments {user_id})
     }
 }
 
 async fn update(ctx: CommandContext, args: UpdateArguments) -> CommandResult {
     let _res = ctx.http.create_message(ChannelId(460129585846288388)).content("Test").unwrap().await;
     Ok(())
+}
+
+mod tests {
+    use super::*;
+
+    #[derive(Debug, FromArgs)]
+    pub struct UpdateArguments2 {
+        pub user_id: UserId
+    }
+
+    #[test]
+    fn test() {
+        let mut args = Arguments::new("311395138133950465");
+        let ua = UpdateArguments2::from_args(&mut args);
+        assert_eq!(ua.is_ok(), true);
+    }
 }
