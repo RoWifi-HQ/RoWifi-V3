@@ -23,7 +23,7 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
-use std::{env, error::Error, sync::{Arc, Mutex}, time::Duration};
+use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::{stream::StreamExt, time::delay_for};
 use twilight_gateway::cluster::{Cluster, ShardScheme};
 use twilight_http::Client as HttpClient;
@@ -39,7 +39,7 @@ use commands::{
 };
 use rowifi_cache::Cache;
 use rowifi_framework::{logger::Logger, BotConfig, Configuration, Context, Framework};
-use framework_new::{Framework as NewFramework, service::Service};
+use framework_new::{Framework as NewFramework, service::Service, context::BotContext};
 use services::EventHandler;
 
 #[tokio::main]
@@ -137,7 +137,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(run_metrics_server(pod_ip, stats.clone()));
 
     let context = Context::new(
-        http.clone(), cache, database, roblox, standby, cluster, logger, config, patreon, stats, bot_config,
+        http, cache, database, roblox, standby, cluster, logger, config, patreon, stats, bot_config,
     );
     let framework = Framework::default()
         .command(&UPDATE_COMMAND)
@@ -164,7 +164,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .help(&HELP_COMMAND)
         .bucket("update-multiple", Duration::from_secs(12 * 3600), 3);
     let framework = Arc::new(Box::new(framework));
-    let new_framework = Arc::new(Mutex::new(NewFramework::new(http)));
+
+    let bot = Arc::new(BotContext::new( app_info.id.to_string(), "!".into()));
+    let new_framework = Arc::new(NewFramework::new(bot));
 
     let event_handler = EventHandler::default();
 
@@ -173,9 +175,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let _c = context.clone();
         let _f = framework.clone();
         let nfc = new_framework.clone();
-        let nfl = nfc.lock().unwrap();
-        let fut = nfl.call(&event.1);
-        drop(nfl);
         let _e = event_handler.clone();
         tracing::trace!(event = ?event.1.kind());
         context
@@ -189,10 +188,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             //     tracing::error!(err = ?err, "Error in event handler");
             // }
             //f.handle_event(&event.1, &c).await;
-            {
-                if let Err(err) = fut.await {
+            let fut = nfc.call(&event.1);
+            if let Err(err) = fut.await {
                 tracing::error!(err = ?err);
-                }
             }
             //c.stats.update(&event.1);
         });

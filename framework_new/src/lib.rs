@@ -9,37 +9,37 @@ pub mod command;
 pub mod context;
 pub mod error;
 pub mod handler;
+mod parser;
 pub mod service;
 pub mod prelude;
 
-use std::{future::{Future, ready}, pin::Pin, task::{Context, Poll}};
-use twilight_model::{gateway::event::Event, id::{UserId, ChannelId}};
-use twilight_http::Client as Http;
+use std::{future::Future, pin::Pin, sync::Arc, task::{Context, Poll}};
+use futures::future::{Either, Ready, ready};
+use twilight_model::{gateway::event::Event, id::UserId};
 use twilight_command_parser::Arguments;
+use uwl::Stream;
 
 use arguments::{FromArg, FromArgs, ArgumentError};
 use command::Command;
-use context::CommandContext;
+use context::{BotContext, CommandContext};
 use handler::{Handler, HandlerService};
+use parser::PrefixType;
 use error::RoError;
 use service::Service;
 
 pub type CommandResult = Result<(), RoError>;
 
-
 pub struct Framework {
-    ctx: CommandContext,
+    bot: Arc<BotContext>,
     cmds: Vec<Command>
 }
 
 impl Framework {
-    pub fn new(http: Http) -> Self
+    pub fn new(bot: Arc<BotContext>) -> Self
     {
         Self {
-            ctx: CommandContext {
-                http
-            },
-            cmds: vec![Command::new(update)]
+            bot,
+            cmds: Vec::new()
         }
     }
 }
@@ -47,7 +47,7 @@ impl Framework {
 impl Service<&Event> for Framework {
     type Response = ();
     type Error = RoError;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+    type Future = Either<Ready<Result<(), Self::Error>>, Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>>;
 
     fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
@@ -56,14 +56,27 @@ impl Service<&Event> for Framework {
     fn call(&self, req: &Event) -> Self::Future {
         match req {
             Event::MessageCreate(msg) => {
-                if let Some(cmd_str) = msg.content.split_ascii_whitespace().next() {
-                    
+                let mut stream = Stream::new(&msg.content);
+                stream.take_while_char(char::is_whitespace);
+                
+                let prefix = parser::find_prefix(&mut stream, &self.bot, msg.guild_id);
+                if let Some(PrefixType::Mention) = prefix {
+                    if let Some(guild_id) = msg.guild_id {
+                        if stream.rest().is_empty() && !self.bot.disabled_channels.contains(&msg.channel_id) {
+                            let actual_prefix = self.bot.prefixes.get(&guild_id).map_or_else(|| self.bot.default_prefix.clone(), |p| p.to_string());
+                            todo!("Respond to the user with the prefix");
+                        }
+                    }
+                }
+
+                if prefix.is_none() {
+                    return Either::Left(ready(Ok(())));
                 }
             },
             _ => {}
         }
         let fut = ready(Ok(()));
-        Box::pin(fut)
+        Either::Left(fut)
     }
 }
 
@@ -82,11 +95,6 @@ impl FromArgs for UpdateArguments {
 
         Ok(UpdateArguments {user_id})
     }
-}
-
-async fn update(ctx: CommandContext, args: UpdateArguments) -> CommandResult {
-    let _res = ctx.http.create_message(ChannelId(460129585846288388)).content("Test").unwrap().await;
-    Ok(())
 }
 
 mod tests {
