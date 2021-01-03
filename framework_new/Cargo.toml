@@ -7,11 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = "*"
 dashmap = "3"
 framework-derive = { path = "./framework-derive" }
 futures = "0"
+patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
+roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
+rowifi-cache = { path = "../cache" }
+rowifi-database = { path = '../database' }
+rowifi-models = { path = "../models" }
 twilight-command-parser = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-model = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
+twilight-gateway = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-http = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
+twilight-standby = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 uwl = "0"

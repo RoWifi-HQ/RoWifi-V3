@@ -14,6 +14,7 @@ mod commands;
 mod services;
 
 use dashmap::DashSet;
+use framework_new::{context::BotContext, service::Service, Framework as NewFramework};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -21,26 +22,16 @@ use hyper::{
 use patreon::Client as PatreonClient;
 use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
+use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
+use services::EventHandler;
 use std::{env, error::Error, sync::Arc, time::Duration};
 use tokio::{stream::StreamExt, time::delay_for};
 use twilight_gateway::cluster::{Cluster, ShardScheme};
 use twilight_http::Client as HttpClient;
 use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
-
-use commands::{
-    ANALYTICS_COMMAND, ASSETBINDS_COMMAND, BACKUP_COMMAND, BLACKLISTS_COMMAND, BOTINFO_COMMAND,
-    CUSTOMBINDS_COMMAND, EVENTS_COMMAND, GROUPBINDS_COMMAND, HELP_COMMAND, PREMIUM_COMMAND,
-    RANKBINDS_COMMAND, REVERIFY_COMMAND, SERVERINFO_COMMAND, SETTINGS_COMMAND, SETUP_COMMAND,
-    SUPPORT_COMMAND, TEST_COMMAND, UPDATE_ALL_COMMAND, UPDATE_COMMAND, UPDATE_ROLE_COMMAND,
-    USERINFO_COMMAND, VERIFY_COMMAND,
-};
-use rowifi_cache::Cache;
-use rowifi_framework::{logger::Logger, BotConfig, Configuration, Context, Framework};
-use framework_new::{Framework as NewFramework, service::Service, context::BotContext};
-use services::EventHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -82,9 +73,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let http = HttpClient::new(&token);
     let app_info = http.current_user().await?;
 
-    let owners = DashSet::new();
+    let mut owners = Vec::new();
     let owner = http.current_user_application().await?.owner.id;
-    owners.insert(owner);
+    owners.push(owner);
 
     let council = DashSet::new();
     for c in council_members {
@@ -109,26 +100,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let database = Database::new(&conn_string).await;
     let roblox = RobloxClient::default();
-    let logger = Arc::new(Logger {
-        debug_webhook: env::var("LOG_DEBUG")
-            .expect("Expected the debug webhook in the environment"),
-        main_webhook: env::var("LOG_MAIN").expect("Expected the main webhook in the environment"),
-        premium_webhook: env::var("LOG_PREMIUM")
-            .expect("Expected the premium webhook in the environment"),
-    });
-    let config = Arc::new(
-        Configuration::default()
-            .default_prefix("!")
-            .on_mention(app_info.id)
-            .owners(owners)
-            .council(council),
-    );
     let patreon = PatreonClient::new(&patreon_key);
-    let bot_config = Arc::new(BotConfig {
-        cluster_id,
-        shards_per_cluster,
-        total_shards,
-    });
 
     let cluster_spawn = cluster.clone();
     tokio::spawn(async move {
@@ -136,52 +108,31 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     });
     tokio::spawn(run_metrics_server(pod_ip, stats.clone()));
 
-    let context = Context::new(
-        http, cache, database, roblox, standby, cluster, logger, config, patreon, stats, bot_config,
+    let bot = BotContext::new(
+        app_info.id.to_string(),
+        "!".into(),
+        &owners,
+        http,
+        cache,
+        cluster.clone(),
+        standby,
+        database,
+        roblox,
+        patreon,
+        stats,
     );
-    let framework = Framework::default()
-        .command(&UPDATE_COMMAND)
-        .command(&VERIFY_COMMAND)
-        .command(&REVERIFY_COMMAND)
-        .command(&RANKBINDS_COMMAND)
-        .command(&GROUPBINDS_COMMAND)
-        .command(&CUSTOMBINDS_COMMAND)
-        .command(&ASSETBINDS_COMMAND)
-        .command(&BLACKLISTS_COMMAND)
-        .command(&SETTINGS_COMMAND)
-        .command(&SETUP_COMMAND)
-        .command(&UPDATE_ALL_COMMAND)
-        .command(&UPDATE_ROLE_COMMAND)
-        .command(&BACKUP_COMMAND)
-        .command(&PREMIUM_COMMAND)
-        .command(&ANALYTICS_COMMAND)
-        .command(&EVENTS_COMMAND)
-        .command(&SERVERINFO_COMMAND)
-        .command(&BOTINFO_COMMAND)
-        .command(&USERINFO_COMMAND)
-        .command(&SUPPORT_COMMAND)
-        .command(&TEST_COMMAND)
-        .help(&HELP_COMMAND)
-        .bucket("update-multiple", Duration::from_secs(12 * 3600), 3);
-    let framework = Arc::new(Box::new(framework));
-
-    let bot = Arc::new(BotContext::new( app_info.id.to_string(), "!".into()));
-    let new_framework = Arc::new(NewFramework::new(bot));
+    let new_framework = Arc::new(NewFramework::new(bot.clone()));
 
     let event_handler = EventHandler::default();
 
-    let mut events = context.cluster.events();
+    let mut events = bot.cluster.events();
     while let Some(event) = events.next().await {
-        let _c = context.clone();
-        let _f = framework.clone();
+        let b = bot.clone();
         let nfc = new_framework.clone();
         let _e = event_handler.clone();
         tracing::trace!(event = ?event.1.kind());
-        context
-            .cache
-            .update(&event.1)
-            .expect("Failed to update cache");
-        context.standby.process(&event.1);
+        b.cache.update(&event.1).expect("Failed to update cache");
+        b.standby.process(&event.1);
 
         tokio::spawn(async move {
             // if let Err(err) = e.handle_event(event.0, &event.1, &c).await {

@@ -1,12 +1,17 @@
-use std::{future::Future, marker::PhantomData, pin::Pin, task::{Context, Poll}};
-use twilight_model::channel::Message;
+use std::{
+    future::Future,
+    marker::PhantomData,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use twilight_command_parser::Arguments;
+use twilight_model::channel::Message;
 
-use crate::{CommandResult, CommandContext, FromArgs, Service, RoError};
+use crate::{CommandContext, CommandResult, FromArgs, RoError, Service};
 
-pub trait Handler<T, R> 
+pub trait Handler<T, R>
 where
-    R: Future<Output=CommandResult>
+    R: Future<Output = CommandResult>,
 {
     fn call(&self, param: T) -> R;
 }
@@ -14,8 +19,8 @@ where
 impl<F, R, K> Handler<(CommandContext, K), R> for F
 where
     F: Fn(CommandContext, K) -> R,
-    R: Future<Output=CommandResult>,
-    K: FromArgs
+    R: Future<Output = CommandResult>,
+    K: FromArgs,
 {
     fn call(&self, param: (CommandContext, K)) -> R {
         (self)(param.0, param.1)
@@ -25,21 +30,21 @@ where
 pub struct HandlerService<F, T, R>
 where
     F: Handler<T, R>,
-    R: Future<Output=CommandResult> + Send
+    R: Future<Output = CommandResult> + Send,
 {
     hnd: F,
-    _t: PhantomData<(T, R)>
+    _t: PhantomData<(T, R)>,
 }
 
 impl<F, T, R> HandlerService<F, T, R>
 where
     F: Handler<T, R>,
-    R: Future<Output=CommandResult> + Send
+    R: Future<Output = CommandResult> + Send,
 {
     pub fn new(handler: F) -> Self {
         Self {
             hnd: handler,
-            _t: PhantomData
+            _t: PhantomData,
         }
     }
 }
@@ -47,8 +52,8 @@ where
 impl<F, R, K> Service<(CommandContext, Message)> for HandlerService<F, (CommandContext, K), R>
 where
     F: Handler<(CommandContext, K), R>,
-    R: Future<Output=CommandResult> + Send + 'static,
-    K: FromArgs
+    R: Future<Output = CommandResult> + Send + 'static,
+    K: FromArgs,
 {
     type Response = ();
     type Error = RoError;

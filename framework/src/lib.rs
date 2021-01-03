@@ -89,7 +89,10 @@ impl Framework {
         stream.take_while_char(char::is_whitespace);
 
         let prefix = parser::find_prefix(&mut stream, &msg, context.config.as_ref());
-        if prefix.is_some() && stream.rest().is_empty() && !context.config.disabled_channels.contains(&msg.channel_id) {
+        if prefix.is_some()
+            && stream.rest().is_empty()
+            && !context.config.disabled_channels.contains(&msg.channel_id)
+        {
             let actual_prefix = context
                 .config
                 .prefixes

@@ -6,7 +6,7 @@ use twilight_model::id::UserId;
 #[derive(Debug)]
 pub enum ArgumentError {
     MissingArgument,
-    ParseError
+    ParseError,
 }
 
 impl From<ParseIntError> for ArgumentError {
@@ -17,12 +17,16 @@ impl From<ParseIntError> for ArgumentError {
 
 pub trait FromArgs {
     type Error;
-    fn from_args(args: &mut Arguments<'_>) -> Result<Self, Self::Error> where Self: Sized;
+    fn from_args(args: &mut Arguments<'_>) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
 }
 
 pub trait FromArg {
     type Error;
-    fn from_arg(arg: &str) -> Result<Self, Self::Error> where Self: Sized;
+    fn from_arg(arg: &str) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
 }
 
 impl FromArg for UserId {

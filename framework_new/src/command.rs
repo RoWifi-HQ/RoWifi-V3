@@ -1,34 +1,49 @@
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, task::{Context, Poll}};
+use std::{
+    collections::HashMap,
+    future::Future,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+};
 use twilight_model::channel::Message;
 
-use crate::{Service, CommandContext, RoError, Handler, FromArgs, CommandResult, HandlerService};
+use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service};
 
-pub type BoxedService = Box<dyn Service<
-    (CommandContext, Message),
-    Response = (),
-    Error = RoError,
-    Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>
-> + Send>;
+pub type BoxedService = Box<
+    dyn Service<
+        (CommandContext, Message),
+        Response = (),
+        Error = RoError,
+        Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
+    > + Send,
+>;
 
-pub struct CommandOptions {}
+#[derive(Default)]
+pub struct CommandOptions {
+    pub level: RoLevel,
+}
 
 pub struct Command {
-    pub name: &'static str,
+    pub names: &'static [&'static str],
     pub(crate) service: BoxedService,
-    pub sub_commands: Arc<HashMap<&'static str, Command>>
+    pub sub_commands: Arc<HashMap<String, Command>>,
+    pub options: CommandOptions,
+    pub(crate) before: Option<BoxedService>,
 }
 
 impl Command {
-    pub fn new<F, R, K>(name: &'static str, handler: F) -> Self 
+    pub fn new<F, R, K>(names: &'static [&'static str], handler: F) -> Self
     where
         F: Handler<(CommandContext, K), R> + Send + 'static,
-        R: Future<Output=CommandResult> + Send + 'static,
-        K: FromArgs + Send + 'static
+        R: Future<Output = CommandResult> + Send + 'static,
+        K: FromArgs + Send + 'static,
     {
         Self {
-            name,
+            names,
             service: Box::new(HandlerService::new(handler)),
-            sub_commands: Arc::new(HashMap::new())
+            sub_commands: Arc::new(HashMap::new()),
+            options: CommandOptions::default(),
+            before: None,
         }
     }
 }
@@ -46,5 +61,20 @@ impl Service<(CommandContext, Message)> for Command {
 
     fn call(&self, req: (CommandContext, Message)) -> Self::Future {
         Box::pin(self.service.call(req))
+    }
+}
+
+#[derive(Debug, PartialEq, Ord, PartialOrd, Eq)]
+#[repr(i8)]
+pub enum RoLevel {
+    Creator = 3,
+    Admin = 2,
+    Trainer = 1,
+    Normal = 0,
+}
+
+impl Default for RoLevel {
+    fn default() -> Self {
+        RoLevel::Normal
     }
 }
