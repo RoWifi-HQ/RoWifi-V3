@@ -710,13 +710,19 @@ dependencies = [
 name = "framework_new"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "dashmap",
  "framework-derive",
  "futures",
+ "patreon",
+ "roblox",
+ "rowifi-cache",
+ "rowifi-database",
+ "rowifi-models",
  "twilight-command-parser",
+ "twilight-gateway",
  "twilight-http",
  "twilight-model",
+ "twilight-standby",
  "uwl",
 ]
 

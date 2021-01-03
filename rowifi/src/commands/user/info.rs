@@ -137,7 +137,11 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
             .unwrap()
             .inline(),
         )
-        .field(EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION")).unwrap().inline())
+        .field(
+            EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION"))
+                .unwrap()
+                .inline(),
+        )
         .field(EmbedFieldBuilder::new("Language", "Rust").unwrap().inline())
         .field(
             EmbedFieldBuilder::new("Shards", ctx.bot_config.total_shards.to_string())
