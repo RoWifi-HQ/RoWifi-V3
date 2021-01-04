@@ -5,7 +5,6 @@ use std::{
     task::{Context, Poll},
 };
 use twilight_command_parser::Arguments;
-use twilight_model::channel::Message;
 
 use crate::{CommandContext, CommandResult, FromArgs, RoError, Service};
 
@@ -49,7 +48,7 @@ where
     }
 }
 
-impl<F, R, K> Service<(CommandContext, Message)> for HandlerService<F, (CommandContext, K), R>
+impl<F, R, K> Service<(CommandContext, String)> for HandlerService<F, (CommandContext, K), R>
 where
     F: Handler<(CommandContext, K), R>,
     R: Future<Output = CommandResult> + Send + 'static,
@@ -63,10 +62,21 @@ where
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, req: (CommandContext, Message)) -> Self::Future {
-        let mut arguments = Arguments::new(&req.1.content);
-        let args = FromArgs::from_args(&mut arguments).ok().unwrap();
-        let fut = self.hnd.call((req.0, args));
-        Box::pin(fut)
+    fn call(&self, req: (CommandContext, String)) -> Self::Future {
+        let mut arguments = Arguments::new(&req.1);
+        println!("{:?}", arguments);
+        match FromArgs::from_args(&mut arguments) {
+            Ok(args) => {
+                let fut = self.hnd.call((req.0, args));
+                Box::pin(fut)
+            },
+            Err(err) => {
+                let fut = async move {
+                    Err(err.into())
+                };
+                Box::pin(fut)
+            }
+        }
+        
     }
 }

@@ -16,8 +16,7 @@ impl From<ParseIntError> for ArgumentError {
 }
 
 pub trait FromArgs {
-    type Error;
-    fn from_args(args: &mut Arguments<'_>) -> Result<Self, Self::Error>
+    fn from_args(args: &mut Arguments<'_>) -> Result<Self, ArgumentError>
     where
         Self: Sized;
 }
@@ -27,6 +26,20 @@ pub trait FromArg {
     fn from_arg(arg: &str) -> Result<Self, Self::Error>
     where
         Self: Sized;
+}
+
+impl<T> FromArg for Option<T> 
+where
+    T: FromArg
+{
+    type Error = ();
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        Ok(match T::from_arg(arg) {
+            Ok(arg) => Some(arg),
+            Err(_) => None
+        })
+    }
 }
 
 impl FromArg for UserId {

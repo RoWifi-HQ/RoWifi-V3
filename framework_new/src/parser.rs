@@ -85,7 +85,10 @@ pub fn find_command<'a>(stream: &mut Stream<'a>, commands: &'a [Command]) -> Opt
         if cmd.names.contains(&name.as_ref()) {
             return match parse_command(stream, cmd) {
                 Some(c) => Some(c),
-                None => Some(cmd),
+                None => {
+                    stream.increment(name.len());
+                    Some(cmd)
+                },
             };
         }
     }

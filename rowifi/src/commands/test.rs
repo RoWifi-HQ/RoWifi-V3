@@ -1,24 +1,15 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use twilight_model::id::UserId;
 
-pub static TEST_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Creator,
-    bucket: None,
-    names: &["test"],
-    desc: None,
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: true,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(Debug, FromArgs)]
+pub struct TestArguments {
+    pub user_id: UserId
+}
 
-pub static TEST_COMMAND: Command = Command {
-    fun: test,
-    options: &TEST_OPTIONS,
-};
-
-#[command]
-pub async fn test(_ctx: &Context, _msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+pub async fn test(ctx: CommandContext, args: TestArguments) -> Result<(), RoError> {
+    ctx.bot.http.create_message(ctx.msg.channel_id)
+        .content(args.user_id.to_string())
+        .unwrap()
+        .await?;
     Ok(())
 }
