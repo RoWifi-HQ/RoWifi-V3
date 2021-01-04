@@ -33,8 +33,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
 
     let gen = quote! {
         impl FromArgs for #name {
-            type Error = ArgumentError;
-            fn from_args(args: &mut twilight_command_parser::Arguments) -> std::result::Result<Self, Self::Error> {
+            fn from_args(args: &mut twilight_command_parser::Arguments) -> std::result::Result<Self, ArgumentError> {
                 #(#fields_decs)*
                 Ok(Self {
                     #(#field_names),*

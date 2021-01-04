@@ -5,13 +5,12 @@ use std::{
     sync::Arc,
     task::{Context, Poll},
 };
-use twilight_model::channel::Message;
 
 use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service};
 
 pub type BoxedService = Box<
     dyn Service<
-        (CommandContext, Message),
+        (CommandContext, String),
         Response = (),
         Error = RoError,
         Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
@@ -21,6 +20,12 @@ pub type BoxedService = Box<
 #[derive(Default)]
 pub struct CommandOptions {
     pub level: RoLevel,
+    pub bucket: Option<&'static str>,
+    pub desc: Option<&'static str>,
+    pub usage: Option<&'static str>,
+    pub examples: &'static [&'static str],
+    pub hidden: bool,
+    pub group: Option<&'static str>
 }
 
 pub struct Command {
@@ -50,7 +55,7 @@ impl Command {
 
 unsafe impl Sync for Command {}
 
-impl Service<(CommandContext, Message)> for Command {
+impl Service<(CommandContext, String)> for Command {
     type Response = ();
     type Error = RoError;
     type Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>;
@@ -59,7 +64,7 @@ impl Service<(CommandContext, Message)> for Command {
         self.service.poll_ready(cx)
     }
 
-    fn call(&self, req: (CommandContext, Message)) -> Self::Future {
+    fn call(&self, req: (CommandContext, String)) -> Self::Future {
         Box::pin(self.service.call(req))
     }
 }

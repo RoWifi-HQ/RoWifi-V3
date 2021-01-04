@@ -20,7 +20,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_command_parser::Arguments;
+
 use twilight_model::{channel::Message, gateway::event::Event, guild::Permissions, id::UserId};
 use uwl::Stream;
 
@@ -45,6 +45,11 @@ impl Framework {
             bot,
             cmds: Vec::new(),
         }
+    }
+
+    pub fn command(mut self, cmd: Command) -> Self {
+        self.cmds.push(cmd);
+        self
     }
 }
 
@@ -97,19 +102,15 @@ impl Service<&Event> for Framework {
 
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
+                    msg: msg.0.clone()
                 };
 
-                let before = if let Some(ref before) = command.before {
-                    Some(before.call((ctx.clone(), msg.0.clone())))
-                } else {
-                    None
-                };
-                let cmd_fut = command.call((ctx, msg.0.clone()));
+                let cmd_fut = command.call((ctx, stream.rest().to_string()));
                 let fut = async move {
-                    if let Some(before) = before {
-                        before.await?;
-                    }
+                    //A global before handler
                     cmd_fut.await
+                    //Add the metrics here
+                    //A global after handler (includes the error handler)
                 };
                 return Either::Right(Box::pin(fut));
             }
@@ -171,23 +172,6 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
     RoLevel::Normal
 }
 
-#[derive(Debug)]
-pub struct UpdateArguments {
-    pub user_id: UserId,
-}
-
-impl FromArgs for UpdateArguments {
-    type Error = String;
-    fn from_args(args: &mut Arguments<'_>) -> Result<Self, Self::Error> {
-        let user_id = match args.next() {
-            Some(s) => UserId::from_arg(s).map_err(|_| String::from("Failed to parse integer"))?,
-            None => return Err(String::from("Insufficient arguments")),
-        };
-
-        Ok(UpdateArguments { user_id })
-    }
-}
-
 mod tests {
     use super::*;
 
@@ -198,7 +182,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut args = Arguments::new("311395138133950465");
+        let mut args = twilight_command_parser::Arguments::new("311395138133950465");
         let ua = UpdateArguments2::from_args(&mut args);
         assert_eq!(ua.is_ok(), true);
     }
