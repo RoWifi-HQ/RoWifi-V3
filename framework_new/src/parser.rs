@@ -1,7 +1,7 @@
 use twilight_model::id::GuildId;
 use uwl::Stream;
 
-use crate::{command::Command, context::BotContext};
+use crate::context::BotContext;
 
 pub enum PrefixType<'p> {
     Mention,
@@ -57,40 +57,6 @@ pub fn find_prefix<'a>(
         stream.increment(default_prefix.len());
         stream.take_while_char(char::is_whitespace);
         return Some(PrefixType::String(peeked));
-    }
-
-    None
-}
-
-fn parse_command<'a>(stream: &mut Stream<'a>, command: &'a Command) -> Option<&'a Command> {
-    let sub_name = stream.peek_until_char(char::is_whitespace);
-    if let Some(sub_cmd) = command.sub_commands.get(&sub_name.to_ascii_lowercase()) {
-        stream.increment(sub_name.len());
-        stream.take_while_char(char::is_whitespace);
-        if sub_cmd.sub_commands.is_empty() {
-            return Some(sub_cmd);
-        }
-
-        return parse_command(stream, sub_cmd);
-    }
-    None
-}
-
-pub fn find_command<'a>(stream: &mut Stream<'a>, commands: &'a [Command]) -> Option<&'a Command> {
-    //TODO: Do the help command
-    let name = stream
-        .peek_until_char(char::is_whitespace)
-        .to_ascii_lowercase();
-    for cmd in commands {
-        if cmd.names.contains(&name.as_ref()) {
-            return match parse_command(stream, cmd) {
-                Some(c) => Some(c),
-                None => {
-                    stream.increment(name.len());
-                    Some(cmd)
-                },
-            };
-        }
     }
 
     None
