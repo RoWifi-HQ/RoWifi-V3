@@ -24,7 +24,7 @@ use std::{
 use twilight_model::{channel::Message, gateway::event::Event, guild::Permissions, id::UserId};
 use uwl::Stream;
 
-use arguments::{ArgumentError, FromArg, FromArgs};
+use arguments::{ArgumentError, FromArg, FromArgs, Arguments};
 use command::{Command, RoLevel};
 use context::{BotContext, CommandContext};
 use error::RoError;
@@ -91,10 +91,37 @@ impl Service<&Event> for Framework {
                     return Either::Left(ready(Ok(())));
                 }
 
-                let command = match parser::find_command(&mut stream, &self.cmds) {
+                let content = stream.rest().to_string();
+
+                let mut command: Option<&Command> = None;
+                let mut cmd_str = Arguments::new(content);
+                while let Some(arg) = cmd_str.next() {
+                    if let Some(c) = command {
+                        if let Some(sub_cmd) = c.sub_commands.get(&arg.to_ascii_lowercase()) {
+                            command = Some(sub_cmd);
+                            if sub_cmd.sub_commands.is_empty() {
+                                cmd_str.back();
+                                break;
+                            }
+                        } else {
+                            cmd_str.back();
+                            break;
+                        }
+                    }
+                    else {
+                        for cmd in &self.cmds {
+                            if cmd.names.contains(&arg) {
+                                command = Some(cmd);
+                            }
+                        }
+                    }
+                }
+
+                let command = match command {
                     Some(c) => c,
                     None => return Either::Left(ready(Ok(()))),
                 };
+                
 
                 if !run_checks(&self.bot, command, &msg) {
                     return Either::Left(ready(Ok(())));
@@ -105,7 +132,7 @@ impl Service<&Event> for Framework {
                     msg: msg.0.clone()
                 };
 
-                let cmd_fut = command.call((ctx, stream.rest().to_string()));
+                let cmd_fut = command.call((ctx, cmd_str));
                 let fut = async move {
                     //A global before handler
                     cmd_fut.await
@@ -182,7 +209,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut args = twilight_command_parser::Arguments::new("311395138133950465");
+        let mut args = Arguments::new("311395138133950465".into());
         let ua = UpdateArguments2::from_args(&mut args);
         assert_eq!(ua.is_ok(), true);
     }

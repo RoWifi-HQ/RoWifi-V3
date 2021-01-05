@@ -6,11 +6,11 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service};
+use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service, Arguments};
 
 pub type BoxedService = Box<
     dyn Service<
-        (CommandContext, String),
+        (CommandContext, Arguments),
         Response = (),
         Error = RoError,
         Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
@@ -33,7 +33,6 @@ pub struct Command {
     pub(crate) service: BoxedService,
     pub sub_commands: Arc<HashMap<String, Command>>,
     pub options: CommandOptions,
-    pub(crate) before: Option<BoxedService>,
 }
 
 impl Command {
@@ -48,14 +47,13 @@ impl Command {
             service: Box::new(HandlerService::new(handler)),
             sub_commands: Arc::new(HashMap::new()),
             options: CommandOptions::default(),
-            before: None,
         }
     }
 }
 
 unsafe impl Sync for Command {}
 
-impl Service<(CommandContext, String)> for Command {
+impl Service<(CommandContext, Arguments)> for Command {
     type Response = ();
     type Error = RoError;
     type Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>;
@@ -64,7 +62,7 @@ impl Service<(CommandContext, String)> for Command {
         self.service.poll_ready(cx)
     }
 
-    fn call(&self, req: (CommandContext, String)) -> Self::Future {
+    fn call(&self, req: (CommandContext, Arguments)) -> Self::Future {
         Box::pin(self.service.call(req))
     }
 }

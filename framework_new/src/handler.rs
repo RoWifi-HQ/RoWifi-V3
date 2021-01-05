@@ -4,9 +4,8 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_command_parser::Arguments;
 
-use crate::{CommandContext, CommandResult, FromArgs, RoError, Service};
+use crate::{CommandContext, CommandResult, FromArgs, RoError, Service, Arguments};
 
 pub trait Handler<T, R>
 where
@@ -48,7 +47,7 @@ where
     }
 }
 
-impl<F, R, K> Service<(CommandContext, String)> for HandlerService<F, (CommandContext, K), R>
+impl<F, R, K> Service<(CommandContext, Arguments)> for HandlerService<F, (CommandContext, K), R>
 where
     F: Handler<(CommandContext, K), R>,
     R: Future<Output = CommandResult> + Send + 'static,
@@ -62,9 +61,8 @@ where
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, req: (CommandContext, String)) -> Self::Future {
-        let mut arguments = Arguments::new(&req.1);
-        println!("{:?}", arguments);
+    fn call(&self, req: (CommandContext, Arguments)) -> Self::Future {
+        let mut arguments = req.1;
         match FromArgs::from_args(&mut arguments) {
             Ok(args) => {
                 let fut = self.hnd.call((req.0, args));
