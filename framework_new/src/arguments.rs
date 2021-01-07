@@ -1,6 +1,7 @@
 use std::num::ParseIntError;
 use twilight_model::id::UserId;
 
+#[derive(Debug)]
 pub struct Arguments {
     buf: Vec<String>,
     idx: usize
@@ -31,17 +32,20 @@ impl Arguments {
         let mut start_idx = 0;
         let mut quoted = false;
         let mut started = false;
+        let mut idxs = buf.char_indices();
 
-        while let Some((i, ch)) = buf.char_indices().next() {
+        while let Some((i, ch)) = idxs.next() {
             if quoted {
                 if ch == '"' {
                     let v = buf[start_idx..i].trim();
                     args.push(v.to_string());
+                    start_idx = i + 1;
                 }
             } else if ch == ' ' {
                 if started {
                     let v = buf[start_idx..i].trim();
                     args.push(v.to_string());
+                    start_idx = i + 1;   
                 } else {
                     start_idx = i;
                     started = true;
@@ -50,9 +54,15 @@ impl Arguments {
             } else if ch == '"' {
                 start_idx = i + 1;
                 quoted = true;
-            }
+            }   
+            started = true;
         }
 
+        match buf.get(start_idx..) {
+            Some("") | None => {},
+            Some(s) => args.push(s.to_string())
+        }
+ 
         Self {
             buf: args,
             idx: 0

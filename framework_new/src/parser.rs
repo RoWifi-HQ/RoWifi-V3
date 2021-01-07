@@ -3,6 +3,7 @@ use uwl::Stream;
 
 use crate::context::BotContext;
 
+#[derive(Debug)]
 pub enum PrefixType<'p> {
     Mention,
     String(&'p str),

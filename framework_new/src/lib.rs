@@ -21,7 +21,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use twilight_model::{channel::Message, gateway::event::Event, guild::Permissions, id::UserId};
+use twilight_model::{applications::InteractionData, channel::Message, gateway::event::Event, guild::Permissions, id::UserId};
 use uwl::Stream;
 
 use arguments::{ArgumentError, FromArg, FromArgs, Arguments};
@@ -92,10 +92,10 @@ impl Service<&Event> for Framework {
                 }
 
                 let content = stream.rest().to_string();
-
                 let mut command: Option<&Command> = None;
                 let mut cmd_str = Arguments::new(content);
                 while let Some(arg) = cmd_str.next() {
+                    println!("{:?}", arg);
                     if let Some(c) = command {
                         if let Some(sub_cmd) = c.sub_commands.get(&arg.to_ascii_lowercase()) {
                             command = Some(sub_cmd);
@@ -135,11 +135,17 @@ impl Service<&Event> for Framework {
                 let cmd_fut = command.call((ctx, cmd_str));
                 let fut = async move {
                     //A global before handler
+                    //Bucket handler
                     cmd_fut.await
                     //Add the metrics here
                     //A global after handler (includes the error handler)
                 };
                 return Either::Right(Box::pin(fut));
+            },
+            Event::InteractionCreate(interaction) => {
+                if let InteractionData::ApplicationCommand(command) = &interaction.data {
+                    
+                }
             }
             _ => {}
         }
