@@ -4,6 +4,7 @@ use std::{
     pin::Pin,
     sync::Arc,
     task::{Context, Poll},
+    fmt::{Debug, Result as FmtResult, Formatter}
 };
 
 use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service, Arguments};
@@ -64,6 +65,14 @@ impl Service<(CommandContext, Arguments)> for Command {
 
     fn call(&self, req: (CommandContext, Arguments)) -> Self::Future {
         Box::pin(self.service.call(req))
+    }
+}
+
+impl Debug for Command {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("Command")
+            .field("name", &self.names)
+            .finish()
     }
 }
 
