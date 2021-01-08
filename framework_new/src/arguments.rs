@@ -1,20 +1,25 @@
 use std::num::ParseIntError;
-use twilight_model::id::UserId;
+use twilight_model::{applications::CommandDataOption, id::UserId};
 
 #[derive(Debug)]
 pub struct Arguments {
     buf: Vec<String>,
-    idx: usize
+    idx: usize,
 }
 
 #[derive(Debug)]
 pub enum ArgumentError {
     MissingArgument,
     ParseError,
+    BadArgument,
 }
 
 pub trait FromArgs {
     fn from_args(args: &mut Arguments) -> Result<Self, ArgumentError>
+    where
+        Self: Sized;
+
+    fn from_interaction(options: &[CommandDataOption]) -> Result<Self, ArgumentError>
     where
         Self: Sized;
 }
@@ -22,6 +27,10 @@ pub trait FromArgs {
 pub trait FromArg {
     type Error;
     fn from_arg(arg: &str) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error>
     where
         Self: Sized;
 }
@@ -45,7 +54,7 @@ impl Arguments {
                 if started {
                     let v = buf[start_idx..i].trim();
                     args.push(v.to_string());
-                    start_idx = i + 1;   
+                    start_idx = i + 1;
                 } else {
                     start_idx = i;
                     started = true;
@@ -54,19 +63,16 @@ impl Arguments {
             } else if ch == '"' {
                 start_idx = i + 1;
                 quoted = true;
-            }   
+            }
             started = true;
         }
 
         match buf.get(start_idx..) {
-            Some("") | None => {},
-            Some(s) => args.push(s.to_string())
+            Some("") | None => {}
+            Some(s) => args.push(s.to_string()),
         }
- 
-        Self {
-            buf: args,
-            idx: 0
-        }
+
+        Self { buf: args, idx: 0 }
     }
 
     pub fn next(&mut self) -> Option<&str> {
@@ -80,32 +86,52 @@ impl Arguments {
     }
 }
 
-impl<T> FromArg for Option<T> 
+impl<T> FromArg for Option<T>
 where
-    T: FromArg
+    T: FromArg,
 {
     type Error = <T as FromArg>::Error;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         Ok(match T::from_arg(arg) {
             Ok(arg) => Some(arg),
-            Err(_) => None
+            Err(_) => None,
+        })
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        Ok(match T::from_interaction(option) {
+            Ok(arg) => Some(arg),
+            Err(_) => None,
         })
     }
 }
 
 impl FromArg for UserId {
-    type Error = ParseIntError;
+    type Error = ArgumentError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         let id = u64::from_arg(arg)?;
+        Ok(UserId(id))
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let id = u64::from_interaction(option)?;
         Ok(UserId(id))
     }
 }
 
 impl FromArg for u64 {
-    type Error = ParseIntError;
+    type Error = ArgumentError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        arg.parse::<u64>()
+        arg.parse::<u64>().map_err(|_| ArgumentError::ParseError)
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(*value as u64),
+            CommandDataOption::String {value, ..} => Ok(value.parse::<u64>()?),
+            _ => Err(ArgumentError::BadArgument),
+        }
     }
 }
 

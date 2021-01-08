@@ -5,7 +5,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{CommandContext, CommandResult, FromArgs, RoError, Service, Arguments};
+use crate::{command::ServiceRequest, CommandContext, CommandResult, FromArgs, RoError, Service};
 
 pub trait Handler<T, R>
 where
@@ -47,7 +47,8 @@ where
     }
 }
 
-impl<F, R, K> Service<(CommandContext, Arguments)> for HandlerService<F, (CommandContext, K), R>
+impl<F, R, K> Service<(CommandContext, ServiceRequest)>
+    for HandlerService<F, (CommandContext, K), R>
 where
     F: Handler<(CommandContext, K), R>,
     R: Future<Output = CommandResult> + Send + 'static,
@@ -61,20 +62,28 @@ where
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, req: (CommandContext, Arguments)) -> Self::Future {
-        let mut arguments = req.1;
-        match FromArgs::from_args(&mut arguments) {
-            Ok(args) => {
-                let fut = self.hnd.call((req.0, args));
-                Box::pin(fut)
+    fn call(&self, req: (CommandContext, ServiceRequest)) -> Self::Future {
+        match req.1 {
+            ServiceRequest::Message(mut args) => match FromArgs::from_args(&mut args) {
+                Ok(args) => {
+                    let fut = self.hnd.call((req.0, args));
+                    Box::pin(fut)
+                }
+                Err(err) => {
+                    let fut = async move { Err(err.into()) };
+                    Box::pin(fut)
+                }
             },
-            Err(err) => {
-                let fut = async move {
-                    Err(err.into())
-                };
-                Box::pin(fut)
-            }
+            ServiceRequest::Interaction(options) => match FromArgs::from_interaction(&options) {
+                Ok(args) => {
+                    let fut = self.hnd.call((req.0, args));
+                    Box::pin(fut)
+                }
+                Err(err) => {
+                    let fut = async move { Err(err.into()) };
+                    Box::pin(fut)
+                }
+            },
         }
-        
     }
 }

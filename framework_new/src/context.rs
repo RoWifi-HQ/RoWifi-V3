@@ -7,7 +7,7 @@ use rowifi_models::stats::BotStats;
 use std::{ops::Deref, sync::Arc};
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
-use twilight_model::{channel::Message, id::{ChannelId, GuildId, UserId}};
+use twilight_model::id::{ChannelId, GuildId, UserId};
 use twilight_standby::Standby;
 
 use crate::error::RoError;
@@ -34,7 +34,8 @@ pub struct BotContext(Arc<BotContextRef>);
 #[derive(Clone)]
 pub struct CommandContext {
     pub bot: BotContext,
-    pub msg: Message
+    pub channel_id: ChannelId,
+    pub guild_id: Option<GuildId>,
 }
 
 impl BotContext {
