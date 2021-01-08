@@ -18,7 +18,9 @@ mod services;
 
 use commands::test;
 use dashmap::DashSet;
-use framework_new::{Framework as NewFramework, command::Command, context::BotContext, service::Service};
+use framework_new::{
+    command::Command, context::BotContext, service::Service, Framework as NewFramework,
+};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -125,8 +127,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         patreon,
         stats,
     );
-    let framework = NewFramework::new(bot.clone())
-        .command(Command::new(&["test"], test));
+    let framework = NewFramework::new(bot.clone()).command(Command::new(&["test"], test));
     let new_framework = Arc::new(framework);
 
     let event_handler = EventHandler::default();

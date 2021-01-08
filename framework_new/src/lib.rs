@@ -21,11 +21,16 @@ use std::{
     task::{Context, Poll},
 };
 
-use twilight_model::{applications::InteractionData, channel::Message, gateway::event::Event, guild::Permissions, id::UserId};
+use twilight_model::{
+    applications::{CommandDataOption, InteractionData},
+    gateway::event::Event,
+    guild::Permissions,
+    id::{ChannelId, GuildId, UserId},
+};
 use uwl::Stream;
 
-use arguments::{ArgumentError, FromArg, FromArgs, Arguments};
-use command::{Command, RoLevel};
+use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
+use command::{Command, RoLevel, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
 use handler::{Handler, HandlerService};
@@ -107,8 +112,7 @@ impl Service<&Event> for Framework {
                             cmd_str.back();
                             break;
                         }
-                    }
-                    else {
+                    } else {
                         for cmd in &self.cmds {
                             if cmd.names.contains(&arg) {
                                 command = Some(cmd);
@@ -121,18 +125,25 @@ impl Service<&Event> for Framework {
                     Some(c) => c,
                     None => return Either::Left(ready(Ok(()))),
                 };
-                
 
-                if !run_checks(&self.bot, command, &msg) {
+                if !run_checks(
+                    &self.bot,
+                    command,
+                    msg.guild_id,
+                    msg.channel_id,
+                    msg.author.id,
+                ) {
                     return Either::Left(ready(Ok(())));
                 }
 
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
-                    msg: msg.0.clone()
+                    channel_id: msg.channel_id,
+                    guild_id: msg.guild_id,
                 };
 
-                let cmd_fut = command.call((ctx, cmd_str));
+                let request = ServiceRequest::Message(cmd_str);
+                let cmd_fut = command.call((ctx, request));
                 let fut = async move {
                     //A global before handler
                     //Bucket handler
@@ -141,10 +152,71 @@ impl Service<&Event> for Framework {
                     //A global after handler (includes the error handler)
                 };
                 return Either::Right(Box::pin(fut));
-            },
+            }
             Event::InteractionCreate(interaction) => {
-                if let InteractionData::ApplicationCommand(command) = &interaction.data {
-                    
+                if let InteractionData::ApplicationCommand(top_command) = &interaction.data {
+                    let mut command_options = &top_command.options;
+                    let mut command: Option<&Command> = None;
+                    loop {
+                        if let Some(cmd) = command {
+                            let mut sub_available = false;
+                            for option in command_options {
+                                if let CommandDataOption::Subcommand { name, options } = option {
+                                    if let Some(sub_cmd) = cmd.sub_commands.get(name.as_str()) {
+                                        sub_available = true;
+                                        if sub_cmd.sub_commands.is_empty() {
+                                            command_options = options;
+                                            command = Some(sub_cmd);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if !sub_available {
+                                break;
+                            }
+                        } else {
+                            for cmd in &self.cmds {
+                                if cmd.names.contains(&top_command.name.as_str()) {
+                                    command = Some(cmd);
+                                }
+                            }
+                        }
+                    }
+
+                    println!("{:?}", command);
+
+                    let command = match command {
+                        Some(c) => c,
+                        None => return Either::Left(ready(Ok(()))),
+                    };
+
+                    if !run_checks(
+                        &self.bot,
+                        command,
+                        Some(interaction.guild_id),
+                        interaction.channel_id,
+                        interaction.member.user.clone().unwrap().id,
+                    ) {
+                        return Either::Left(ready(Ok(())));
+                    }
+
+                    let ctx = CommandContext {
+                        bot: self.bot.clone(),
+                        channel_id: interaction.channel_id,
+                        guild_id: Some(interaction.guild_id),
+                    };
+
+                    let request = ServiceRequest::Interaction(command_options.to_owned());
+                    let cmd_fut = command.call((ctx, request));
+                    let fut = async move {
+                        //A global before handler
+                        //Bucket handler
+                        cmd_fut.await
+                        //Add the metrics here
+                        //A global after handler (includes the error handler)
+                    };
+                    return Either::Right(Box::pin(fut));
                 }
             }
             _ => {}
@@ -154,18 +226,24 @@ impl Service<&Event> for Framework {
     }
 }
 
-fn run_checks(bot: &BotContext, cmd: &Command, msg: &Message) -> bool {
-    if bot.disabled_channels.contains(&msg.channel_id) && cmd.names.contains(&"command-channel") {
+fn run_checks(
+    bot: &BotContext,
+    cmd: &Command,
+    guild_id: Option<GuildId>,
+    channel_id: ChannelId,
+    author: UserId,
+) -> bool {
+    if bot.disabled_channels.contains(&channel_id) && cmd.names.contains(&"command-channel") {
         return false;
     }
 
-    if bot.owners.contains(&msg.author.id) {
+    if bot.owners.contains(&author) {
         return true;
     }
 
-    if let Some(guild_id) = msg.guild_id {
+    if let Some(guild_id) = guild_id {
         if let Some(guild) = bot.cache.guild(guild_id) {
-            if let Some(member) = bot.cache.member(guild_id, msg.author.id) {
+            if let Some(member) = bot.cache.member(guild_id, author) {
                 return cmd.options.level <= get_perm_level(bot, &guild, &member);
             }
         }

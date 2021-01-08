@@ -1,22 +1,31 @@
 use std::{
     collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,
     pin::Pin,
     sync::Arc,
     task::{Context, Poll},
-    fmt::{Debug, Result as FmtResult, Formatter}
 };
 
-use crate::{CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service, Arguments};
+use twilight_model::applications::CommandDataOption;
+
+use crate::{
+    Arguments, CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service,
+};
 
 pub type BoxedService = Box<
     dyn Service<
-        (CommandContext, Arguments),
+        (CommandContext, ServiceRequest),
         Response = (),
         Error = RoError,
         Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
     > + Send,
 >;
+
+pub enum ServiceRequest {
+    Message(Arguments),
+    Interaction(Vec<CommandDataOption>),
+}
 
 #[derive(Default)]
 pub struct CommandOptions {
@@ -26,7 +35,7 @@ pub struct CommandOptions {
     pub usage: Option<&'static str>,
     pub examples: &'static [&'static str],
     pub hidden: bool,
-    pub group: Option<&'static str>
+    pub group: Option<&'static str>,
 }
 
 pub struct Command {
@@ -54,7 +63,7 @@ impl Command {
 
 unsafe impl Sync for Command {}
 
-impl Service<(CommandContext, Arguments)> for Command {
+impl Service<(CommandContext, ServiceRequest)> for Command {
     type Response = ();
     type Error = RoError;
     type Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>;
@@ -63,7 +72,7 @@ impl Service<(CommandContext, Arguments)> for Command {
         self.service.poll_ready(cx)
     }
 
-    fn call(&self, req: (CommandContext, Arguments)) -> Self::Future {
+    fn call(&self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         Box::pin(self.service.call(req))
     }
 }

@@ -31,7 +31,7 @@ impl Display for RoError {
             RoError::Roblox(err) => write!(f, "Roblox Error - {:?}", err),
             RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
             RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
-            RoError::Argument => write!(f, "Argument Error")
+            RoError::Argument => write!(f, "Argument Error"),
         }
     }
 }
@@ -67,4 +67,3 @@ impl From<SerializationError> for RoError {
 }
 
 impl StdError for RoError {}
-

@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, Path, Type, parse_macro_input};
+use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, FieldsNamed, Path, Type};
 
 fn path_is_option(path: &Path) -> bool {
     path.leading_colon.is_none()
@@ -32,7 +32,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                         None => None
                     };
                 }
-            },
+            }
             _ => {
                 quote! {
                     let #name = match args.next() {
@@ -44,10 +44,37 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         };
         stmt
     });
+
+    let field_interaction_decs = fields.iter().map(|f| {
+        let field_name = f.ident.as_ref().unwrap();
+        let name = format!("{}", field_name);
+        let ty = &f.ty;
+        let stmt = match ty {
+            Type::Path(typepath) if path_is_option(&typepath.path) => {
+                quote! {
+                    let #field_name = match options.get(&(#name)) {
+                        Some(s) => <#ty>::from_interaction(s)?,
+                        None => None
+                    };
+                }
+            }
+            _ => {
+                quote! {
+                    let #field_name = match options.get(&(#name)) {
+                        Some(s) => <#ty>::from_interaction(s)?,
+                        None => return Err(ArgumentError::MissingArgument)
+                    };
+                }
+            }
+        };
+        stmt
+    });
+
     let field_names = fields.iter().map(|f| {
         let name = f.ident.as_ref().unwrap();
         name
     });
+    let field_interaction_names = field_names.clone();
 
     let gen = quote! {
         impl FromArgs for #name {
@@ -55,6 +82,25 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 #(#fields_decs)*
                 Ok(Self {
                     #(#field_names),*
+                })
+            }
+
+            fn from_interaction(options: &[twilight_model::applications::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
+                use twilight_model::applications::CommandDataOption;
+
+                let options = options.iter().map(|c| {
+                    match c {
+                        CommandDataOption::Boolean {name, ..}
+                        | CommandDataOption::Integer {name, ..}
+                        | CommandDataOption::String {name, ..}
+                        | CommandDataOption::Subcommand {name, ..}
+                            => (name.as_str(), c),
+                    }
+                }).collect::<std::collections::HashMap<&str, &CommandDataOption>>();
+
+                #(#field_interaction_decs)*
+                Ok(Self {
+                    #(#field_interaction_names),*
                 })
             }
         }
