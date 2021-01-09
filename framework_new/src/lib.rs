@@ -12,6 +12,7 @@ pub mod handler;
 mod parser;
 pub mod prelude;
 pub mod service;
+pub mod utils;
 
 use futures::future::{ready, Either, Ready};
 use rowifi_cache::{CachedGuild, CachedMember};
@@ -140,6 +141,7 @@ impl Service<&Event> for Framework {
                     bot: self.bot.clone(),
                     channel_id: msg.channel_id,
                     guild_id: msg.guild_id,
+                    author_id: msg.author.id
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -205,6 +207,7 @@ impl Service<&Event> for Framework {
                         bot: self.bot.clone(),
                         channel_id: interaction.channel_id,
                         guild_id: Some(interaction.guild_id),
+                        author_id: interaction.member.user.clone().unwrap().id
                     };
 
                     let request = ServiceRequest::Interaction(command_options.to_owned());

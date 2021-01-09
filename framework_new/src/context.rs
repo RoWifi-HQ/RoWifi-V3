@@ -36,6 +36,7 @@ pub struct CommandContext {
     pub bot: BotContext,
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,
+    pub author_id: UserId
 }
 
 impl BotContext {

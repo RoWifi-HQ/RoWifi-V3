@@ -10,12 +10,18 @@ use twilight_http::Error as DiscordHttpError;
 use crate::arguments::ArgumentError;
 
 #[derive(Debug)]
+pub enum CommandError {
+    Timeout
+}
+
+#[derive(Debug)]
 pub enum RoError {
     Argument,
     Database(DatabaseError),
     Roblox(RobloxError),
     Discord(DiscordHttpError),
     Patreon(PatreonError),
+    Command(CommandError)
 }
 
 impl From<ArgumentError> for RoError {
@@ -32,6 +38,7 @@ impl Display for RoError {
             RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
             RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
             RoError::Argument => write!(f, "Argument Error"),
+            RoError::Command(err) => write!(f, "Command Error - {:?}", err)
         }
     }
 }
@@ -63,6 +70,12 @@ impl From<PatreonError> for RoError {
 impl From<SerializationError> for RoError {
     fn from(err: SerializationError) -> Self {
         RoError::Database(DatabaseError::Serialization(err))
+    }
+}
+
+impl From<CommandError> for RoError {
+    fn from(err: CommandError) -> Self {
+        RoError::Command(err)
     }
 }
 

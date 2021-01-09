@@ -719,6 +719,7 @@ dependencies = [
 name = "framework_new"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "dashmap",
  "framework-derive",
  "futures",
@@ -727,6 +728,7 @@ dependencies = [
  "rowifi-cache",
  "rowifi-database",
  "rowifi-models",
+ "tokio",
  "twilight-command-parser",
  "twilight-embed-builder",
  "twilight-gateway",
