@@ -16,7 +16,7 @@ extern crate framework_derive;
 mod commands;
 mod services;
 
-use commands::test;
+use commands::{test, update};
 use dashmap::DashSet;
 use framework_new::{
     command::Command, context::BotContext, service::Service, Framework as NewFramework,
@@ -127,7 +127,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         patreon,
         stats,
     );
-    let framework = NewFramework::new(bot.clone()).command(Command::new(&["test"], test));
+    let framework = NewFramework::new(bot.clone())
+        .command(Command::new(&["test"], test))
+        .command(Command::new(&["update"], update));
     let new_framework = Arc::new(framework);
 
     let event_handler = EventHandler::default();

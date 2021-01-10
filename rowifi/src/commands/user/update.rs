@@ -1,36 +1,22 @@
 use reqwest::StatusCode;
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::Error as DiscordHttpError;
-use twilight_model::id::UserId;
+use twilight_model::id::{UserId, RoleId};
 
-pub static UPDATE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["update", "getroles"],
-    desc: Some("Command to update an user"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("User"),
-};
+#[derive(Debug, FromArgs)]
+pub struct UpdateArguments {
+    pub user_id: Option<UserId>
+}
 
-pub static UPDATE_COMMAND: Command = Command {
-    fun: update,
-    options: &UPDATE_OPTIONS,
-};
-
-#[command]
-pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
+pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
     let start = chrono::Utc::now().timestamp_millis();
-    let guild_id = msg.guild_id.unwrap();
-    let server = ctx.cache.guild(guild_id).unwrap();
+    let guild_id = ctx.guild_id.unwrap();
+    let server = ctx.bot.cache.guild(guild_id).unwrap();
 
-    let user_id = match args.next().and_then(parse_username) {
-        Some(s) => UserId(s),
-        None => msg.author.id,
+    let user_id = match args.user_id {
+        Some(s) => s,
+        None => ctx.author_id,
     };
 
     let member = match ctx.member(guild_id, user_id).await? {
@@ -46,9 +32,9 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            let _ = ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await;
@@ -68,9 +54,9 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        let _ = ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await;
@@ -92,9 +78,9 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            let _ = ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await;
@@ -102,7 +88,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         }
     }
 
-    let user = match ctx.database.get_user(user_id.0).await? {
+    let user = match ctx.bot.database.get_user(user_id.0).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -115,9 +101,9 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            let _ = ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await;
@@ -125,7 +111,7 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         }
     };
 
-    let guild = match ctx.database.get_guild(guild_id.0).await? {
+    let guild = match ctx.bot.database.get_guild(guild_id.0).await? {
         Some(g) => g,
         None => {
             let embed = EmbedBuilder::new()
@@ -140,18 +126,18 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            let _ = ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await;
             return Ok(());
         }
     };
-    let guild_roles = ctx.cache.roles(guild_id);
+    let guild_roles = ctx.bot.cache.roles(guild_id);
 
-    let (added_roles, removed_roles, disc_nick) = match ctx
+    let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx
         .update_user(member, &user, server, &guild, &guild_roles)
         .await
     {
@@ -174,17 +160,17 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
                         .unwrap()
                         .build()
                         .unwrap();
-                    let _ = ctx
+                    let _ = ctx.bot
                         .http
-                        .create_message(msg.channel_id)
+                        .create_message(ctx.channel_id)
                         .embed(embed)
                         .unwrap()
                         .await;
                     return Ok(());
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
-                if let Ok(channel) = ctx.http.create_private_channel(user_id).await {
-                    let _ = ctx
+                if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
+                    let _ = ctx.bot
                         .http
                         .create_message(channel.id)
                         .content(format!(
@@ -211,20 +197,20 @@ pub async fn update(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> 
         )
         .build()
         .unwrap();
-    let _ = ctx
+    let _ = ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await;
 
-    let log_embed = EmbedBuilder::new()
-        .default_data()
-        .title("Update")
-        .unwrap()
-        .update_log(&added_roles, &removed_roles, &disc_nick)
-        .build()
-        .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    // let log_embed = EmbedBuilder::new()
+    //     .default_data()
+    //     .title("Update")
+    //     .unwrap()
+    //     .update_log(&added_roles, &removed_roles, &disc_nick)
+    //     .build()
+    //     .unwrap();
+    //ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }

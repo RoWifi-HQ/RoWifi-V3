@@ -163,7 +163,7 @@ impl Service<&Event> for Framework {
                         if let Some(cmd) = command {
                             let mut sub_available = false;
                             for option in command_options {
-                                if let CommandDataOption::Subcommand { name, options } = option {
+                                if let CommandDataOption::SubCommand { name, options } = option {
                                     if let Some(sub_cmd) = cmd.sub_commands.get(name.as_str()) {
                                         sub_available = true;
                                         if sub_cmd.sub_commands.is_empty() {

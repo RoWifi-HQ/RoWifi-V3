@@ -11,7 +11,9 @@ use crate::arguments::ArgumentError;
 
 #[derive(Debug)]
 pub enum CommandError {
-    Timeout
+    Timeout,
+    Blacklist(String),
+    Miscellanous(String)
 }
 
 #[derive(Debug)]
