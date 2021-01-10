@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+#![allow(unused_imports)]
 
 #[macro_use]
 extern crate framework_derive;
@@ -11,7 +12,6 @@ pub mod error;
 pub mod handler;
 mod parser;
 pub mod prelude;
-pub mod service;
 pub mod utils;
 
 use futures::future::{ready, Either, Ready};
@@ -21,7 +21,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-
+use tower::Service;
 use twilight_model::{
     applications::{CommandDataOption, InteractionData},
     gateway::event::Event,
@@ -36,7 +36,6 @@ use context::{BotContext, CommandContext};
 use error::RoError;
 use handler::{Handler, HandlerService};
 use parser::PrefixType;
-use service::Service;
 
 pub type CommandResult = Result<(), RoError>;
 
@@ -67,11 +66,11 @@ impl Service<&Event> for Framework {
         Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>,
     >;
 
-    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, req: &Event) -> Self::Future {
+    fn call(&mut self, req: &Event) -> Self::Future {
         match req {
             Event::MessageCreate(msg) => {
                 let mut stream = Stream::new(&msg.content);
@@ -98,29 +97,13 @@ impl Service<&Event> for Framework {
                 }
 
                 let content = stream.rest().to_string();
-                let mut command: Option<&Command> = None;
                 let mut cmd_str = Arguments::new(content);
-                while let Some(arg) = cmd_str.next() {
-                    println!("{:?}", arg);
-                    if let Some(c) = command {
-                        if let Some(sub_cmd) = c.sub_commands.get(&arg.to_ascii_lowercase()) {
-                            command = Some(sub_cmd);
-                            if sub_cmd.sub_commands.is_empty() {
-                                cmd_str.back();
-                                break;
-                            }
-                        } else {
-                            cmd_str.back();
-                            break;
-                        }
-                    } else {
-                        for cmd in &self.cmds {
-                            if cmd.names.contains(&arg) {
-                                command = Some(cmd);
-                            }
-                        }
-                    }
-                }
+
+                let command = if let Some(arg) = cmd_str.next() {
+                    self.cmds.iter_mut().find(|c| c.names.contains(&arg))
+                } else {
+                    None
+                };
 
                 let command = match command {
                     Some(c) => c,
@@ -157,37 +140,9 @@ impl Service<&Event> for Framework {
             }
             Event::InteractionCreate(interaction) => {
                 if let InteractionData::ApplicationCommand(top_command) = &interaction.data {
-                    let mut command_options = &top_command.options;
-                    let mut command: Option<&Command> = None;
-                    loop {
-                        if let Some(cmd) = command {
-                            let mut sub_available = false;
-                            for option in command_options {
-                                if let CommandDataOption::SubCommand { name, options } = option {
-                                    if let Some(sub_cmd) = cmd.sub_commands.get(name.as_str()) {
-                                        sub_available = true;
-                                        if sub_cmd.sub_commands.is_empty() {
-                                            command_options = options;
-                                            command = Some(sub_cmd);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if !sub_available {
-                                break;
-                            }
-                        } else {
-                            for cmd in &self.cmds {
-                                if cmd.names.contains(&top_command.name.as_str()) {
-                                    command = Some(cmd);
-                                }
-                            }
-                        }
-                    }
-
+                    let command_options = &top_command.options;
+                    let command = self.cmds.iter_mut().find(|c| c.names.contains(&top_command.name.as_str()));
                     println!("{:?}", command);
-
                     let command = match command {
                         Some(c) => c,
                         None => return Either::Left(ready(Ok(()))),

@@ -4,8 +4,8 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-
-use crate::{command::ServiceRequest, CommandContext, CommandResult, FromArgs, RoError, Service};
+use tower::Service;
+use crate::{command::ServiceRequest, CommandContext, CommandResult, FromArgs, RoError};
 
 pub trait Handler<T, R>
 where
@@ -58,11 +58,11 @@ where
     type Error = RoError;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
-    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, req: (CommandContext, ServiceRequest)) -> Self::Future {
+    fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         match req.1 {
             ServiceRequest::Message(mut args) => match FromArgs::from_args(&mut args) {
                 Ok(args) => {

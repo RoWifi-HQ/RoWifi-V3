@@ -19,7 +19,7 @@ mod services;
 use commands::{test, update};
 use dashmap::DashSet;
 use framework_new::{
-    command::Command, context::BotContext, service::Service, Framework as NewFramework,
+    command::Command, context::BotContext, prelude::{Service, ServiceExt}, Framework as NewFramework,
 };
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -32,12 +32,40 @@ use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
 use services::EventHandler;
-use std::{env, error::Error, sync::Arc, time::Duration};
-use tokio::{stream::StreamExt, time::delay_for};
-use twilight_gateway::cluster::{Cluster, ShardScheme};
+use std::{env, error::Error, sync::Arc, task::{Context, Poll}, time::Duration};
+use tokio::{stream::StreamExt, task::{JoinError, JoinHandle}, time::delay_for};
+use twilight_gateway::{Event, cluster::{Cluster, ShardScheme}};
 use twilight_http::Client as HttpClient;
 use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
+
+pub struct RoWifi {
+    pub framework: NewFramework,
+    pub event_handler: EventHandler,
+    pub bot: BotContext
+}
+
+impl Service<(u64, Event)> for RoWifi {
+    type Response = ();
+    type Error = JoinError;
+    type Future = JoinHandle<()>;
+
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, event: (u64, Event)) -> Self::Future {
+        self.bot.cache.update(&event.1).expect("Failed to update cache");
+        self.bot.standby.process(&event.1);
+        let fut = self.framework.call(&event.1);
+
+        let join = tokio::spawn(async move {
+            let _ = fut.await;
+        });
+
+        join
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -130,31 +158,40 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let framework = NewFramework::new(bot.clone())
         .command(Command::new(&["test"], test))
         .command(Command::new(&["update"], update));
-    let new_framework = Arc::new(framework);
 
     let event_handler = EventHandler::default();
+    let rowifi = RoWifi {
+        framework,
+        event_handler,
+        bot
+    };
+    let events = rowifi.bot.cluster.events();
+    let mut event_responses = rowifi.call_all(events);
+    while let Some(_res) = event_responses.next().await {
 
-    let mut events = bot.cluster.events();
-    while let Some(event) = events.next().await {
-        let b = bot.clone();
-        let nfc = new_framework.clone();
-        let _e = event_handler.clone();
-        tracing::trace!(event = ?event.1.kind());
-        b.cache.update(&event.1).expect("Failed to update cache");
-        b.standby.process(&event.1);
-
-        tokio::spawn(async move {
-            // if let Err(err) = e.handle_event(event.0, &event.1, &c).await {
-            //     tracing::error!(err = ?err, "Error in event handler");
-            // }
-            //f.handle_event(&event.1, &c).await;
-            let fut = nfc.call(&event.1);
-            if let Err(err) = fut.await {
-                tracing::error!(err = ?err);
-            }
-            //c.stats.update(&event.1);
-        });
     }
+
+    // let mut events = bot.cluster.events();
+    // while let Some(event) = events.next().await {
+    //     let b = bot.clone();
+    //     let nfc = new_framework.clone();
+    //     let _e = event_handler.clone();
+    //     tracing::trace!(event = ?event.1.kind());
+    //     b.cache.update(&event.1).expect("Failed to update cache");
+    //     b.standby.process(&event.1);
+
+    //     tokio::spawn(async move {
+    //         // if let Err(err) = e.handle_event(event.0, &event.1, &c).await {
+    //         //     tracing::error!(err = ?err, "Error in event handler");
+    //         // }
+    //         //f.handle_event(&event.1, &c).await;
+    //         let fut = nfc.call(&event.1);
+    //         if let Err(err) = fut.await {
+    //             tracing::error!(err = ?err);
+    //         }
+    //         //c.stats.update(&event.1);
+    //     });
+    // }
 
     Ok(())
 }
