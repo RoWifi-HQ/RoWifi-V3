@@ -6,11 +6,11 @@ use std::{
     sync::Arc,
     task::{Context, Poll},
 };
-
+use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
 use crate::{
-    Arguments, CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError, Service,
+    Arguments, CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError,
 };
 
 pub type BoxedService = Box<
@@ -41,7 +41,7 @@ pub struct CommandOptions {
 pub struct Command {
     pub names: &'static [&'static str],
     pub(crate) service: BoxedService,
-    pub sub_commands: Arc<HashMap<String, Command>>,
+    pub sub_commands: HashMap<String, Command>,
     pub options: CommandOptions,
 }
 
@@ -55,24 +55,22 @@ impl Command {
         Self {
             names,
             service: Box::new(HandlerService::new(handler)),
-            sub_commands: Arc::new(HashMap::new()),
+            sub_commands: HashMap::new(),
             options: CommandOptions::default(),
         }
     }
 }
-
-unsafe impl Sync for Command {}
 
 impl Service<(CommandContext, ServiceRequest)> for Command {
     type Response = ();
     type Error = RoError;
     type Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>;
 
-    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
-    fn call(&self, req: (CommandContext, ServiceRequest)) -> Self::Future {
+    fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         Box::pin(self.service.call(req))
     }
 }
