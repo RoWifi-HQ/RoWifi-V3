@@ -11,6 +11,7 @@ chrono = "0"
 dashmap = "3"
 framework-derive = { path = "./framework-derive" }
 futures = "0"
+itertools = "0"
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }

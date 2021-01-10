@@ -93,7 +93,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                         CommandDataOption::Boolean {name, ..}
                         | CommandDataOption::Integer {name, ..}
                         | CommandDataOption::String {name, ..}
-                        | CommandDataOption::Subcommand {name, ..}
+                        | CommandDataOption::SubCommand {name, ..}
                             => (name.as_str(), c),
                     }
                 }).collect::<std::collections::HashMap<&str, &CommandDataOption>>();

@@ -3,8 +3,6 @@ use rowifi_framework::prelude::*;
 use std::time::Duration;
 use tokio::time::timeout;
 use twilight_model::gateway::payload::MessageCreate;
-
-use super::update;
 use rowifi_models::user::{QueueUser, RoUser};
 
 pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
@@ -320,7 +318,7 @@ pub async fn verify_common(
 
     if let Some(guild) = ctx.database.get_guild(msg.guild_id.unwrap().0).await? {
         if guild.settings.update_on_verify {
-            update(ctx, msg, args).await?;
+            //update(ctx, msg, args).await?;
         }
     }
     Ok(())
