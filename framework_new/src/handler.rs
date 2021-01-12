@@ -25,7 +25,7 @@ where
     }
 }
 
-pub struct HandlerService<F, T, R>
+pub struct CommandHandler<F, T, R>
 where
     F: Handler<T, R>,
     R: Future<Output = CommandResult> + Send,
@@ -34,7 +34,7 @@ where
     _t: PhantomData<(T, R)>,
 }
 
-impl<F, T, R> HandlerService<F, T, R>
+impl<F, T, R> CommandHandler<F, T, R>
 where
     F: Handler<T, R>,
     R: Future<Output = CommandResult> + Send,
@@ -48,7 +48,7 @@ where
 }
 
 impl<F, R, K> Service<(CommandContext, ServiceRequest)>
-    for HandlerService<F, (CommandContext, K), R>
+    for CommandHandler<F, (CommandContext, K), R>
 where
     F: Handler<(CommandContext, K), R>,
     R: Future<Output = CommandResult> + Send + 'static,

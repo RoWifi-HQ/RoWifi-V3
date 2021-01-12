@@ -18,7 +18,7 @@ rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-models = { path = "../models" }
 tokio = { version = "0.2", features = ["stream", "time"] }
-tower = { version = "0", features = ["util"] }
+tower = { version = "0", features = ["util", "limit"] }
 twilight-command-parser = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-model = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
