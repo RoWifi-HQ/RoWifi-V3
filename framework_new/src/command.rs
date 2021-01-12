@@ -10,7 +10,7 @@ use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
 use crate::{
-    Arguments, CommandContext, CommandResult, FromArgs, Handler, HandlerService, RoError,
+    Arguments, CommandContext, CommandResult, FromArgs, Handler, CommandHandler, RoError,
 };
 
 pub type BoxedService = Box<
@@ -54,7 +54,7 @@ impl Command {
     {
         Self {
             names,
-            service: Box::new(HandlerService::new(handler)),
+            service: Box::new(CommandHandler::new(handler)),
             sub_commands: HashMap::new(),
             options: CommandOptions::default(),
         }

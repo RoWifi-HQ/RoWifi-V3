@@ -14,7 +14,7 @@ mod parser;
 pub mod prelude;
 pub mod utils;
 
-use futures::future::{ready, Either, Ready};
+use futures::{future::{ready, Either, Ready}, ready};
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -34,7 +34,7 @@ use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
 use command::{Command, RoLevel, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
-use handler::{Handler, HandlerService};
+use handler::{Handler, CommandHandler};
 use parser::PrefixType;
 
 pub type CommandResult = Result<(), RoError>;
@@ -87,7 +87,13 @@ impl Service<&Event> for Framework {
                                 .prefixes
                                 .get(&guild_id)
                                 .map_or_else(|| self.bot.default_prefix.clone(), |p| p.to_string());
-                            todo!("Respond to the user with the prefix");
+                            let http = self.bot.http.clone();
+                            let channel_id = msg.channel_id;
+                            tokio::spawn(async move {
+                                let _ = http.create_message(channel_id)
+                                    .content(format!("My prefix here is {}", actual_prefix)).unwrap().await;
+                            });
+                            return Either::Left(ready(Ok(())));
                         }
                     }
                 }
@@ -247,12 +253,5 @@ mod tests {
     #[derive(Debug, FromArgs)]
     pub struct UpdateArguments2 {
         pub user_id: UserId,
-    }
-
-    #[test]
-    fn test() {
-        let mut args = Arguments::new("311395138133950465".into());
-        let ua = UpdateArguments2::from_args(&mut args);
-        assert_eq!(ua.is_ok(), true);
     }
 }

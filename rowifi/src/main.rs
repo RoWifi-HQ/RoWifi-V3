@@ -18,9 +18,8 @@ mod services;
 
 use commands::{test, update};
 use dashmap::DashSet;
-use framework_new::{
-    command::Command, context::BotContext, prelude::{Service, ServiceExt}, Framework as NewFramework,
-};
+use framework_new::{Framework as NewFramework, command::Command, context::BotContext, prelude::{RoError, Service, ServiceExt}};
+use futures::{Future, future::{Either, Ready}};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -32,7 +31,7 @@ use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
 use services::EventHandler;
-use std::{env, error::Error, sync::Arc, task::{Context, Poll}, time::Duration};
+use std::{env, error::Error, pin::Pin, sync::Arc, task::{Context, Poll}, time::Duration};
 use tokio::{stream::StreamExt, task::{JoinError, JoinHandle}, time::delay_for};
 use twilight_gateway::{Event, cluster::{Cluster, ShardScheme}};
 use twilight_http::Client as HttpClient;
@@ -46,9 +45,9 @@ pub struct RoWifi {
 }
 
 impl Service<(u64, Event)> for RoWifi {
-    type Response = ();
+    type Response = Result<(), RoError>;
     type Error = JoinError;
-    type Future = JoinHandle<()>;
+    type Future = JoinHandle<<Either<Ready<Result<(), RoError>>, Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>> as Future>::Output>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
@@ -59,9 +58,7 @@ impl Service<(u64, Event)> for RoWifi {
         self.bot.standby.process(&event.1);
         let fut = self.framework.call(&event.1);
 
-        let join = tokio::spawn(async move {
-            let _ = fut.await;
-        });
+        let join = tokio::spawn(fut);
 
         join
     }
