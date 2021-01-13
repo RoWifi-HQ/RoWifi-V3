@@ -18,7 +18,7 @@ pub enum CommandError {
 
 #[derive(Debug)]
 pub enum RoError {
-    Argument,
+    Argument(ArgumentError),
     Database(DatabaseError),
     Roblox(RobloxError),
     Discord(DiscordHttpError),
@@ -28,7 +28,7 @@ pub enum RoError {
 
 impl From<ArgumentError> for RoError {
     fn from(err: ArgumentError) -> Self {
-        RoError::Argument
+        RoError::Argument(err)
     }
 }
 
@@ -39,7 +39,7 @@ impl Display for RoError {
             RoError::Roblox(err) => write!(f, "Roblox Error - {:?}", err),
             RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
             RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
-            RoError::Argument => write!(f, "Argument Error"),
+            RoError::Argument(err) => write!(f, "Argument Error - {:?}", err),
             RoError::Command(err) => write!(f, "Command Error - {:?}", err)
         }
     }

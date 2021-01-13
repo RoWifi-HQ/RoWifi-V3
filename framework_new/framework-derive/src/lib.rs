@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, FieldsNamed, Path, Type};
+use syn::{Attribute, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Path, Type, parse_macro_input, Meta, NestedMeta, Lit};
 
 fn path_is_option(path: &Path) -> bool {
     path.leading_colon.is_none()
@@ -8,7 +8,16 @@ fn path_is_option(path: &Path) -> bool {
         && path.segments.iter().next().unwrap().ident == "Option"
 }
 
-#[proc_macro_derive(FromArgs)]
+fn builder(field: &Field) -> Option<&Attribute> {
+    for attr in &field.attrs {
+        if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "arg" {
+            return Some(attr);
+        }
+    }
+    None
+}
+
+#[proc_macro_derive(FromArgs, attributes(arg))]
 pub fn from_args_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let name = ast.ident;
@@ -76,6 +85,25 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
     });
     let field_interaction_names = field_names.clone();
 
+    let fields_help = fields.iter().map(|f| {
+        let name = f.ident.as_ref().unwrap();
+        if let Some(attr) = builder(f) {
+            match attr.parse_meta() {
+                Ok(Meta::List(mut nvs)) => {
+                    match nvs.nested.pop().unwrap().into_value() {
+                        NestedMeta::Lit(Lit::Str(lit)) => {
+                            format!("`{}`: {}", name, lit.value())
+                        },
+                        _ => panic!("Not implemented for non-lists")
+                    }
+                },
+                _ => panic!("Only meant for Meta")
+            }
+        } else {
+            format!("`{}`: No description", name)
+        }
+    }).fold("".to_string(), |res, s| format!("{}\n{}", res, s));
+
     let gen = quote! {
         impl FromArgs for #name {
             fn from_args(args: &mut Arguments) -> std::result::Result<Self, ArgumentError> {
@@ -102,6 +130,10 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 Ok(Self {
                     #(#field_interaction_names),*
                 })
+            }
+
+            fn generate_help() -> (&'static str, &'static str) {
+                ("", #fields_help)
             }
         }
     };
