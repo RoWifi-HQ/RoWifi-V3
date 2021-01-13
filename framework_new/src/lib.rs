@@ -31,11 +31,12 @@ use twilight_model::{
 use uwl::Stream;
 
 use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
-use command::{Command, RoLevel, ServiceRequest};
+use command::{Command, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
 use handler::{Handler, CommandHandler};
 use parser::PrefixType;
+use utils::RoLevel;
 
 pub type CommandResult = Result<(), RoError>;
 

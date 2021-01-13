@@ -731,6 +731,7 @@ dependencies = [
  "futures",
  "itertools",
  "patreon",
+ "pin-project 1.0.4",
  "roblox",
  "rowifi-cache",
  "rowifi-database",

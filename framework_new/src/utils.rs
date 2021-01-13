@@ -19,6 +19,21 @@ pub enum Color {
     DarkGreen = 0x001F_8B4C,
 }
 
+#[derive(Debug, PartialEq, Ord, PartialOrd, Eq)]
+#[repr(i8)]
+pub enum RoLevel {
+    Creator = 3,
+    Admin = 2,
+    Trainer = 1,
+    Normal = 0,
+}
+
+impl Default for RoLevel {
+    fn default() -> Self {
+        RoLevel::Normal
+    }
+}
+
 pub async fn await_reply(question: &str, ctx: &CommandContext, msg: &Message) -> Result<String, RoError> {
     let question = format!("{}\nSay `cancel` to cancel this prompt", question);
      ctx.bot
