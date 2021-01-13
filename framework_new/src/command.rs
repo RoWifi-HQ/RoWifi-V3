@@ -6,12 +6,11 @@ use std::{
     sync::Arc,
     task::{Context, Poll},
 };
+use futures::FutureExt;
 use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
-use crate::{
-    Arguments, CommandContext, CommandResult, FromArgs, Handler, CommandHandler, RoError,
-};
+use crate::{Arguments, CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError, context::BotContext, utils::RoLevel};
 
 pub type BoxedService = Box<
     dyn Service<
@@ -71,7 +70,23 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
     }
 
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
-        Box::pin(self.service.call(req))
+        let name = self.names[0];
+        let ctx = req.0.clone();
+        let fut = self.service.call(req).then(move |res: Result<(), RoError>| async move {
+            match res {
+                Ok(r) => {
+                    if let Ok(metric) = ctx.bot.stats.command_counts.get_metric_with_label_values(&[&name]) {
+                        metric.inc();
+                    }
+                    Ok(r)
+                },
+                Err(err) => {
+                    handle_error(&err, ctx).await;
+                    Err(err)
+                }
+            }
+        });
+        Box::pin(fut)
     }
 }
 
@@ -83,17 +98,6 @@ impl Debug for Command {
     }
 }
 
-#[derive(Debug, PartialEq, Ord, PartialOrd, Eq)]
-#[repr(i8)]
-pub enum RoLevel {
-    Creator = 3,
-    Admin = 2,
-    Trainer = 1,
-    Normal = 0,
-}
+async fn handle_error(err: &RoError, bot: CommandContext) {
 
-impl Default for RoLevel {
-    fn default() -> Self {
-        RoLevel::Normal
-    }
 }

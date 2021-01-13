@@ -13,6 +13,7 @@ framework-derive = { path = "./framework-derive" }
 futures = "0"
 itertools = "0"
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
+pin-project = "1"
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
