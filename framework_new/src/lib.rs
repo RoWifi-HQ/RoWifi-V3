@@ -249,10 +249,20 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
 }
 
 mod tests {
+    use std::assert_eq;
+
     use super::*;
 
     #[derive(Debug, FromArgs)]
     pub struct UpdateArguments2 {
+        #[arg("User to update")] 
         pub user_id: UserId,
+        pub priority: u64
+    }
+
+    #[test]
+    pub fn test_update() {
+        let mut args = Arguments::new("12345".into());
+        assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), true);
     }
 }

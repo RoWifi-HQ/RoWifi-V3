@@ -22,6 +22,8 @@ pub trait FromArgs {
     fn from_interaction(options: &[CommandDataOption]) -> Result<Self, ArgumentError>
     where
         Self: Sized;
+
+    fn generate_help() -> (&'static str, &'static str);
 }
 
 pub trait FromArg {

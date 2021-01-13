@@ -10,7 +10,7 @@ use futures::FutureExt;
 use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
-use crate::{Arguments, CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError, context::BotContext, utils::RoLevel};
+use crate::{Arguments, CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError, context::BotContext, utils::RoLevel, error::CommandError};
 
 pub type BoxedService = Box<
     dyn Service<
@@ -99,5 +99,13 @@ impl Debug for Command {
 }
 
 async fn handle_error(err: &RoError, bot: CommandContext) {
-
+    match err {
+        RoError::Argument(arg_err) => {},
+        RoError::Command(cmd_err) => match cmd_err {
+            CommandError::Blacklist(ref b) => {},
+            CommandError::Miscellanous(ref b) => {}
+            CommandError::Timeout => {}
+        },
+        _ => {}
+    }
 }
