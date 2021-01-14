@@ -94,8 +94,8 @@ impl UpdateCache for GuildCreate {
             .member_count
             .store(self.member_count.unwrap() as i64, Ordering::SeqCst);
         c.cache_guild_permissions(self.id);
-        for channel in self.channels.keys() {
-            c.cache_channel_permissions(self.id, *channel);
+        for channel in &self.channels {
+            c.cache_channel_permissions(self.id, channel.id());
         }
         if old_guild.is_none() {
             c.0.stats.resource_counts.guilds.inc();
@@ -175,7 +175,7 @@ impl UpdateCache for MemberChunk {
             return Ok(());
         }
         info!(id = ?self.guild_id, "Received event for Guild Members Chunk for");
-        c.cache_members(self.guild_id, self.members.values().cloned());
+        c.cache_members(self.guild_id, self.members.clone());
         Ok(())
     }
 }
@@ -222,7 +222,7 @@ impl UpdateCache for Ready {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_current_user(self.user.clone());
 
-        for status in self.guilds.values() {
+        for status in &self.guilds {
             match status {
                 GuildStatus::Offline(u) => c.unavailable_guild(u.id),
                 GuildStatus::Online(g) => {
@@ -232,8 +232,8 @@ impl UpdateCache for Ready {
                         .member_count
                         .store(g.member_count.unwrap() as i64, Ordering::SeqCst);
                     c.cache_guild_permissions(g.id);
-                    for channel in g.channels.keys() {
-                        c.cache_channel_permissions(g.id, *channel);
+                    for channel in &g.channels {
+                        c.cache_channel_permissions(g.id, channel.id());
                     }
                 }
             }

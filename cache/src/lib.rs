@@ -391,32 +391,32 @@ impl Cache {
         let bypass_role = guild
             .roles
             .iter()
-            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Bypass"))
-            .map(|(_, r)| r.id);
+            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Bypass"))
+            .map(|r| r.id);
         let nickname_bypass = guild
             .roles
             .iter()
-            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Nickname Bypass"))
-            .map(|(_, r)| r.id);
+            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Nickname Bypass"))
+            .map(|r| r.id);
         let log_channel = guild
             .channels
             .iter()
-            .find(|(_, c)| c.name().eq_ignore_ascii_case("rowifi-logs"))
-            .map(|(_, c)| c.id());
+            .find(|c| c.name().eq_ignore_ascii_case("rowifi-logs"))
+            .map(|c| c.id());
         let admin_role = guild
             .roles
             .iter()
-            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Admin"))
-            .map(|(_, r)| r.id);
+            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Admin"))
+            .map(|r| r.id);
         let trainer_role = guild
             .roles
             .iter()
-            .find(|(_, r)| r.name.eq_ignore_ascii_case("RoWifi Trainer"))
-            .map(|(_, r)| r.id);
+            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Trainer"))
+            .map(|r| r.id);
 
-        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
-        self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, r)| r));
-        self.cache_members(guild.id, guild.members.into_iter().map(|(_, m)| m));
+        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|v| v));
+        self.cache_roles(guild.id, guild.roles.into_iter().map(|r| r));
+        self.cache_members(guild.id, guild.members.into_iter().map(|m| m));
 
         let cached = CachedGuild {
             id: guild.id,

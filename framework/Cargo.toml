@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 attributes = { path = "../attributes" }
 chrono = "0"
-dashmap = "3"
+dashmap = "4"
 futures = "0"
 itertools = "0"
 lazy_static = "1"
@@ -28,4 +28,5 @@ twilight-mention = { branch = "feature/slash", git = "https://github.com/Erk-/tw
 twilight-gateway = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-http = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
 twilight-standby = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
+twilight-util = { branch = "feature/slash", git = "https://github.com/Erk-/twilight", features = ["link"] }
 uwl = "0"
