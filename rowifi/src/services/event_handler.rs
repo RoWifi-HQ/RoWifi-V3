@@ -53,7 +53,7 @@ impl EventHandler {
                         \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR
                         \n\nTo view our documentation, please visit our website\nhttps://rowifi.link";
                     let mut channel = None;
-                    for c in guild.channels.values() {
+                    for c in &guild.channels {
                         if let GuildChannel::Text(tc) = c {
                             if let Some(permissions) = ctx.cache.channel_permissions(tc.id) {
                                 if permissions.contains(Permissions::SEND_MESSAGES) {
@@ -105,12 +105,17 @@ impl EventHandler {
             }
             Event::Ready(ready) => {
                 tracing::info!("RoWifi ready for service!");
-                for status in ready.guilds.values() {
+                for status in &ready.guilds {
                     if let GuildStatus::Offline(ug) = status {
                         self.0.unavailable.insert(ug.id);
                     }
                 }
-                let guild_ids = ready.guilds.keys().map(|k| k.0).collect::<Vec<u64>>();
+                let guild_ids = ready.guilds.iter().map(|k| 
+                    match k {
+                        GuildStatus::Offline(u) => u.id.0,
+                        GuildStatus::Online(g) => g.id.0
+                    }
+                ).collect::<Vec<u64>>();
                 let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
                 for guild in guilds {
                     if let Some(command_prefix) = guild.command_prefix {

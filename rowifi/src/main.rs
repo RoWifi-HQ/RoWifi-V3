@@ -48,10 +48,10 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    stream::StreamExt,
     task::{JoinError, JoinHandle},
-    time::delay_for,
+    time::sleep,
 };
+use tokio_stream::StreamExt;
 use twilight_gateway::{
     cluster::{Cluster, ShardScheme},
     Event,
@@ -98,7 +98,6 @@ impl Service<(u64, Event)> for RoWifi {
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     dotenv::dotenv().ok();
     tracing_subscriber::fmt::init();
-    //tracing_log::LogTracer::init()?;
 
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
     let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
@@ -124,7 +123,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .parse::<u64>()
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
-    delay_for(Duration::from_secs(cluster_id * 60)).await;
+    sleep(Duration::from_secs(cluster_id * 60)).await;
 
     let scheme = ShardScheme::Range {
         from: cluster_id * shards_per_cluster,

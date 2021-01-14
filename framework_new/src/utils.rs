@@ -7,7 +7,8 @@ use std::{
     cmp::{max, min},
     time::Duration,
 };
-use tokio::{stream::StreamExt, time::timeout};
+use tokio::time::timeout;
+use tokio_stream::StreamExt;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
 use twilight_http::request::prelude::RequestReactionType;
 use twilight_model::{
@@ -141,7 +142,7 @@ pub async fn paginate_embed(
                 .await;
         });
 
-        let mut reactions = ctx
+        let reactions = ctx
             .bot
             .standby
             .wait_for_reaction_stream(message_id, move |event: &ReactionAdd| {
@@ -154,6 +155,7 @@ pub async fn paginate_embed(
                 false
             })
             .timeout(Duration::from_secs(300));
+        tokio::pin!(reactions);
 
         let mut page_pointer: isize = 0;
         while let Some(Ok(reaction)) = reactions.next().await {
