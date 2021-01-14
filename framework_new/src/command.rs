@@ -1,3 +1,4 @@
+use futures::FutureExt;
 use std::{
     collections::HashMap,
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -6,11 +7,13 @@ use std::{
     sync::Arc,
     task::{Context, Poll},
 };
-use futures::FutureExt;
 use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
-use crate::{Arguments, CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError, context::BotContext, utils::RoLevel, error::CommandError};
+use crate::{
+    context::BotContext, error::CommandError, utils::RoLevel, Arguments, CommandContext,
+    CommandHandler, CommandResult, FromArgs, Handler, RoError,
+};
 
 pub type BoxedService = Box<
     dyn Service<
@@ -29,9 +32,7 @@ pub enum ServiceRequest {
 #[derive(Default)]
 pub struct CommandOptions {
     pub level: RoLevel,
-    pub bucket: Option<&'static str>,
     pub desc: Option<&'static str>,
-    pub usage: Option<&'static str>,
     pub examples: &'static [&'static str],
     pub hidden: bool,
     pub group: Option<&'static str>,
@@ -40,7 +41,7 @@ pub struct CommandOptions {
 pub struct Command {
     pub names: &'static [&'static str],
     pub(crate) service: BoxedService,
-    pub sub_commands: HashMap<String, Command>,
+    pub sub_commands: Vec<Command>,
     pub options: CommandOptions,
 }
 
@@ -54,9 +55,13 @@ impl Command {
         Self {
             names,
             service: Box::new(CommandHandler::new(handler)),
-            sub_commands: HashMap::new(),
+            sub_commands: Vec::new(),
             options: CommandOptions::default(),
         }
+    }
+
+    pub fn builder() -> CommandBuilder {
+        CommandBuilder::default()
     }
 }
 
@@ -72,20 +77,28 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         let name = self.names[0];
         let ctx = req.0.clone();
-        let fut = self.service.call(req).then(move |res: Result<(), RoError>| async move {
-            match res {
-                Ok(r) => {
-                    if let Ok(metric) = ctx.bot.stats.command_counts.get_metric_with_label_values(&[&name]) {
-                        metric.inc();
+        let fut = self
+            .service
+            .call(req)
+            .then(move |res: Result<(), RoError>| async move {
+                match res {
+                    Ok(r) => {
+                        if let Ok(metric) = ctx
+                            .bot
+                            .stats
+                            .command_counts
+                            .get_metric_with_label_values(&[&name])
+                        {
+                            metric.inc();
+                        }
+                        Ok(r)
                     }
-                    Ok(r)
-                },
-                Err(err) => {
-                    handle_error(&err, ctx).await;
-                    Err(err)
+                    Err(err) => {
+                        handle_error(&err, ctx).await;
+                        Err(err)
+                    }
                 }
-            }
-        });
+            });
         Box::pin(fut)
     }
 }
@@ -100,12 +113,79 @@ impl Debug for Command {
 
 async fn handle_error(err: &RoError, bot: CommandContext) {
     match err {
-        RoError::Argument(arg_err) => {},
+        RoError::Argument(arg_err) => {}
         RoError::Command(cmd_err) => match cmd_err {
-            CommandError::Blacklist(ref b) => {},
+            CommandError::Blacklist(ref b) => {}
             CommandError::Miscellanous(ref b) => {}
             CommandError::Timeout => {}
         },
         _ => {}
+    }
+}
+
+#[derive(Default)]
+pub struct CommandBuilder {
+    options: CommandOptions,
+    names: &'static [&'static str],
+    sub_commands: Vec<Command>,
+}
+
+impl CommandBuilder {
+    pub fn level(mut self, level: RoLevel) -> Self {
+        self.options.level = level;
+        self
+    }
+
+    pub fn description(mut self, desc: &'static str) -> Self {
+        self.options.desc = Some(desc);
+        self
+    }
+
+    pub fn examples(mut self, examples: &'static [&'static str]) -> Self {
+        self.options.examples = examples;
+        self
+    }
+
+    pub fn hidden(mut self, hidden: bool) -> Self {
+        self.options.hidden = hidden;
+        self
+    }
+
+    pub fn group(mut self, group: &'static str) -> Self {
+        self.options.group = Some(group);
+        self
+    }
+
+    pub fn names(mut self, names: &'static [&'static str]) -> Self {
+        self.names = names;
+        self
+    }
+
+    pub fn sub_command(mut self, sub_command: Command) -> Self {
+        self.sub_commands.push(sub_command);
+        self
+    }
+
+    pub fn service(self, service: BoxedService) -> Command {
+        Command {
+            options: self.options,
+            names: self.names,
+            service,
+            sub_commands: self.sub_commands,
+        }
+    }
+
+    pub fn handler<F, R, K>(self, handler: F) -> Command
+    where
+        F: Handler<(CommandContext, K), R> + Send + 'static,
+        R: Future<Output = CommandResult> + Send + 'static,
+        K: FromArgs + Send + 'static,
+    {
+        Command {
+            options: self.options,
+            names: self.names,
+            service: Box::new(CommandHandler::new(handler)),
+            sub_commands: self.sub_commands,
+        }
     }
 }

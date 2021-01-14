@@ -131,7 +131,7 @@ impl FromArg for u64 {
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(*value as u64),
-            CommandDataOption::String {value, ..} => Ok(value.parse::<u64>()?),
+            CommandDataOption::String { value, .. } => Ok(value.parse::<u64>()?),
             _ => Err(ArgumentError::BadArgument),
         }
     }

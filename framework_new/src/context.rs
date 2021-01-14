@@ -4,7 +4,12 @@ use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
-use rowifi_models::{guild::{BlacklistActionType, RoGuild}, rolang::RoCommandUser, stats::BotStats, user::RoUser};
+use rowifi_models::{
+    guild::{BlacklistActionType, RoGuild},
+    rolang::RoCommandUser,
+    stats::BotStats,
+    user::RoUser,
+};
 use std::{borrow::Cow, collections::HashSet, ops::Deref, sync::Arc};
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
@@ -37,7 +42,7 @@ pub struct CommandContext {
     pub bot: BotContext,
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,
-    pub author_id: UserId
+    pub author_id: UserId,
 }
 
 impl BotContext {
@@ -145,7 +150,8 @@ impl CommandContext {
                 match guild.settings.blacklist_action {
                     BlacklistActionType::None => {}
                     BlacklistActionType::Kick => {
-                        let _ = self.bot
+                        let _ = self
+                            .bot
                             .http
                             .remove_guild_member(server.id, member.user.id)
                             .await;
@@ -179,7 +185,8 @@ impl CommandContext {
             .collect::<Vec<_>>();
         let mut assetbinds_to_add = Vec::new();
         for asset in &guild.assetbinds {
-            if self.bot
+            if self
+                .bot
                 .roblox
                 .has_asset(user.roblox_id, asset.id, &asset.asset_type.to_string())
                 .await?

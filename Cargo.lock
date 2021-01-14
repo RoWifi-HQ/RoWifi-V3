@@ -717,6 +717,7 @@ dependencies = [
 name = "framework-derive"
 version = "0.1.0"
 dependencies = [
+ "itertools",
  "quote 1.0.8",
  "syn 1.0.58",
 ]

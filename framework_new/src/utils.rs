@@ -1,4 +1,7 @@
-use crate::{context::CommandContext, error::{CommandError, RoError}};
+use crate::{
+    context::CommandContext,
+    error::{CommandError, RoError},
+};
 
 use std::{
     cmp::{max, min},
@@ -34,16 +37,21 @@ impl Default for RoLevel {
     }
 }
 
-pub async fn await_reply(question: &str, ctx: &CommandContext, msg: &Message) -> Result<String, RoError> {
+pub async fn await_reply(
+    question: &str,
+    ctx: &CommandContext,
+    msg: &Message,
+) -> Result<String, RoError> {
     let question = format!("{}\nSay `cancel` to cancel this prompt", question);
-     ctx.bot
+    ctx.bot
         .http
         .create_message(msg.channel_id)
         .content(question)
         .unwrap()
         .await?;
     let id = msg.author.id;
-    let fut = ctx.bot
+    let fut = ctx
+        .bot
         .standby
         .wait_for_message(msg.channel_id, move |event: &MessageCreate| {
             event.author.id == id && !event.content.is_empty()
@@ -62,14 +70,16 @@ pub async fn paginate_embed(
 ) -> Result<(), RoError> {
     let page_count = page_count as isize;
     if page_count <= 1 {
-        let _ = ctx.bot
+        let _ = ctx
+            .bot
             .http
             .create_message(msg.channel_id)
             .embed(pages[0].clone())
             .unwrap()
             .await?;
     } else {
-        let m = ctx.bot
+        let m = ctx
+            .bot
             .http
             .create_message(msg.channel_id)
             .embed(pages[0].clone())
@@ -131,7 +141,8 @@ pub async fn paginate_embed(
                 .await;
         });
 
-        let mut reactions = ctx.bot
+        let mut reactions = ctx
+            .bot
             .standby
             .wait_for_reaction_stream(message_id, move |event: &ReactionAdd| {
                 if event.user_id != author_id {
@@ -159,13 +170,15 @@ pub async fn paginate_embed(
                     break;
                 }
                 let react = RequestReactionType::Unicode { name: name.clone() };
-                let _ = ctx.bot
+                let _ = ctx
+                    .bot
                     .http
                     .update_message(channel_id, message_id)
                     .embed(pages[page_pointer as usize].clone())
                     .unwrap()
                     .await;
-                let _ = ctx.bot
+                let _ = ctx
+                    .bot
                     .http
                     .delete_reaction(channel_id, message_id, react, author_id)
                     .await;

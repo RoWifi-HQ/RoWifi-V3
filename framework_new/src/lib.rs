@@ -14,7 +14,10 @@ mod parser;
 pub mod prelude;
 pub mod utils;
 
-use futures::{future::{ready, Either, Ready}, ready};
+use futures::{
+    future::{ready, Either, Ready},
+    ready,
+};
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -34,7 +37,7 @@ use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
 use command::{Command, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
-use handler::{Handler, CommandHandler};
+use handler::{CommandHandler, Handler};
 use parser::PrefixType;
 use utils::RoLevel;
 
@@ -91,8 +94,11 @@ impl Service<&Event> for Framework {
                             let http = self.bot.http.clone();
                             let channel_id = msg.channel_id;
                             tokio::spawn(async move {
-                                let _ = http.create_message(channel_id)
-                                    .content(format!("My prefix here is {}", actual_prefix)).unwrap().await;
+                                let _ = http
+                                    .create_message(channel_id)
+                                    .content(format!("My prefix here is {}", actual_prefix))
+                                    .unwrap()
+                                    .await;
                             });
                             return Either::Left(ready(Ok(())));
                         }
@@ -131,7 +137,7 @@ impl Service<&Event> for Framework {
                     bot: self.bot.clone(),
                     channel_id: msg.channel_id,
                     guild_id: msg.guild_id,
-                    author_id: msg.author.id
+                    author_id: msg.author.id,
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -148,7 +154,10 @@ impl Service<&Event> for Framework {
             Event::InteractionCreate(interaction) => {
                 if let InteractionData::ApplicationCommand(top_command) = &interaction.data {
                     let command_options = &top_command.options;
-                    let command = self.cmds.iter_mut().find(|c| c.names.contains(&top_command.name.as_str()));
+                    let command = self
+                        .cmds
+                        .iter_mut()
+                        .find(|c| c.names.contains(&top_command.name.as_str()));
                     println!("{:?}", command);
                     let command = match command {
                         Some(c) => c,
@@ -169,7 +178,7 @@ impl Service<&Event> for Framework {
                         bot: self.bot.clone(),
                         channel_id: interaction.channel_id,
                         guild_id: Some(interaction.guild_id),
-                        author_id: interaction.member.user.clone().unwrap().id
+                        author_id: interaction.member.user.clone().unwrap().id,
                     };
 
                     let request = ServiceRequest::Interaction(command_options.to_owned());
@@ -255,14 +264,25 @@ mod tests {
 
     #[derive(Debug, FromArgs)]
     pub struct UpdateArguments2 {
-        #[arg("User to update")] 
+        #[arg("User to update")]
         pub user_id: UserId,
-        pub priority: u64
+        pub priority: u64,
+    }
+
+    pub async fn update(_ctx: CommandContext, _args: UpdateArguments2) -> Result<(), RoError> {
+        Ok(())
     }
 
     #[test]
     pub fn test_update() {
         let mut args = Arguments::new("12345".into());
         assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), true);
+    }
+
+    #[test]
+    pub fn test_builder() {
+        let command = Command::builder()
+            .names(&["update2"])
+            .service(Box::new(CommandHandler::new(update)));
     }
 }
