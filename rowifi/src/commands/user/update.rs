@@ -1,12 +1,12 @@
-use reqwest::StatusCode;
 use framework_new::prelude::*;
+use reqwest::StatusCode;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::Error as DiscordHttpError;
-use twilight_model::id::{UserId, RoleId};
+use twilight_model::id::{RoleId, UserId};
 
 #[derive(Debug, FromArgs)]
 pub struct UpdateArguments {
-    pub user_id: Option<UserId>
+    pub user_id: Option<UserId>,
 }
 
 pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
@@ -32,7 +32,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx.bot
+            let _ = ctx
+                .bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
@@ -54,7 +55,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx.bot
+        let _ = ctx
+            .bot
             .http
             .create_message(ctx.channel_id)
             .embed(embed)
@@ -78,7 +80,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx.bot
+            let _ = ctx
+                .bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
@@ -101,7 +104,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx.bot
+            let _ = ctx
+                .bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
@@ -126,7 +130,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx.bot
+            let _ = ctx
+                .bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
@@ -160,7 +165,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .build()
                         .unwrap();
-                    let _ = ctx.bot
+                    let _ = ctx
+                        .bot
                         .http
                         .create_message(ctx.channel_id)
                         .embed(embed)
@@ -170,7 +176,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
-                    let _ = ctx.bot
+                    let _ = ctx
+                        .bot
                         .http
                         .create_message(channel.id)
                         .content(format!(
@@ -197,7 +204,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )
         .build()
         .unwrap();
-    let _ = ctx.bot
+    let _ = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)

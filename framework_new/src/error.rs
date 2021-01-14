@@ -13,7 +13,7 @@ use crate::arguments::ArgumentError;
 pub enum CommandError {
     Timeout,
     Blacklist(String),
-    Miscellanous(String)
+    Miscellanous(String),
 }
 
 #[derive(Debug)]
@@ -23,7 +23,7 @@ pub enum RoError {
     Roblox(RobloxError),
     Discord(DiscordHttpError),
     Patreon(PatreonError),
-    Command(CommandError)
+    Command(CommandError),
 }
 
 impl From<ArgumentError> for RoError {
@@ -40,7 +40,7 @@ impl Display for RoError {
             RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
             RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
             RoError::Argument(err) => write!(f, "Argument Error - {:?}", err),
-            RoError::Command(err) => write!(f, "Command Error - {:?}", err)
+            RoError::Command(err) => write!(f, "Command Error - {:?}", err),
         }
     }
 }

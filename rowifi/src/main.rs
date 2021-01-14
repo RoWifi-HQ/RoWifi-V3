@@ -18,8 +18,16 @@ mod services;
 
 use commands::{test, update};
 use dashmap::DashSet;
-use framework_new::{Framework as NewFramework, command::Command, context::BotContext, prelude::{RoError, Service, ServiceExt}};
-use futures::{Future, future::{Either, Ready}};
+use framework_new::{
+    command::Command,
+    context::BotContext,
+    prelude::{RoError, Service, ServiceExt},
+    Framework as NewFramework,
+};
+use futures::{
+    future::{Either, Ready},
+    Future,
+};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -31,9 +39,23 @@ use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
 use services::EventHandler;
-use std::{env, error::Error, pin::Pin, sync::Arc, task::{Context, Poll}, time::Duration};
-use tokio::{stream::StreamExt, task::{JoinError, JoinHandle}, time::delay_for};
-use twilight_gateway::{Event, cluster::{Cluster, ShardScheme}};
+use std::{
+    env,
+    error::Error,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+    time::Duration,
+};
+use tokio::{
+    stream::StreamExt,
+    task::{JoinError, JoinHandle},
+    time::delay_for,
+};
+use twilight_gateway::{
+    cluster::{Cluster, ShardScheme},
+    Event,
+};
 use twilight_http::Client as HttpClient;
 use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
@@ -41,20 +63,28 @@ use twilight_standby::Standby;
 pub struct RoWifi {
     pub framework: NewFramework,
     pub event_handler: EventHandler,
-    pub bot: BotContext
+    pub bot: BotContext,
 }
 
 impl Service<(u64, Event)> for RoWifi {
     type Response = Result<(), RoError>;
     type Error = JoinError;
-    type Future = JoinHandle<<Either<Ready<Result<(), RoError>>, Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>> as Future>::Output>;
+    type Future = JoinHandle<
+        <Either<
+            Ready<Result<(), RoError>>,
+            Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
+        > as Future>::Output,
+    >;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
 
     fn call(&mut self, event: (u64, Event)) -> Self::Future {
-        self.bot.cache.update(&event.1).expect("Failed to update cache");
+        self.bot
+            .cache
+            .update(&event.1)
+            .expect("Failed to update cache");
         self.bot.standby.process(&event.1);
         let fut = self.framework.call(&event.1);
 
@@ -160,13 +190,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let rowifi = RoWifi {
         framework,
         event_handler,
-        bot
+        bot,
     };
     let events = rowifi.bot.cluster.events();
     let mut event_responses = rowifi.call_all(events);
-    while let Some(_res) = event_responses.next().await {
-
-    }
+    while let Some(_res) = event_responses.next().await {}
 
     // let mut events = bot.cluster.events();
     // while let Some(event) = events.next().await {

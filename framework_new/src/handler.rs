@@ -1,3 +1,4 @@
+use crate::{command::ServiceRequest, CommandContext, CommandResult, FromArgs, RoError};
 use std::{
     future::Future,
     marker::PhantomData,
@@ -5,7 +6,6 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use crate::{command::ServiceRequest, CommandContext, CommandResult, FromArgs, RoError};
 
 pub trait Handler<T, R>
 where

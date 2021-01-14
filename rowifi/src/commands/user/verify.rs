@@ -1,9 +1,9 @@
 use rand::{thread_rng, Rng};
 use rowifi_framework::prelude::*;
+use rowifi_models::user::{QueueUser, RoUser};
 use std::time::Duration;
 use tokio::time::timeout;
 use twilight_model::gateway::payload::MessageCreate;
-use rowifi_models::user::{QueueUser, RoUser};
 
 pub static VERIFY_OPTIONS: CommandOptions = CommandOptions {
     perm_level: RoLevel::Normal,
