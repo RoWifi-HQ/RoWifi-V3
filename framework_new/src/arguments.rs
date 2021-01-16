@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 use twilight_model::{applications::CommandDataOption, id::UserId};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Arguments {
     buf: Vec<String>,
     idx: usize,
