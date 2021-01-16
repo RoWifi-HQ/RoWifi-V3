@@ -12,6 +12,12 @@ fn path_is_option(path: &Path) -> bool {
         && path.segments.iter().next().unwrap().ident == "Option"
 }
 
+fn path_is_help(path: &Path) -> bool {
+    path.leading_colon.is_none()
+        && path.segments.len() == 1
+        && path.segments.iter().next().unwrap().ident == "help"
+}
+
 fn builder(field: &Field) -> Option<&Attribute> {
     for attr in &field.attrs {
         if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "arg" {
@@ -96,10 +102,13 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             if let Some(attr) = builder(f) {
                 match attr.parse_meta() {
                     Ok(Meta::List(mut nvs)) => match nvs.nested.pop().unwrap().into_value() {
-                        NestedMeta::Lit(Lit::Str(lit)) => {
-                            format!("`{}`: {}", name, lit.value())
+                        NestedMeta::Meta(Meta::NameValue(nv)) if path_is_help(&nv.path) => {
+                            match nv.lit {
+                                Lit::Str(lit) => format!("{}: {}", name, lit.value()),
+                                _ => panic!("This ident only accepts strings")
+                            }
                         }
-                        _ => panic!("Not implemented for non-literals"),
+                        _ => panic!("Not implemented for non-name val list"),
                     },
                     _ => panic!("Only meant for Meta"),
                 }
