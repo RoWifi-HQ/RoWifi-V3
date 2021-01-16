@@ -74,12 +74,34 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
+    fn call(&mut self, mut req: (CommandContext, ServiceRequest)) -> Self::Future {
         let name = self.names[0];
         let ctx = req.0.clone();
-        let fut = self
-            .service
-            .call(req)
+        
+        let fut = match req.1 {
+            ServiceRequest::Message(ref mut args) => {
+                if let Some(lit) = args.next() {
+                    if let Some(sub_cmd) = self.sub_commands.iter_mut().find(|c| c.names.contains(&lit)) {
+                        return sub_cmd.call(req);
+                    }
+                }
+                args.back(); 
+                self.service.call(req)
+            },
+            ServiceRequest::Interaction(ref top_options) => {
+                for option in top_options {
+                    if let CommandDataOption::SubCommand {name, options} = option {
+                        if let Some(sub_cmd) = self.sub_commands.iter_mut().find(|c| c.names.contains(&name.as_str())) {
+                            req.1 = ServiceRequest::Interaction(options.clone());
+                            return sub_cmd.call(req);
+                        }
+                    }
+                }
+                self.service.call(req)
+            }
+        };
+
+        let fut = fut
             .then(move |res: Result<(), RoError>| async move {
                 match res {
                     Ok(r) => {
