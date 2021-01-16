@@ -264,7 +264,7 @@ mod tests {
 
     #[derive(Debug, FromArgs)]
     pub struct UpdateArguments2 {
-        #[arg("User to update")]
+        #[arg(help = "User to update")]
         pub user_id: UserId,
         pub priority: u64,
     }
