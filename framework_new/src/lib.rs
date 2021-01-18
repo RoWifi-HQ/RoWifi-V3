@@ -6,6 +6,7 @@
 extern crate framework_derive;
 
 pub mod arguments;
+pub mod bucket;
 pub mod command;
 pub mod context;
 pub mod error;
