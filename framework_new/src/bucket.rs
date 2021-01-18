@@ -8,7 +8,7 @@ use std::{
     task::{Context, Poll},
     time::{Duration, Instant},
 };
-use tower::Service;
+use tower::{Layer, Service};
 use transient_dashmap::TransientDashMap;
 use twilight_model::id::GuildId;
 
@@ -18,6 +18,25 @@ use crate::{
     error::{CommandError, RoError},
 };
 
+pub struct BucketLayer {
+    pub time: Duration,
+    pub calls: u64
+}
+
+impl<S> Layer<S> for BucketLayer {
+    type Service = BucketService<S>;
+
+    fn layer(&self, inner: S) -> Self::Service {
+        BucketService {
+            time: self.time,
+            guilds: Arc::new(TransientDashMap::new(self.time)),
+            calls: self.calls,
+            service: inner
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct BucketService<S> {
     pub time: Duration,
     pub guilds: Arc<TransientDashMap<GuildId, u64>>,
