@@ -1,5 +1,8 @@
 use super::Context;
-use twilight_model::{channel::embed::Embed, id::{WebhookId, GuildId}};
+use twilight_model::{
+    channel::embed::Embed,
+    id::{GuildId, WebhookId},
+};
 use twilight_util::link::webhook;
 
 pub struct Logger {
@@ -17,7 +20,7 @@ impl Logger {
         Self {
             debug_webhook: (debug_id, debug_token.unwrap().to_owned()),
             main_webhook: (main_id, main_token.unwrap().to_owned()),
-            premium_webhook: (premium_id, premium_token.unwrap().to_owned())
+            premium_webhook: (premium_id, premium_token.unwrap().to_owned()),
         }
     }
 

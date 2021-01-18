@@ -717,6 +717,7 @@ dependencies = [
  "tokio 1.0.1",
  "tokio-stream",
  "tower",
+ "transient-dashmap",
  "twilight-command-parser",
  "twilight-embed-builder",
  "twilight-gateway",

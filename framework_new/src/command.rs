@@ -77,21 +77,29 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
     fn call(&mut self, mut req: (CommandContext, ServiceRequest)) -> Self::Future {
         let name = self.names[0];
         let ctx = req.0.clone();
-        
+
         let fut = match req.1 {
             ServiceRequest::Message(ref mut args) => {
                 if let Some(lit) = args.next() {
-                    if let Some(sub_cmd) = self.sub_commands.iter_mut().find(|c| c.names.contains(&lit)) {
+                    if let Some(sub_cmd) = self
+                        .sub_commands
+                        .iter_mut()
+                        .find(|c| c.names.contains(&lit))
+                    {
                         return sub_cmd.call(req);
                     }
                 }
-                args.back(); 
+                args.back();
                 self.service.call(req)
-            },
+            }
             ServiceRequest::Interaction(ref top_options) => {
                 for option in top_options {
-                    if let CommandDataOption::SubCommand {name, options} = option {
-                        if let Some(sub_cmd) = self.sub_commands.iter_mut().find(|c| c.names.contains(&name.as_str())) {
+                    if let CommandDataOption::SubCommand { name, options } = option {
+                        if let Some(sub_cmd) = self
+                            .sub_commands
+                            .iter_mut()
+                            .find(|c| c.names.contains(&name.as_str()))
+                        {
                             req.1 = ServiceRequest::Interaction(options.clone());
                             return sub_cmd.call(req);
                         }
@@ -101,26 +109,25 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
             }
         };
 
-        let fut = fut
-            .then(move |res: Result<(), RoError>| async move {
-                match res {
-                    Ok(r) => {
-                        if let Ok(metric) = ctx
-                            .bot
-                            .stats
-                            .command_counts
-                            .get_metric_with_label_values(&[&name])
-                        {
-                            metric.inc();
-                        }
-                        Ok(r)
+        let fut = fut.then(move |res: Result<(), RoError>| async move {
+            match res {
+                Ok(r) => {
+                    if let Ok(metric) = ctx
+                        .bot
+                        .stats
+                        .command_counts
+                        .get_metric_with_label_values(&[&name])
+                    {
+                        metric.inc();
                     }
-                    Err(err) => {
-                        handle_error(&err, ctx).await;
-                        Err(err)
-                    }
+                    Ok(r)
                 }
-            });
+                Err(err) => {
+                    handle_error(&err, ctx).await;
+                    Err(err)
+                }
+            }
+        });
         Box::pin(fut)
     }
 }
@@ -140,6 +147,7 @@ async fn handle_error(err: &RoError, bot: CommandContext) {
             CommandError::Blacklist(ref b) => {}
             CommandError::Miscellanous(ref b) => {}
             CommandError::Timeout => {}
+            CommandError::Ratelimit(ref d) => {}
         },
         _ => {}
     }

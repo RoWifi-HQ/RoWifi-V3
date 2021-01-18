@@ -105,7 +105,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                         NestedMeta::Meta(Meta::NameValue(nv)) if path_is_help(&nv.path) => {
                             match nv.lit {
                                 Lit::Str(lit) => format!("{}: {}", name, lit.value()),
-                                _ => panic!("This ident only accepts strings")
+                                _ => panic!("This ident only accepts strings"),
                             }
                         }
                         _ => panic!("Not implemented for non-name val list"),

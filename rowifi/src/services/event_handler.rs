@@ -110,12 +110,14 @@ impl EventHandler {
                         self.0.unavailable.insert(ug.id);
                     }
                 }
-                let guild_ids = ready.guilds.iter().map(|k| 
-                    match k {
+                let guild_ids = ready
+                    .guilds
+                    .iter()
+                    .map(|k| match k {
                         GuildStatus::Offline(u) => u.id.0,
-                        GuildStatus::Online(g) => g.id.0
-                    }
-                ).collect::<Vec<u64>>();
+                        GuildStatus::Online(g) => g.id.0,
+                    })
+                    .collect::<Vec<u64>>();
                 let guilds = ctx.database.get_guilds(&guild_ids, false).await?;
                 for guild in guilds {
                     if let Some(command_prefix) = guild.command_prefix {
