@@ -18,7 +18,8 @@ roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-models = { path = "../models" }
-tokio = { version = "0.2", features = ["rt-core"] }
+tokio = { version = "1", features = ["time"] }
+tokio-stream = { version = "0" }
 tracing = "0"
 transient-dashmap = {branch = "main", git = "https://github.com/AsianIntel/transient-dashmap"}
 twilight-command-parser = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }
