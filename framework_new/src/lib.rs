@@ -61,6 +61,14 @@ impl Framework {
         self.cmds.push(cmd);
         self
     }
+
+    pub fn configure<F>(mut self, func: F) -> Self 
+    where
+        F: FnOnce(&mut Vec<Command>)
+    {
+        func(&mut self.cmds);
+        self
+    }
 }
 
 impl Service<&Event> for Framework {

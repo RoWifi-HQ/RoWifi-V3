@@ -16,10 +16,9 @@ extern crate framework_derive;
 mod commands;
 mod services;
 
-use commands::{test, update};
+use commands::update_config;
 use dashmap::DashSet;
 use framework_new::{
-    command::Command,
     context::BotContext,
     prelude::{RoError, Service, ServiceExt},
     Framework as NewFramework,
@@ -182,8 +181,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         stats,
     );
     let framework = NewFramework::new(bot.clone())
-        .command(Command::new(&["test"], test))
-        .command(Command::new(&["update"], update));
+        .configure(update_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {

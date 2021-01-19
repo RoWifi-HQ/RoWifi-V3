@@ -12,3 +12,6 @@ members = [
 
 [profile.release]
 lto = true
+
+[patch.crates-io]
+mongodb = { branch = "tcpstream_timeout", git = "https://github.com/rupansh/mongo-rust-driver" }
