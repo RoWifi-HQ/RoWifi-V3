@@ -2,44 +2,47 @@ mod delete;
 mod modify;
 mod new;
 
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_mention::Mention;
+use twilight_model::id::RoleId;
 
 pub use delete::*;
 pub use modify::*;
 pub use new::*;
 
-pub static RANKBINDS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["rankbinds", "rb"],
-    desc: Some("Command to view the rankbinds"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &RANKBINDS_NEW_COMMAND,
-        &RANKBINDS_MODIFY_COMMAND,
-        &RANKBINDS_DELETE_COMMAND,
-    ],
-    group: Some("Binds"),
-};
+pub fn rankbinds_config(cmds: &mut Vec<Command>) {
+    let rankbinds_new_command = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command to add a new rankbind")
+        .handler(rankbinds_new);
 
-pub static RANKBINDS_COMMAND: Command = Command {
-    fun: rankbind,
-    options: &RANKBINDS_OPTIONS,
-};
+    let rankbinds = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["rankbinds", "rb"])
+        .description("Command to view the rankbinds")
+        .group("Binds")
+        .sub_command(rankbinds_new_command)
+        .handler(rankbind);
 
-#[command]
-pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    cmds.push(rankbinds);
+}
+
+#[derive(FromArgs)]
+pub struct RankbindArguments {}
+
+pub async fn rankbind(ctx: CommandContext, _args: RankbindArguments) -> Result<(), RoError> {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(RoError::Command(CommandError::Miscellanous(
+            "No RoGuild".into(),
+        )))?;
 
     if guild.rankbinds.is_empty() {
         let e = EmbedBuilder::new()
@@ -52,12 +55,12 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(e)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -90,6 +93,6 @@ pub async fn rankbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> C
             page_count += 1;
         }
     }
-    paginate_embed(ctx, msg, pages, page_count).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }

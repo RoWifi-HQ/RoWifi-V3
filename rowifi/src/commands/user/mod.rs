@@ -12,6 +12,6 @@ pub fn update_config(cmds: &mut Vec<Command>) {
         .names(&["update"])
         .description("Command to update an user")
         .handler(update);
-    
+
     cmds.push(update_command);
 }

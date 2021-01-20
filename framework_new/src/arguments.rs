@@ -9,7 +9,10 @@ pub struct Arguments {
 
 #[derive(Debug)]
 pub enum ArgumentError {
-    MissingArgument,
+    MissingArgument {
+        usage: (&'static str, &'static str),
+        name: &'static str,
+    },
     ParseError,
     BadArgument,
 }
@@ -132,6 +135,37 @@ impl FromArg for u64 {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(*value as u64),
             CommandDataOption::String { value, .. } => Ok(value.parse::<u64>()?),
+            _ => Err(ArgumentError::BadArgument),
+        }
+    }
+}
+
+impl FromArg for i64 {
+    type Error = ArgumentError;
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        arg.parse::<i64>().map_err(|_| ArgumentError::ParseError)
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(*value as i64),
+            CommandDataOption::String { value, .. } => Ok(value.parse::<i64>()?),
+            _ => Err(ArgumentError::BadArgument),
+        }
+    }
+}
+
+impl FromArg for String {
+    type Error = ArgumentError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        Ok(arg.to_owned())
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(value.to_string()),
+            CommandDataOption::String { value, .. } => Ok(value.to_owned()),
             _ => Err(ArgumentError::BadArgument),
         }
     }

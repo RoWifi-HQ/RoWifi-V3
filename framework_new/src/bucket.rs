@@ -20,7 +20,7 @@ use crate::{
 
 pub struct BucketLayer {
     pub time: Duration,
-    pub calls: u64
+    pub calls: u64,
 }
 
 impl<S> Layer<S> for BucketLayer {
@@ -31,7 +31,7 @@ impl<S> Layer<S> for BucketLayer {
             time: self.time,
             guilds: Arc::new(TransientDashMap::new(self.time)),
             calls: self.calls,
-            service: inner
+            service: inner,
         }
     }
 }

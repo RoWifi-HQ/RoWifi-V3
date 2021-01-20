@@ -1,4 +1,5 @@
 pub use crate::arguments::*;
+pub use crate::command::Command;
 pub use crate::context::CommandContext;
 pub use crate::error::{CommandError, RoError};
 pub use crate::utils::*;

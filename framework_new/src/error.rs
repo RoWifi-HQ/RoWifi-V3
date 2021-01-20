@@ -15,6 +15,7 @@ pub enum CommandError {
     Timeout,
     Blacklist(String),
     Miscellanous(String),
+    NoRoGuild,
     Ratelimit(u64),
 }
 

@@ -65,7 +65,6 @@ pub async fn await_reply(
 
 pub async fn paginate_embed(
     ctx: &CommandContext,
-    msg: &Message,
     pages: Vec<Embed>,
     page_count: usize,
 ) -> Result<(), RoError> {
@@ -74,7 +73,7 @@ pub async fn paginate_embed(
         let _ = ctx
             .bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(pages[0].clone())
             .unwrap()
             .await?;
@@ -82,7 +81,7 @@ pub async fn paginate_embed(
         let m = ctx
             .bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(pages[0].clone())
             .unwrap()
             .await?;
@@ -90,7 +89,7 @@ pub async fn paginate_embed(
         //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
-        let author_id = msg.author.id;
+        let author_id = ctx.author_id;
         let http = ctx.bot.http.clone();
 
         //Don't wait up for the reactions to show

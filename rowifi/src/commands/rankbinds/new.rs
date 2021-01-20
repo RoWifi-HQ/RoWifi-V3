@@ -1,46 +1,46 @@
+use framework_new::prelude::*;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use rowifi_framework::prelude::*;
 use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
-use twilight_model::id::RoleId;
+use twilight_model::{applications::CommandDataOption, id::RoleId};
 
-pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["new"],
-    desc: Some("Command to add a new rankbind"),
-    usage: Some("rankbinds new <Group Id> <Rank Id (1-255)> <Prefix> <Priority> [Roles..]`\n
-                `Rank Id`: Either a single rank id between 1-255 or a range of rank ids separated by a `-`. Ex. 25-55\n
-                `Prefix`: The keyword that is used before the nickname. Can be set to `N/A`\n
-                `Priorty`: The number that tells the bot which rankbind to choose for the nickname\n
-                `Roles`: The discord roles to add to the bind. To tell the bot to create roles, put `auto"),
-    examples: &["rankbinds new 3108077 255 [CJCS] 1 @CJCS", "rb new 5581309 1-255 N/A 1 @RoWifi",
-                "rb new 5581309 1-255 auto 1 @RoWifi", "rankbinds new 3108077 1-255 auto 1 auto"],
-    min_args: 4,
-    hidden: false,
-    sub_commands: &[],
-    group: None
-};
+// pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
+//     perm_level: RoLevel::Admin,
+//     bucket: None,
+//     names: &["new"],
+//     desc: Some("Command to add a new rankbind"),
+//     usage: Some("rankbinds new <Group Id> <Rank Id (1-255)> <Prefix> <Priority> [Roles..]`\n
+//                 `Rank Id`: Either a single rank id between 1-255 or a range of rank ids separated by a `-`. Ex. 25-55\n
+//                 `Prefix`: The keyword that is used before the nickname. Can be set to `N/A`\n
+//                 `Priorty`: The number that tells the bot which rankbind to choose for the nickname\n
+//                 `Roles`: The discord roles to add to the bind. To tell the bot to create roles, put `auto"),
+//     examples: &["rankbinds new 3108077 255 [CJCS] 1 @CJCS", "rb new 5581309 1-255 N/A 1 @RoWifi",
+//                 "rb new 5581309 1-255 auto 1 @RoWifi", "rankbinds new 3108077 1-255 auto 1 auto"],
+//     min_args: 4,
+//     hidden: false,
+//     sub_commands: &[],
+//     group: None
+// };
 
-pub static RANKBINDS_NEW_COMMAND: Command = Command {
-    fun: rankbinds_new,
-    options: &RANKBINDS_NEW_OPTIONS,
-};
+#[derive(Debug, FromArgs)]
+pub struct NewRankbind {
+    pub group_id: i64,
+    pub rank_id: CreateType,
+    pub prefix: String,
+    pub priority: Option<i64>,
+    pub discord_roles: Option<String>,
+}
 
 lazy_static! {
     static ref PREFIX_REGEX: Regex = Regex::new(r"\[(.*?)\]").unwrap();
 }
 
-#[command]
-pub async fn rankbinds_new(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> Result<(), RoError> {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -48,65 +48,15 @@ pub async fn rankbinds_new(
         .as_ref()
         .clone();
 
-    let group_id = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Group ID".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
+    let group_id = args.group_id;
+    let mut create_type = args.rank_id;
+    let prefix = args.prefix;
+    let priority = args.priority.unwrap_or_default();
+    let discord_roles = args.discord_roles.unwrap_or_default();
 
-    let mut create_type = match args.next() {
-        None => return Ok(()),
-        Some(s) => {
-            if let Ok(r) = s.parse::<i64>() {
-                CreateType::Single(r)
-            } else {
-                match extract_ids(s) {
-                    Some((r1, r2)) => CreateType::Multiple(r1, r2),
-                    None => {
-                        return Err(CommandError::ParseArgument(
-                            s.into(),
-                            "Rank".into(),
-                            "Number or a Range".into(),
-                        )
-                        .into())
-                    }
-                }
-            }
-        }
-    };
-
-    let prefix = match args.next() {
-        Some(p) => p.to_owned(),
-        None => return Ok(()),
-    };
-
-    let priority = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Priority".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
-
-    let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
+    let server_roles = ctx.bot.cache.roles(ctx.guild_id.unwrap());
     let mut roles: Vec<i64> = Vec::new();
-    for r in args {
+    for r in discord_roles.split_ascii_whitespace() {
         if r.eq_ignore_ascii_case("auto") {
             if let CreateType::Single(r1) = create_type {
                 create_type = CreateType::SingleWithAuto(r1);
@@ -124,41 +74,62 @@ pub async fn rankbinds_new(
 
     match create_type {
         CreateType::Single(rank_id) => {
-            single_rank(ctx, msg, guild, group_id, rank_id, prefix, priority, roles).await?
+            single_rank(ctx, guild, group_id, rank_id, prefix, priority, roles).await?
         }
         CreateType::SingleWithAuto(rank_id) => {
-            single_rank_with_auto(ctx, msg, guild, group_id, rank_id, prefix, priority).await?
+            single_rank_with_auto(ctx, guild, group_id, rank_id, prefix, priority).await?
         }
         CreateType::Multiple(min_rank, max_rank) => {
             multiple_rank(
-                ctx, msg, guild, group_id, min_rank, max_rank, &prefix, priority, roles,
+                ctx, guild, group_id, min_rank, max_rank, &prefix, priority, roles,
             )
             .await?
         }
         CreateType::MultipleWithAuto(min_rank, max_rank) => {
-            multiple_rank_with_auto(
-                ctx, msg, guild, group_id, min_rank, max_rank, &prefix, priority,
-            )
-            .await?
+            multiple_rank_with_auto(ctx, guild, group_id, min_rank, max_rank, &prefix, priority)
+                .await?
         }
     };
 
     Ok(())
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 #[repr(i8)]
-enum CreateType {
+pub enum CreateType {
     Single(i64),
     SingleWithAuto(i64),
     Multiple(i64, i64),
     MultipleWithAuto(i64, i64),
 }
 
+impl FromArg for CreateType {
+    type Error = ArgumentError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        if let Ok(r) = arg.parse::<i64>() {
+            Ok(CreateType::Single(r))
+        } else if let Some((min_rank, max_rank)) = extract_ids(arg) {
+            Ok(CreateType::Multiple(min_rank, max_rank))
+        } else {
+            Err(ArgumentError::ParseError)
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            CommandDataOption::String { value, .. } => value.to_string(),
+            _ => return Err(ArgumentError::BadArgument),
+        };
+
+        CreateType::from_arg(&arg)
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 async fn single_rank(
-    ctx: &Context,
-    msg: &Message,
+    ctx: CommandContext,
     guild: RoGuild,
     group_id: i64,
     rank_id: i64,
@@ -184,16 +155,16 @@ async fn single_rank(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
-    let roblox_rank = match ctx.roblox.get_group_rank(group_id, rank_id).await? {
+    let roblox_rank = match ctx.bot.roblox.get_group_rank(group_id, rank_id).await? {
         Some(r) => r,
         None => {
             let embed = EmbedBuilder::new()
@@ -209,12 +180,12 @@ async fn single_rank(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
@@ -234,15 +205,14 @@ async fn single_rank(
         priority,
         discord_roles: roles,
     };
-    add_rankbind(ctx, msg, &bind).await?;
-    log_rankbind(ctx, msg, bind).await;
+    add_rankbind(&ctx, &bind).await?;
+    log_rankbind(&ctx, bind).await;
     Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
 async fn single_rank_with_auto(
-    ctx: &Context,
-    msg: &Message,
+    ctx: CommandContext,
     guild: RoGuild,
     group_id: i64,
     rank_id: i64,
@@ -267,16 +237,16 @@ async fn single_rank_with_auto(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
-    let roblox_rank = match ctx.roblox.get_group_rank(group_id, rank_id).await? {
+    let roblox_rank = match ctx.bot.roblox.get_group_rank(group_id, rank_id).await? {
         Some(r) => r,
         None => return Ok(()),
     };
@@ -288,7 +258,7 @@ async fn single_rank_with_auto(
         };
     }
 
-    let server_roles = ctx.cache.guild_roles(msg.guild_id.unwrap());
+    let server_roles = ctx.bot.cache.guild_roles(ctx.guild_id.unwrap());
     let role = match server_roles.iter().find(|r| {
         r.name
             .eq_ignore_ascii_case(roblox_rank["name"].as_str().unwrap())
@@ -296,8 +266,9 @@ async fn single_rank_with_auto(
         Some(r) => r.id.0 as i64,
         None => {
             let new_role = ctx
+                .bot
                 .http
-                .create_role(msg.guild_id.unwrap())
+                .create_role(ctx.guild_id.unwrap())
                 .name(roblox_rank["name"].as_str().unwrap())
                 .await?;
             new_role.id.0 as i64
@@ -312,15 +283,14 @@ async fn single_rank_with_auto(
         priority,
         discord_roles,
     };
-    add_rankbind(ctx, msg, &bind).await?;
-    log_rankbind(ctx, msg, bind).await;
+    add_rankbind(&ctx, &bind).await?;
+    log_rankbind(&ctx, bind).await;
     Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
 async fn multiple_rank(
-    ctx: &Context,
-    msg: &Message,
+    ctx: CommandContext,
     mut guild: RoGuild,
     group_id: i64,
     min_rank: i64,
@@ -330,6 +300,7 @@ async fn multiple_rank(
     roles: Vec<i64>,
 ) -> Result<(), RoError> {
     let roblox_ranks = ctx
+        .bot
         .roblox
         .get_group_ranks(group_id, min_rank, max_rank)
         .await?;
@@ -344,12 +315,12 @@ async fn multiple_rank(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -389,7 +360,7 @@ async fn multiple_rank(
         }
     }
 
-    ctx.database.add_guild(guild, true).await?;
+    ctx.bot.database.add_guild(guild, true).await?;
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
@@ -404,25 +375,24 @@ async fn multiple_rank(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     for rb in added {
-        log_rankbind(ctx, msg, rb).await;
+        log_rankbind(&ctx, rb).await;
     }
     for rb in modified {
-        log_rankbind(ctx, msg, rb).await;
+        log_rankbind(&ctx, rb).await;
     }
     Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
 async fn multiple_rank_with_auto(
-    ctx: &Context,
-    msg: &Message,
+    ctx: CommandContext,
     mut guild: RoGuild,
     group_id: i64,
     min_rank: i64,
@@ -431,6 +401,7 @@ async fn multiple_rank_with_auto(
     priority: i64,
 ) -> Result<(), RoError> {
     let roblox_ranks = ctx
+        .bot
         .roblox
         .get_group_ranks(group_id, min_rank, max_rank)
         .await?;
@@ -445,12 +416,12 @@ async fn multiple_rank_with_auto(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -466,7 +437,7 @@ async fn multiple_rank_with_auto(
         }
         let rank_id = roblox_rank["rank"].as_i64().unwrap();
 
-        let server_roles = ctx.cache.guild_roles(msg.guild_id.unwrap());
+        let server_roles = ctx.bot.cache.guild_roles(ctx.guild_id.unwrap());
         let role = match server_roles.iter().find(|r| {
             r.name
                 .eq_ignore_ascii_case(roblox_rank["name"].as_str().unwrap())
@@ -474,8 +445,9 @@ async fn multiple_rank_with_auto(
             Some(r) => r.id.0 as i64,
             None => {
                 let new_role = ctx
+                    .bot
                     .http
-                    .create_role(msg.guild_id.unwrap())
+                    .create_role(ctx.guild_id.unwrap())
                     .name(roblox_rank["name"].as_str().unwrap())
                     .await?;
                 new_role.id.0 as i64
@@ -507,7 +479,7 @@ async fn multiple_rank_with_auto(
         }
     }
 
-    ctx.database.add_guild(guild, true).await?;
+    ctx.bot.database.add_guild(guild, true).await?;
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
@@ -523,25 +495,26 @@ async fn multiple_rank_with_auto(
         .build()
         .unwrap();
     let _ = ctx
+        .bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     for rb in added {
-        log_rankbind(ctx, msg, rb).await;
+        log_rankbind(&ctx, rb).await;
     }
     for rb in modified {
-        log_rankbind(ctx, msg, rb).await;
+        log_rankbind(&ctx, rb).await;
     }
     Ok(())
 }
 
-async fn add_rankbind(ctx: &Context, msg: &Message, bind: &RankBind) -> Result<(), RoError> {
-    let filter = bson::doc! {"_id": msg.guild_id.unwrap().0 };
+async fn add_rankbind(ctx: &CommandContext, bind: &RankBind) -> Result<(), RoError> {
+    let filter = bson::doc! {"_id": ctx.guild_id.unwrap().0 };
     let bind_bson = bson::to_bson(&bind)?;
     let update = bson::doc! {"$push": {"RankBinds": bind_bson}};
-    ctx.database.modify_guild(filter, update).await?;
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Rank: {}", bind.rank_id);
     let roles_str = bind
@@ -562,16 +535,16 @@ async fn add_rankbind(ctx: &Context, msg: &Message, bind: &RankBind) -> Result<(
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
-        .await;
+        .await?;
     Ok(())
 }
 
-async fn log_rankbind(ctx: &Context, msg: &Message, bind: RankBind) {
+async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
     let name = format!("Group Id: {}", bind.group_id);
     let roles_str = bind
         .discord_roles
@@ -582,18 +555,18 @@ async fn log_rankbind(ctx: &Context, msg: &Message, bind: RankBind) {
         "Rank Id: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
         bind.rank_id, bind.prefix, bind.priority, roles_str
     );
-    let log_embed = EmbedBuilder::new()
+    let _log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author_id))
         .unwrap()
         .description("Rank Bind Addition")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.logger
-        .log_guild(ctx, msg.guild_id.unwrap(), log_embed)
-        .await;
+    // ctx.logger
+    //     .log_guild(ctx, msg.guild_id.unwrap(), log_embed)
+    //     .await;
 }
 
 fn extract_ids(rank_str: &str) -> Option<(i64, i64)> {

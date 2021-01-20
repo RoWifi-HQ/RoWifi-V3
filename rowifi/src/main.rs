@@ -16,7 +16,7 @@ extern crate framework_derive;
 mod commands;
 mod services;
 
-use commands::update_config;
+use commands::{rankbinds_config, update_config};
 use dashmap::DashSet;
 use framework_new::{
     context::BotContext,
@@ -181,7 +181,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         stats,
     );
     let framework = NewFramework::new(bot.clone())
-        .configure(update_config);
+        .configure(update_config)
+        .configure(rankbinds_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {

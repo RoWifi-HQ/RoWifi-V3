@@ -62,9 +62,9 @@ impl Framework {
         self
     }
 
-    pub fn configure<F>(mut self, func: F) -> Self 
+    pub fn configure<F>(mut self, func: F) -> Self
     where
-        F: FnOnce(&mut Vec<Command>)
+        F: FnOnce(&mut Vec<Command>),
     {
         func(&mut self.cmds);
         self
