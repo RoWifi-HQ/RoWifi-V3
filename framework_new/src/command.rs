@@ -11,8 +11,11 @@ use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
 use crate::{
-    context::BotContext, error::CommandError, utils::RoLevel, Arguments, CommandContext,
-    CommandHandler, CommandResult, FromArgs, Handler, RoError,
+    arguments::{ArgumentError, Arguments},
+    context::BotContext,
+    error::CommandError,
+    utils::RoLevel,
+    CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError,
 };
 
 pub type BoxedService = Box<
@@ -39,6 +42,7 @@ pub struct CommandOptions {
 }
 
 pub struct Command {
+    pub master_name: String,
     pub names: &'static [&'static str],
     pub(crate) service: BoxedService,
     pub sub_commands: Vec<Command>,
@@ -46,22 +50,15 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn new<F, R, K>(names: &'static [&'static str], handler: F) -> Self
-    where
-        F: Handler<(CommandContext, K), R> + Send + 'static,
-        R: Future<Output = CommandResult> + Send + 'static,
-        K: FromArgs + Send + 'static,
-    {
-        Self {
-            names,
-            service: Box::new(CommandHandler::new(handler)),
-            sub_commands: Vec::new(),
-            options: CommandOptions::default(),
-        }
-    }
-
     pub fn builder() -> CommandBuilder {
         CommandBuilder::default()
+    }
+
+    fn _master_name(&mut self, top_name: &str) {
+        self.master_name = format!("{} {}", top_name, self.names[0]).trim().to_string();
+        for sub_cmd in self.sub_commands.iter_mut() {
+            sub_cmd._master_name(&self.master_name);
+        }
     }
 }
 
@@ -77,6 +74,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
     fn call(&mut self, mut req: (CommandContext, ServiceRequest)) -> Self::Future {
         let name = self.names[0];
         let ctx = req.0.clone();
+        let master_name = self.master_name.clone();
 
         let fut = match req.1 {
             ServiceRequest::Message(ref mut args) => {
@@ -123,7 +121,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     Ok(r)
                 }
                 Err(err) => {
-                    handle_error(&err, ctx).await;
+                    handle_error(&err, ctx, &master_name).await;
                     Err(err)
                 }
             }
@@ -140,14 +138,31 @@ impl Debug for Command {
     }
 }
 
-async fn handle_error(err: &RoError, bot: CommandContext) {
+async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
     match err {
-        RoError::Argument(arg_err) => {}
+        RoError::Argument(arg_err) => match arg_err {
+            ArgumentError::MissingArgument { usage, name } => {
+                println!("{}", master_name);
+                let content = format!(
+                    "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
+                    master_name, usage.0, name, usage.1
+                );
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .content(content)
+                    .unwrap()
+                    .await;
+            }
+            _ => {}
+        },
         RoError::Command(cmd_err) => match cmd_err {
             CommandError::Blacklist(ref b) => {}
             CommandError::Miscellanous(ref b) => {}
             CommandError::Timeout => {}
             CommandError::Ratelimit(ref d) => {}
+            CommandError::NoRoGuild => {}
         },
         _ => {}
     }
@@ -197,12 +212,15 @@ impl CommandBuilder {
     }
 
     pub fn service(self, service: BoxedService) -> Command {
-        Command {
+        let mut cmd = Command {
             options: self.options,
             names: self.names,
             service,
             sub_commands: self.sub_commands,
-        }
+            master_name: "".into(),
+        };
+        cmd._master_name("");
+        cmd
     }
 
     pub fn handler<F, R, K>(self, handler: F) -> Command
@@ -211,11 +229,14 @@ impl CommandBuilder {
         R: Future<Output = CommandResult> + Send + 'static,
         K: FromArgs + Send + 'static,
     {
-        Command {
+        let mut cmd = Command {
             options: self.options,
             names: self.names,
             service: Box::new(CommandHandler::new(handler)),
             sub_commands: self.sub_commands,
-        }
+            master_name: "".into(),
+        };
+        cmd._master_name("");
+        cmd
     }
 }

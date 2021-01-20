@@ -30,7 +30,7 @@ fn builder(field: &Field) -> Option<&Attribute> {
 #[proc_macro_derive(FromArgs, attributes(arg))]
 pub fn from_args_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
-    let name = ast.ident;
+    let struct_name = ast.ident;
     let fields = if let Data::Struct(DataStruct {
         fields: Fields::Named(FieldsNamed { ref named, .. }),
         ..
@@ -41,12 +41,14 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         panic!("Only supported on structs");
     };
     let fields_decs = fields.iter().map(|f| {
-        let name = f.ident.as_ref().unwrap();
+        let field_name = f.ident.as_ref().unwrap();
+        let name = format!("{}", field_name);
+        let struct_name = struct_name.clone();
         let ty = &f.ty;
         let stmt = match ty {
             Type::Path(typepath) if path_is_option(&typepath.path) => {
                 quote! {
-                    let #name = match args.next() {
+                    let #field_name = match args.next() {
                         Some(s) => <#ty>::from_arg(s)?,
                         None => None
                     };
@@ -54,9 +56,12 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             }
             _ => {
                 quote! {
-                    let #name = match args.next() {
+                    let #field_name = match args.next() {
                         Some(s) => <#ty>::from_arg(s)?,
-                        None => return Err(ArgumentError::MissingArgument)
+                        None => return Err(ArgumentError::MissingArgument {
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        })
                     };
                 }
             }
@@ -67,6 +72,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
     let field_interaction_decs = fields.iter().map(|f| {
         let field_name = f.ident.as_ref().unwrap();
         let name = format!("{}", field_name);
+        let struct_name = struct_name.clone();
         let ty = &f.ty;
         let stmt = match ty {
             Type::Path(typepath) if path_is_option(&typepath.path) => {
@@ -81,7 +87,10 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 quote! {
                     let #field_name = match options.get(&(#name)) {
                         Some(s) => <#ty>::from_interaction(s)?,
-                        None => return Err(ArgumentError::MissingArgument)
+                        None => return Err(ArgumentError::MissingArgument {
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        })
                     };
                 }
             }
@@ -113,7 +122,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                     _ => panic!("Only meant for Meta"),
                 }
             } else {
-                format!("`{}`: No description", name)
+                format!("{}: No description", name)
             }
         })
         .join("\n");
@@ -135,7 +144,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         .join(" ");
 
     let gen = quote! {
-        impl FromArgs for #name {
+        impl FromArgs for #struct_name {
             fn from_args(args: &mut Arguments) -> std::result::Result<Self, ArgumentError> {
                 #(#fields_decs)*
                 Ok(Self {
