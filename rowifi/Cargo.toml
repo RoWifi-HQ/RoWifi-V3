@@ -16,7 +16,7 @@ hyper = { version = "0", features = ["server"] }
 image = "0.23"
 itertools = "0"
 lazy_static = "1"
-mongodb = "1"
+mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 prometheus = "0"
 rand = "0"
