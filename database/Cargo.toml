@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 futures = "0"
-mongodb = "1"
+mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 rowifi-models = { path = "../models" }
 tracing = "0"
 transient-dashmap = {branch = "main", git = "https://github.com/AsianIntel/transient-dashmap"}
