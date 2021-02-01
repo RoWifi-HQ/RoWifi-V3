@@ -10,9 +10,6 @@
     dead_code
 )]
 
-#[macro_use]
-extern crate framework_derive;
-
 mod commands;
 mod services;
 

@@ -1,9 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-#![allow(unused_imports)]
-
-#[macro_use]
-extern crate framework_derive;
 
 pub mod arguments;
 pub mod bucket;
@@ -15,10 +11,7 @@ mod parser;
 pub mod prelude;
 pub mod utils;
 
-use futures::{
-    future::{ready, Either, Ready},
-    ready,
-};
+use futures::future::{ready, Either, Ready};
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -27,7 +20,7 @@ use std::{
 };
 use tower::Service;
 use twilight_model::{
-    applications::{CommandDataOption, InteractionData},
+    applications::InteractionData,
     gateway::event::Event,
     guild::Permissions,
     id::{ChannelId, GuildId, UserId},
@@ -38,11 +31,11 @@ use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
 use command::{Command, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
-use handler::{CommandHandler, Handler};
 use parser::PrefixType;
 use utils::RoLevel;
 
 pub type CommandResult = Result<(), RoError>;
+pub use framework_derive::FromArgs;
 
 pub struct Framework {
     bot: BotContext,
@@ -267,8 +260,6 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
 }
 
 mod tests {
-    use std::assert_eq;
-
     use super::*;
 
     #[derive(Debug, FromArgs)]
@@ -292,6 +283,6 @@ mod tests {
     pub fn test_builder() {
         let command = Command::builder()
             .names(&["update2"])
-            .service(Box::new(CommandHandler::new(update)));
+            .service(Box::new(handler::CommandHandler::new(update)));
     }
 }
