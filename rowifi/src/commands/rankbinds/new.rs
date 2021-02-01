@@ -26,10 +26,19 @@ use twilight_model::{applications::CommandDataOption, id::RoleId};
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {
+    #[arg(help = "The Group ID of your Roblox Group")]
     pub group_id: i64,
+    #[arg(
+        help = "Either a single rank id between 1-255 or a range of rank ids separated by a `-`. Ex. 25-55"
+    )]
     pub rank_id: CreateType,
+    #[arg(help = "The keyword that is used before the nickname. Can be set to `N/A` or `default`")]
     pub prefix: String,
+    #[arg(help = "The number that tells the bot which rankbind to choose for the nickname")]
     pub priority: Option<i64>,
+    #[arg(
+        help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto`"
+    )]
     pub discord_roles: Option<String>,
 }
 

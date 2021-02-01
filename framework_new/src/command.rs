@@ -1,30 +1,29 @@
 use futures::FutureExt;
 use std::{
-    collections::HashMap,
     fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,
     pin::Pin,
-    sync::Arc,
     task::{Context, Poll},
 };
 use tower::Service;
 use twilight_model::applications::CommandDataOption;
 
 use crate::{
-    arguments::{ArgumentError, Arguments},
-    context::BotContext,
-    error::CommandError,
+    arguments::{ArgumentError, Arguments, FromArgs},
+    context::CommandContext,
+    error::{CommandError, RoError},
+    handler::{CommandHandler, Handler},
     utils::RoLevel,
-    CommandContext, CommandHandler, CommandResult, FromArgs, Handler, RoError,
+    CommandResult,
 };
 
 pub type BoxedService = Box<
     dyn Service<
-        (CommandContext, ServiceRequest),
-        Response = (),
-        Error = RoError,
-        Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
-    > + Send,
+            (CommandContext, ServiceRequest),
+            Response = (),
+            Error = RoError,
+            Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
+        > + Send,
 >;
 
 pub enum ServiceRequest {
