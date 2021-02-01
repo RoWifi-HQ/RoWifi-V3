@@ -12,5 +12,5 @@ itertools = "0"
 prometheus = "0"
 serde = "1"
 serde_repr = "0"
-twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { version = "0.2" }
+twilight-model = { version = "0.2" }

@@ -21,11 +21,11 @@ rowifi-models = { path = "../models" }
 tokio = { version = "0.2", features = ["rt-core"] }
 tracing = "0"
 transient-dashmap = {branch = "main", git = "https://github.com/AsianIntel/transient-dashmap"}
-twilight-command-parser = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-gateway = { branch = "trunk", git = "https://github.com/twilight-rs/twilight", features = ["simd-zlib", "simd-json"] }
-twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-twilight-standby = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+twilight-command-parser = { version = "0.2" }
+twilight-embed-builder = { version = "0.2" }
+twilight-model = { version = "0.2" }
+twilight-mention = { version = "0.2" }
+twilight-gateway = { version = "0.2", features = ["simd-zlib", "simd-json"] }
+twilight-http = { version = "0.2" }
+twilight-standby = { version = "0.2" }
 uwl = "0"

@@ -10,6 +10,3 @@ members = [
 
 [profile.release]
 lto = true
-
-[patch.'https://github.com/twilight-rs/twilight']
-twilight-model = { branch = "model-role-tags-visit-unit", git = "https://github.com/vivian/twilight" }
