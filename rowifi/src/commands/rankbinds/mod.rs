@@ -19,12 +19,26 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to add a new rankbind")
         .handler(rankbinds_new);
 
+    let rankbinds_modify_command = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["modify", "m"])
+        .description("Command to modify an existing rankbind")
+        .handler(rankbinds_modify);
+    
+    let rankbinds_delete_command = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["delete", "d"])
+        .description("Command to delete an existing rankbind")
+        .handler(rankbinds_delete);
+
     let rankbinds = Command::builder()
         .level(RoLevel::Admin)
         .names(&["rankbinds", "rb"])
         .description("Command to view the rankbinds")
         .group("Binds")
         .sub_command(rankbinds_new_command)
+        .sub_command(rankbinds_modify_command)
+        .sub_command(rankbinds_delete_command)
         .handler(rankbind);
 
     cmds.push(rankbinds);

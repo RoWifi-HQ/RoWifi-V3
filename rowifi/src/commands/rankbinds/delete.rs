@@ -1,53 +1,39 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 
-pub static RANKBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["delete", "d", "remove"],
-    desc: Some("Command to delete a rankbind"),
-    usage: Some("rankbinds delete <Group Id> <Rank Id>"),
-    examples: &["rankbinds delete 3108077 255", "rb remove 5581309 10"],
-    min_args: 2,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+// pub static RANKBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
+//     perm_level: RoLevel::Admin,
+//     bucket: None,
+//     names: &["delete", "d", "remove"],
+//     desc: Some("Command to delete a rankbind"),
+//     usage: Some("rankbinds delete <Group Id> <Rank Id>"),
+//     examples: &["rankbinds delete 3108077 255", "rb remove 5581309 10"],
+//     min_args: 2,
+//     hidden: false,
+//     sub_commands: &[],
+//     group: None,
+// };
 
-pub static RANKBINDS_DELETE_COMMAND: Command = Command {
-    fun: rankbinds_delete,
-    options: &RANKBINDS_DELETE_OPTIONS,
-};
+#[derive(FromArgs)]
+pub struct RankBindsDelete {
+    pub group_id: i64,
+    pub rank_id: String
+}
 
-#[command]
 pub async fn rankbinds_delete(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
+    ctx: CommandContext,
+    args: RankBindsDelete
 ) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
-    let guild = ctx
+    let guild_id = ctx.guild_id.unwrap();
+    let guild = ctx.bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let group_id = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Group ID".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
+    let group_id = args.group_id;
 
     let mut rank_ids_to_delete = Vec::new();
-    for arg in args {
+    for arg in args.rank_id.split_ascii_whitespace() {
         if let Ok(r) = arg.parse::<i64>() {
             rank_ids_to_delete.push(r);
         }
@@ -75,19 +61,19 @@ pub async fn rankbinds_delete(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
     let filter = bson::doc! {"_id": guild.id};
     let update =
         bson::doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": binds_to_delete.clone()}}}};
-    ctx.database.modify_guild(filter, update).await?;
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new()
         .default_data()
@@ -99,9 +85,9 @@ pub async fn rankbinds_delete(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
         .await?;
@@ -110,15 +96,15 @@ pub async fn rankbinds_delete(
         .iter()
         .map(|b| format!("`Id`: {}\n", b))
         .collect::<String>();
-    let log_embed = EmbedBuilder::new()
+    let _log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author_id))
         .unwrap()
         .description("Rank Bind Deletion")
         .unwrap()
         .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    //ctx.logger.log_guild(ctx, guild_id, log_embed).await;
     Ok(())
 }
