@@ -25,7 +25,7 @@ twilight-command-parser = { version = "0.2" }
 twilight-embed-builder = { version = "0.2" }
 twilight-model = { version = "0.2" }
 twilight-mention = { version = "0.2" }
-twilight-gateway = { version = "0.2", features = ["simd-zlib", "simd-json"] }
+twilight-gateway = { version = "0.2" }
 twilight-http = { version = "0.2" }
 twilight-standby = { version = "0.2" }
 uwl = "0"

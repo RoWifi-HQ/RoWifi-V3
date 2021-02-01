@@ -32,7 +32,7 @@ tokio = { version = "0.2", features = ["rt-threaded", "macros", "time"] }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 twilight-embed-builder = { version = "0.2" }
-twilight-gateway = { version = "0.2", features = ["simd-zlib", "simd-json"] }
+twilight-gateway = { version = "0.2" }
 twilight-http = { version = "0.2" }
 twilight-mention = { version = "0.2" }
 twilight-model = { version = "0.2" }
