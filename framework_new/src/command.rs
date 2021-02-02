@@ -6,7 +6,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_model::applications::CommandDataOption;
+use twilight_model::applications::command::CommandDataOption;
 
 use crate::{
     arguments::{ArgumentError, Arguments, FromArgs},

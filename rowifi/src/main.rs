@@ -36,6 +36,7 @@ use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
 use services::EventHandler;
 use std::{
+    collections::HashMap,
     env,
     error::Error,
     pin::Pin,
@@ -121,6 +122,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
     sleep(Duration::from_secs(cluster_id * 60)).await;
 
+    let mut webhooks = HashMap::new();
+    let debug_webhook =
+        env::var("LOG_DEBUG").expect("Expected the debug webhook in the environment");
+    let error_webhook =
+        env::var("LOG_ERROR").expect("Expected the debug webhook in the environment");
+    let premium_webhook =
+        env::var("LOG_PREMIUM").expect("Expected the debug webhook in the environment");
+    webhooks.insert("debug", debug_webhook.as_str());
+    webhooks.insert("error", error_webhook.as_str());
+    webhooks.insert("premium", premium_webhook.as_str());
+
     let scheme = ShardScheme::Range {
         from: cluster_id * shards_per_cluster,
         to: cluster_id * shards_per_cluster + shards_per_cluster - 1,
@@ -176,6 +188,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         roblox,
         patreon,
         stats,
+        webhooks,
     );
     let framework = NewFramework::new(bot.clone())
         .configure(update_config)

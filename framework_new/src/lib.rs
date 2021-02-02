@@ -20,7 +20,7 @@ use std::{
 };
 use tower::Service;
 use twilight_model::{
-    applications::InteractionData,
+    applications::interaction::Interaction,
     gateway::event::Event,
     guild::Permissions,
     id::{ChannelId, GuildId, UserId},
@@ -154,12 +154,12 @@ impl Service<&Event> for Framework {
                 return Either::Right(Box::pin(fut));
             }
             Event::InteractionCreate(interaction) => {
-                if let InteractionData::ApplicationCommand(top_command) = &interaction.data {
-                    let command_options = &top_command.options;
+                if let Interaction::ApplicationCommand(top_command) = &interaction.0 {
+                    let command_options = &top_command.command_data.options;
                     let command = self
                         .cmds
                         .iter_mut()
-                        .find(|c| c.names.contains(&top_command.name.as_str()));
+                        .find(|c| c.names.contains(&top_command.command_data.name.as_str()));
                     println!("{:?}", command);
                     let command = match command {
                         Some(c) => c,
@@ -169,18 +169,18 @@ impl Service<&Event> for Framework {
                     if !run_checks(
                         &self.bot,
                         command,
-                        Some(interaction.guild_id),
-                        interaction.channel_id,
-                        interaction.member.user.clone().unwrap().id,
+                        Some(top_command.guild_id),
+                        top_command.channel_id,
+                        top_command.member.user.clone().unwrap().id,
                     ) {
                         return Either::Left(ready(Ok(())));
                     }
 
                     let ctx = CommandContext {
                         bot: self.bot.clone(),
-                        channel_id: interaction.channel_id,
-                        guild_id: Some(interaction.guild_id),
-                        author_id: interaction.member.user.clone().unwrap().id,
+                        channel_id: top_command.channel_id,
+                        guild_id: Some(top_command.guild_id),
+                        author_id: top_command.member.user.clone().unwrap().id,
                     };
 
                     let request = ServiceRequest::Interaction(command_options.to_owned());

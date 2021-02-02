@@ -698,6 +698,7 @@ dependencies = [
  "twilight-http",
  "twilight-model",
  "twilight-standby",
+ "twilight-util",
  "uwl",
 ]
 
@@ -957,9 +958,9 @@ dependencies = [
 
 [[package]]
 name = "httparse"
-version = "1.3.4"
+version = "1.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd179ae861f0c2e53da70d892f5f3029f9594be0c41dc5269cd371691b1dc2f9"
+checksum = "615caabe2c3160b313d52ccc905335f4ed5f10881dd63dc5699d47e90be85691"
 
 [[package]]
 name = "httpdate"
@@ -1131,9 +1132,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.84"
+version = "0.2.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cca32fa0182e8c0989459524dc356b8f2b5c10f1b9eb521b7d182c03cf8c5ff"
+checksum = "7ccac4b00700875e6a07c6cde370d44d32fa01c5a65cdd2fca6858c479d28bb3"
 
 [[package]]
 name = "libz-sys"
@@ -1898,9 +1899,9 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.16.19"
+version = "0.16.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "024a1e66fea74c66c66624ee5622a7ff0e4b73a13b4f5c326ddb50c708944226"
+checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
 dependencies = [
  "cc",
  "libc",
@@ -2762,7 +2763,7 @@ dependencies = [
 [[package]]
 name = "twilight-command-parser"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "unicase",
 ]
@@ -2770,7 +2771,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "twilight-model",
 ]
@@ -2778,7 +2779,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.3.2"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2801,7 +2802,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2813,7 +2814,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.3.4"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "bytes 1.0.1",
  "futures-channel",
@@ -2833,7 +2834,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "twilight-model",
 ]
@@ -2841,7 +2842,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.3.2"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "bitflags",
  "serde",
@@ -2853,7 +2854,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "dashmap",
  "futures-channel",
@@ -2865,7 +2866,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#4b90e03fb8b2b45533c40bd02db9a5138ec8b615"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash#ff85a18aa2b3e8cf22f2e128eeb4e2defd83e0fb"
 dependencies = [
  "twilight-model",
 ]

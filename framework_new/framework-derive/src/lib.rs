@@ -152,8 +152,8 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 })
             }
 
-            fn from_interaction(options: &[twilight_model::applications::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
-                use twilight_model::applications::CommandDataOption;
+            fn from_interaction(options: &[twilight_model::applications::command::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
+                use twilight_model::applications::command::CommandDataOption;
 
                 let options = options.iter().map(|c| {
                     match c {
