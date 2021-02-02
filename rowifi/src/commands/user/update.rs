@@ -143,7 +143,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
     let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx
-        .update_user(member, &user, server, &guild, &guild_roles)
+        .update_user(member, &user, &server, &guild, &guild_roles)
         .await
     {
         Ok(a) => a,
@@ -175,14 +175,32 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     return Ok(());
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Update Failed")
+                    .unwrap()
+                    .description(format!(
+                        "User was found on the server blacklist. Reason: {}",
+                        b
+                    ))
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
                     let _ = ctx
                         .bot
                         .http
                         .create_message(channel.id)
                         .content(format!(
-                            "You were found on the server blacklist. Reason: {}",
-                            b
+                            "You were found on the {} blacklist. Reason: {}",
+                            server.name, b
                         ))
                         .unwrap()
                         .await;
@@ -212,13 +230,13 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         .unwrap()
         .await;
 
-    // let log_embed = EmbedBuilder::new()
-    //     .default_data()
-    //     .title("Update")
-    //     .unwrap()
-    //     .update_log(&added_roles, &removed_roles, &disc_nick)
-    //     .build()
-    //     .unwrap();
-    //ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title("Update")
+        .unwrap()
+        .update_log(&added_roles, &removed_roles, &disc_nick)
+        .build()
+        .unwrap();
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }

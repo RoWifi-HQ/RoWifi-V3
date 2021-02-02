@@ -20,19 +20,20 @@ pub struct ModifyRankbind {
     pub option: ModifyOption,
     pub group_id: i64,
     pub rank_id: i64,
-    pub change: String
+    pub change: String,
 }
 
 pub enum ModifyOption {
     Prefix,
     Priority,
     RolesAdd,
-    RolesRemove
+    RolesRemove,
 }
 
 pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot
+    let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -119,7 +120,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .unwrap()
         .await?;
 
-    let _log_embed = EmbedBuilder::new()
+    let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author_id))
         .unwrap()
@@ -128,7 +129,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    //ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
 
@@ -211,15 +212,15 @@ impl FromArg for ModifyOption {
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
-            _ => Err(ArgumentError::ParseError)
+            _ => Err(ArgumentError::ParseError),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         let arg = match option {
-            CommandDataOption::String {value, ..} => value.to_string(),
-            CommandDataOption::Integer {value, ..} => value.to_string(),
-            _ => return Err(ArgumentError::BadArgument)
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => return Err(ArgumentError::BadArgument),
         };
 
         ModifyOption::from_arg(&arg)

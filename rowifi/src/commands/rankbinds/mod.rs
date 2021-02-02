@@ -24,7 +24,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .names(&["modify", "m"])
         .description("Command to modify an existing rankbind")
         .handler(rankbinds_modify);
-    
+
     let rankbinds_delete_command = Command::builder()
         .level(RoLevel::Admin)
         .names(&["delete", "d"])

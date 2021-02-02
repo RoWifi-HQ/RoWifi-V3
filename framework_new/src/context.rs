@@ -10,11 +10,20 @@ use rowifi_models::{
     stats::BotStats,
     user::RoUser,
 };
-use std::{borrow::Cow, collections::HashSet, ops::Deref, sync::Arc};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    ops::Deref,
+    sync::Arc,
+};
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
-use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
+use twilight_model::{
+    channel::embed::Embed,
+    id::{ChannelId, GuildId, RoleId, UserId, WebhookId},
+};
 use twilight_standby::Standby;
+use twilight_util::link::webhook;
 
 use crate::error::{CommandError, RoError};
 
@@ -32,6 +41,7 @@ pub struct BotContextRef {
     pub roblox: Roblox,
     pub patreon: Patreon,
     pub stats: Arc<BotStats>,
+    pub webhooks: HashMap<&'static str, (WebhookId, String)>,
 }
 
 #[derive(Clone)]
@@ -58,9 +68,16 @@ impl BotContext {
         roblox: Roblox,
         patreon: Patreon,
         stats: Arc<BotStats>,
+        webhooks: HashMap<&'static str, &str>,
     ) -> Self {
         let mut _owners = DashSet::new();
         _owners.extend(owners.iter().map(|u| u.to_owned()));
+
+        let mut _webhooks = HashMap::new();
+        for (name, url) in webhooks {
+            let (id, token) = webhook::parse(url).unwrap();
+            _webhooks.insert(name, (id, token.unwrap().to_owned()));
+        }
         Self {
             0: Arc::new(BotContextRef {
                 on_mention,
@@ -76,6 +93,7 @@ impl BotContext {
                 roblox,
                 patreon,
                 stats,
+                webhooks: _webhooks,
             }),
         }
     }
@@ -113,7 +131,7 @@ impl CommandContext {
         &self,
         member: Arc<CachedMember>,
         user: &RoUser,
-        server: Arc<CachedGuild>,
+        server: &CachedGuild,
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,
     ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
@@ -292,5 +310,48 @@ impl CommandContext {
         }
 
         Ok((added_roles, removed_roles, disc_nick.to_string()))
+    }
+
+    pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
+        let log_channel = self.bot.cache.guild(guild_id).and_then(|g| g.log_channel);
+        if let Some(channel_id) = log_channel {
+            let _ = self
+                .bot
+                .http
+                .create_message(channel_id)
+                .embed(embed)
+                .unwrap()
+                .await;
+        }
+    }
+
+    pub async fn log_debug(&self, embed: Embed) {
+        let (id, token) = self.bot.webhooks.get("debug").unwrap();
+        let _ = self
+            .bot
+            .http
+            .execute_webhook(*id, token)
+            .embeds(vec![embed])
+            .await;
+    }
+
+    pub async fn log_error(&self, text: &str) {
+        let (id, token) = self.bot.webhooks.get("error").unwrap();
+        let _ = self
+            .bot
+            .http
+            .execute_webhook(*id, token)
+            .content(text.to_string())
+            .await;
+    }
+
+    pub async fn log_premium(&self, text: &str) {
+        let (id, token) = self.bot.webhooks.get("premium").unwrap();
+        let _ = self
+            .bot
+            .http
+            .execute_webhook(*id, token)
+            .content(text.to_string())
+            .await;
     }
 }

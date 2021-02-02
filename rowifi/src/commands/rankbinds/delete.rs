@@ -16,15 +16,13 @@ use framework_new::prelude::*;
 #[derive(FromArgs)]
 pub struct RankBindsDelete {
     pub group_id: i64,
-    pub rank_id: String
+    pub rank_id: String,
 }
 
-pub async fn rankbinds_delete(
-    ctx: CommandContext,
-    args: RankBindsDelete
-) -> CommandResult {
+pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot
+    let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -96,7 +94,7 @@ pub async fn rankbinds_delete(
         .iter()
         .map(|b| format!("`Id`: {}\n", b))
         .collect::<String>();
-    let _log_embed = EmbedBuilder::new()
+    let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author_id))
         .unwrap()
@@ -105,6 +103,6 @@ pub async fn rankbinds_delete(
         .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap())
         .build()
         .unwrap();
-    //ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }

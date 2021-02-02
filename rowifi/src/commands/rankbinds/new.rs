@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
-use twilight_model::{applications::CommandDataOption, id::RoleId};
+use twilight_model::id::RoleId;
 
 // pub static RANKBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
 //     perm_level: RoLevel::Admin,
@@ -564,7 +564,7 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         "Rank Id: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
         bind.rank_id, bind.prefix, bind.priority, roles_str
     );
-    let _log_embed = EmbedBuilder::new()
+    let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author_id))
         .unwrap()
@@ -573,9 +573,7 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    // ctx.logger
-    //     .log_guild(ctx, msg.guild_id.unwrap(), log_embed)
-    //     .await;
+    ctx.log_guild(ctx.guild_id.unwrap(), log_embed).await;
 }
 
 fn extract_ids(rank_str: &str) -> Option<(i64, i64)> {

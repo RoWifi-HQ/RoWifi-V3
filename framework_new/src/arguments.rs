@@ -1,5 +1,5 @@
 use std::num::ParseIntError;
-use twilight_model::{applications::CommandDataOption, id::UserId};
+use twilight_model::{applications::command::CommandDataOption, id::UserId};
 
 #[derive(Debug, Clone)]
 pub struct Arguments {
