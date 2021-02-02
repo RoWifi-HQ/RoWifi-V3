@@ -6,6 +6,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
+use twilight_embed_builder::EmbedBuilder;
 use twilight_model::applications::command::CommandDataOption;
 
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
     context::CommandContext,
     error::{CommandError, RoError},
     handler::{CommandHandler, Handler},
+    prelude::{Color, EmbedExtensions},
     utils::RoLevel,
     CommandResult,
 };
@@ -157,11 +159,80 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             _ => {}
         },
         RoError::Command(cmd_err) => match cmd_err {
-            CommandError::Blacklist(ref b) => {}
-            CommandError::Miscellanous(ref b) => {}
-            CommandError::Timeout => {}
-            CommandError::Ratelimit(ref d) => {}
-            CommandError::NoRoGuild => {}
+            CommandError::Blacklist(ref b) => { /*Handled invidually by the methods that raise this */
+            }
+            CommandError::Miscellanous(ref b) => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Command Failure")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .description(b)
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
+            CommandError::Timeout => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Command Failure")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .description("Timeout reached. Please try again")
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
+            CommandError::Ratelimit(ref d) => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Command Failure")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .description(format!(
+                        "Ratelimit reached. You may retry this command in {} seconds",
+                        d
+                    ))
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
+            CommandError::NoRoGuild => {
+                let embed = EmbedBuilder::new()
+                    .default_data().title("Command Failure").unwrap().color(Color::Red as u32).unwrap()
+                    .description("This server has not been set up. Please ask the server owner to do so using `!setup`").unwrap().build().unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
         },
         _ => {}
     }
