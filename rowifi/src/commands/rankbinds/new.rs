@@ -37,7 +37,7 @@ pub struct NewRankbind {
     #[arg(help = "The number that tells the bot which rankbind to choose for the nickname")]
     pub priority: Option<i64>,
     #[arg(
-        help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto`"
+        help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto` "
     )]
     pub discord_roles: Option<String>,
 }
@@ -113,7 +113,7 @@ pub enum CreateType {
 }
 
 impl FromArg for CreateType {
-    type Error = ArgumentError;
+    type Error = ParseError;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         if let Ok(r) = arg.parse::<i64>() {
@@ -121,7 +121,7 @@ impl FromArg for CreateType {
         } else if let Some((min_rank, max_rank)) = extract_ids(arg) {
             Ok(CreateType::Multiple(min_rank, max_rank))
         } else {
-            Err(ArgumentError::ParseError)
+            Err(ParseError("a number or a range (1-255)"))
         }
     }
 
@@ -129,7 +129,7 @@ impl FromArg for CreateType {
         let arg = match option {
             CommandDataOption::Integer { value, .. } => value.to_string(),
             CommandDataOption::String { value, .. } => value.to_string(),
-            _ => return Err(ArgumentError::BadArgument),
+            _ => unreachable!("NewRankbind unreached"),
         };
 
         CreateType::from_arg(&arg)

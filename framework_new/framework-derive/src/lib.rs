@@ -48,16 +48,26 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         let stmt = match ty {
             Type::Path(typepath) if path_is_option(&typepath.path) => {
                 quote! {
-                    let #field_name = match args.next() {
-                        Some(s) => <#ty>::from_arg(s)?,
+                    let #field_name = match args.next().map(<#ty>::from_arg) {
+                        Some(Ok(s)) => s,
+                        Some(Err(err)) => return Err(ArgumentError::ParseError{
+                            expected: err.0,
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        }),
                         None => None
                     };
                 }
             }
             _ => {
                 quote! {
-                    let #field_name = match args.next() {
-                        Some(s) => <#ty>::from_arg(s)?,
+                    let #field_name = match args.next().map(<#ty>::from_arg) {
+                        Some(Ok(s)) => s,
+                        Some(Err(err)) => return Err(ArgumentError::ParseError{
+                            expected: err.0,
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        }),
                         None => return Err(ArgumentError::MissingArgument {
                             usage: <#struct_name>::generate_help(),
                             name: #name
@@ -77,16 +87,26 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         let stmt = match ty {
             Type::Path(typepath) if path_is_option(&typepath.path) => {
                 quote! {
-                    let #field_name = match options.get(&(#name)) {
-                        Some(s) => <#ty>::from_interaction(s)?,
+                    let #field_name = match options.get(&(#name)).map(|s| <#ty>::from_interaction(*s)) {
+                        Some(Ok(s)) => s,
+                        Some(Err(err)) => return Err(ArgumentError::ParseError{
+                            expected: err.0,
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        }),
                         None => None
                     };
                 }
             }
             _ => {
                 quote! {
-                    let #field_name = match options.get(&(#name)) {
-                        Some(s) => <#ty>::from_interaction(s)?,
+                    let #field_name = match options.get(&(#name)).map(|s| <#ty>::from_interaction(*s)) {
+                        Some(Ok(s)) => s,
+                        Some(Err(err)) => return Err(ArgumentError::ParseError{
+                            expected: err.0,
+                            usage: <#struct_name>::generate_help(),
+                            name: #name
+                        }),
                         None => return Err(ArgumentError::MissingArgument {
                             usage: <#struct_name>::generate_help(),
                             name: #name
@@ -152,8 +172,8 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 })
             }
 
-            fn from_interaction(options: &[twilight_model::applications::command::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
-                use twilight_model::applications::command::CommandDataOption;
+            fn from_interaction(options: &[twilight_model::applications::interaction::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
+                use twilight_model::applications::interaction::CommandDataOption;
 
                 let options = options.iter().map(|c| {
                     match c {

@@ -36,6 +36,7 @@ pub fn find_prefix<'a>(
     guild_id: Option<GuildId>,
 ) -> Option<PrefixType<'a>> {
     if find_mention(stream, bot.on_mention.as_ref()) {
+        stream.take_while_char(char::is_whitespace);
         return Some(PrefixType::Mention);
     }
 

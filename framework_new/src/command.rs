@@ -7,7 +7,7 @@ use std::{
 };
 use tower::Service;
 use twilight_embed_builder::EmbedBuilder;
-use twilight_model::applications::command::CommandDataOption;
+use twilight_model::applications::interaction::CommandDataOption;
 
 use crate::{
     arguments::{ArgumentError, Arguments, FromArgs},
@@ -143,7 +143,6 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
     match err {
         RoError::Argument(arg_err) => match arg_err {
             ArgumentError::MissingArgument { usage, name } => {
-                println!("{}", master_name);
                 let content = format!(
                     "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
                     master_name, usage.0, name, usage.1
@@ -156,7 +155,26 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .await;
             }
-            _ => {}
+            ArgumentError::ParseError {
+                expected,
+                usage,
+                name,
+            } => {
+                let content = format!(
+                    "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
+                    master_name, usage.0, name, expected, usage.1
+                );
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .content(content)
+                    .unwrap()
+                    .await;
+            }
+            ArgumentError::BadArgument => {
+                //This shouldn't be happening but still report it to the user
+            }
         },
         RoError::Command(cmd_err) => match cmd_err {
             CommandError::Blacklist(ref b) => { /*Handled invidually by the methods that raise this */
