@@ -16,7 +16,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
 
     let user_id = match args.user_id {
         Some(s) => s,
-        None => ctx.author_id,
+        None => ctx.author.id,
     };
 
     let member = match ctx.member(guild_id, user_id).await? {

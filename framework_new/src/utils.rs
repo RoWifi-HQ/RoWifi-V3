@@ -89,7 +89,7 @@ pub async fn paginate_embed(
         //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
-        let author_id = ctx.author_id;
+        let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
         //Don't wait up for the reactions to show

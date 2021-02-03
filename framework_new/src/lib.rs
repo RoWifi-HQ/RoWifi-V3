@@ -16,6 +16,7 @@ use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
     pin::Pin,
+    sync::Arc,
     task::{Context, Poll},
 };
 use tower::Service;
@@ -139,7 +140,7 @@ impl Service<&Event> for Framework {
                     bot: self.bot.clone(),
                     channel_id: msg.channel_id,
                     guild_id: msg.guild_id,
-                    author_id: msg.author.id,
+                    author: Arc::new(msg.author.clone()),
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -179,7 +180,7 @@ impl Service<&Event> for Framework {
                         bot: self.bot.clone(),
                         channel_id: top_command.channel_id,
                         guild_id: Some(top_command.guild_id),
-                        author_id: top_command.member.user.clone().unwrap().id,
+                        author: Arc::new(top_command.member.user.clone().unwrap()),
                     };
 
                     let request = ServiceRequest::Interaction(command_options.to_owned());

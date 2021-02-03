@@ -96,7 +96,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         .collect::<String>();
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", ctx.author_id))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Rank Bind Deletion")
         .unwrap()
