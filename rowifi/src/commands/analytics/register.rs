@@ -1,50 +1,17 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::doc;
 use rowifi_models::guild::GuildType;
 
-pub static ANALYTICS_REGISTER_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["register"],
-    desc: Some("Command to register a new group in analytics module"),
-    usage: Some("analytics register <Group Id>"),
-    examples: &["analytics register 3108077"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct RegisterArguments {
+    #[arg(help = "Group Id that is to be registered")]
+    pub group_id: i64,
+}
 
-pub static ANALYTICS_REGISTER_COMMAND: Command = Command {
-    fun: analytics_register,
-    options: &ANALYTICS_REGISTER_OPTIONS,
-};
-
-pub static ANALYTICS_UNREGISTER_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["unregister"],
-    desc: Some("Command to unregister an existing group in analytics module"),
-    usage: Some("analytics unregister <Group Id>"),
-    examples: &["analytics unregister 3108077"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
-
-pub static ANALYTICS_UNREGISTER_COMMAND: Command = Command {
-    fun: analytics_unregister,
-    options: &ANALYTICS_UNREGISTER_OPTIONS,
-};
-
-#[command]
-pub async fn analytics_register(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -61,29 +28,16 @@ pub async fn analytics_register(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let group_id = match args.next() {
-        Some(group_str) => match group_str.parse::<i64>() {
-            Ok(g) => g,
-            Err(_) => {
-                return Err(RoError::Command(CommandError::ParseArgument(
-                    group_str.to_string(),
-                    "Group Id".into(),
-                    "Number".into(),
-                )))
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let group_id = args.group_id;
     if guild.registered_groups.iter().any(|g| g == &group_id) {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -93,18 +47,18 @@ pub async fn analytics_register(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$push": {"RegisteredGroups": group_id}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$push": {"RegisteredGroups": group_id}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -114,22 +68,25 @@ pub async fn analytics_register(
         .unwrap()
         .build()
         .unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     Ok(())
 }
 
-#[command]
-pub async fn analytics_unregister(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+#[derive(FromArgs)]
+pub struct UnregisterArguments {
+    #[arg(help = "Group Id that is to be unregistered")]
+    pub group_id: i64,
+}
+
+pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -146,29 +103,16 @@ pub async fn analytics_unregister(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let group_id = match args.next() {
-        Some(group_str) => match group_str.parse::<i64>() {
-            Ok(g) => g,
-            Err(_) => {
-                return Err(RoError::Command(CommandError::ParseArgument(
-                    group_str.to_string(),
-                    "Group Id".into(),
-                    "Number".into(),
-                )))
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let group_id = args.group_id;
     if !guild.registered_groups.iter().any(|g| g == &group_id) {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -178,18 +122,18 @@ pub async fn analytics_unregister(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"RegisteredGroups": group_id}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$pull": {"RegisteredGroups": group_id}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -199,8 +143,9 @@ pub async fn analytics_unregister(
         .unwrap()
         .build()
         .unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;

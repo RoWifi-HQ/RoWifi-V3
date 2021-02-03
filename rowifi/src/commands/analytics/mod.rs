@@ -1,41 +1,56 @@
 mod register;
 mod view;
 
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::string::ToString;
 
-use register::{ANALYTICS_REGISTER_COMMAND, ANALYTICS_UNREGISTER_COMMAND};
-use view::ANALYTICS_VIEW_COMMAND;
+use register::{analytics_register, analytics_unregister};
+use view::analytics_view;
 
-pub static ANALYTICS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["analytics"],
-    desc: Some("The analytics module"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &ANALYTICS_REGISTER_COMMAND,
-        &ANALYTICS_UNREGISTER_COMMAND,
-        &ANALYTICS_VIEW_COMMAND,
-    ],
-    group: Some("Premium"),
-};
+pub fn analytics_config(cmds: &mut Vec<Command>) {
+    let analytics_register_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["register"])
+        .description("Command to register a new group for analytics")
+        .handler(analytics_register);
 
-pub static ANALYTICS_COMMAND: Command = Command {
-    fun: analytics,
-    options: &ANALYTICS_OPTIONS,
-};
+    let analytics_unregister_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["unregister"])
+        .description("Command to de-register a group from analytics")
+        .handler(analytics_unregister);
 
-#[command]
-pub async fn analytics(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+    let analytics_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view the membercount analytics of a group")
+        .handler(analytics_view);
+
+    let analytics = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["analytics"])
+        .description("Module to interact with the analytics subsystem")
+        .group("Premium")
+        .sub_command(analytics_register_cmd)
+        .sub_command(analytics_unregister_cmd)
+        .sub_command(analytics_view_cmd)
+        .handler(analytics_config_view);
+    cmds.push(analytics);
+}
+
+#[derive(FromArgs)]
+pub struct AnalyticsViewArguments {}
+
+pub async fn analytics_config_view(
+    ctx: CommandContext,
+    _args: AnalyticsViewArguments,
+) -> CommandResult {
     let guild = ctx
+        .bot
         .database
-        .get_guild(msg.guild_id.unwrap().0)
+        .get_guild(ctx.guild_id.unwrap().0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
@@ -50,9 +65,9 @@ pub async fn analytics(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -70,9 +85,9 @@ pub async fn analytics(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -93,8 +108,9 @@ pub async fn analytics(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         .unwrap()
         .build()
         .unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
