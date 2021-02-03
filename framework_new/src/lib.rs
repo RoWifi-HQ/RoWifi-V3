@@ -160,7 +160,6 @@ impl Service<&Event> for Framework {
                         .cmds
                         .iter_mut()
                         .find(|c| c.names.contains(&top_command.command_data.name.as_str()));
-                    println!("{:?}", command);
                     let command = match command {
                         Some(c) => c,
                         None => return Either::Left(ready(Ok(()))),

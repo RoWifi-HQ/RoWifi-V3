@@ -17,6 +17,7 @@ roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-models = { path = "../models" }
+tracing = "0"
 tokio = { version = "1", features = ["time"] }
 tokio-stream = { version = "0" }
 tower = { version = "0", features = ["util", "limit"] }
