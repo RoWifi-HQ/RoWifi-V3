@@ -1,32 +1,44 @@
 mod new;
 mod restore;
 
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 
 pub use new::*;
 pub use restore::*;
 
-pub static BACKUP_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["backup"],
-    desc: Some("Command to view saved backups"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[&BACKUP_NEW_COMMAND, &BACKUP_RESTORE_COMMAND],
-    group: Some("Premium"),
-};
+pub fn backup_config(cmds: &mut Vec<Command>) {
+    let backup_new_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command to create a new backup")
+        .handler(backup_new);
 
-pub static BACKUP_COMMAND: Command = Command {
-    fun: backup,
-    options: &BACKUP_OPTIONS,
-};
+    let backup_restore_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["restore"])
+        .description("Command to apply the backup to the server")
+        .handler(backup_restore);
 
-#[command]
-pub async fn backup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    match ctx.database.get_premium(msg.author.id.0).await? {
+    let backup_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["backup"])
+        .description("Module to interact with the backup system")
+        .sub_command(backup_new_cmd)
+        .sub_command(backup_restore_cmd)
+        .handler(backup);
+    cmds.push(backup_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct BackupArguments {
+    pub name: String,
+}
+
+#[derive(FromArgs)]
+pub struct BackupViewArguments {}
+
+pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResult {
+    match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {
             let embed = EmbedBuilder::new()
@@ -39,9 +51,9 @@ pub async fn backup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -49,7 +61,7 @@ pub async fn backup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
         }
     };
 
-    let backups = ctx.database.get_backups(msg.author.id.0).await?;
+    let backups = ctx.bot.database.get_backups(ctx.author.id.0).await?;
     let mut embed = EmbedBuilder::new().default_data().title("Backups").unwrap();
 
     for backup in backups {
@@ -60,9 +72,9 @@ pub async fn backup(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val).unwrap());
     }
 
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed.build().unwrap())
         .unwrap()
         .await?;
