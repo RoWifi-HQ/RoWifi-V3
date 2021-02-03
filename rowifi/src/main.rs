@@ -189,6 +189,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         patreon,
         stats,
         webhooks,
+        cluster_id,
     );
     let framework = NewFramework::new(bot.clone())
         .configure(update_config)

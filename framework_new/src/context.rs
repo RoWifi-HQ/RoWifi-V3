@@ -42,6 +42,7 @@ pub struct BotContextRef {
     pub patreon: Patreon,
     pub stats: Arc<BotStats>,
     pub webhooks: HashMap<&'static str, (WebhookId, String)>,
+    pub cluster_id: u64,
 }
 
 #[derive(Clone)]
@@ -69,6 +70,7 @@ impl BotContext {
         patreon: Patreon,
         stats: Arc<BotStats>,
         webhooks: HashMap<&'static str, &str>,
+        cluster_id: u64,
     ) -> Self {
         let mut _owners = DashSet::new();
         _owners.extend(owners.iter().map(|u| u.to_owned()));
@@ -94,6 +96,7 @@ impl BotContext {
                 patreon,
                 stats,
                 webhooks: _webhooks,
+                cluster_id,
             }),
         }
     }

@@ -31,6 +31,12 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to delete an existing rankbind")
         .handler(rankbinds_delete);
 
+    let rankbinds_view_command = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view all rankbinds")
+        .handler(rankbinds_view);
+
     let rankbinds = Command::builder()
         .level(RoLevel::Admin)
         .names(&["rankbinds", "rb"])
@@ -39,7 +45,8 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .sub_command(rankbinds_new_command)
         .sub_command(rankbinds_modify_command)
         .sub_command(rankbinds_delete_command)
-        .handler(rankbind);
+        .sub_command(rankbinds_view_command)
+        .handler(rankbinds_view);
 
     cmds.push(rankbinds);
 }
@@ -47,7 +54,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
 #[derive(FromArgs)]
 pub struct RankbindArguments {}
 
-pub async fn rankbind(ctx: CommandContext, _args: RankbindArguments) -> Result<(), RoError> {
+pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Result<(), RoError> {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot
