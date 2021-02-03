@@ -276,6 +276,11 @@ mod tests {
     #[test]
     pub fn test_update() {
         let mut args = Arguments::new("12345".into());
+        match args.next().map(|s| i64::from_arg(s)) {
+            Some(Ok(i)) => {}
+            Some(Err(err)) => {}
+            None => {}
+        }
         assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), true);
     }
 

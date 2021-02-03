@@ -1,5 +1,6 @@
 use std::num::ParseIntError;
-use twilight_model::{applications::command::CommandDataOption, id::UserId};
+
+use twilight_model::{applications::interaction::CommandDataOption, id::UserId};
 
 #[derive(Debug, Clone)]
 pub struct Arguments {
@@ -13,9 +14,15 @@ pub enum ArgumentError {
         usage: (&'static str, &'static str),
         name: &'static str,
     },
-    ParseError,
+    ParseError {
+        expected: &'static str,
+        usage: (&'static str, &'static str),
+        name: &'static str,
+    },
     BadArgument,
 }
+
+pub struct ParseError(pub &'static str);
 
 pub trait FromArgs {
     fn from_args(args: &mut Arguments) -> Result<Self, ArgumentError>
@@ -113,7 +120,7 @@ where
 }
 
 impl FromArg for UserId {
-    type Error = ArgumentError;
+    type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         let id = u64::from_arg(arg)?;
         Ok(UserId(id))
@@ -126,37 +133,37 @@ impl FromArg for UserId {
 }
 
 impl FromArg for u64 {
-    type Error = ArgumentError;
+    type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        arg.parse::<u64>().map_err(|_| ArgumentError::ParseError)
+        arg.parse::<u64>().map_err(|_| ParseError("a number"))
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(*value as u64),
             CommandDataOption::String { value, .. } => Ok(value.parse::<u64>()?),
-            _ => Err(ArgumentError::BadArgument),
+            _ => unreachable!("u64 unreached"),
         }
     }
 }
 
 impl FromArg for i64 {
-    type Error = ArgumentError;
+    type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        arg.parse::<i64>().map_err(|_| ArgumentError::ParseError)
+        arg.parse::<i64>().map_err(|_| ParseError("a number"))
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(*value as i64),
             CommandDataOption::String { value, .. } => Ok(value.parse::<i64>()?),
-            _ => Err(ArgumentError::BadArgument),
+            _ => unreachable!("i64 unreached"),
         }
     }
 }
 
 impl FromArg for String {
-    type Error = ArgumentError;
+    type Error = ParseError;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         Ok(arg.to_owned())
@@ -166,13 +173,13 @@ impl FromArg for String {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(value.to_string()),
             CommandDataOption::String { value, .. } => Ok(value.to_owned()),
-            _ => Err(ArgumentError::BadArgument),
+            _ => unreachable!("String unreached"),
         }
     }
 }
 
-impl From<ParseIntError> for ArgumentError {
-    fn from(err: ParseIntError) -> Self {
-        ArgumentError::ParseError
+impl From<ParseIntError> for ParseError {
+    fn from(_err: ParseIntError) -> Self {
+        ParseError("a number")
     }
 }

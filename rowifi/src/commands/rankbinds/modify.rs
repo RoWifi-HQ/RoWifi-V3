@@ -204,7 +204,7 @@ async fn remove_roles(
 }
 
 impl FromArg for ModifyOption {
-    type Error = ArgumentError;
+    type Error = ParseError;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match arg {
@@ -212,7 +212,9 @@ impl FromArg for ModifyOption {
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
-            _ => Err(ArgumentError::ParseError),
+            _ => Err(ParseError(
+                "one of `prefix` `priority` `roles-add` `roles-remove`",
+            )),
         }
     }
 
@@ -220,7 +222,7 @@ impl FromArg for ModifyOption {
         let arg = match option {
             CommandDataOption::String { value, .. } => value.to_string(),
             CommandDataOption::Integer { value, .. } => value.to_string(),
-            _ => return Err(ArgumentError::BadArgument),
+            _ => unreachable!("ModifyArgument unreached"),
         };
 
         ModifyOption::from_arg(&arg)
