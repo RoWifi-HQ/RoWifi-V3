@@ -1,31 +1,10 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::guild::RoGuild;
 
-pub static BACKUP_RESTORE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["restore"],
-    desc: Some("Command to restore a backup"),
-    usage: Some("backup restore <Name>"),
-    examples: &["backup restore RoWifi"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+use super::BackupArguments;
 
-pub static BACKUP_RESTORE_COMMAND: Command = Command {
-    fun: backup_restore,
-    options: &BACKUP_RESTORE_OPTIONS,
-};
-
-#[command]
-pub async fn backup_restore(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    match ctx.database.get_premium(msg.author.id.0).await? {
+pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> CommandResult {
+    match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {
             let embed = EmbedBuilder::new()
@@ -38,9 +17,9 @@ pub async fn backup_restore(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -48,14 +27,11 @@ pub async fn backup_restore(
         }
     };
 
-    let guild_id = msg.guild_id.unwrap();
-    let name = match args.next() {
-        Some(g) => g.to_owned(),
-        None => return Ok(()),
-    };
-    let existing = ctx.database.get_guild(guild_id.0).await?.is_some();
+    let guild_id = ctx.guild_id.unwrap();
+    let name = args.name;
+    let existing = ctx.bot.database.get_guild(guild_id.0).await?.is_some();
 
-    let backup = match ctx.database.get_backup(msg.author.id.0, &name).await? {
+    let backup = match ctx.bot.database.get_backup(ctx.author.id.0, &name).await? {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
@@ -71,9 +47,9 @@ pub async fn backup_restore(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -81,20 +57,20 @@ pub async fn backup_restore(
         }
     };
 
-    let server_roles = ctx.cache.roles(guild_id);
+    let server_roles = ctx.bot.cache.roles(guild_id);
     let mut roles = Vec::new();
     for role in server_roles {
-        let cached = ctx.cache.role(role);
+        let cached = ctx.bot.cache.role(role);
         if let Some(cached) = cached {
             roles.push((cached.id, cached.name.clone()));
         }
     }
 
-    let guild = RoGuild::from_backup(backup, ctx.http.clone(), guild_id, &roles).await;
-    ctx.database.add_guild(guild, existing).await?;
-    let _ = ctx
+    let guild = RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles).await;
+    ctx.bot.database.add_guild(guild, existing).await?;
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .content("Backup successfully restored")
         .unwrap()
         .await?;

@@ -13,7 +13,9 @@
 mod commands;
 mod services;
 
-use commands::{analytics_config, assetbinds_config, rankbinds_config, update_config};
+use commands::{
+    analytics_config, assetbinds_config, backup_config, rankbinds_config, update_config,
+};
 use dashmap::DashSet;
 use framework_new::{
     context::BotContext,
@@ -195,7 +197,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .configure(update_config)
         .configure(rankbinds_config)
         .configure(analytics_config)
-        .configure(assetbinds_config);
+        .configure(assetbinds_config)
+        .configure(backup_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {
