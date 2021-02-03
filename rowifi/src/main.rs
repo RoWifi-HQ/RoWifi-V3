@@ -13,7 +13,7 @@
 mod commands;
 mod services;
 
-use commands::{rankbinds_config, update_config};
+use commands::{analytics_config, rankbinds_config, update_config};
 use dashmap::DashSet;
 use framework_new::{
     context::BotContext,
@@ -193,7 +193,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     );
     let framework = NewFramework::new(bot.clone())
         .configure(update_config)
-        .configure(rankbinds_config);
+        .configure(rankbinds_config)
+        .configure(analytics_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {

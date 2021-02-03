@@ -1,37 +1,22 @@
 use chrono::{Duration, Utc};
+use framework_new::prelude::{Color as DiscordColor, *};
 use image::{png::PngEncoder, ColorType};
+use mongodb::bson::doc;
 use plotters::prelude::*;
-use rowifi_framework::prelude::{Color as DiscordColor, *};
 use rowifi_models::guild::GuildType;
 use std::io::Cursor;
 
-pub static ANALYTICS_VIEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["view"],
-    desc: Some("Command to view the membercount analytics of a group"),
-    usage: Some("analytics view <Group Id>"),
-    examples: &["analytics view 3108077"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct ViewArguments {
+    #[arg(help = "The ID of the group whose analytics is to be viewed")]
+    pub group_id: i64,
+}
 
-pub static ANALYTICS_VIEW_COMMAND: Command = Command {
-    fun: analytics_view,
-    options: &ANALYTICS_VIEW_OPTIONS,
-};
-
-#[command]
-pub async fn analytics_view(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
+pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
     let guild = ctx
+        .bot
         .database
-        .get_guild(msg.guild_id.unwrap().0)
+        .get_guild(ctx.guild_id.unwrap().0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
@@ -46,29 +31,16 @@ pub async fn analytics_view(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let group_id = match args.next() {
-        Some(group_str) => match group_str.parse::<i64>() {
-            Ok(g) => g,
-            Err(_) => {
-                return Err(RoError::Command(CommandError::ParseArgument(
-                    group_str.to_string(),
-                    "Group Id".into(),
-                    "Number".into(),
-                )))
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let group_id = args.group_id;
     if !guild.registered_groups.contains(&group_id) {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -80,19 +52,20 @@ pub async fn analytics_view(
             .unwrap()
             .build()
             .unwrap();
-        ctx.http
-            .create_message(msg.channel_id)
+        ctx.bot
+            .http
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let server = ctx.cache.guild(msg.guild_id.unwrap()).unwrap();
+    let server = ctx.bot.cache.guild(ctx.guild_id.unwrap()).unwrap();
 
     let start_time = Utc::now() - Duration::days(5);
-    let filter = bson::doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
-    let group_data = ctx.database.get_analytics_membercount(filter).await?;
+    let filter = doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
+    let group_data = ctx.bot.database.get_analytics_membercount(filter).await?;
 
     if group_data.len() <= 2 {
         let embed = EmbedBuilder::new()
@@ -105,8 +78,9 @@ pub async fn analytics_view(
             .unwrap()
             .build()
             .unwrap();
-        ctx.http
-            .create_message(msg.channel_id)
+        ctx.bot
+            .http
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -144,9 +118,9 @@ pub async fn analytics_view(
     let img = PngEncoder::new(Cursor::new(&mut bytes));
     img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
 
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .attachment("analytics.png", bytes)
         .await?;
     Ok(())
