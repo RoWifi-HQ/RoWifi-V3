@@ -1,38 +1,23 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::doc;
 
-pub static ASSETBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["delete", "remove", "d"],
-    desc: Some("Command to delete assetbinds"),
-    usage: Some("assetbinds delete <Id>"),
-    examples: &["assetbinds delete 792688917", "ab remove 792688917"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct DeleteArguments {
+    #[arg(help = "The ID of the Asset to delete")]
+    pub asset_id: String,
+}
 
-pub static ASSETBINDS_DELETE_COMMAND: Command = Command {
-    fun: assetbinds_delete,
-    options: &ASSETBINDS_DELETE_OPTIONS,
-};
-
-#[command]
-pub async fn assetbinds_delete(
-    ctx: &Context,
-    msg: &Message,
-    args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let mut assets_to_delete = Vec::new();
-    for arg in args {
+    for arg in args.asset_id.split_ascii_whitespace() {
         if let Ok(r) = arg.parse::<i64>() {
             assets_to_delete.push(r);
         }
@@ -56,18 +41,18 @@ pub async fn assetbinds_delete(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"AssetBinds": {"_id": {"$in": binds_to_delete.clone()}}}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$pull": {"AssetBinds": {"_id": {"$in": binds_to_delete.clone()}}}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new()
         .default_data()
@@ -79,9 +64,9 @@ pub async fn assetbinds_delete(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
         .await?;
@@ -92,14 +77,14 @@ pub async fn assetbinds_delete(
         .collect::<String>();
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Asset Bind Deletion")
         .unwrap()
         .field(EmbedFieldBuilder::new("Assets Deleted", ids_str).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())
 }

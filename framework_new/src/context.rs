@@ -21,6 +21,7 @@ use twilight_http::Client as Http;
 use twilight_model::{
     channel::embed::Embed,
     id::{ChannelId, GuildId, RoleId, UserId, WebhookId},
+    user::User,
 };
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
@@ -53,7 +54,7 @@ pub struct CommandContext {
     pub bot: BotContext,
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,
-    pub author_id: UserId,
+    pub author: Arc<User>,
 }
 
 impl BotContext {

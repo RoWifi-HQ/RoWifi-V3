@@ -1,5 +1,6 @@
-use std::num::ParseIntError;
+use std::{num::ParseIntError, str::FromStr};
 
+use rowifi_models::bind::AssetType;
 use twilight_model::{applications::interaction::CommandDataOption, id::UserId};
 
 #[derive(Debug, Clone)]
@@ -175,6 +176,27 @@ impl FromArg for String {
             CommandDataOption::String { value, .. } => Ok(value.to_owned()),
             _ => unreachable!("String unreached"),
         }
+    }
+}
+
+impl FromArg for AssetType {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match AssetType::from_str(arg) {
+            Ok(a) => Ok(a),
+            Err(_) => Err(ParseError("one of `Asset` `Badge` `Gamepass`")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => unreachable!("New Assetbinds unreached"),
+        };
+
+        AssetType::from_arg(&arg)
     }
 }
 

@@ -1,72 +1,30 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::{doc, to_bson};
 use rowifi_models::bind::{AssetBind, AssetType};
 use twilight_mention::Mention;
+use twilight_model::id::RoleId;
 
-pub static ASSETBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["new"],
-    desc: Some("Command to add a new asset bind"),
-    usage: Some("assetbinds new <Field> <Asset Id> [Roles..]`\n`Field`: `Asset` `Badge` `Gamepass"),
-    examples: &[
-        "assetbinds new Asset 78978292 @Role1",
-        "ab new Gamepass 79820839 @Role2",
-        "assetbinds new Badge 8799292 @Role1 @Role2",
-    ],
-    hidden: false,
-    min_args: 3,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct NewArguments {
+    #[arg(help = "The type of asset to create")]
+    pub option: AssetType,
+    #[arg(help = "The ID of asset to bind")]
+    pub asset_id: i64,
+    #[arg(help = "The Discord Roles to add to the bind")]
+    pub discord_roles: String,
+}
 
-pub static ASSETBINDS_NEW_COMMAND: Command = Command {
-    fun: assetbinds_new,
-    options: &ASSETBINDS_NEW_OPTIONS,
-};
-
-#[command]
-pub async fn assetbinds_new(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let asset_type = match args.next() {
-        Some(a) => match a.parse::<AssetType>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Asset Type".into(),
-                    "Asset, Badge, Gamepass".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
-
-    let asset_id = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Asset ID".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let asset_type = args.option;
+    let asset_id = args.asset_id;
     if guild
         .assetbinds
         .iter()
@@ -82,18 +40,18 @@ pub async fn assetbinds_new(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
+    let server_roles = ctx.bot.cache.roles(guild_id);
     let mut roles: Vec<i64> = Vec::new();
-    for r in args {
+    for r in args.discord_roles.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId(role_id)) {
                 roles.push(role_id as i64);
@@ -111,9 +69,9 @@ pub async fn assetbinds_new(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -125,11 +83,11 @@ pub async fn assetbinds_new(
         asset_type,
         discord_roles: roles,
     };
-    let bind_bson = bson::to_bson(&bind)?;
+    let bind_bson = to_bson(&bind)?;
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$push": {"AssetBinds": bind_bson}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$push": {"AssetBinds": bind_bson}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Id: {}", asset_id);
     let value = format!(
@@ -149,22 +107,22 @@ pub async fn assetbinds_new(
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()).unwrap())
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
-        .await;
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Asset Bind Addition")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, value).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
