@@ -1,70 +1,18 @@
-use bson::doc;
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use mongodb::bson::doc;
 use rowifi_models::guild::GuildType;
 
-pub static EVENT_ATTENDEE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["attendee"],
-    desc: Some("Command to view the last 12 events attended by the given user"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct EventAttendeeArguments {
+    #[arg(help = "The roblox username of the attendee")]
+    pub username: Option<String>,
+}
 
-pub static EVENT_ATTENDEE_COMMAND: Command = Command {
-    fun: event_attendee,
-    options: &EVENT_ATTENDEE_OPTIONS,
-};
-
-pub static EVENT_HOST_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["host"],
-    desc: Some("Command to view the last 12 events hosted by the given user"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
-
-pub static EVENT_HOST_COMMAND: Command = Command {
-    fun: event_host,
-    options: &EVENT_HOST_OPTIONS,
-};
-
-pub static EVENT_VIEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["view"],
-    desc: Some("Command to view the information about a certain event"),
-    usage: None,
-    examples: &[],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
-
-pub static EVENT_VIEW_COMMAND: Command = Command {
-    fun: event_view,
-    options: &EVENT_VIEW_OPTIONS,
-};
-
-#[command]
-pub async fn event_attendee(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -81,17 +29,17 @@ pub async fn event_attendee(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let roblox_id = match args.next() {
-        Some(s) => match ctx.roblox.get_id_from_username(s).await? {
+    let roblox_id = match args.username {
+        Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
             Some(i) => i,
             None => {
                 let embed = EmbedBuilder::new()
@@ -104,17 +52,17 @@ pub async fn event_attendee(
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
+                ctx.bot
                     .http
-                    .create_message(msg.channel_id)
+                    .create_message(ctx.channel_id)
                     .embed(embed)
                     .unwrap()
-                    .await;
+                    .await?;
                 return Ok(());
             }
         },
         None => {
-            let user = ctx.database.get_user(msg.author.id.0).await?;
+            let user = ctx.bot.database.get_user(ctx.author.id.0).await?;
             match user {
                 Some(u) => u.roblox_id as i64,
                 None => {
@@ -128,12 +76,12 @@ pub async fn event_attendee(
                         .unwrap()
                         .build()
                         .unwrap();
-                    let _ = ctx
+                    ctx.bot
                         .http
-                        .create_message(msg.channel_id)
+                        .create_message(ctx.channel_id)
                         .embed(embed)
                         .unwrap()
-                        .await;
+                        .await?;
                     return Ok(());
                 }
             }
@@ -148,7 +96,7 @@ pub async fn event_attendee(
         doc! {"$limit": 12},
         doc! {"$unset": "Attendees"},
     ];
-    let events = ctx.database.get_events(pipeline).await?;
+    let events = ctx.bot.database.get_events(pipeline).await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events").unwrap();
     for event in events {
@@ -159,7 +107,7 @@ pub async fn event_attendee(
             .iter()
             .find(|e| e.id == event.event_type)
             .unwrap();
-        let host = ctx.roblox.get_username_from_id(event.host_id).await?;
+        let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
         let desc = format!(
             "Event Type: {}\nHost: {}\nTimestamp:{}",
             event_type.name,
@@ -171,18 +119,25 @@ pub async fn event_attendee(
     }
 
     let embed = embed.build().unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     Ok(())
 }
 
-#[command]
-pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+#[derive(FromArgs)]
+pub struct EventHostArguments {
+    #[arg(help = "The Roblox Username of the host")]
+    pub username: Option<String>,
+}
+
+pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -199,17 +154,17 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let roblox_id = match args.next() {
-        Some(s) => match ctx.roblox.get_id_from_username(s).await? {
+    let roblox_id = match args.username {
+        Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
             Some(i) => i,
             None => {
                 let embed = EmbedBuilder::new()
@@ -222,17 +177,17 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
+                ctx.bot
                     .http
-                    .create_message(msg.channel_id)
+                    .create_message(ctx.channel_id)
                     .embed(embed)
                     .unwrap()
-                    .await;
+                    .await?;
                 return Ok(());
             }
         },
         None => {
-            let user = ctx.database.get_user(msg.author.id.0).await?;
+            let user = ctx.bot.database.get_user(ctx.author.id.0).await?;
             match user {
                 Some(u) => u.roblox_id as i64,
                 None => {
@@ -246,12 +201,12 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
                         .unwrap()
                         .build()
                         .unwrap();
-                    let _ = ctx
+                    ctx.bot
                         .http
-                        .create_message(msg.channel_id)
+                        .create_message(ctx.channel_id)
                         .embed(embed)
                         .unwrap()
-                        .await;
+                        .await?;
                     return Ok(());
                 }
             }
@@ -264,7 +219,7 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$limit": 12},
     ];
-    let events = ctx.database.get_events(pipeline).await?;
+    let events = ctx.bot.database.get_events(pipeline).await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events").unwrap();
     for event in events {
@@ -275,7 +230,7 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
             .iter()
             .find(|e| e.id == event.event_type)
             .unwrap();
-        let host = ctx.roblox.get_username_from_id(event.host_id).await?;
+        let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
         let desc = format!(
             "Event Type: {}\nHost: {}\nTimestamp:{}\nAttendees: {}",
             event_type.name,
@@ -288,8 +243,9 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
     }
 
     let embed = embed.build().unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
@@ -297,10 +253,16 @@ pub async fn event_host(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
     Ok(())
 }
 
-#[command]
-pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+#[derive(FromArgs)]
+pub struct EventViewArguments {
+    #[arg(help = "The ID of the event to be viewed")]
+    pub event_id: i64,
+}
+
+pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -317,33 +279,18 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let event_id = match args.next() {
-        Some(e) => match e.parse::<i64>() {
-            Ok(e) => e,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    e.into(),
-                    "Event ID".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let event_id = args.event_id;
     let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0, "GuildEventId": event_id}}];
-    let events = ctx.database.get_events(pipeline).await?;
-
+    let events = ctx.bot.database.get_events(pipeline).await?;
     if events.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -355,9 +302,9 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -371,10 +318,10 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
         .iter()
         .find(|e| e.id == event.event_type)
         .unwrap();
-    let host = ctx.roblox.get_username_from_id(event.host_id).await?;
+    let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
     let mut attendees = Vec::new();
     for a in &event.attendees {
-        let roblox_name = ctx.roblox.get_username_from_id(*a).await?;
+        let roblox_name = ctx.bot.roblox.get_username_from_id(*a).await?;
         attendees.push(roblox_name);
     }
 
@@ -401,8 +348,9 @@ pub async fn event_view(ctx: &Context, msg: &Message, mut args: Arguments<'fut>)
     }
     let embed = embed.build().unwrap();
 
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;

@@ -1,30 +1,14 @@
-use bson::oid::ObjectId;
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::{oid::ObjectId, DateTime};
 use rowifi_models::{events::EventLog, guild::GuildType};
 use twilight_mention::Mention;
 
-pub static EVENT_NEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Trainer,
-    bucket: None,
-    names: &["new"],
-    desc: Some("Command to register a new event"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+use super::EventArguments;
 
-pub static EVENT_NEW_COMMAND: Command = Command {
-    fun: event_new,
-    options: &EVENT_NEW_OPTIONS,
-};
-
-#[command]
-pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -41,16 +25,16 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let user = match ctx.database.get_user(msg.author.id.0).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -63,17 +47,17 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
 
-    let event_type_id = match await_reply("Enter the id of the type of event", ctx, msg)
+    let event_type_id = match await_reply("Enter the id of the type of event", &ctx)
         .await?
         .parse::<i64>()
     {
@@ -89,8 +73,9 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.http
-                .create_message(msg.channel_id)
+            ctx.bot
+                .http
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -113,8 +98,9 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.http
-                .create_message(msg.channel_id)
+            ctx.bot
+                .http
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -122,10 +108,10 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         }
     };
 
-    let attendees_str = await_reply("Enter the list of attendees in this event", ctx, msg).await?;
+    let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
     let mut attendees = Vec::new();
     for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
-        if let Ok(Some(roblox_id)) = ctx.roblox.get_id_from_username(&attendee).await {
+        if let Ok(Some(roblox_id)) = ctx.bot.roblox.get_id_from_username(&attendee).await {
             attendees.push(roblox_id);
         }
     }
@@ -141,15 +127,16 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        ctx.http
-            .create_message(msg.channel_id)
+        ctx.bot
+            .http
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let notes_raw = await_reply("Would you like to add any notes to this event log? Say N/A if you would like to not add any notes", ctx, msg).await?;
+    let notes_raw = await_reply("Would you like to add any notes to this event log? Say N/A if you would like to not add any notes", &ctx).await?;
     let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
         None
     } else {
@@ -166,17 +153,17 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         guild_event_id: guild.event_counter + 1,
         host_id: user.roblox_id,
         attendees,
-        timestamp: bson::DateTime {
+        timestamp: DateTime {
             0: chrono::Utc::now(),
         },
         notes,
     };
 
-    ctx.database.add_event(guild_id, &new_event).await?;
+    ctx.bot.database.add_event(guild_id, &new_event).await?;
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",
-        msg.author.id.mention(),
+        ctx.author.id.mention(),
         event_type.name,
         new_event.attendees.len()
     );
@@ -192,8 +179,9 @@ pub async fn event_new(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         )
         .build()
         .unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;

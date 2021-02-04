@@ -2,41 +2,79 @@ mod new;
 mod types;
 mod view;
 
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::guild::GuildType;
 
-use new::EVENT_NEW_COMMAND;
-use types::EVENT_TYPE_COMMAND;
-use view::{EVENT_ATTENDEE_COMMAND, EVENT_HOST_COMMAND, EVENT_VIEW_COMMAND};
+use new::events_new;
+use types::{event_type, event_type_modify, event_type_new};
+use view::{event_attendee, event_host, event_view};
 
-pub static EVENTS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["events", "event"],
-    desc: Some("Command to view information about the events module"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &EVENT_TYPE_COMMAND,
-        &EVENT_NEW_COMMAND,
-        &EVENT_ATTENDEE_COMMAND,
-        &EVENT_HOST_COMMAND,
-        &EVENT_VIEW_COMMAND,
-    ],
-    group: Some("Premium"),
-};
+pub fn events_config(cmds: &mut Vec<Command>) {
+    let event_types_new_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command to add a new event type")
+        .handler(event_type_new);
 
-pub static EVENTS_COMMAND: Command = Command {
-    fun: events,
-    options: &EVENTS_OPTIONS,
-};
+    let event_types_modify_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["modify", "m"])
+        .description("Command to modify an existing event type")
+        .handler(event_type_modify);
 
-#[command]
-pub async fn events(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let event_types_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["types", "type"])
+        .description("Command to view the event types")
+        .sub_command(event_types_new_cmd)
+        .sub_command(event_types_modify_cmd)
+        .handler(event_type);
+
+    let events_new_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command for users with `RoWifi Trainer` to log an event")
+        .handler(events_new);
+
+    let events_attendee_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["attendee"])
+        .description("Command to view the last 12 events of an user")
+        .handler(event_attendee);
+
+    let events_host_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["host"])
+        .description("Command to view the last 12 events hosted by an user")
+        .handler(event_host);
+
+    let events_view_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["view"])
+        .description("Command to view information about a specific event")
+        .handler(event_view);
+
+    let events_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["event"])
+        .description("Module to interact with the events subsystem")
+        .group("Premium")
+        .sub_command(events_new_cmd)
+        .sub_command(event_types_cmd)
+        .sub_command(events_attendee_cmd)
+        .sub_command(events_host_cmd)
+        .sub_command(events_view_cmd)
+        .handler(events);
+    cmds.push(events_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct EventArguments {}
+
+pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -53,9 +91,9 @@ pub async fn events(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -69,8 +107,9 @@ pub async fn events(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Com
         .field(EmbedFieldBuilder::new("For Trainers", "To add a new event: `!event new`").unwrap())
         .field(EmbedFieldBuilder::new("Viewing Events", "To see the last 12 events attended by the member: `!event attendee [RobloxName]`\nTo see the last 12 events hosted by the member: `!event host [RobloxName]`\nTo view specific information about an event: `!event view <Event Id>`").unwrap())
         .build().unwrap();
-    ctx.http
-        .create_message(msg.channel_id)
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
