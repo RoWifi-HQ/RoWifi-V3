@@ -12,7 +12,7 @@ use tokio_stream::StreamExt;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
 use twilight_http::request::prelude::RequestReactionType;
 use twilight_model::{
-    channel::{embed::Embed, Message, ReactionType},
+    channel::{embed::Embed, ReactionType},
     gateway::payload::{MessageCreate, ReactionAdd},
     id::RoleId,
 };
@@ -38,23 +38,19 @@ impl Default for RoLevel {
     }
 }
 
-pub async fn await_reply(
-    question: &str,
-    ctx: &CommandContext,
-    msg: &Message,
-) -> Result<String, RoError> {
+pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
     let question = format!("{}\nSay `cancel` to cancel this prompt", question);
     ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .content(question)
         .unwrap()
         .await?;
-    let id = msg.author.id;
+    let id = ctx.author.id;
     let fut = ctx
         .bot
         .standby
-        .wait_for_message(msg.channel_id, move |event: &MessageCreate| {
+        .wait_for_message(ctx.channel_id, move |event: &MessageCreate| {
             event.author.id == id && !event.content.is_empty()
         });
     match timeout(Duration::from_secs(300), fut).await {

@@ -1,42 +1,25 @@
-use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::doc;
 
-pub static BLACKLISTS_DELETE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["delete", "d", "remove"],
-    desc: Some("Command to delete a blacklist"),
-    usage: Some("blacklists delete <Id>"),
-    examples: &[
-        "blacklists delete 3108077",
-        "bl delete 3108077",
-        "blacklists d IsInGroup(3108077)",
-    ],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct BlacklistDeleteArguments {
+    #[arg(help = "The ID of the blacklist to delete", rest)]
+    pub id: String,
+}
 
-pub static BLACKLISTS_DELETE_COMMAND: Command = Command {
-    fun: blacklists_delete,
-    options: &BLACKLISTS_DELETE_OPTIONS,
-};
-
-#[command]
-pub async fn blacklists_delete(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
+pub async fn blacklist_delete(
+    ctx: CommandContext,
+    args: BlacklistDeleteArguments,
 ) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let id = args.join(" ");
+    let id = args.id;
     let blacklist = guild.blacklists.iter().find(|b| b.id == id);
     if blacklist.is_none() {
         let embed = EmbedBuilder::new()
@@ -49,18 +32,18 @@ pub async fn blacklists_delete(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$pull": {"Blacklists": {"_id": id}}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$pull": {"Blacklists": {"_id": id}}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new()
         .default_data()
@@ -72,9 +55,9 @@ pub async fn blacklists_delete(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
         .await?;
@@ -84,13 +67,13 @@ pub async fn blacklists_delete(
     let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Blacklist Deletion")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }

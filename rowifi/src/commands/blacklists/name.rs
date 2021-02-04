@@ -1,46 +1,26 @@
-use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::{doc, to_bson};
 use rowifi_models::blacklist::{Blacklist, BlacklistType};
 
-pub static BLACKLISTS_NAME_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["name"],
-    desc: Some("Command to add a user blacklist"),
-    usage: Some("blacklist name <Username> <Reason>"),
-    examples: &[
-        "blacklist name AsianIntel Owner",
-        "bl name Zanance Co-Founder",
-    ],
-    min_args: 2,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct BlacklistNameArguments {
+    #[arg(help = "The username to blacklist. This will get converted into the id in the database")]
+    pub username: String,
+    #[arg(help = "The reason of the blacklist", rest)]
+    pub reason: String,
+}
 
-pub static BLACKLISTS_NAME_COMMAND: Command = Command {
-    fun: blacklists_name,
-    options: &BLACKLISTS_NAME_OPTIONS,
-};
-
-#[command]
-pub async fn blacklists_name(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let username = match args.next() {
-        Some(u) => u.to_owned(),
-        None => return Ok(()),
-    };
-    let user_id = match ctx.roblox.get_id_from_username(&username).await? {
+    let username = args.username;
+    let user_id = match ctx.bot.roblox.get_id_from_username(&username).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -56,9 +36,9 @@ pub async fn blacklists_name(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -66,7 +46,7 @@ pub async fn blacklists_name(
         }
     };
 
-    let mut reason = args.join(" ");
+    let mut reason = args.reason;
     if reason.is_empty() {
         reason = "N/A".into();
     }
@@ -76,10 +56,10 @@ pub async fn blacklists_name(
         reason,
         blacklist_type: BlacklistType::Name(user_id.to_string()),
     };
-    let blacklist_bson = bson::to_bson(&blacklist)?;
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$push": {"Blacklists": blacklist_bson}};
-    ctx.database.modify_guild(filter, update).await?;
+    let blacklist_bson = to_bson(&blacklist)?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$push": {"Blacklists": blacklist_bson}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Type: {:?}", blacklist.blacklist_type);
     let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
@@ -93,22 +73,22 @@ pub async fn blacklists_name(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
-        .await;
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Blacklist Addition")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
