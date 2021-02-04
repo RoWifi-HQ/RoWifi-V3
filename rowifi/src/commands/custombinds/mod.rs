@@ -2,40 +2,63 @@ mod delete;
 mod modify;
 mod new;
 
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
 use twilight_mention::Mention;
+use twilight_model::id::RoleId;
 
-use delete::CUSTOMBINDS_DELETE_COMMAND;
-use modify::CUSTOMBINDS_MODIFY_COMMAND;
-use new::CUSTOMBINDS_NEW_COMMAND;
+use delete::custombinds_delete;
+use modify::custombinds_modify;
+use new::custombinds_new;
 
-pub static CUSTOMBINDS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["custombinds", "cb"],
-    desc: Some("Command to view the custom binds"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &CUSTOMBINDS_NEW_COMMAND,
-        &CUSTOMBINDS_MODIFY_COMMAND,
-        &CUSTOMBINDS_DELETE_COMMAND,
-    ],
-    group: Some("Binds"),
-};
+pub fn custombinds_config(cmds: &mut Vec<Command>) {
+    let custombinds_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view custombinds")
+        .handler(custombinds_view);
 
-pub static CUSTOMBINDS_COMMAND: Command = Command {
-    fun: custombind,
-    options: &CUSTOMBINDS_OPTIONS,
-};
+    let custombinds_delete_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["delete", "d", "remove"])
+        .description("Command to delete a custombind")
+        .handler(custombinds_delete);
 
-#[command]
-pub async fn custombind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let custombinds_modify_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["modify", "m"])
+        .description("Command to modify a custombind")
+        .handler(custombinds_modify);
+
+    let custombinds_new_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command to create a custombind")
+        .handler(custombinds_new);
+
+    let custombinds_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["custombinds", "cb"])
+        .description("Module to create, update, view & delete custombinds")
+        .group("Binds")
+        .sub_command(custombinds_view_cmd)
+        .sub_command(custombinds_delete_cmd)
+        .sub_command(custombinds_modify_cmd)
+        .sub_command(custombinds_new_cmd)
+        .handler(custombinds_view);
+    cmds.push(custombinds_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct CustombindsViewArguments {}
+
+pub async fn custombinds_view(
+    ctx: CommandContext,
+    _args: CustombindsViewArguments,
+) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -52,12 +75,12 @@ pub async fn custombind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(e)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -87,6 +110,6 @@ pub async fn custombind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         pages.push(embed.build().unwrap());
         page_count += 1;
     }
-    paginate_embed(ctx, msg, pages, page_count).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }

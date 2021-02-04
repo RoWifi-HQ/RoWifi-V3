@@ -1,40 +1,30 @@
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use mongodb::bson::{doc, to_bson};
 use rowifi_models::{
     bind::CustomBind,
     rolang::{RoCommand, RoCommandUser},
 };
+use twilight_model::id::RoleId;
 
-pub static CUSTOMBINDS_NEW_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["new"],
-    desc: Some("Command to add a custombind"),
-    usage: Some("custombinds new <Code>"),
-    examples: &["custombinds new HasRank(3108077, 255) and GetRank(3455445) >= 120"],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct CustombindsNewArguments {
+    #[arg(help = "The code that makes up the bind", rest)]
+    pub code: String,
+}
 
-pub static CUSTOMBINDS_NEW_COMMAND: Command = Command {
-    fun: custombinds_new,
-    options: &CUSTOMBINDS_NEW_OPTIONS,
-};
-
-#[command]
-pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let code = args.as_str();
+    let code = args.code;
 
-    let user = match ctx.database.get_user(msg.author.id.0).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -47,18 +37,18 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
             return Ok(());
         }
     };
-    let member = ctx.member(guild_id, msg.author.id.0).await?.unwrap();
-    let ranks = ctx.roblox.get_user_roles(user.roblox_id).await?;
-    let username = ctx.roblox.get_username_from_id(user.roblox_id).await?;
+    let member = ctx.member(guild_id, ctx.author.id.0).await?.unwrap();
+    let ranks = ctx.bot.roblox.get_user_roles(user.roblox_id).await?;
+    let username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
 
     let command_user = RoCommandUser {
         user: &user,
@@ -66,12 +56,12 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
         ranks: &ranks,
         username: &username,
     };
-    let command = match RoCommand::new(code) {
+    let command = match RoCommand::new(&code) {
         Ok(c) => c,
         Err(s) => {
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .content(s)
                 .unwrap()
                 .await?;
@@ -79,17 +69,17 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .content(res)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
-    let prefix = await_reply("Enter the prefix you wish to set for the bind.\nEnter `N/A` if you would not like to set a prefix", ctx, msg).await?;
-    let priority = match await_reply("Enter the priority you wish to set for the bind.", ctx, msg)
+    let prefix = await_reply("Enter the prefix you wish to set for the bind.\nEnter `N/A` if you would not like to set a prefix", &ctx).await?;
+    let priority = match await_reply("Enter the priority you wish to set for the bind.", &ctx)
         .await?
         .parse::<i64>()
     {
@@ -105,9 +95,9 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -115,8 +105,8 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
         }
     };
 
-    let server_roles = ctx.cache.roles(guild_id);
-    let discord_roles_str = await_reply("Enter the roles you wish to set for the bind.\nEnter `N/A` if you would not like to set roles. Please tag the roles to ensure the bot can recognize them.", ctx, msg).await?;
+    let server_roles = ctx.bot.cache.roles(guild_id);
+    let discord_roles_str = await_reply("Enter the roles you wish to set for the bind.\nEnter `N/A` if you would not like to set roles. Please tag the roles to ensure the bot can recognize them.", &ctx).await?;
     let mut discord_roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(role_str) {
@@ -137,10 +127,10 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
         command,
         discord_roles,
     };
-    let bind_bson = bson::to_bson(&bind)?;
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$push": {"CustomBinds": bind_bson}};
-    ctx.database.modify_guild(filter, update).await?;
+    let bind_bson = to_bson(&bind)?;
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$push": {"CustomBinds": bind_bson}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Id: {}", bind.id);
     let roles_str = bind
@@ -161,22 +151,22 @@ pub async fn custombinds_new(ctx: &Context, msg: &Message, args: Arguments<'fut>
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
-        .await;
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Custom Bind Addition")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
