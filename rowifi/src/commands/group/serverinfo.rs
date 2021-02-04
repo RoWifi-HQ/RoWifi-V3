@@ -1,28 +1,13 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
-pub static SERVERINFO_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["serverinfo"],
-    desc: Some("Shows the information about the server"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Miscellanous"),
-};
+#[derive(FromArgs)]
+pub struct ServerInfoArguments {}
 
-pub static SERVERINFO_COMMAND: Command = Command {
-    fun: serverinfo,
-    options: &SERVERINFO_OPTIONS,
-};
-
-#[command]
-pub async fn serverinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -36,12 +21,15 @@ pub async fn serverinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                 .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Member Count", ctx.cache.member_count(guild_id).to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new(
+                "Member Count",
+                ctx.bot.cache.member_count(guild_id).to_string(),
+            )
+            .unwrap()
+            .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Cluster Id", ctx.bot_config.cluster_id.to_string())
+            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string())
                 .unwrap()
                 .inline(),
         )
@@ -93,9 +81,9 @@ pub async fn serverinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         )
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;

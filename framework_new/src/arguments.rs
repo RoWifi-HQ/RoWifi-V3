@@ -1,7 +1,10 @@
 use std::{num::ParseIntError, str::FromStr};
 
 use rowifi_models::bind::AssetType;
-use twilight_model::{applications::interaction::CommandDataOption, id::UserId};
+use twilight_model::{
+    applications::interaction::CommandDataOption,
+    id::{RoleId, UserId},
+};
 
 #[derive(Debug, Clone)]
 pub struct Arguments {
@@ -135,6 +138,19 @@ impl FromArg for UserId {
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         let id = u64::from_interaction(option)?;
         Ok(UserId(id))
+    }
+}
+
+impl FromArg for RoleId {
+    type Error = ParseError;
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        let id = u64::from_arg(arg)?;
+        Ok(RoleId(id))
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let id = u64::from_interaction(option)?;
+        Ok(RoleId(id))
     }
 }
 

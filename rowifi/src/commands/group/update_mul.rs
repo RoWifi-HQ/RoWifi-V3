@@ -1,49 +1,19 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
-use twilight_model::{gateway::payload::RequestGuildMembers, id::UserId};
-
-pub static UPDATE_ALL_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: Some("update-multiple"),
-    names: &["update-all"],
-    desc: Some("Command to update all members in the server"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Premium"),
+use twilight_model::{
+    gateway::payload::RequestGuildMembers,
+    id::{RoleId, UserId},
 };
 
-pub static UPDATE_ALL_COMMAND: Command = Command {
-    fun: update_all,
-    options: &UPDATE_ALL_OPTIONS,
-};
+#[derive(FromArgs)]
+pub struct UpdateAllArguments {}
 
-pub static UPDATE_ROLE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: Some("update-multiple"),
-    names: &["update-role"],
-    desc: Some("Command to update all members with a certain role"),
-    usage: None,
-    examples: &[],
-    min_args: 1,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Premium"),
-};
-
-pub static UPDATE_ROLE_COMMAND: Command = Command {
-    fun: update_role,
-    options: &UPDATE_ROLE_OPTIONS,
-};
-
-#[command]
-pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -59,22 +29,23 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .content("Updating all members...")
         .unwrap()
         .await?;
-    let server = ctx.cache.guild(guild_id).unwrap();
+    let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
+        .bot
         .cache
         .members(guild_id)
         .into_iter()
@@ -82,12 +53,13 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
-        let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
-        if ctx.cluster.command(shard_id, &req).await.is_err() {
-            let _ = ctx.http.create_message(msg.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await;
+        let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
+        if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
+            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
             return Ok(());
         }
         let _ = ctx
+            .bot
             .standby
             .wait_for_event(move |event: &Event| {
                 if let Event::MemberChunk(mc) = event {
@@ -99,19 +71,20 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
             })
             .await;
         members = ctx
+            .bot
             .cache
             .members(guild_id)
             .into_iter()
             .map(|m| m.0)
             .collect::<Vec<_>>();
     }
-    let users = ctx.database.get_users(members).await?;
-    let guild_roles = ctx.cache.roles(guild_id);
+    let users = ctx.bot.database.get_users(members).await?;
+    let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
-    let channel_id = msg.channel_id;
+    let channel_id = ctx.channel_id;
     tokio::spawn(async move {
         for user in users {
-            if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
+            if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
                 if let Some(bypass) = server.bypass_role {
                     if member.roles.contains(&bypass) {
                         continue;
@@ -120,7 +93,7 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
                 let name = member.user.name.clone();
                 if let Ok((added_roles, removed_roles, disc_nick)) = c
-                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
+                    .update_user(member, &user, &server, &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -131,12 +104,13 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
                             .update_log(&added_roles, &removed_roles, &disc_nick)
                             .build()
                             .unwrap();
-                        c.logger.log_guild(&c, guild_id, log_embed).await;
+                        c.log_guild(guild_id, log_embed).await;
                     }
                 }
             }
         }
         let _ = c
+            .bot
             .http
             .create_message(channel_id)
             .content("Finished updating all members")
@@ -146,10 +120,16 @@ pub async fn update_all(ctx: &Context, msg: &Message, _args: Arguments<'fut>) ->
     Ok(())
 }
 
-#[command]
-pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+#[derive(FromArgs)]
+pub struct UpdateMultipleArguments {
+    #[arg(help = "The role or its id whose members are to be updated")]
+    pub role: RoleId,
+}
+
+pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -165,34 +145,28 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    let server_roles = ctx.cache.roles(msg.guild_id.unwrap());
-    let role_str = match args.next() {
-        Some(r) => r,
-        None => return Ok(()),
-    };
-    let role_id = match parse_role(role_str) {
-        Some(v) if server_roles.contains(&RoleId(v)) => RoleId(v),
-        _ => {
-            return Err(CommandError::ParseArgument(
-                role_str.into(),
-                "Role".into(),
-                "Discord Role/Number".into(),
-            )
-            .into())
-        }
-    };
+    let server_roles = ctx.bot.cache.roles(guild_id);
+    let role_id = args.role;
+    if !server_roles.contains(&role_id) {
+        return Err(RoError::Argument(ArgumentError::ParseError {
+            expected: "a Discord Role/Id",
+            usage: UpdateMultipleArguments::generate_help(),
+            name: "role",
+        }));
+    }
 
-    let server = ctx.cache.guild(guild_id).unwrap();
+    let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
+        .bot
         .cache
         .members(guild_id)
         .into_iter()
@@ -200,12 +174,13 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
-        let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
-        if ctx.cluster.command(shard_id, &req).await.is_err() {
-            let _ = ctx.http.create_message(msg.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await;
+        let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
+        if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
+            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
             return Ok(());
         }
         let _ = ctx
+            .bot
             .standby
             .wait_for_event(move |event: &Event| {
                 if let Event::MemberChunk(mc) = event {
@@ -217,19 +192,20 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
             })
             .await;
         members = ctx
+            .bot
             .cache
             .members(guild_id)
             .into_iter()
             .map(|m| m.0)
             .collect::<Vec<_>>();
     }
-    let users = ctx.database.get_users(members).await?;
-    let guild_roles = ctx.cache.roles(guild_id);
+    let users = ctx.bot.database.get_users(members).await?;
+    let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
-    let channel_id = msg.channel_id;
+    let channel_id = ctx.channel_id;
     tokio::spawn(async move {
         for user in users {
-            if let Some(member) = c.cache.member(guild_id, UserId(user.discord_id as u64)) {
+            if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
                 if !member.roles.contains(&role_id) {
                     continue;
                 }
@@ -241,7 +217,7 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
                 tracing::trace!(id = user.discord_id, "Mass Update for member");
                 let name = member.user.name.clone();
                 if let Ok((added_roles, removed_roles, disc_nick)) = c
-                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
+                    .update_user(member, &user, &server, &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -252,12 +228,13 @@ pub async fn update_role(ctx: &Context, msg: &Message, mut args: Arguments<'fut>
                             .update_log(&added_roles, &removed_roles, &disc_nick)
                             .build()
                             .unwrap();
-                        c.logger.log_guild(&c, guild_id, log_embed).await;
+                        c.log_guild(guild_id, log_embed).await;
                     }
                 }
             }
         }
         let _ = c
+            .bot
             .http
             .create_message(channel_id)
             .content("Finished updating all members")
