@@ -23,6 +23,7 @@ pub fn backup_config(cmds: &mut Vec<Command>) {
         .level(RoLevel::Admin)
         .names(&["backup"])
         .description("Module to interact with the backup system")
+        .group("Premium")
         .sub_command(backup_new_cmd)
         .sub_command(backup_restore_cmd)
         .handler(backup);

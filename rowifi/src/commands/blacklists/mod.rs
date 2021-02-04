@@ -3,41 +3,66 @@ mod delete;
 mod group;
 mod name;
 
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
 
-pub use custom::*;
-pub use delete::*;
-pub use group::*;
-pub use name::*;
+pub use custom::blacklist_custom;
+pub use delete::blacklist_delete;
+pub use group::blacklist_group;
+pub use name::blacklist_name;
 
-pub static BLACKLISTS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["blacklists", "bl", "blacklist"],
-    desc: Some("Command to view the blacklists"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &BLACKLISTS_NAME_COMMAND,
-        &BLACKLISTS_GROUP_COMMAND,
-        &BLACKLISTS_CUSTOM_COMMAND,
-        &BLACKLISTS_DELETE_COMMAND,
-    ],
-    group: Some("Administration"),
-};
+pub fn blacklists_config(cmds: &mut Vec<Command>) {
+    let blacklist_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view blacklists of a server")
+        .handler(blacklist);
 
-pub static BLACKLISTS_COMMAND: Command = Command {
-    fun: blacklist,
-    options: &BLACKLISTS_OPTIONS,
-};
+    let blacklist_custom_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["custom"])
+        .description("Command to add a custom blacklist")
+        .handler(blacklist_custom);
 
-#[command]
-pub async fn blacklist(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let blacklist_group_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["group"])
+        .description("Command to add a group blacklist")
+        .handler(blacklist_group);
+
+    let blacklist_name_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["name"])
+        .description("Command to add a user blacklist")
+        .handler(blacklist_name);
+
+    let blacklist_delete_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["delete", "d", "remove"])
+        .description("Command to delete a blacklist")
+        .handler(blacklist_delete);
+
+    let blacklist_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["blacklist", "bl"])
+        .description("Command to view blacklists of a server")
+        .group("Administration")
+        .sub_command(blacklist_view_cmd)
+        .sub_command(blacklist_custom_cmd)
+        .sub_command(blacklist_group_cmd)
+        .sub_command(blacklist_name_cmd)
+        .sub_command(blacklist_delete_cmd)
+        .handler(blacklist);
+    cmds.push(blacklist_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct BlacklistViewArguments {}
+
+pub async fn blacklist(ctx: CommandContext, _args: BlacklistViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -54,12 +79,12 @@ pub async fn blacklist(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(e)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -80,6 +105,6 @@ pub async fn blacklist(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         pages.push(embed.build().unwrap());
         page_count += 1;
     }
-    paginate_embed(ctx, msg, pages, page_count).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }

@@ -97,6 +97,11 @@ impl Arguments {
     pub fn back(&mut self) {
         self.idx -= 1;
     }
+
+    pub fn rest(&self) -> Option<String> {
+        let res = self.buf.get(self.idx..);
+        res.map(|s| s.join(" "))
+    }
 }
 
 impl<T> FromArg for Option<T>

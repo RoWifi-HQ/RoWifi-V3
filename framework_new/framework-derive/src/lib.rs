@@ -6,16 +6,10 @@ use syn::{
     Meta, NestedMeta, Path, Type,
 };
 
-fn path_is_option(path: &Path) -> bool {
+fn path_is(path: &Path, slug: &str) -> bool {
     path.leading_colon.is_none()
         && path.segments.len() == 1
-        && path.segments.iter().next().unwrap().ident == "Option"
-}
-
-fn path_is_help(path: &Path) -> bool {
-    path.leading_colon.is_none()
-        && path.segments.len() == 1
-        && path.segments.iter().next().unwrap().ident == "help"
+        && path.segments.iter().next().unwrap().ident.eq(slug)
 }
 
 fn builder(field: &Field) -> Option<&Attribute> {
@@ -40,13 +34,42 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
     } else {
         panic!("Only supported on structs");
     };
-    let fields_decs = fields.iter().map(|f| {
+    let fields_decs = fields.iter().enumerate().map(|(i, f)| {
         let field_name = f.ident.as_ref().unwrap();
         let name = format!("{}", field_name);
         let struct_name = struct_name.clone();
         let ty = &f.ty;
+
+        if let Some(attr) = builder(f) {
+            if let Ok(Meta::List(nvs)) = attr.parse_meta() {
+                for nv in nvs.nested {
+                    if let NestedMeta::Meta(Meta::Path(path)) = nv {
+                        if path_is(&path, "rest") {
+                            if i != fields.len() - 1 {
+                                panic!("This attribute may only be used on the last field of a struct")
+                            }
+                            return quote! {
+                                let #field_name = match args.rest().map(|s| <#ty>::from_arg(s.as_str())) {
+                                    Some(Ok(s)) => s,
+                                    Some(Err(err)) => return Err(ArgumentError::ParseError{
+                                        expected: err.0,
+                                        usage: <#struct_name>::generate_help(),
+                                        name: #name
+                                    }),
+                                    None => return Err(ArgumentError::MissingArgument {
+                                        usage: <#struct_name>::generate_help(),
+                                        name: #name
+                                    })
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         let stmt = match ty {
-            Type::Path(typepath) if path_is_option(&typepath.path) => {
+            Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                 quote! {
                     let #field_name = match args.next().map(<#ty>::from_arg) {
                         Some(Ok(s)) => s,
@@ -85,7 +108,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         let struct_name = struct_name.clone();
         let ty = &f.ty;
         let stmt = match ty {
-            Type::Path(typepath) if path_is_option(&typepath.path) => {
+            Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                 quote! {
                     let #field_name = match options.get(&(#name)).map(|s| <#ty>::from_interaction(*s)) {
                         Some(Ok(s)) => s,
@@ -129,21 +152,19 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         .map(|f| {
             let name = f.ident.as_ref().unwrap();
             if let Some(attr) = builder(f) {
-                match attr.parse_meta() {
-                    Ok(Meta::List(mut nvs)) => match nvs.nested.pop().unwrap().into_value() {
-                        NestedMeta::Meta(Meta::NameValue(nv)) if path_is_help(&nv.path) => {
-                            match nv.lit {
-                                Lit::Str(lit) => format!("{}: {}", name, lit.value()),
-                                _ => panic!("This ident only accepts strings"),
+                if let Ok(Meta::List(nvs)) = attr.parse_meta() {
+                    for nv in nvs.nested {
+                        if let NestedMeta::Meta(Meta::NameValue(nv)) = nv {
+                            if path_is(&nv.path, "help") {
+                                if let Lit::Str(lit) = nv.lit {
+                                    return format!("{}: {}", name, lit.value())
+                                }   
                             }
                         }
-                        _ => panic!("Not implemented for non-name val list"),
-                    },
-                    _ => panic!("Only meant for Meta"),
+                    }
                 }
-            } else {
-                format!("{}: No description", name)
-            }
+            } 
+            format!("{}: No description", name)
         })
         .join("\n");
 
@@ -153,7 +174,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             let field_name = f.ident.as_ref().unwrap();
             let ty = &f.ty;
             match ty {
-                Type::Path(typepath) if path_is_option(&typepath.path) => {
+                Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                     format!("[{}] ", field_name)
                 }
                 _ => {
