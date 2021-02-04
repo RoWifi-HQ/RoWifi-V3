@@ -1,62 +1,36 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::doc;
 use rowifi_models::guild::RoGuild;
 
-pub static GROUPBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["modify", "m"],
-    desc: Some("Command to modify a groupbind"),
-    usage: Some(
-        "groupbinds modify <Field> <Group Id> [Roles..]`\nField: `roles-add` `roles-remove",
-    ),
-    examples: &[
-        "groupbinds modify roles-add 8998774 @Role1 @Role2",
-        "gb m roles-remove 8998774 @Role1",
-    ],
-    min_args: 3,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct GroupbindsModifyArguments {
+    #[arg(help = "The field to modify. Must be either `roles-add` or `roles-remove`")]
+    pub option: ModifyOption,
+    #[arg(help = "The id of the groupbind to modify")]
+    pub group_id: i64,
+    #[arg(help = "The actual modification to be made")]
+    pub change: String,
+}
 
-pub static GROUPBINDS_MODIFY_COMMAND: Command = Command {
-    fun: groupbinds_modify,
-    options: &GROUPBINDS_MODIFY_OPTIONS,
-};
+pub enum ModifyOption {
+    RolesAdd,
+    RolesRemove,
+}
 
-#[command]
 pub async fn groupbinds_modify(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
+    ctx: CommandContext,
+    args: GroupbindsModifyArguments,
 ) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let field = match args.next() {
-        Some(s) => s.to_owned(),
-        None => return Ok(()),
-    };
-
-    let group_id = match args.next() {
-        Some(a) => match a.parse::<i64>() {
-            Ok(a) => a,
-            Err(_) => {
-                return Err(CommandError::ParseArgument(
-                    a.into(),
-                    "Group ID".into(),
-                    "Number".into(),
-                )
-                .into())
-            }
-        },
-        None => return Ok(()),
-    };
-
+    let field = args.option;
+    let group_id = args.group_id;
     let bind_index = match guild.groupbinds.iter().position(|g| g.group_id == group_id) {
         Some(b) => b,
         None => {
@@ -70,9 +44,9 @@ pub async fn groupbinds_modify(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap();
             return Ok(());
@@ -80,29 +54,25 @@ pub async fn groupbinds_modify(
     };
 
     let name = format!("Id: {}", group_id);
-    let desc = if field.eq_ignore_ascii_case("roles-add") {
-        let role_ids = add_roles(ctx, &guild, bind_index, args).await?;
-        let modification = role_ids
-            .iter()
-            .map(|r| format!("<@&{}> ", r))
-            .collect::<String>();
-        let desc = format!("Added Roles: {}", modification);
-        desc
-    } else if field.eq_ignore_ascii_case("roles-remove") {
-        let role_ids = remove_roles(ctx, &guild, bind_index, args).await?;
-        let modification = role_ids
-            .iter()
-            .map(|r| format!("<@&{}> ", r))
-            .collect::<String>();
-        let desc = format!("Removed Roles: {}", modification);
-        desc
-    } else {
-        return Err(CommandError::ParseArgument(
-            field,
-            "Field".into(),
-            "`roles-add`, `roles-remove`".into(),
-        )
-        .into());
+    let desc = match field {
+        ModifyOption::RolesAdd => {
+            let role_ids = add_roles(&ctx, &guild, bind_index, &args.change).await?;
+            let modification = role_ids
+                .iter()
+                .map(|r| format!("<@&{}> ", r))
+                .collect::<String>();
+            let desc = format!("Added Roles: {}", modification);
+            desc
+        }
+        ModifyOption::RolesRemove => {
+            let role_ids = remove_roles(&ctx, &guild, bind_index, &args.change).await?;
+            let modification = role_ids
+                .iter()
+                .map(|r| format!("<@&{}> ", r))
+                .collect::<String>();
+            let desc = format!("Removed Roles: {}", modification);
+            desc
+        }
     };
 
     let e = EmbedBuilder::new()
@@ -116,60 +86,82 @@ pub async fn groupbinds_modify(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
         .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("Action by {}", msg.author.name))
+        .title(format!("Action by {}", ctx.author.name))
         .unwrap()
         .description("Group Bind Modification")
         .unwrap()
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+    ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
 
 async fn add_roles(
-    ctx: &Context,
+    ctx: &CommandContext,
     guild: &RoGuild,
     bind_index: usize,
-    args: Arguments<'_>,
+    roles: &str,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    for r in args {
+    for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
-    let update = bson::doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
-    ctx.database.modify_guild(filter, update).await?;
+    let update = doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
+    ctx.bot.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }
 
 async fn remove_roles(
-    ctx: &Context,
+    ctx: &CommandContext,
     guild: &RoGuild,
     bind_index: usize,
-    args: Arguments<'_>,
+    roles: &str,
 ) -> Result<Vec<u64>, RoError> {
     let mut role_ids = Vec::new();
-    for r in args {
+    for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
-    let update = bson::doc! {"$pullAll": {index_str: role_ids.clone()}};
-    ctx.database.modify_guild(filter, update).await?;
+    let update = doc! {"$pullAll": {index_str: role_ids.clone()}};
+    ctx.bot.database.modify_guild(filter, update).await?;
     Ok(role_ids)
+}
+
+impl FromArg for ModifyOption {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match arg {
+            "roles-add" => Ok(ModifyOption::RolesAdd),
+            "roles-remove" => Ok(ModifyOption::RolesRemove),
+            _ => Err(ParseError("one of `roles-add` `roles-remove`")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => unreachable!("Modify Groupbinds unreached"),
+        };
+
+        ModifyOption::from_arg(&arg)
+    }
 }

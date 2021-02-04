@@ -2,40 +2,60 @@ mod delete;
 mod modify;
 mod new;
 
+use framework_new::prelude::*;
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
 use twilight_mention::Mention;
+use twilight_model::id::RoleId;
 
-pub use delete::*;
-pub use modify::*;
-pub use new::*;
+pub use delete::groupbinds_delete;
+pub use modify::groupbinds_modify;
+pub use new::groupbinds_new;
 
-pub static GROUPBINDS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["groupbinds", "gb"],
-    desc: Some("Command to view groupbinds"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &GROUPBINDS_NEW_COMMAND,
-        &GROUPBINDS_MODIFY_COMMAND,
-        &GROUPBINDS_DELETE_COMMAND,
-    ],
-    group: Some("Binds"),
-};
+pub fn groupbinds_config(cmds: &mut Vec<Command>) {
+    let groupbinds_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view groupbinds of the server")
+        .handler(groupbinds_view);
 
-pub static GROUPBINDS_COMMAND: Command = Command {
-    fun: groupbind,
-    options: &GROUPBINDS_OPTIONS,
-};
+    let groupbinds_delete_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["delete", "d", "remove"])
+        .description("Command to delete a groupbind")
+        .handler(groupbinds_delete);
 
-#[command]
-pub async fn groupbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let groupbinds_modify_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["modify", "m"])
+        .description("Command to modify an existing groupbind")
+        .handler(groupbinds_modify);
+
+    let groupbinds_new_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["new"])
+        .description("Command to create a new groupbind")
+        .handler(groupbinds_new);
+
+    let groupbinds_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["groupbinds", "gb"])
+        .description("Module to create, update, delete & view groupbinds of the server")
+        .group("Binds")
+        .sub_command(groupbinds_view_cmd)
+        .sub_command(groupbinds_delete_cmd)
+        .sub_command(groupbinds_modify_cmd)
+        .sub_command(groupbinds_new_cmd)
+        .handler(groupbinds_view);
+    cmds.push(groupbinds_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct GroupbindsViewArguments {}
+
+pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -52,12 +72,12 @@ pub async fn groupbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(e)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -85,6 +105,6 @@ pub async fn groupbind(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> 
         pages.push(embed.build().unwrap());
         page_count += 1;
     }
-    paginate_embed(ctx, msg, pages, page_count).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }
