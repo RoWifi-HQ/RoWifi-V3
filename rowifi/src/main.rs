@@ -15,7 +15,7 @@ mod services;
 
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
-    events_config, rankbinds_config, update_config,
+    events_config, group_config, rankbinds_config, update_config,
 };
 use dashmap::DashSet;
 use framework_new::{
@@ -193,6 +193,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         stats,
         webhooks,
         cluster_id,
+        total_shards,
     );
     let framework = NewFramework::new(bot.clone())
         .configure(update_config)
@@ -202,7 +203,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .configure(backup_config)
         .configure(blacklists_config)
         .configure(custombinds_config)
-        .configure(events_config);
+        .configure(events_config)
+        .configure(group_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {
