@@ -1,21 +1,10 @@
 use framework_new::prelude::*;
 
-// pub static RANKBINDS_DELETE_OPTIONS: CommandOptions = CommandOptions {
-//     perm_level: RoLevel::Admin,
-//     bucket: None,
-//     names: &["delete", "d", "remove"],
-//     desc: Some("Command to delete a rankbind"),
-//     usage: Some("rankbinds delete <Group Id> <Rank Id>"),
-//     examples: &["rankbinds delete 3108077 255", "rb remove 5581309 10"],
-//     min_args: 2,
-//     hidden: false,
-//     sub_commands: &[],
-//     group: None,
-// };
-
 #[derive(FromArgs)]
 pub struct RankBindsDelete {
+    #[arg(help = "The Group ID of the Rankbind to delete")]
     pub group_id: i64,
+    #[arg(help = "The Rank ID of the Rankbind to delete")]
     pub rank_id: String,
 }
 

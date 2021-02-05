@@ -1,6 +1,6 @@
 use std::{num::ParseIntError, str::FromStr};
 
-use rowifi_models::bind::AssetType;
+use rowifi_models::{bind::AssetType, guild::BlacklistActionType};
 use twilight_model::{
     applications::interaction::CommandDataOption,
     id::{RoleId, UserId},
@@ -214,10 +214,31 @@ impl FromArg for AssetType {
         let arg = match option {
             CommandDataOption::String { value, .. } => value.to_string(),
             CommandDataOption::Integer { value, .. } => value.to_string(),
-            _ => unreachable!("New Assetbinds unreached"),
+            _ => unreachable!("AssetType unreached"),
         };
 
         AssetType::from_arg(&arg)
+    }
+}
+
+impl FromArg for BlacklistActionType {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match BlacklistActionType::from_str(arg) {
+            Ok(a) => Ok(a),
+            Err(_) => Err(ParseError("one of `None` `Kick` `Ban`")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => unreachable!("BlacklistActionType unreached"),
+        };
+
+        Self::from_arg(&arg)
     }
 }
 
