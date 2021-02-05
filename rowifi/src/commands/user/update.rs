@@ -6,6 +6,7 @@ use twilight_model::id::{RoleId, UserId};
 
 #[derive(Debug, FromArgs)]
 pub struct UpdateArguments {
+    #[arg(help = "The user to be updated")]
     pub user_id: Option<UserId>,
 }
 
@@ -32,13 +33,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
-                .bot
+            ctx.bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
@@ -55,13 +55,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
-            .bot
+        ctx.bot
             .http
             .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
-            .await;
+            .await?;
         return Ok(());
     }
 
@@ -80,13 +79,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
-                .bot
+            ctx.bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     }
@@ -104,13 +102,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
-                .bot
+            ctx.bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
@@ -130,13 +127,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
-                .bot
+            ctx.bot
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
@@ -165,13 +161,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .build()
                         .unwrap();
-                    let _ = ctx
-                        .bot
+                    ctx.bot
                         .http
                         .create_message(ctx.channel_id)
                         .embed(embed)
                         .unwrap()
-                        .await;
+                        .await?;
                     return Ok(());
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
@@ -186,16 +181,14 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
-                    .bot
+                ctx.bot
                     .http
                     .create_message(ctx.channel_id)
                     .embed(embed)
                     .unwrap()
-                    .await;
+                    .await?;
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
-                    let _ = ctx
-                        .bot
+                    ctx.bot
                         .http
                         .create_message(channel.id)
                         .content(format!(
@@ -203,7 +196,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                             server.name, b
                         ))
                         .unwrap()
-                        .await;
+                        .await?;
                 }
             }
             return Err(e);
@@ -222,13 +215,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )
         .build()
         .unwrap();
-    let _ = ctx
-        .bot
+    ctx.bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
-        .await;
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
