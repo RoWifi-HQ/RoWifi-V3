@@ -1,72 +1,18 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
 use twilight_model::id::{GuildId, UserId};
 
-pub static USERINFO_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["userinfo"],
-    desc: Some("Command to view the information about an user"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Miscellanous"),
-};
+#[derive(FromArgs)]
+pub struct UserInfoArguments {
+    pub user: Option<UserId>,
+}
 
-pub static USERINFO_COMMAND: Command = Command {
-    fun: userinfo,
-    options: &USERINFO_OPTIONS,
-};
-
-pub static BOTINFO_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["botinfo"],
-    desc: Some("Command to view the information about the bot"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Miscellanous"),
-};
-
-pub static BOTINFO_COMMAND: Command = Command {
-    fun: botinfo,
-    options: &BOTINFO_OPTIONS,
-};
-
-pub static SUPPORT_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["support", "invite"],
-    desc: Some("Command to view the supporting links for the bot"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: Some("Miscellanous"),
-};
-
-pub static SUPPORT_COMMAND: Command = Command {
-    fun: support,
-    options: &SUPPORT_OPTIONS,
-};
-
-#[command]
-pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let author = match args
-        .next()
-        .and_then(parse_username)
-        .and_then(|u| ctx.cache.user(UserId(u)))
-    {
+pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandResult {
+    let author = match args.user.and_then(|u| ctx.bot.cache.user(u)) {
         Some(u) => (u.id, u.name.to_owned()),
-        None => (msg.author.id, msg.author.name.to_owned()),
+        None => (ctx.author.id, ctx.author.name.to_owned()),
     };
-    let user = match ctx.database.get_user((author.0).0).await? {
+    let user = match ctx.bot.database.get_user((author.0).0).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -79,17 +25,17 @@ pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
-                .await;
+                .await?;
             return Ok(());
         }
     };
 
-    let username = ctx.roblox.get_username_from_id(user.roblox_id).await?;
+    let username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -109,22 +55,24 @@ pub async fn userinfo(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -
         )
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     Ok(())
 }
 
-#[command]
-pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let current_user = ctx.cache.current_user().unwrap();
-    let guilds = ctx.cache.guilds();
+#[derive(FromArgs)]
+pub struct BotInfoArguments {}
+
+pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandResult {
+    let current_user = ctx.bot.cache.current_user().unwrap();
+    let guilds = ctx.bot.cache.guilds();
     let member_count: i64 = guilds
         .iter()
-        .map(|g| ctx.cache.member_count(GuildId(*g)))
+        .map(|g| ctx.bot.cache.member_count(GuildId(*g)))
         .sum();
 
     let embed = EmbedBuilder::new()
@@ -144,12 +92,12 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         )
         .field(EmbedFieldBuilder::new("Language", "Rust").unwrap().inline())
         .field(
-            EmbedFieldBuilder::new("Shards", ctx.bot_config.total_shards.to_string())
+            EmbedFieldBuilder::new("Shards", ctx.bot.total_shards.to_string())
                 .unwrap()
                 .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Cluster Id", ctx.bot_config.cluster_id.to_string())
+            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string())
                 .unwrap()
                 .inline(),
         )
@@ -165,19 +113,21 @@ pub async fn botinfo(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         )
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     Ok(())
 }
 
-#[command]
-pub async fn support(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
+#[derive(FromArgs)]
+pub struct SupportArguments {}
+
+pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandResult {
     let disc_link = "https://www.discord.gg/h4BGGyR";
-    let invite_link = "https://discordapp.com/oauth2/authorize?client_id=508968886998269962&scope=bot&permissions=402672704";
+    let invite_link = "https://discord.com/oauth2/authorize?client_id=508968886998269962&scope=bot%20applications.commands&permissions=402672704";
     let website = "https://rowifi.link";
     let embed = EmbedBuilder::new()
         .default_data()
@@ -210,9 +160,9 @@ pub async fn support(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         )
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
