@@ -1,5 +1,5 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Clone)]
 #[repr(i8)]
@@ -35,6 +35,19 @@ impl fmt::Display for BlacklistActionType {
             BlacklistActionType::None => write!(f, "None"),
             BlacklistActionType::Kick => write!(f, "Kick"),
             BlacklistActionType::Ban => write!(f, "Ban"),
+        }
+    }
+}
+
+impl FromStr for BlacklistActionType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_ascii_lowercase().as_str() {
+            "none" => Ok(BlacklistActionType::None),
+            "kick" => Ok(BlacklistActionType::Kick),
+            "ban" => Ok(BlacklistActionType::Ban),
+            _ => Err(()),
         }
     }
 }

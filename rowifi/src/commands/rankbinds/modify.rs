@@ -2,24 +2,17 @@ use framework_new::prelude::*;
 use rowifi_models::guild::RoGuild;
 use twilight_embed_builder::EmbedFieldBuilder;
 
-// pub static RANKBINDS_MODIFY_OPTIONS: CommandOptions = CommandOptions {
-//     perm_level: RoLevel::Admin,
-//     bucket: None,
-//     names: &["modify", "m"],
-//     desc: Some("Command to modify a rankbind"),
-//     usage: Some("rankbinds modify <Field> <Bind Id> [Params...]`\n`Field`: `priority`, `prefix`, `roles-add`, `roles-remove"),
-//     examples: &["rankbinds modify priority 3108077 255 2", "rb modify prefix 5581309 35 [CUS]", "rankbinds m roles-add 5581309 255 @Role1"],
-//     min_args: 3,
-//     hidden: false,
-//     sub_commands: &[],
-//     group: None
-// };
-
 #[derive(FromArgs)]
 pub struct ModifyRankbind {
+    #[arg(
+        help = "The field to modify. Must be one of `prefix` `priority` `roles-add` roles-remove`"
+    )]
     pub option: ModifyOption,
+    #[arg(help = "The Group ID of the rankbind to modify")]
     pub group_id: i64,
+    #[arg(help = "The Rank ID of the rankbind to modify")]
     pub rank_id: i64,
+    #[arg(help = "The actual modification to be made", rest)]
     pub change: String,
 }
 
@@ -207,7 +200,7 @@ impl FromArg for ModifyOption {
     type Error = ParseError;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        match arg {
+        match arg.to_ascii_lowercase().as_str() {
             "prefix" => Ok(ModifyOption::Prefix),
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
@@ -222,7 +215,7 @@ impl FromArg for ModifyOption {
         let arg = match option {
             CommandDataOption::String { value, .. } => value.to_string(),
             CommandDataOption::Integer { value, .. } => value.to_string(),
-            _ => unreachable!("ModifyArgument unreached"),
+            _ => unreachable!("ModifyArgumentRankbinds unreached"),
         };
 
         ModifyOption::from_arg(&arg)

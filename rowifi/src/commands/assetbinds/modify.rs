@@ -144,7 +144,7 @@ impl FromArg for ModifyOption {
     type Error = ParseError;
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        match arg {
+        match arg.to_ascii_lowercase().as_str() {
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             _ => Err(ParseError("one of `roles-add` `roles-remove`")),

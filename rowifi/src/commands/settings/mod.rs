@@ -2,42 +2,85 @@ mod misc;
 mod update;
 mod verify;
 
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 
-pub use misc::*;
-pub use update::*;
+pub use misc::{blacklist_action, settings_prefix, toggle_commands};
+pub use update::{update_on_join, update_on_verify};
 pub use verify::*;
 
-pub static SETTINGS_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Admin,
-    bucket: None,
-    names: &["settings"],
-    desc: Some("Command to view the settings of a server"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &SETTINGS_VERIFICATION_COMMAND,
-        &SETTINGS_VERIFIED_COMMAND,
-        &UPDATE_JOIN_COMMAND,
-        &UPDATE_VERIFY_COMMAND,
-        &BLACKLIST_ACTION_COMMAND,
-        &TOGGLE_COMMANDS_COMMAND,
-        &SETTINGS_PREFIX_COMMAND,
-    ],
-    group: Some("Administration"),
-};
+pub fn settings_config(cmds: &mut Vec<Command>) {
+    let settings_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to interact with the settings of the server")
+        .handler(settings_view);
 
-pub static SETTINGS_COMMAND: Command = Command {
-    fun: setting,
-    options: &SETTINGS_OPTIONS,
-};
+    let settings_blacklist_action_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["blacklist-action", "bl-action"])
+        .description("Command to set the blacklist action setting")
+        .handler(blacklist_action);
 
-#[command]
-pub async fn setting(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let settings_toggle_commands_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["commands", "command-channel", "command"])
+        .description("Command to toggle command usage in a channel")
+        .handler(toggle_commands);
+
+    let settings_prefix_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["prefix"])
+        .description("Command to change the bot's prefix in the server")
+        .handler(settings_prefix);
+
+    let update_on_join_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["update-on-join", "uoj"])
+        .description("Command to toggle the `Update On Join` setting in the server")
+        .handler(update_on_join);
+
+    let update_on_verify_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["update-on-verify", "uov"])
+        .description("Command to toggle the `Update On Verify` setting in the server")
+        .handler(update_on_verify);
+
+    let settings_verification_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["verification"])
+        .description("Command to change the verification role")
+        .handler(update_on_verify);
+
+    let settings_verified_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["verified"])
+        .description("Command to change the verified role")
+        .handler(update_on_verify);
+
+    let settings_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["settings"])
+        .description("Module to interact with the settings of the server")
+        .group("Administration")
+        .sub_command(settings_view_cmd)
+        .sub_command(settings_blacklist_action_cmd)
+        .sub_command(settings_toggle_commands_cmd)
+        .sub_command(settings_prefix_cmd)
+        .sub_command(update_on_join_cmd)
+        .sub_command(update_on_verify_cmd)
+        .sub_command(settings_verification_cmd)
+        .sub_command(settings_verified_cmd)
+        .handler(settings_view);
+    cmds.push(settings_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct SettingsViewArguments {}
+
+pub async fn settings_view(ctx: CommandContext, _args: SettingsViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
+        .bot
         .database
         .get_guild(guild_id.0)
         .await?
@@ -100,11 +143,38 @@ pub async fn setting(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> Co
         .build()
         .unwrap();
 
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
     Ok(())
+}
+
+pub enum ToggleOption {
+    Enable,
+    Disable,
+}
+
+impl FromArg for ToggleOption {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match arg.to_ascii_lowercase().as_str() {
+            "enable" | "on" => Ok(ToggleOption::Enable),
+            "disable" | "off" => Ok(ToggleOption::Disable),
+            _ => Err(ParseError("one of `enable` `disable` `on` `off`")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => unreachable!("ToggleOption unreached"),
+        };
+
+        Self::from_arg(&arg)
+    }
 }
