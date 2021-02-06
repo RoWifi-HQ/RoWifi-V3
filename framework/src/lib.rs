@@ -235,13 +235,7 @@ impl Service<&Event> for Framework {
 
                     let request = ServiceRequest::Interaction(command_options.to_owned());
                     let cmd_fut = command.call((ctx, request));
-                    let fut = async move {
-                        //A global before handler
-                        //Bucket handler
-                        cmd_fut.await
-                        //Add the metrics here
-                        //A global after handler (includes the error handler)
-                    };
+                    let fut = async move { cmd_fut.await };
                     return Either::Right(Box::pin(fut));
                 }
             }
@@ -259,7 +253,7 @@ fn run_checks(
     channel_id: ChannelId,
     author: UserId,
 ) -> bool {
-    if bot.disabled_channels.contains(&channel_id) && cmd.names.contains(&"command-channel") {
+    if bot.disabled_channels.contains(&channel_id) && !cmd.names.contains(&"command-channel") {
         return false;
     }
 

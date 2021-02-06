@@ -4,19 +4,20 @@ use std::{
 };
 use tracing::{debug, info};
 use twilight_model::{
+    applications::interaction::Interaction,
     channel::Channel,
     gateway::{
         event::Event,
         payload::{
             ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
-            MemberAdd, MemberChunk, MemberRemove, MemberUpdate, Ready, RoleCreate, RoleDelete,
-            RoleUpdate, UnavailableGuild, UserUpdate,
+            InteractionCreate, MemberAdd, MemberChunk, MemberRemove, MemberUpdate, MessageCreate,
+            Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         },
     },
     guild::GuildStatus,
 };
 
-use super::{Cache, CacheError};
+use super::{Cache, CacheError, CachedMember};
 
 pub trait UpdateCache {
     fn update(&self, cache: &Cache) -> Result<(), CacheError>;
@@ -26,8 +27,8 @@ impl UpdateCache for Event {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         use Event::{
             ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
-            MemberAdd, MemberChunk, MemberRemove, MemberUpdate, Ready, RoleCreate, RoleDelete,
-            RoleUpdate, UnavailableGuild, UserUpdate,
+            InteractionCreate, MemberAdd, MemberChunk, MemberRemove, MemberUpdate, MessageCreate,
+            Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         };
 
         match self {
@@ -37,10 +38,12 @@ impl UpdateCache for Event {
             GuildCreate(v) => c.update(v.deref()),
             GuildDelete(v) => c.update(v.deref()),
             GuildUpdate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v.deref()),
             MemberAdd(v) => c.update(v.deref()),
             MemberChunk(v) => c.update(v.deref()),
             MemberRemove(v) => c.update(v.deref()),
             MemberUpdate(v) => c.update(v.deref()),
+            MessageCreate(v) => c.update(v.deref()),
             Ready(v) => c.update(v.deref()),
             RoleCreate(v) => c.update(v.deref()),
             RoleDelete(v) => c.update(v.deref()),
@@ -159,6 +162,35 @@ impl UpdateCache for GuildUpdate {
     }
 }
 
+impl UpdateCache for InteractionCreate {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        if let Interaction::ApplicationCommand(inner) = &self.0 {
+            if let Some(user) = &inner.member.user {
+                let user = c.cache_user(user.to_owned());
+                let id = (inner.guild_id, user.id);
+                match c.0.members.get(&id) {
+                    Some(m) if **m == &inner.member => return Ok(()),
+                    _ => {}
+                }
+
+                c.0.guild_members
+                    .entry(inner.guild_id)
+                    .or_default()
+                    .insert(user.id);
+
+                let cached = Arc::new(CachedMember {
+                    nick: inner.member.nick.to_owned(),
+                    pending: false,
+                    roles: inner.member.roles.to_owned(),
+                    user,
+                });
+                c.0.members.insert(id, Arc::clone(&cached));
+            }
+        }
+        Ok(())
+    }
+}
+
 impl UpdateCache for MemberAdd {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_member(self.guild_id, self.0.clone());
@@ -212,6 +244,35 @@ impl UpdateCache for MemberUpdate {
             for channel in channels {
                 c.cache_channel_permissions(self.guild_id, channel);
             }
+        }
+
+        Ok(())
+    }
+}
+
+impl UpdateCache for MessageCreate {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        let user = c.cache_user(self.author.clone());
+
+        if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
+            let id = (guild_id, user.id);
+            match c.0.members.get(&id) {
+                Some(m) if **m == member => return Ok(()),
+                _ => {}
+            }
+
+            c.0.guild_members
+                .entry(guild_id)
+                .or_default()
+                .insert(user.id);
+
+            let cached = Arc::new(CachedMember {
+                nick: member.nick.to_owned(),
+                pending: false,
+                roles: member.roles.to_owned(),
+                user,
+            });
+            c.0.members.insert(id, Arc::clone(&cached));
         }
 
         Ok(())
