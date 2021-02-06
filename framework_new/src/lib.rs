@@ -12,6 +12,8 @@ pub mod prelude;
 pub mod utils;
 
 use futures::future::{ready, Either, Ready};
+use itertools::Itertools;
+use prelude::EmbedExtensions;
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -20,8 +22,10 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
+use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
     applications::interaction::Interaction,
+    channel::Message,
     gateway::event::Event,
     guild::Permissions,
     id::{ChannelId, GuildId, UserId},
@@ -62,6 +66,55 @@ impl Framework {
     {
         func(&mut self.cmds);
         self
+    }
+
+    fn help(
+        &mut self,
+        msg: &Message,
+        mut args: Arguments,
+    ) -> Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>> {
+        let mut embed = EmbedBuilder::new().default_data().title("Help").unwrap();
+
+        if let Some(arg) = args.next() {
+            if let Some(cmd) = self.cmds.iter_mut().find(|c| c.names.contains(&arg)) {
+                let ctx = CommandContext {
+                    bot: self.bot.clone(),
+                    channel_id: msg.channel_id,
+                    guild_id: msg.guild_id,
+                    author: Arc::new(msg.author.clone()),
+                };
+                let req = ServiceRequest::Help(args, embed);
+                return cmd.call((ctx, req));
+            }
+        }
+
+        embed = embed.description("Listing all top-level commands").unwrap();
+        let groups = self
+            .cmds
+            .iter()
+            .sorted_by_key(|c| c.options.group)
+            .group_by(|c| c.options.group);
+        for (group, commands) in &groups {
+            if let Some(group) = group {
+                let commands = commands
+                    .filter(|c| !c.options.hidden)
+                    .map(|m| format!("`{}`", m.names[0]))
+                    .join(" ");
+                embed = embed.field(EmbedFieldBuilder::new(group, commands).unwrap());
+            }
+        }
+        let embed = embed.build().unwrap();
+        let bot = self.bot.clone();
+        let channel_id = msg.channel_id;
+        let fut = async move {
+            bot.http
+                .create_message(channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            Ok(())
+        };
+        Box::pin(fut)
     }
 }
 
@@ -116,6 +169,9 @@ impl Service<&Event> for Framework {
                 let mut cmd_str = Arguments::new(content);
 
                 let command = if let Some(arg) = cmd_str.next() {
+                    if arg.eq_ignore_ascii_case("help") {
+                        return Either::Right(self.help(&msg, cmd_str));
+                    }
                     self.cmds.iter_mut().find(|c| c.names.contains(&arg))
                 } else {
                     None
@@ -145,13 +201,7 @@ impl Service<&Event> for Framework {
 
                 let request = ServiceRequest::Message(cmd_str);
                 let cmd_fut = command.call((ctx, request));
-                let fut = async move {
-                    //A global before handler
-                    //Bucket handler
-                    cmd_fut.await
-                    //Add the metrics here
-                    //A global after handler (includes the error handler)
-                };
+                let fut = async move { cmd_fut.await };
                 return Either::Right(Box::pin(fut));
             }
             Event::InteractionCreate(interaction) => {
