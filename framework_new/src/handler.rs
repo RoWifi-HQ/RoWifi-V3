@@ -9,6 +9,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
+use twilight_embed_builder::EmbedFieldBuilder;
 
 pub trait Handler<T, R>
 where
@@ -87,6 +88,28 @@ where
                     Box::pin(fut)
                 }
             },
+            ServiceRequest::Help(_args, embed) => {
+                let (usage, fields_help) = K::generate_help();
+                let mut embed = embed
+                    .field(EmbedFieldBuilder::new("Fields", fields_help).unwrap())
+                    .build()
+                    .unwrap();
+                if let Some(field) = embed.fields.iter_mut().find(|f| f.name.eq("Usage")) {
+                    field.value = format!("`{} {}`", field.value, usage);
+                }
+
+                let ctx = req.0;
+                let fut = async move {
+                    ctx.bot
+                        .http
+                        .create_message(ctx.channel_id)
+                        .embed(embed)
+                        .unwrap()
+                        .await?;
+                    Ok(())
+                };
+                Box::pin(fut)
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use futures::FutureExt;
+use itertools::Itertools;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,
@@ -6,7 +7,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::EmbedBuilder;
+use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::applications::interaction::CommandDataOption;
 
 use crate::{
@@ -31,6 +32,7 @@ pub type BoxedService = Box<
 pub enum ServiceRequest {
     Message(Arguments),
     Interaction(Vec<CommandDataOption>),
+    Help(Arguments, EmbedBuilder),
 }
 
 #[derive(Default)]
@@ -105,6 +107,53 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     }
                 }
                 self.service.call(req)
+            }
+            ServiceRequest::Help(ref mut args, ref embed) => {
+                if let Some(lit) = args.next() {
+                    if let Some(sub_cmd) = self
+                        .sub_commands
+                        .iter_mut()
+                        .find(|c| c.names.contains(&lit))
+                    {
+                        return sub_cmd.call(req);
+                    }
+                }
+                args.back();
+
+                let mut embed = embed.clone();
+                embed = embed
+                    .description(format!(
+                        "{}: {}",
+                        self.names[0],
+                        self.options.desc.unwrap_or("None")
+                    ))
+                    .unwrap()
+                    .field(EmbedFieldBuilder::new("Usage", self.master_name.clone()).unwrap());
+                if self.names.len() > 1 {
+                    let aliases = self.names[1..].iter().map(|a| format!("`{}`", a)).join(" ");
+                    embed = embed.field(EmbedFieldBuilder::new("Aliases", aliases).unwrap());
+                }
+                if !self.options.examples.is_empty() {
+                    let examples = self
+                        .options
+                        .examples
+                        .iter()
+                        .map(|e| format!("`{}`", e))
+                        .join("\n");
+                    embed = embed.field(EmbedFieldBuilder::new("Examples", examples).unwrap());
+                }
+                if !self.sub_commands.is_empty() {
+                    let subs = self
+                        .sub_commands
+                        .iter()
+                        .filter(|c| !c.options.hidden)
+                        .map(|c| format!("`{}`", c.names[0]))
+                        .join(", ");
+                    embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs).unwrap());
+                }
+                return self
+                    .service
+                    .call((req.0, ServiceRequest::Help(args.to_owned(), embed)));
             }
         };
 
