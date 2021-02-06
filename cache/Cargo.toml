@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-cache"
-version = "1.0.0"
+version = "3.0.0"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
