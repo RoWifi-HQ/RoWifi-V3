@@ -1,4 +1,4 @@
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;

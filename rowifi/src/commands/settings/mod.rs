@@ -2,7 +2,7 @@ mod misc;
 mod update;
 mod verify;
 
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 
 pub use misc::{blacklist_action, settings_prefix, toggle_commands};
 pub use update::{update_on_join, update_on_verify};

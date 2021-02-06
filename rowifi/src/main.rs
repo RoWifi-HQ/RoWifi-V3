@@ -19,11 +19,6 @@ use commands::{
     settings_config, user_config,
 };
 use dashmap::DashSet;
-use framework_new::{
-    context::BotContext,
-    prelude::{RoError, Service, ServiceExt},
-    Framework as NewFramework,
-};
 use futures::{
     future::{Either, Ready},
     Future,
@@ -37,6 +32,11 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
+use rowifi_framework::{
+    context::BotContext,
+    prelude::{RoError, Service, ServiceExt},
+    Framework as NewFramework,
+};
 use rowifi_models::stats::BotStats;
 //use services::EventHandler;
 use std::{

@@ -1,4 +1,5 @@
-use framework_new::prelude::*;
+use mongodb::bson::doc;
+use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
 pub struct RankBindsDelete {
@@ -57,9 +58,8 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         return Ok(());
     }
 
-    let filter = bson::doc! {"_id": guild.id};
-    let update =
-        bson::doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": binds_to_delete.clone()}}}};
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": binds_to_delete.clone()}}}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let e = EmbedBuilder::new()

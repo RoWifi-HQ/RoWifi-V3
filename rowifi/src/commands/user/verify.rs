@@ -1,5 +1,5 @@
-use framework_new::prelude::*;
 use rand::{thread_rng, Rng};
+use rowifi_framework::prelude::*;
 use rowifi_models::user::{QueueUser, RoUser};
 use std::time::Duration;
 use tokio::time::timeout;

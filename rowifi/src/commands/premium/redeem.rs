@@ -1,5 +1,5 @@
-use framework_new::prelude::*;
 use mongodb::bson::doc;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::env;
 use twilight_model::gateway::payload::RequestGuildMembers;
@@ -82,8 +82,8 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
     ctx.bot.database.modify_guild(filter, update).await?;
 
     if !premium_user.discord_servers.contains(&(guild_id.0 as i64)) {
-        let filter2 = bson::doc! {"_id": ctx.author.id.0};
-        let update2 = bson::doc! {"$push": { "Servers": guild_id.0 }};
+        let filter2 = doc! {"_id": ctx.author.id.0};
+        let update2 = doc! {"$push": { "Servers": guild_id.0 }};
         ctx.bot.database.modify_premium(filter2, update2).await?;
     }
 

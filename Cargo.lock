@@ -666,35 +666,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "framework_new"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dashmap",
- "framework-derive",
- "futures",
- "itertools",
- "patreon",
- "roblox",
- "rowifi-cache",
- "rowifi-database",
- "rowifi-models",
- "tokio",
- "tokio-stream",
- "tower",
- "tracing",
- "transient-dashmap",
- "twilight-command-parser",
- "twilight-embed-builder",
- "twilight-gateway",
- "twilight-http",
- "twilight-model",
- "twilight-standby",
- "twilight-util",
- "uwl",
-]
-
-[[package]]
 name = "freetype"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1917,11 +1888,9 @@ dependencies = [
 name = "rowifi"
 version = "2.7.2"
 dependencies = [
- "bson",
  "chrono",
  "dashmap",
  "dotenv",
- "framework_new",
  "futures",
  "hyper",
  "image",
@@ -1937,6 +1906,7 @@ dependencies = [
  "roblox",
  "rowifi-cache",
  "rowifi-database",
+ "rowifi-framework",
  "rowifi-models",
  "tokio",
  "tokio-stream",
@@ -1970,6 +1940,35 @@ dependencies = [
  "rowifi-models",
  "tracing",
  "transient-dashmap",
+]
+
+[[package]]
+name = "rowifi-framework"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "framework-derive",
+ "futures",
+ "itertools",
+ "patreon",
+ "roblox",
+ "rowifi-cache",
+ "rowifi-database",
+ "rowifi-models",
+ "tokio",
+ "tokio-stream",
+ "tower",
+ "tracing",
+ "transient-dashmap",
+ "twilight-command-parser",
+ "twilight-embed-builder",
+ "twilight-gateway",
+ "twilight-http",
+ "twilight-model",
+ "twilight-standby",
+ "twilight-util",
+ "uwl",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "framework_new"
+name = "rowifi-framework"
 version = "0.1.0"
 authors = ["AsianIntel <gautam.abhyankar@gmail.com>"]
 edition = "2018"

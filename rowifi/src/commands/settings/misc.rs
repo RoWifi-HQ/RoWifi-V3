@@ -1,5 +1,5 @@
-use framework_new::prelude::*;
 use mongodb::bson::doc;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::BlacklistActionType;
 
 use super::ToggleOption;
@@ -84,12 +84,12 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
     let option = args.option;
     let (update, desc, add) = match option {
         ToggleOption::Enable => (
-            bson::doc! {"$pull": {"DisabledChannels": ctx.channel_id.0}},
+            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0}},
             "Commands have been successfully enabled in this channel",
             false,
         ),
         ToggleOption::Disable => (
-            bson::doc! {"$push": {"DisabledChannels": ctx.channel_id.0}},
+            doc! {"$push": {"DisabledChannels": ctx.channel_id.0}},
             "Commands have been successfully disabled in this channel",
             true,
         ),
@@ -139,8 +139,8 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let prefix = args.prefix;
-    let filter = bson::doc! {"_id": guild.id};
-    let update = bson::doc! {"$set": {"Prefix": prefix.clone()}};
+    let filter = doc! {"_id": guild.id};
+    let update = doc! {"$set": {"Prefix": prefix.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new()

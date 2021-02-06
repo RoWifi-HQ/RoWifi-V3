@@ -1,4 +1,4 @@
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
 use twilight_model::id::{GuildId, UserId};
 

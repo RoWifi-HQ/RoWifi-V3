@@ -1,4 +1,4 @@
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::user::{PremiumType, PremiumUser};
 
 #[derive(FromArgs)]

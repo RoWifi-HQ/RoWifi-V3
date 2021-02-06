@@ -9,7 +9,6 @@ mod groupbinds;
 mod premium;
 mod rankbinds;
 mod settings;
-mod test;
 mod user;
 
 pub use analytics::*;
@@ -23,5 +22,4 @@ pub use groupbinds::*;
 pub use premium::*;
 pub use rankbinds::*;
 pub use settings::*;
-pub use test::*;
 pub use user::*;

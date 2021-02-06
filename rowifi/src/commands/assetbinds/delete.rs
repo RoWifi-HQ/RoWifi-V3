@@ -1,5 +1,5 @@
-use framework_new::prelude::*;
 use mongodb::bson::doc;
+use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
 pub struct DeleteArguments {
