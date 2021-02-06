@@ -275,6 +275,7 @@ impl Cache {
             roles: member.roles,
             nick: member.nick,
             user,
+            pending: member.pending,
         });
         upsert_guild_item(&self.0.guild_members, guild, cached.user.id);
         self.0.members.insert(key, Arc::clone(&cached));

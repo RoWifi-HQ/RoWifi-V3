@@ -56,7 +56,8 @@ pub async fn custombinds_modify(
                 .http
                 .create_message(ctx.channel_id)
                 .embed(embed)
-                .unwrap();
+                .unwrap()
+                .await?;
             return Ok(());
         }
     };
@@ -276,7 +277,7 @@ impl FromArg for ModifyOption {
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             _ => Err(ParseError(
-                "one of `prefix` `priority` `roles-add` `roles-remove`",
+                "one of `code` `prefix` `priority` `roles-add` `roles-remove`",
             )),
         }
     }
