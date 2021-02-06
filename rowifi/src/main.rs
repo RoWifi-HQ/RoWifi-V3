@@ -15,7 +15,8 @@ mod services;
 
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
-    events_config, group_config, groupbinds_config, rankbinds_config, settings_config, user_config,
+    events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
+    settings_config, user_config,
 };
 use dashmap::DashSet;
 use framework_new::{
@@ -206,7 +207,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .configure(events_config)
         .configure(group_config)
         .configure(groupbinds_config)
-        .configure(settings_config);
+        .configure(settings_config)
+        .configure(premium_config);
 
     let event_handler = EventHandler::default();
     let rowifi = RoWifi {

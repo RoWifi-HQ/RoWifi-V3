@@ -1,62 +1,73 @@
-mod admin;
 mod patreon;
 mod redeem;
 mod transfer;
 
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::user::PremiumType;
 use twilight_model::id::UserId;
 
-use self::patreon::PREMIUM_PATREON_COMMAND;
-use admin::{PREMIUM_ADD_COMMAND, PREMIUM_CHECK_COMMAND, PREMIUM_DELETE_COMMAND};
-use redeem::{PREMIUM_REDEEM_COMMAND, PREMIUM_REMOVE_COMMAND};
-use transfer::PREMIUM_TRANSFER_COMMAND;
+use self::patreon::premium_patreon;
+use redeem::{premium_redeem, premium_remove};
+use transfer::premium_transfer;
 
-pub static PREMIUM_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["premium"],
-    desc: Some("Command to view the premium status about an user"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[
-        &PREMIUM_PATREON_COMMAND,
-        &PREMIUM_REDEEM_COMMAND,
-        &PREMIUM_ADD_COMMAND,
-        &PREMIUM_DELETE_COMMAND,
-        &PREMIUM_REMOVE_COMMAND,
-        &PREMIUM_TRANSFER_COMMAND,
-        &PREMIUM_CHECK_COMMAND,
-    ],
-    group: Some("Premium"),
-};
+pub fn premium_config(cmds: &mut Vec<Command>) {
+    let premium_redeem_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["redeem"])
+        .description("Command to redeem premium in a server")
+        .handler(premium_redeem);
 
-pub static PREMIUM_COMMAND: Command = Command {
-    fun: premium,
-    options: &PREMIUM_OPTIONS,
-};
+    let premium_remove_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove"])
+        .description("Command to disable premium from the server")
+        .handler(premium_remove);
 
-#[command]
-pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) -> CommandResult {
-    let author = match args
-        .next()
-        .and_then(parse_username)
-        .and_then(|u| ctx.cache.user(UserId(u)))
-    {
+    let premium_patreon_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["patreon"])
+        .description("Command to link your patreon account to your discord account")
+        .handler(premium_patreon);
+
+    let premium_transfer_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["transfer"])
+        .description("Command to transfer your premium to another account")
+        .handler(premium_transfer);
+
+    let premium_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["premium"])
+        .description("Module to interact with the premium subsystem")
+        .group("Premium")
+        .sub_command(premium_patreon_cmd)
+        .sub_command(premium_redeem_cmd)
+        .sub_command(premium_remove_cmd)
+        .sub_command(premium_transfer_cmd)
+        .handler(premium);
+
+    cmds.push(premium_cmd);
+}
+
+#[derive(FromArgs)]
+pub struct PremiumViewArguments {
+    pub user_id: Option<UserId>,
+}
+
+pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> CommandResult {
+    let author = match args.user_id.and_then(|u| ctx.bot.cache.user(u)) {
         Some(a) => (a.id, a.name.clone(), a.discriminator.clone()),
         None => (
-            msg.author.id,
-            msg.author.name.clone(),
-            msg.author.discriminator.clone(),
+            ctx.author.id,
+            ctx.author.name.clone(),
+            ctx.author.discriminator.clone(),
         ),
     };
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("{}#{}", author.1, author.2))
         .unwrap();
-    if let Some(premium_user) = ctx.database.get_premium((author.0).0).await? {
+    if let Some(premium_user) = ctx.bot.database.get_premium((author.0).0).await? {
         embed = match premium_user.premium_type {
             PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System (Upcoming)").unwrap()),
@@ -75,9 +86,9 @@ pub async fn premium(ctx: &Context, msg: &Message, mut args: Arguments<'fut>) ->
             .field(EmbedFieldBuilder::new("Perks", "None").unwrap());
     }
     let embed = embed.build().unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;

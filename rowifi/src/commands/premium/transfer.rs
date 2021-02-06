@@ -1,31 +1,18 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::user::PremiumUser;
+use twilight_model::id::UserId;
 
-pub static PREMIUM_TRANSFER_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["transfer", "surrender"],
-    desc: Some("Command to transfer your premium"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct PremiumTransferArguments {
+    #[arg(help = "The Discord User to who you want to transfer your premium to")]
+    pub user_id: Option<UserId>,
+}
 
-pub static PREMIUM_TRANSFER_COMMAND: Command = Command {
-    fun: premium_transfer,
-    options: &PREMIUM_TRANSFER_OPTIONS,
-};
-
-#[command]
 pub async fn premium_transfer(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
+    ctx: CommandContext,
+    args: PremiumTransferArguments,
 ) -> CommandResult {
-    let premium_user = ctx.database.get_premium(msg.author.id.0).await?;
+    let premium_user = ctx.bot.database.get_premium(ctx.author.id.0).await?;
     if let Some(premium_user) = premium_user {
         if premium_user.premium_owner.is_some() {
             let embed = EmbedBuilder::new()
@@ -38,16 +25,16 @@ pub async fn premium_transfer(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
             return Ok(());
         }
-        let to_transfer_id = match args.next().map(str::parse) {
-            Some(Ok(s)) => s,
+        let to_transfer_id = match args.user_id {
+            Some(s) => s,
             _ => {
                 let embed = EmbedBuilder::new()
                     .default_data()
@@ -59,9 +46,9 @@ pub async fn premium_transfer(
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
+                ctx.bot
                     .http
-                    .create_message(msg.channel_id)
+                    .create_message(ctx.channel_id)
                     .embed(embed)
                     .unwrap()
                     .await?;
@@ -69,8 +56,9 @@ pub async fn premium_transfer(
             }
         };
         if ctx
+            .bot
             .database
-            .get_premium(to_transfer_id as u64)
+            .get_premium(to_transfer_id.0 as u64)
             .await?
             .is_some()
         {
@@ -84,9 +72,9 @@ pub async fn premium_transfer(
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -94,15 +82,18 @@ pub async fn premium_transfer(
         }
 
         let new_premium_user = PremiumUser {
-            discord_id: to_transfer_id,
+            discord_id: to_transfer_id.0 as i64,
             patreon_id: None,
             discord_servers: Vec::new(),
             premium_type: premium_user.premium_type,
             premium_owner: Some(premium_user.discord_id),
             premium_patreon_owner: premium_user.patreon_id,
         };
-        ctx.database.delete_premium(msg.author.id.0).await?;
-        ctx.database.add_premium(new_premium_user, false).await?;
+        ctx.bot.database.delete_premium(ctx.author.id.0).await?;
+        ctx.bot
+            .database
+            .add_premium(new_premium_user, false)
+            .await?;
 
         let embed = EmbedBuilder::new()
             .default_data()
@@ -112,30 +103,32 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
     } else if let Some(transferred_premium_user) = ctx
+        .bot
         .database
-        .get_transferred_premium(msg.author.id.0)
+        .get_transferred_premium(ctx.author.id.0)
         .await?
     {
-        ctx.database
+        ctx.bot
+            .database
             .delete_premium(transferred_premium_user.discord_id as u64)
             .await?;
 
         let premium_user = PremiumUser {
-            discord_id: msg.author.id.0 as i64,
+            discord_id: ctx.author.id.0 as i64,
             patreon_id: transferred_premium_user.premium_patreon_owner,
             discord_servers: Vec::new(),
             premium_type: transferred_premium_user.premium_type,
             premium_owner: None,
             premium_patreon_owner: None,
         };
-        ctx.database.add_premium(premium_user, false).await?;
+        ctx.bot.database.add_premium(premium_user, false).await?;
 
         let embed = EmbedBuilder::new()
             .default_data()
@@ -145,9 +138,9 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -162,9 +155,9 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;

@@ -1,45 +1,22 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
 use rowifi_models::user::{PremiumType, PremiumUser};
 
-pub static PREMIUM_PATREON_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["patreon"],
-    desc: Some("Command to link/update patreon status"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct PremiumPatreonArguments {}
 
-pub static PREMIUM_PATREON_COMMAND: Command = Command {
-    fun: premium_patreon,
-    options: &PREMIUM_PATREON_OPTIONS,
-};
-
-#[command]
-pub async fn premium_patreon(
-    ctx: &Context,
-    msg: &Message,
-    mut args: Arguments<'fut>,
-) -> CommandResult {
-    let author = match args.next().map(str::parse) {
-        Some(Ok(s)) => s,
-        _ => msg.author.id.0,
-    };
-    let premium_already = ctx.database.get_premium(author).await?.is_some();
+pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments) -> CommandResult {
+    let author = ctx.author.id.0;
+    let premium_already = ctx.bot.database.get_premium(author).await?.is_some();
     let premium_user: PremiumUser;
-    let (patreon_id, tier) = ctx.patreon.get_patron(author).await?;
+    let (patreon_id, tier) = ctx.bot.patreon.get_patron(author).await?;
     if patreon_id.is_none() {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
             .title("Patreon Linking Failed").unwrap()
             .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account").unwrap()
             .build().unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -56,9 +33,9 @@ pub async fn premium_patreon(
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -89,7 +66,8 @@ pub async fn premium_patreon(
         return Ok(());
     }
 
-    ctx.database
+    ctx.bot
+        .database
         .add_premium(premium_user, premium_already)
         .await?;
     let embed = EmbedBuilder::new()
@@ -102,9 +80,9 @@ pub async fn premium_patreon(
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
