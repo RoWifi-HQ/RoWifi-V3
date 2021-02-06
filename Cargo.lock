@@ -79,15 +79,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "attributes"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1930,7 +1921,6 @@ dependencies = [
  "chrono",
  "dashmap",
  "dotenv",
- "framework-derive",
  "framework_new",
  "futures",
  "hyper",
@@ -1947,7 +1937,6 @@ dependencies = [
  "roblox",
  "rowifi-cache",
  "rowifi-database",
- "rowifi-framework",
  "rowifi-models",
  "tokio",
  "tokio-stream",
@@ -1981,36 +1970,6 @@ dependencies = [
  "rowifi-models",
  "tracing",
  "transient-dashmap",
-]
-
-[[package]]
-name = "rowifi-framework"
-version = "1.0.0"
-dependencies = [
- "attributes",
- "chrono",
- "dashmap",
- "futures",
- "itertools",
- "lazy_static",
- "patreon",
- "roblox",
- "rowifi-cache",
- "rowifi-database",
- "rowifi-models",
- "tokio",
- "tokio-stream",
- "tracing",
- "transient-dashmap",
- "twilight-command-parser",
- "twilight-embed-builder",
- "twilight-gateway",
- "twilight-http",
- "twilight-mention",
- "twilight-model",
- "twilight-standby",
- "twilight-util",
- "uwl",
 ]
 
 [[package]]

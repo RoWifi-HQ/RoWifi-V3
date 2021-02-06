@@ -11,7 +11,7 @@
 )]
 
 mod commands;
-mod services;
+//mod services;
 
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
@@ -38,7 +38,7 @@ use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_models::stats::BotStats;
-use services::EventHandler;
+//use services::EventHandler;
 use std::{
     collections::HashMap,
     env,
@@ -63,7 +63,7 @@ use twilight_standby::Standby;
 
 pub struct RoWifi {
     pub framework: NewFramework,
-    pub event_handler: EventHandler,
+    //pub event_handler: EventHandler,
     pub bot: BotContext,
 }
 
@@ -210,10 +210,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .configure(settings_config)
         .configure(premium_config);
 
-    let event_handler = EventHandler::default();
+    //let event_handler = EventHandler::default();
     let rowifi = RoWifi {
         framework,
-        event_handler,
+        //event_handler,
         bot,
     };
     let events = rowifi.bot.cluster.events();
