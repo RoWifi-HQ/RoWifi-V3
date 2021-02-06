@@ -1,57 +1,24 @@
-use rowifi_framework::prelude::*;
+use framework_new::prelude::*;
+use mongodb::bson::doc;
 use rowifi_models::guild::GuildType;
 use std::env;
 use twilight_model::gateway::payload::RequestGuildMembers;
 
-pub static PREMIUM_REDEEM_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["redeem"],
-    desc: Some("Command to add premium to a server"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
+#[derive(FromArgs)]
+pub struct PremiumArguments {}
 
-pub static PREMIUM_REMOVE_OPTIONS: CommandOptions = CommandOptions {
-    perm_level: RoLevel::Normal,
-    bucket: None,
-    names: &["remove"],
-    desc: Some("Command to remove premium status of a server"),
-    usage: None,
-    examples: &[],
-    min_args: 0,
-    hidden: false,
-    sub_commands: &[],
-    group: None,
-};
-
-pub static PREMIUM_REDEEM_COMMAND: Command = Command {
-    fun: premium_redeem,
-    options: &PREMIUM_REDEEM_OPTIONS,
-};
-
-pub static PREMIUM_REMOVE_COMMAND: Command = Command {
-    fun: premium_remove,
-    options: &PREMIUM_REMOVE_OPTIONS,
-};
-
-#[command]
-pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
-    let premium_user = match ctx.database.get_premium(msg.author.id.0).await? {
+pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
+    let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
                 .title("Premium Redeem Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -59,8 +26,8 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         }
     };
 
-    let server = ctx.cache.guild(guild_id).unwrap();
-    if !(server.owner_id == msg.author.id || ctx.config.owners.contains(&msg.author.id)) {
+    let server = ctx.bot.cache.guild(guild_id).unwrap();
+    if !(server.owner_id == ctx.author.id || ctx.bot.owners.contains(&ctx.author.id)) {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -71,9 +38,9 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
             .unwrap()
             .build()
             .unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
@@ -93,9 +60,9 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
                 .unwrap()
                 .build()
                 .unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -103,20 +70,21 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         }
     }
 
-    ctx.database
+    ctx.bot
+        .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let filter = bson::doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0};
     let update =
-        bson::doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
-    ctx.database.modify_guild(filter, update).await?;
+        doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
     if !premium_user.discord_servers.contains(&(guild_id.0 as i64)) {
-        let filter2 = bson::doc! {"_id": msg.author.id.0};
+        let filter2 = bson::doc! {"_id": ctx.author.id.0};
         let update2 = bson::doc! {"$push": { "Servers": guild_id.0 }};
-        ctx.database.modify_premium(filter2, update2).await?;
+        ctx.bot.database.modify_premium(filter2, update2).await?;
     }
 
     let embed = EmbedBuilder::new()
@@ -129,9 +97,9 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
@@ -139,23 +107,22 @@ pub async fn premium_redeem(ctx: &Context, msg: &Message, _args: Arguments<'fut>
     let req = RequestGuildMembers::builder(server.id).query("", None);
     let total_shards = env::var("TOTAL_SHARDS").unwrap().parse::<u64>().unwrap();
     let shard_id = (guild_id.0 >> 22) % total_shards;
-    let _res = ctx.cluster.command(shard_id, &req).await;
+    let _res = ctx.bot.cluster.command(shard_id, &req).await;
     Ok(())
 }
 
-#[command]
-pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
-    let premium_user = match ctx.database.get_premium(msg.author.id.0).await? {
+pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
+    let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
                 .title("Premium Disable Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            let _ = ctx
+            ctx.bot
                 .http
-                .create_message(msg.channel_id)
+                .create_message(ctx.channel_id)
                 .embed(embed)
                 .unwrap()
                 .await?;
@@ -168,29 +135,31 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
             .title("Premium Disable Failed").unwrap()
             .description("This server either does not have premium enabled or the premium is owned by an another member").unwrap()
             .build().unwrap();
-        let _ = ctx
+        ctx.bot
             .http
-            .create_message(msg.channel_id)
+            .create_message(ctx.channel_id)
             .embed(embed)
             .unwrap()
             .await?;
         return Ok(());
     }
 
-    ctx.database
+    ctx.bot
+        .database
         .get_guild(guild_id.0)
         .await?
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
-    let filter = bson::doc! {"_id": guild_id.0};
-    let update = bson::doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
-    ctx.database.modify_guild(filter, update).await?;
+    let filter = doc! {"_id": guild_id.0};
+    let update =
+        doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
+    ctx.bot.database.modify_guild(filter, update).await?;
 
-    let filter2 = bson::doc! {"_id": msg.author.id.0};
-    let update2 = bson::doc! {"$pull": { "Servers": guild_id.0 }};
-    ctx.database.modify_premium(filter2, update2).await?;
+    let filter2 = doc! {"_id": ctx.author.id.0};
+    let update2 = doc! {"$pull": { "Servers": guild_id.0 }};
+    ctx.bot.database.modify_premium(filter2, update2).await?;
 
-    let server = ctx.cache.guild(guild_id).unwrap();
+    let server = ctx.bot.cache.guild(guild_id).unwrap();
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
@@ -201,9 +170,9 @@ pub async fn premium_remove(ctx: &Context, msg: &Message, _args: Arguments<'fut>
         .unwrap()
         .build()
         .unwrap();
-    let _ = ctx
+    ctx.bot
         .http
-        .create_message(msg.channel_id)
+        .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
         .await?;
