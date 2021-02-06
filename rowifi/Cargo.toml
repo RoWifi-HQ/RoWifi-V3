@@ -7,7 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bson = "1"
 chrono = "0"
 dashmap = "4"
 dotenv = "0"
@@ -25,7 +24,7 @@ reqwest = { version = "0", default-features = false, features = ["json", "rustls
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
-framework_new = { path = '../framework_new' }
+rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }

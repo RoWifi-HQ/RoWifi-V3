@@ -1,9 +1,11 @@
 mod info;
+mod test;
 mod update;
 mod verify;
 
-use framework_new::prelude::*;
 pub use info::{botinfo, support, userinfo};
+use rowifi_framework::prelude::*;
+pub use test::test;
 pub use update::update;
 pub use verify::{reverify, verify};
 
@@ -50,10 +52,16 @@ pub fn user_config(cmds: &mut Vec<Command>) {
         .group("User")
         .handler(reverify);
 
+    let test_cmd = Command::builder()
+        .level(RoLevel::Creator)
+        .names(&["test"])
+        .handler(test);
+
     cmds.push(update_cmd);
     cmds.push(userinfo_cmd);
     cmds.push(botinfo_cmd);
     cmds.push(support_cmd);
     cmds.push(verify_cmd);
     cmds.push(reverify_cmd);
+    cmds.push(test_cmd);
 }

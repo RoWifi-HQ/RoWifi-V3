@@ -1,4 +1,5 @@
-use framework_new::prelude::*;
+use mongodb::bson::doc;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::RoGuild;
 use twilight_embed_builder::EmbedFieldBuilder;
 
@@ -132,9 +133,9 @@ async fn modify_prefix(
     bind_index: usize,
     prefix: &str,
 ) -> Result<String, RoError> {
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Prefix", bind_index);
-    let update = bson::doc! {"$set": {index_str: prefix}};
+    let update = doc! {"$set": {index_str: prefix}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(prefix.to_string())
 }
@@ -151,9 +152,9 @@ async fn modify_priority(
             unimplemented!()
         }
     };
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Priority", bind_index);
-    let update = bson::doc! {"$set": {index_str: priority}};
+    let update = doc! {"$set": {index_str: priority}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(priority)
 }
@@ -170,9 +171,9 @@ async fn add_roles(
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.DiscordRoles", bind_index);
-    let update = bson::doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
+    let update = doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }
@@ -189,9 +190,9 @@ async fn remove_roles(
             role_ids.push(r);
         }
     }
-    let filter = bson::doc! {"_id": guild.id};
+    let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.DiscordRoles", bind_index);
-    let update = bson::doc! {"$pullAll": {index_str: role_ids.clone()}};
+    let update = doc! {"$pullAll": {index_str: role_ids.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(role_ids)
 }

@@ -1,8 +1,8 @@
 mod register;
 mod view;
 
-use framework_new::prelude::*;
 use itertools::Itertools;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::string::ToString;
 

@@ -2,7 +2,7 @@ mod new;
 mod types;
 mod view;
 
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 use new::events_new;

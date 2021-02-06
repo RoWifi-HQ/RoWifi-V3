@@ -196,16 +196,8 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             fn from_interaction(options: &[twilight_model::applications::interaction::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
                 use twilight_model::applications::interaction::CommandDataOption;
 
-                let options = options.iter().map(|c| {
-                    match c {
-                        CommandDataOption::Boolean {name, ..}
-                        | CommandDataOption::Integer {name, ..}
-                        | CommandDataOption::String {name, ..}
-                        | CommandDataOption::SubCommand {name, ..}
-                            => (name.as_str(), c),
-                    }
-                }).collect::<std::collections::HashMap<&str, &CommandDataOption>>();
-
+                let options = options.iter().map(|c| (c.name(), c))
+                    .collect::<std::collections::HashMap<&str, &CommandDataOption>>();
                 #(#field_interaction_decs)*
                 Ok(Self {
                     #(#field_interaction_names),*

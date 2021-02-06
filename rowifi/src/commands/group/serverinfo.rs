@@ -1,4 +1,4 @@
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
 #[derive(FromArgs)]

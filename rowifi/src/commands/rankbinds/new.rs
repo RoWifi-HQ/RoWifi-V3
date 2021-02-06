@@ -1,7 +1,8 @@
-use framework_new::prelude::*;
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use mongodb::bson::{doc, to_bson};
 use regex::Regex;
+use rowifi_framework::prelude::*;
 use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_model::id::RoleId;
@@ -502,9 +503,9 @@ async fn multiple_rank_with_auto(
 }
 
 async fn add_rankbind(ctx: &CommandContext, bind: &RankBind) -> Result<(), RoError> {
-    let filter = bson::doc! {"_id": ctx.guild_id.unwrap().0 };
-    let bind_bson = bson::to_bson(&bind)?;
-    let update = bson::doc! {"$push": {"RankBinds": bind_bson}};
+    let filter = doc! {"_id": ctx.guild_id.unwrap().0 };
+    let bind_bson = to_bson(&bind)?;
+    let update = doc! {"$push": {"RankBinds": bind_bson}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Rank: {}", bind.rank_id);

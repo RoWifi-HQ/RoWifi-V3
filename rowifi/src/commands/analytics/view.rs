@@ -1,8 +1,8 @@
 use chrono::{Duration, Utc};
-use framework_new::prelude::{Color as DiscordColor, *};
 use image::{png::PngEncoder, ColorType};
 use mongodb::bson::doc;
 use plotters::prelude::*;
+use rowifi_framework::prelude::{Color as DiscordColor, *};
 use rowifi_models::guild::GuildType;
 use std::io::Cursor;
 

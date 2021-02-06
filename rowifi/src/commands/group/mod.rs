@@ -2,7 +2,7 @@ mod serverinfo;
 mod setup;
 mod update_mul;
 
-use framework_new::prelude::*;
+use rowifi_framework::prelude::*;
 
 pub use serverinfo::serverinfo;
 pub use setup::setup;

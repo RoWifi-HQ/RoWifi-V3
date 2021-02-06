@@ -3,8 +3,8 @@ members = [
     "rowifi",
     "cache",
     "database",
-    "framework_new",
-    "framework_new/framework-derive",
+    "framework",
+    "framework/framework-derive",
     "models"
 ]
 

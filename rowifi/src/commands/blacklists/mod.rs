@@ -3,8 +3,8 @@ mod delete;
 mod group;
 mod name;
 
-use framework_new::prelude::*;
 use itertools::Itertools;
+use rowifi_framework::prelude::*;
 
 pub use custom::blacklist_custom;
 pub use delete::blacklist_delete;
