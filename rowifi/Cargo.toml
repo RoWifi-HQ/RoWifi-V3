@@ -1,6 +1,6 @@
 [package]
 name = "rowifi"
-version = "2.7.2"
+version = "3.0.0-alpha-1"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -18,7 +18,7 @@ lazy_static = "1"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 prometheus = "0"
-rand = "0"
+rand = "0.8"
 regex = "1"
 reqwest = { version = "0", default-features = false, features = ["json", "rustls-tls"] }
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }

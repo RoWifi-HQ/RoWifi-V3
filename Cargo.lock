@@ -658,7 +658,7 @@ dependencies = [
 
 [[package]]
 name = "framework-derive"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "itertools",
  "quote",
@@ -933,9 +933,9 @@ checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
 
 [[package]]
 name = "hyper"
-version = "0.14.2"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12219dc884514cb4a6a03737f4413c0e01c23a1b059b0156004b23f1e19dccbe"
+checksum = "e8e946c2b1349055e0b72ae281b238baf1a3ea7307c7e9f9d64673bdd9c26ac7"
 dependencies = [
  "bytes 1.0.1",
  "futures-channel",
@@ -1241,7 +1241,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "2.0.0-alpha"
-source = "git+https://github.com/mongodb/mongo-rust-driver#50c94100b6d2154d3f18dd8cb077f146fd1e036f"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#50c94100b6d2154d3f18dd8cb077f146fd1e036f"
 dependencies = [
  "async-trait",
  "base64 0.11.0",
@@ -1634,9 +1634,9 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.20.0"
+version = "2.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86473d5f16580f10b131a0bf0afb68f8e029d1835d33a00f37281b05694e5312"
+checksum = "73f72884896d22e0da0e5b266cb9a780b791f6c3b2f5beab6368d6cd4f0dbb86"
 
 [[package]]
 name = "quick-error"
@@ -1886,7 +1886,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "2.7.2"
+version = "3.0.0-alpha-1"
 dependencies = [
  "chrono",
  "dashmap",
@@ -1923,7 +1923,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-cache"
-version = "1.0.0"
+version = "3.0.0"
 dependencies = [
  "dashmap",
  "rowifi-models",
@@ -1933,7 +1933,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-database"
-version = "1.0.0"
+version = "3.0.0"
 dependencies = [
  "futures",
  "mongodb",
@@ -1944,7 +1944,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-framework"
-version = "0.1.0"
+version = "3.0.0"
 dependencies = [
  "chrono",
  "dashmap",
@@ -1973,7 +1973,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-models"
-version = "1.0.0"
+version = "3.0.0"
 dependencies = [
  "bson",
  "itertools",
@@ -2173,9 +2173,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.61"
+version = "1.0.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fceb2595057b6891a4ee808f70054bd2d12f0e97f1cbb78689b59f676df325a"
+checksum = "ea1c6153794552ea7cf7cf63b1231a25de00ec90db326ba6264440fa08e31486"
 dependencies = [
  "indexmap",
  "itoa",
@@ -2468,9 +2468,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.1.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6714d663090b6b0acb0fa85841c6d66233d150cdb2602c8f9b8abb03370beb3f"
+checksum = "e8190d04c665ea9e6b6a0dc45523ade572c088d2e6566244c1122671dbf4ae3a"
 dependencies = [
  "autocfg",
  "bytes 1.0.1",
@@ -2484,9 +2484,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42517d2975ca3114b22a16192634e8241dc5cc1f130be194645970cc1c371494"
+checksum = "caf7b11a536f46a809a8a9f0bb4237020f70ecbf115b842360afb127ea2fda57"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2506,9 +2506,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-stream"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76066865172052eb8796c686f0b441a93df8b08d40a950b062ffb9a426f00edd"
+checksum = "1981ad97df782ab506a1f43bf82c967326960d278acf3bf8279809648c3ff3ea"
 dependencies = [
  "futures-core",
  "pin-project-lite",
