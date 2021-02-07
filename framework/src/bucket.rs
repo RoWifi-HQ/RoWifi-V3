@@ -1,7 +1,4 @@
-use futures::{
-    future::{ready, Either, Ready},
-    Future, FutureExt,
-};
+use futures::{Future, FutureExt};
 use std::{
     pin::Pin,
     sync::Arc,
@@ -18,9 +15,21 @@ use crate::{
     error::{CommandError, RoError},
 };
 
+#[derive(Clone)]
 pub struct BucketLayer {
     pub time: Duration,
     pub calls: u64,
+    guilds: Arc<TransientDashMap<GuildId, u64>>,
+}
+
+impl BucketLayer {
+    pub fn new(time: Duration, calls: u64) -> Self {
+        Self {
+            time,
+            calls,
+            guilds: Arc::new(TransientDashMap::new(time)),
+        }
+    }
 }
 
 impl<S> Layer<S> for BucketLayer {
@@ -29,7 +38,7 @@ impl<S> Layer<S> for BucketLayer {
     fn layer(&self, inner: S) -> Self::Service {
         BucketService {
             time: self.time,
-            guilds: Arc::new(TransientDashMap::new(self.time)),
+            guilds: self.guilds.clone(),
             calls: self.calls,
             service: inner,
         }
@@ -45,8 +54,8 @@ pub struct BucketService<S> {
 }
 
 impl<S> BucketService<S> {
-    pub fn get(&self, guild_id: GuildId) -> Option<Duration> {
-        match self.guilds.get(&guild_id) {
+    pub fn get(&self, guild_id: &GuildId) -> Option<Duration> {
+        match self.guilds.get(guild_id) {
             Some(g) => {
                 if g.object == 0 {
                     return g.expiration.checked_duration_since(Instant::now());
@@ -61,13 +70,12 @@ impl<S> BucketService<S> {
 impl<S> Service<(CommandContext, ServiceRequest)> for BucketService<S>
 where
     S: Service<(CommandContext, ServiceRequest), Error = RoError> + 'static,
+    S::Future: Send,
+    S::Response: Send,
 {
     type Response = S::Response;
     type Error = RoError;
-    type Future = Either<
-        Ready<Result<Self::Response, Self::Error>>,
-        Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>,
-    >;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
@@ -75,10 +83,10 @@ where
 
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         if let Some(guild_id) = req.0.guild_id {
-            if let Some(duration) = self.guilds.get(&guild_id) {
-                return Either::Left(ready(Err(RoError::Command(CommandError::Ratelimit(
-                    duration.object,
-                )))));
+            if let Some(duration) = self.get(&guild_id) {
+                let dur = duration;
+                let fut = async move { Err(RoError::Command(CommandError::Ratelimit(dur))) };
+                return Box::pin(fut);
             }
 
             let guilds = self.guilds.clone();
@@ -91,10 +99,10 @@ where
                 res
             });
 
-            return Either::Right(Box::pin(fut));
+            return Box::pin(fut);
         }
 
-        Either::Right(Box::pin(self.service.call(req)))
+        Box::pin(self.service.call(req))
     }
 }
 

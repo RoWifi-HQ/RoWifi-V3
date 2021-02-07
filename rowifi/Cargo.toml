@@ -29,6 +29,7 @@ rowifi-models = { path = "../models" }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
+tower = "0"
 tracing = "0"
 tracing-subscriber = "0"
 twilight-command-parser = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }

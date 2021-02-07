@@ -1910,6 +1910,7 @@ dependencies = [
  "rowifi-models",
  "tokio",
  "tokio-stream",
+ "tower",
  "tracing",
  "tracing-subscriber",
  "twilight-command-parser",

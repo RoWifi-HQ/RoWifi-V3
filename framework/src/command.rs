@@ -275,7 +275,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .description(format!(
                         "Ratelimit reached. You may retry this command in {} seconds",
-                        d
+                        d.as_secs()
                     ))
                     .unwrap()
                     .build()
