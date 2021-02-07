@@ -1,4 +1,4 @@
-use rowifi_framework::prelude::Context;
+use rowifi_framework::context::BotContext;
 use std::error::Error;
 use tokio::time::{interval, Duration};
 use twilight_model::gateway::{
@@ -6,7 +6,7 @@ use twilight_model::gateway::{
     presence::{Activity, ActivityType, Status},
 };
 
-pub async fn activity(ctx: Context) {
+pub async fn activity(ctx: BotContext) {
     let mut interval = interval(Duration::from_secs(30 * 60));
     let mut show_members = false;
     loop {
@@ -17,7 +17,7 @@ pub async fn activity(ctx: Context) {
     }
 }
 
-async fn execute(ctx: &Context, show_members: &mut bool) -> Result<(), Box<dyn Error>> {
+async fn execute(ctx: &BotContext, show_members: &mut bool) -> Result<(), Box<dyn Error>> {
     let shards = ctx.cluster.shards();
     let (name, kind) = match show_members {
         true => (
