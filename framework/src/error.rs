@@ -4,6 +4,7 @@ use rowifi_database::error::{DatabaseError, SerializationError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
+    time::Duration,
 };
 use twilight_http::Error as DiscordHttpError;
 
@@ -15,7 +16,7 @@ pub enum CommandError {
     Blacklist(String),
     Miscellanous(String),
     NoRoGuild,
-    Ratelimit(u64),
+    Ratelimit(Duration),
 }
 
 #[derive(Debug)]
