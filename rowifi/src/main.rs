@@ -11,7 +11,7 @@
 )]
 
 mod commands;
-//mod services;
+mod services;
 
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
@@ -32,13 +32,9 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
-use rowifi_framework::{
-    context::BotContext,
-    prelude::{RoError, Service, ServiceExt},
-    Framework as NewFramework,
-};
+use rowifi_framework::{context::BotContext, prelude::RoError, Framework};
 use rowifi_models::stats::BotStats;
-//use services::EventHandler;
+use services::EventHandler;
 use std::{
     collections::HashMap,
     env,
@@ -53,6 +49,7 @@ use tokio::{
     time::sleep,
 };
 use tokio_stream::StreamExt;
+use tower::{Service, ServiceExt};
 use twilight_gateway::{
     cluster::{Cluster, ShardScheme},
     Event,
@@ -62,8 +59,8 @@ use twilight_model::{gateway::Intents, id::UserId};
 use twilight_standby::Standby;
 
 pub struct RoWifi {
-    pub framework: NewFramework,
-    //pub event_handler: EventHandler,
+    pub framework: Framework,
+    pub event_handler: EventHandler,
     pub bot: BotContext,
 }
 
@@ -88,9 +85,13 @@ impl Service<(u64, Event)> for RoWifi {
             .expect("Failed to update cache");
         self.bot.standby.process(&event.1);
         let fut = self.framework.call(&event.1);
-
-        let join = tokio::spawn(fut);
-
+        let eh_fut = self.event_handler.call((event.0, event.1));
+        let join = tokio::spawn(async move {
+            if let Err(err) = eh_fut.await {
+                tracing::error!(err = ?err);
+            }
+            fut.await
+        });
         join
     }
 }
@@ -195,8 +196,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         webhooks,
         cluster_id,
         total_shards,
+        shards_per_cluster,
     );
-    let framework = NewFramework::new(bot.clone())
+    let framework = Framework::new(bot.clone())
         .configure(user_config)
         .configure(rankbinds_config)
         .configure(analytics_config)
@@ -210,38 +212,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .configure(settings_config)
         .configure(premium_config);
 
-    //let event_handler = EventHandler::default();
+    let event_handler = EventHandler::new(&bot);
     let rowifi = RoWifi {
         framework,
-        //event_handler,
+        event_handler,
         bot,
     };
     let events = rowifi.bot.cluster.events();
     let mut event_responses = rowifi.call_all(events);
     while let Some(_res) = event_responses.next().await {}
-
-    // let mut events = bot.cluster.events();
-    // while let Some(event) = events.next().await {
-    //     let b = bot.clone();
-    //     let nfc = new_framework.clone();
-    //     let _e = event_handler.clone();
-    //     tracing::trace!(event = ?event.1.kind());
-    //     b.cache.update(&event.1).expect("Failed to update cache");
-    //     b.standby.process(&event.1);
-
-    //     tokio::spawn(async move {
-    //         // if let Err(err) = e.handle_event(event.0, &event.1, &c).await {
-    //         //     tracing::error!(err = ?err, "Error in event handler");
-    //         // }
-    //         //f.handle_event(&event.1, &c).await;
-    //         let fut = nfc.call(&event.1);
-    //         if let Err(err) = fut.await {
-    //             tracing::error!(err = ?err);
-    //         }
-    //         //c.stats.update(&event.1);
-    //     });
-    // }
-
     Ok(())
 }
 

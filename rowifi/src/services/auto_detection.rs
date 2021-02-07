@@ -1,4 +1,4 @@
-use rowifi_framework::prelude::{Context, EmbedExtensions};
+use rowifi_framework::{context::BotContext, prelude::EmbedExtensions};
 use std::{error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, Duration};
 use twilight_embed_builder::EmbedBuilder;
@@ -7,7 +7,7 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
-pub async fn auto_detection(ctx: Context) {
+pub async fn auto_detection(ctx: BotContext) {
     tracing::info!("Auto Detection starting");
     let mut interval = interval(Duration::from_secs(3 * 3600));
     loop {
@@ -18,7 +18,7 @@ pub async fn auto_detection(ctx: Context) {
     }
 }
 
-async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
+async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
@@ -37,7 +37,7 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
             .collect::<Vec<_>>();
         if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
             let req = RequestGuildMembers::builder(server.id).query("", None);
-            let shard_id = (guild_id.0 >> 22) % ctx.bot_config.total_shards;
+            let shard_id = (guild_id.0 >> 22) % ctx.total_shards;
             ctx.cluster.command(shard_id, &req).await?;
             let _ = ctx
                 .standby
@@ -69,7 +69,7 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
                 tracing::trace!(id = user.discord_id, "Auto Detection for member");
                 let name = member.user.name.clone();
                 if let Ok((added_roles, removed_roles, disc_nick)) = ctx
-                    .update_user(member, &user, server.clone(), &guild, &guild_roles)
+                    .update_user(member, &user, &server, &guild, &guild_roles)
                     .await
                 {
                     if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -80,15 +80,14 @@ async fn execute(ctx: &Context) -> Result<(), Box<dyn Error>> {
                             .update_log(&added_roles, &removed_roles, &disc_nick)
                             .build()
                             .unwrap();
-                        ctx.logger.log_guild(ctx, guild_id, log_embed).await;
+                        ctx.log_guild(guild_id, log_embed).await;
                     }
                 }
             }
         }
         let end = chrono::Utc::now().timestamp_millis();
         tracing::info!(time = end-start, server_name = ?server.name, "Time to complete auto detection");
-        ctx.logger
-            .log_premium(ctx, &format!("{} - {}", server.name, end - start))
+        ctx.log_premium(&format!("{} - {}", server.name, end - start))
             .await;
     }
     Ok(())

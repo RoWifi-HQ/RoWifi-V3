@@ -45,6 +45,7 @@ pub struct BotContextRef {
     pub webhooks: HashMap<&'static str, (WebhookId, String)>,
     pub cluster_id: u64,
     pub total_shards: u64,
+    pub shards_per_cluster: u64,
 }
 
 #[derive(Clone)]
@@ -74,6 +75,7 @@ impl BotContext {
         webhooks: HashMap<&'static str, &str>,
         cluster_id: u64,
         total_shards: u64,
+        shards_per_cluster: u64,
     ) -> Self {
         let mut _owners = DashSet::new();
         _owners.extend(owners.iter().map(|u| u.to_owned()));
@@ -101,6 +103,7 @@ impl BotContext {
                 webhooks: _webhooks,
                 cluster_id,
                 total_shards,
+                shards_per_cluster,
             }),
         }
     }
@@ -142,6 +145,37 @@ impl CommandContext {
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,
     ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
+        self.bot
+            .update_user(member, user, server, guild, guild_roles)
+            .await
+    }
+
+    pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
+        self.bot.log_guild(guild_id, embed).await
+    }
+
+    pub async fn log_debug(&self, embed: Embed) {
+        self.bot.log_debug(embed).await
+    }
+
+    pub async fn log_error(&self, text: &str) {
+        self.bot.log_error(text).await
+    }
+
+    pub async fn log_premium(&self, text: &str) {
+        self.bot.log_premium(text).await
+    }
+}
+
+impl BotContext {
+    pub async fn update_user(
+        &self,
+        member: Arc<CachedMember>,
+        user: &RoUser,
+        server: &CachedGuild,
+        guild: &RoGuild,
+        guild_roles: &HashSet<RoleId>,
+    ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
 
@@ -157,8 +191,8 @@ impl CommandContext {
             added_roles.push(verified_role);
         }
 
-        let user_roles = self.bot.roblox.get_user_roles(user.roblox_id).await?;
-        let username = self.bot.roblox.get_username_from_id(user.roblox_id).await?;
+        let user_roles = self.roblox.get_user_roles(user.roblox_id).await?;
+        let username = self.roblox.get_username_from_id(user.roblox_id).await?;
         let command_user = RoCommandUser {
             user: &user,
             roles: &member.roles,
@@ -176,13 +210,12 @@ impl CommandContext {
                     BlacklistActionType::None => {}
                     BlacklistActionType::Kick => {
                         let _ = self
-                            .bot
                             .http
                             .remove_guild_member(server.id, member.user.id)
                             .await;
                     }
                     BlacklistActionType::Ban => {
-                        let _ = self.bot.http.create_ban(server.id, member.user.id).await;
+                        let _ = self.http.create_ban(server.id, member.user.id).await;
                     }
                 };
                 return Err(RoError::Command(CommandError::Blacklist(
@@ -211,7 +244,6 @@ impl CommandContext {
         let mut assetbinds_to_add = Vec::new();
         for asset in &guild.assetbinds {
             if self
-                .bot
                 .roblox
                 .has_asset(user.roblox_id, asset.id, &asset.asset_type.to_string())
                 .await?
@@ -299,7 +331,7 @@ impl CommandContext {
             ))));
         }
 
-        let update = self.bot.http.update_guild_member(server.id, member.user.id);
+        let update = self.http.update_guild_member(server.id, member.user.id);
         let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = member.roles.clone();
         roles.extend_from_slice(&added_roles);
@@ -319,23 +351,9 @@ impl CommandContext {
         Ok((added_roles, removed_roles, disc_nick.to_string()))
     }
 
-    pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
-        let log_channel = self.bot.cache.guild(guild_id).and_then(|g| g.log_channel);
-        if let Some(channel_id) = log_channel {
-            let _ = self
-                .bot
-                .http
-                .create_message(channel_id)
-                .embed(embed)
-                .unwrap()
-                .await;
-        }
-    }
-
     pub async fn log_debug(&self, embed: Embed) {
-        let (id, token) = self.bot.webhooks.get("debug").unwrap();
+        let (id, token) = self.webhooks.get("debug").unwrap();
         let _ = self
-            .bot
             .http
             .execute_webhook(*id, token)
             .embeds(vec![embed])
@@ -343,9 +361,8 @@ impl CommandContext {
     }
 
     pub async fn log_error(&self, text: &str) {
-        let (id, token) = self.bot.webhooks.get("error").unwrap();
+        let (id, token) = self.webhooks.get("error").unwrap();
         let _ = self
-            .bot
             .http
             .execute_webhook(*id, token)
             .content(text.to_string())
@@ -353,12 +370,23 @@ impl CommandContext {
     }
 
     pub async fn log_premium(&self, text: &str) {
-        let (id, token) = self.bot.webhooks.get("premium").unwrap();
+        let (id, token) = self.webhooks.get("premium").unwrap();
         let _ = self
-            .bot
             .http
             .execute_webhook(*id, token)
             .content(text.to_string())
             .await;
+    }
+
+    pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
+        let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
+        if let Some(channel_id) = log_channel {
+            let _ = self
+                .http
+                .create_message(channel_id)
+                .embed(embed)
+                .unwrap()
+                .await;
+        }
     }
 }
