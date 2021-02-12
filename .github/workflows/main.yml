@@ -23,4 +23,4 @@ jobs:
         run: doctl registry login --expiry-seconds 600
       
       - name: Push image to DigitalOcean Container Registry
-        run: docker push registry.digitalocean.com/asianintel/rowifi
+        run: docker push registry.digitalocean.com/asianintel/rowifi:v3
