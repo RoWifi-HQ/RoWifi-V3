@@ -9,13 +9,13 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
 RUN echo 'deb http://apt.llvm.org/buster/ llvm-toolchain-buster main' > /etc/apt/sources.list.d/llvm.list && \
     (wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -) && \
-    apt-get update && apt-get install -y lld-12 && \
+    apt-get update && apt-get install -y lld-13 && \
     rm -rf /var/lib/apt/lists/* && \
     ln -s /usr/bin/ld.lld-* /usr/bin/ld.lld
 COPY . .
 RUN cargo build --release
 
 FROM debian:buster-slim
-RUN apt-get update && apt-get install -y libfontconfig libfontconfig1-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libfontconfig libfontconfig1-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/rowifi/target/release/rowifi /usr/local/bin/rowifi
 CMD ["rowifi"]

@@ -27,7 +27,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
 
     let rankbinds_delete_command = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["delete", "d"])
+        .names(&["delete", "d", "remove"])
         .description("Command to delete an existing rankbind")
         .handler(rankbinds_delete);
 

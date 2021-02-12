@@ -56,7 +56,7 @@ pub fn events_config(cmds: &mut Vec<Command>) {
 
     let events_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["event"])
+        .names(&["event", "events"])
         .description("Module to interact with the events subsystem")
         .group("Premium")
         .sub_command(events_new_cmd)

@@ -45,13 +45,15 @@ pub use framework_derive::FromArgs;
 pub struct Framework {
     bot: BotContext,
     cmds: Vec<Command>,
+    default_perms: Permissions,
 }
 
 impl Framework {
-    pub fn new(bot: BotContext) -> Self {
+    pub fn new(bot: BotContext, default_perms: Permissions) -> Self {
         Self {
             bot,
             cmds: Vec::new(),
+            default_perms,
         }
     }
 
@@ -169,7 +171,9 @@ impl Service<&Event> for Framework {
                 let mut cmd_str = Arguments::new(content);
 
                 let command = if let Some(arg) = cmd_str.next() {
-                    if arg.eq_ignore_ascii_case("help") {
+                    if arg.eq_ignore_ascii_case("help")
+                        && !self.bot.disabled_channels.contains(&msg.channel_id)
+                    {
                         return Either::Right(self.help(&msg, cmd_str));
                     }
                     self.cmds.iter_mut().find(|c| c.names.contains(&arg))
@@ -181,6 +185,30 @@ impl Service<&Event> for Framework {
                     Some(c) => c,
                     None => return Either::Left(ready(Ok(()))),
                 };
+
+                match self.bot.cache.channel_permissions(msg.channel_id) {
+                    Some(p) => {
+                        if !p.contains(self.default_perms)
+                            && !p.contains(Permissions::ADMINISTRATOR)
+                        {
+                            let http = self.bot.http.clone();
+                            let perms = self.default_perms;
+                            let channel_id = msg.channel_id;
+                            let fut = async move {
+                                let _ = http.create_message(channel_id)
+                                    .content(format!(
+                                        "I seem to be missing one of the following permissions: `{:?}`",
+                                        perms
+                                    ))
+                                    .unwrap()
+                                    .await;
+                                Ok(())
+                            };
+                            return Either::Right(Box::pin(fut));
+                        }
+                    }
+                    None => return Either::Left(ready(Ok(()))),
+                }
 
                 if !run_checks(
                     &self.bot,
@@ -264,7 +292,8 @@ fn run_checks(
     if let Some(guild_id) = guild_id {
         if let Some(guild) = bot.cache.guild(guild_id) {
             if let Some(member) = bot.cache.member(guild_id, author) {
-                return cmd.options.level <= get_perm_level(bot, &guild, &member);
+                let level = get_perm_level(bot, &guild, &member);
+                return cmd.options.level <= level;
             }
         }
     }
