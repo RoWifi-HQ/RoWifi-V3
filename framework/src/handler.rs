@@ -88,12 +88,12 @@ where
                     Box::pin(fut)
                 }
             },
-            ServiceRequest::Help(_args, embed) => {
+            ServiceRequest::Help(_args, mut embed) => {
                 let (usage, fields_help) = K::generate_help();
-                let mut embed = embed
-                    .field(EmbedFieldBuilder::new("Fields", fields_help).unwrap())
-                    .build()
-                    .unwrap();
+                if !fields_help.is_empty() {
+                    embed = embed.field(EmbedFieldBuilder::new("Fields", fields_help).unwrap())
+                }
+                let mut embed = embed.build().unwrap();
                 if let Some(field) = embed.fields.iter_mut().find(|f| f.name.eq("Usage")) {
                     field.value = format!("`{} {}`", field.value, usage);
                 }

@@ -157,7 +157,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                         if let NestedMeta::Meta(Meta::NameValue(nv)) = nv {
                             if path_is(&nv.path, "help") {
                                 if let Lit::Str(lit) = nv.lit {
-                                    return format!("{}: {}", name, lit.value());
+                                    return format!("`{}`: {}", name, lit.value());
                                 }
                             }
                         }

@@ -6,7 +6,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 #[derive(FromArgs)]
 pub struct ModifyRankbind {
     #[arg(
-        help = "The field to modify. Must be one of `prefix` `priority` `roles-add` roles-remove`"
+        help = "The field to modify. Must be one of `prefix` `priority` `roles-add` `roles-remove`"
     )]
     pub option: ModifyOption,
     #[arg(help = "The Group ID of the rankbind to modify")]

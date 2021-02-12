@@ -19,10 +19,6 @@ use commands::{
     settings_config, user_config,
 };
 use dashmap::DashSet;
-use futures::{
-    future::{Either, Ready},
-    Future,
-};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -32,22 +28,19 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
-use rowifi_framework::{context::BotContext, prelude::RoError, Framework};
+use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::stats::BotStats;
 use services::EventHandler;
 use std::{
     collections::HashMap,
     env,
     error::Error,
-    pin::Pin,
+    future::{ready, Ready},
     sync::Arc,
     task::{Context, Poll},
     time::Duration,
 };
-use tokio::{
-    task::{JoinError, JoinHandle},
-    time::sleep,
-};
+use tokio::{task::JoinError, time::sleep};
 use tokio_stream::StreamExt;
 use tower::{Service, ServiceExt};
 use twilight_gateway::{
@@ -55,7 +48,7 @@ use twilight_gateway::{
     Event,
 };
 use twilight_http::Client as HttpClient;
-use twilight_model::{gateway::Intents, id::UserId};
+use twilight_model::{gateway::Intents, guild::Permissions, id::UserId};
 use twilight_standby::Standby;
 
 pub struct RoWifi {
@@ -65,14 +58,9 @@ pub struct RoWifi {
 }
 
 impl Service<(u64, Event)> for RoWifi {
-    type Response = Result<(), RoError>;
+    type Response = ();
     type Error = JoinError;
-    type Future = JoinHandle<
-        <Either<
-            Ready<Result<(), RoError>>,
-            Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>,
-        > as Future>::Output,
-    >;
+    type Future = Ready<Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
@@ -86,13 +74,13 @@ impl Service<(u64, Event)> for RoWifi {
         self.bot.standby.process(&event.1);
         let fut = self.framework.call(&event.1);
         let eh_fut = self.event_handler.call((event.0, event.1));
-        let join = tokio::spawn(async move {
+        tokio::spawn(async move {
             if let Err(err) = eh_fut.await {
                 tracing::error!(err = ?err);
             }
-            fut.await
+            let _ = fut.await;
         });
-        join
+        ready(Ok(()))
     }
 }
 
@@ -143,7 +131,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         to: cluster_id * shards_per_cluster + shards_per_cluster - 1,
         total: total_shards,
     };
-    let http = HttpClient::new(&token);
+    let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
+    let hyper_client = hyper::client::Builder::default().build(connector);
+    let http = HttpClient::builder()
+        .hyper_client(hyper_client)
+        .token(token.clone())
+        .build();
     let app_info = http.current_user().await?;
 
     let mut owners = Vec::new();
@@ -198,19 +191,25 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         total_shards,
         shards_per_cluster,
     );
-    let framework = Framework::new(bot.clone())
-        .configure(user_config)
-        .configure(rankbinds_config)
-        .configure(analytics_config)
-        .configure(assetbinds_config)
-        .configure(backup_config)
-        .configure(blacklists_config)
-        .configure(custombinds_config)
-        .configure(events_config)
-        .configure(group_config)
-        .configure(groupbinds_config)
-        .configure(settings_config)
-        .configure(premium_config);
+    let framework = Framework::new(
+        bot.clone(),
+        Permissions::SEND_MESSAGES
+            | Permissions::EMBED_LINKS
+            | Permissions::MANAGE_ROLES
+            | Permissions::MANAGE_NICKNAMES,
+    )
+    .configure(user_config)
+    .configure(rankbinds_config)
+    .configure(analytics_config)
+    .configure(assetbinds_config)
+    .configure(backup_config)
+    .configure(blacklists_config)
+    .configure(custombinds_config)
+    .configure(events_config)
+    .configure(group_config)
+    .configure(groupbinds_config)
+    .configure(settings_config)
+    .configure(premium_config);
 
     let event_handler = EventHandler::new(&bot);
     let rowifi = RoWifi {

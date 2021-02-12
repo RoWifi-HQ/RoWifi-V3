@@ -1,10 +1,11 @@
-use std::{num::ParseIntError, str::FromStr};
-
 use rowifi_models::{bind::AssetType, guild::BlacklistActionType};
+use std::{num::ParseIntError, str::FromStr};
 use twilight_model::{
     applications::interaction::CommandDataOption,
     id::{RoleId, UserId},
 };
+
+use crate::utils::{parse_role, parse_username};
 
 #[derive(Debug, Clone)]
 pub struct Arguments {
@@ -131,26 +132,36 @@ where
 impl FromArg for UserId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        let id = u64::from_arg(arg)?;
-        Ok(UserId(id))
+        match parse_username(arg) {
+            Some(id) => Ok(UserId(id)),
+            None => Err(ParseError("an User")),
+        }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let id = u64::from_interaction(option)?;
-        Ok(UserId(id))
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(UserId(*value as u64)),
+            CommandDataOption::String { value, .. } => Self::from_arg(value),
+            _ => unreachable!("UserId unreached"),
+        }
     }
 }
 
 impl FromArg for RoleId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
-        let id = u64::from_arg(arg)?;
-        Ok(RoleId(id))
+        match parse_role(arg) {
+            Some(id) => Ok(RoleId(id)),
+            None => Err(ParseError("a Role")),
+        }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let id = u64::from_interaction(option)?;
-        Ok(RoleId(id))
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(RoleId(*value as u64)),
+            CommandDataOption::String { value, .. } => Self::from_arg(value),
+            _ => unreachable!("RoleId unreached"),
+        }
     }
 }
 
