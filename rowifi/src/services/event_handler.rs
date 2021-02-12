@@ -43,6 +43,7 @@ impl EventHandler {
     }
 }
 
+#[allow(clippy::type_complexity)]
 impl Service<(u64, Event)> for EventHandler {
     type Response = ();
     type Error = RoError;

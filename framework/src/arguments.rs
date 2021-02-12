@@ -58,9 +58,9 @@ impl Arguments {
         let mut start_idx = 0;
         let mut quoted = false;
         let mut started = false;
-        let mut idxs = buf.char_indices();
+        let idxs = buf.char_indices();
 
-        while let Some((i, ch)) = idxs.next() {
+        for (i, ch) in idxs {
             if quoted {
                 if ch == '"' {
                     let v = buf[start_idx..i].trim();
@@ -92,6 +92,7 @@ impl Arguments {
         Self { buf: args, idx: 0 }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<&str> {
         let res = self.buf.get(self.idx);
         self.idx += 1;

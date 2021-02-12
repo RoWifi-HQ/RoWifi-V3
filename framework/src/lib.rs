@@ -120,6 +120,7 @@ impl Framework {
     }
 }
 
+#[allow(clippy::type_complexity)]
 impl Service<&Event> for Framework {
     type Response = ();
     type Error = RoError;

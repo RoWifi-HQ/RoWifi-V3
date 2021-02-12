@@ -29,6 +29,7 @@ pub type BoxedService = Box<
         > + Send,
 >;
 
+#[allow(clippy::large_enum_variant)]
 pub enum ServiceRequest {
     Message(Arguments),
     Interaction(Vec<CommandDataOption>),
@@ -168,7 +169,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     {
                         metric.inc();
                     }
-                    Ok(r)
+                    Ok(())
                 }
                 Err(err) => {
                     handle_error(&err, ctx, &master_name).await;
@@ -304,9 +305,9 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
 
         _ => {
             tracing::error!(err = ?err);
-            let _ = ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in executing the command. Please try again. If the issue persists, please contact our support server").unwrap().await;
+            let _ = ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().await;
             let content = format!(
-                "```Guild Id: {:?}\n Cluster Id: {}\nError: {:?}```",
+                "Guild Id: {:?}\n Cluster Id: {}\nError: {:?}",
                 ctx.guild_id, ctx.bot.cluster_id, err
             );
             ctx.log_error(&content).await;

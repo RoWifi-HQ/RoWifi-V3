@@ -35,7 +35,7 @@ pub async fn premium_transfer(
         }
         let to_transfer_id = match args.user_id {
             Some(s) => s,
-            _ => {
+            None=> {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .color(Color::Red as u32)

@@ -17,7 +17,7 @@ impl Parser {
     }
 
     pub fn expression(&mut self) -> Result<Expression, ParseError> {
-        Ok(self.equality()?)
+        self.equality()
     }
 
     fn equality(&mut self) -> Result<Expression, ParseError> {
@@ -65,7 +65,7 @@ impl Parser {
             return Ok(Expression::Unary(operator, Box::new(right)));
         }
 
-        Ok(self.primary()?)
+        self.primary()
     }
 
     fn primary(&mut self) -> Result<Expression, ParseError> {

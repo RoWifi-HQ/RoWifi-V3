@@ -60,6 +60,7 @@ pub struct CommandContext {
 }
 
 impl BotContext {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         on_mention: String,
         default_prefix: String,
@@ -168,6 +169,7 @@ impl CommandContext {
 }
 
 impl BotContext {
+    #[allow(clippy::needless_collect)]
     pub async fn update_user(
         &self,
         member: Arc<CachedMember>,

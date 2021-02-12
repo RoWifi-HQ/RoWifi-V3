@@ -67,6 +67,7 @@ impl<S> BucketService<S> {
     }
 }
 
+#[allow(clippy::type_complexity)]
 impl<S> Service<(CommandContext, ServiceRequest)> for BucketService<S>
 where
     S: Service<(CommandContext, ServiceRequest), Error = RoError> + 'static,

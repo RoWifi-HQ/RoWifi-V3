@@ -1,5 +1,6 @@
 use std::{cmp::PartialEq, convert::From, ops::BitXor, str::FromStr};
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum TokenType {
     LeftParen,

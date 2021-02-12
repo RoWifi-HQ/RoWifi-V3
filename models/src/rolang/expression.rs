@@ -93,26 +93,25 @@ impl Expression {
                             token.to_owned(),
                             "Expected 2 arguments. {Group Id} {Rank Id}".to_string(),
                         ));
-                    } else {
-                        match args[0] {
-                            Literal::Number(_) => {}
-                            _ => {
-                                return Err(ParseError(
-                                    token.to_owned(),
-                                    "Expected Group Id to be an integer".to_string(),
-                                ))
-                            }
-                        };
-                        match args[1] {
-                            Literal::Number(_) => {}
-                            _ => {
-                                return Err(ParseError(
-                                    token.to_owned(),
-                                    "Expected Rank Id to be an integer".to_string(),
-                                ))
-                            }
-                        };
-                    }
+                    } 
+                    match args[0] {
+                        Literal::Number(_) => {}
+                        _ => {
+                            return Err(ParseError(
+                                token.to_owned(),
+                                "Expected Group Id to be an integer".to_string(),
+                            ))
+                        }
+                    };
+                    match args[1] {
+                        Literal::Number(_) => {}
+                        _ => {
+                            return Err(ParseError(
+                                token.to_owned(),
+                                "Expected Rank Id to be an integer".to_string(),
+                            ))
+                        }
+                    };   
                 }
                 TokenType::IsInGroup | TokenType::GetRank => {
                     if args.len() != 1 {
@@ -120,15 +119,14 @@ impl Expression {
                             token.to_owned(),
                             "Expected 1 argument. {Group Id}".to_string(),
                         ));
-                    } else {
-                        match args[0] {
-                            Literal::Number(_) => {}
-                            _ => {
-                                return Err(ParseError(
-                                    token.to_owned(),
-                                    "Expected Group Id to be an integer".to_string(),
-                                ))
-                            }
+                    }
+                    match args[0] {
+                        Literal::Number(_) => {}
+                        _ => {
+                            return Err(ParseError(
+                                token.to_owned(),
+                                "Expected Group Id to be an integer".to_string(),
+                            ))
                         }
                     }
                 }
@@ -138,15 +136,14 @@ impl Expression {
                             token.to_owned(),
                             "Expected 1 argument. {Role Id}".to_string(),
                         ));
-                    } else {
-                        match args[0] {
-                            Literal::Number(_) => {}
-                            _ => {
-                                return Err(ParseError(
-                                    token.to_owned(),
-                                    "Expected Role Id to be an integer".to_string(),
-                                ))
-                            }
+                    } 
+                    match args[0] {
+                        Literal::Number(_) => {}
+                        _ => {
+                            return Err(ParseError(
+                                token.to_owned(),
+                                "Expected Role Id to be an integer".to_string(),
+                            ))
                         }
                     }
                 }
@@ -156,15 +153,14 @@ impl Expression {
                             token.to_owned(),
                             "Expected 1 argument. {Name}".to_string(),
                         ));
-                    } else {
-                        match args[0] {
-                            Literal::String(_) => {}
-                            _ => {
-                                return Err(ParseError(
-                                    token.to_owned(),
-                                    "Expected Name to be an word".to_string(),
-                                ))
-                            }
+                    } 
+                    match args[0] {
+                        Literal::String(_) => {}
+                        _ => {
+                            return Err(ParseError(
+                                token.to_owned(),
+                                "Expected Name to be an word".to_string(),
+                            ))
                         }
                     }
                 }

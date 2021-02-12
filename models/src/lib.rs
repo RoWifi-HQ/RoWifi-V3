@@ -8,7 +8,8 @@
     clippy::must_use_candidate,
     clippy::too_many_lines,
     clippy::match_on_vec_items,
-    clippy::map_err_ignore
+    clippy::map_err_ignore,
+    clippy::missing_panics_doc
 )]
 
 pub mod analytics;

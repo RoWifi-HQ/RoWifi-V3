@@ -7,7 +7,7 @@
     clippy::single_match_else,
     clippy::filter_map,
     clippy::too_many_lines,
-    dead_code
+    clippy::needless_lifetimes
 )]
 
 mod commands;
@@ -18,7 +18,6 @@ use commands::{
     events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
     settings_config, user_config,
 };
-use dashmap::DashSet;
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -48,7 +47,7 @@ use twilight_gateway::{
     Event,
 };
 use twilight_http::Client as HttpClient;
-use twilight_model::{gateway::Intents, guild::Permissions, id::UserId};
+use twilight_model::{gateway::Intents, guild::Permissions};
 use twilight_standby::Standby;
 
 pub struct RoWifi {
@@ -103,11 +102,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .expect("Expected the number of shards in the environment")
         .parse::<u64>()
         .unwrap();
-    let council_members = env::var("COUNCIL")
-        .expect("Expected council members in the enviornment")
-        .split('|')
-        .map(|c| c.parse::<u64>().unwrap())
-        .collect::<Vec<_>>();
     let shards_per_cluster = env::var("SHARDS_PER_CLUSTER")
         .expect("Expected shards per cluster in the environment")
         .parse::<u64>()
@@ -142,11 +136,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut owners = Vec::new();
     let owner = http.current_user_application().await?.owner.id;
     owners.push(owner);
-
-    let council = DashSet::new();
-    for c in council_members {
-        council.insert(UserId(c));
-    }
 
     let cluster = Cluster::builder(
         &token,
