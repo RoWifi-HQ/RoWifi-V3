@@ -191,7 +191,7 @@ async fn modify_code<'a>(
         return Ok(None);
     }
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Code": code.clone()}};
+    let update = doc! {"$set": {"CustomBinds.$.Code": code}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(Some(code))
 }

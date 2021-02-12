@@ -4,8 +4,9 @@
     clippy::cast_possible_wrap,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
-    clippy::find_map,
-    clippy::implicit_hasher
+    clippy::manual_find_map,
+    clippy::implicit_hasher,
+    clippy::missing_panics_doc
 )]
 
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
@@ -403,7 +404,7 @@ impl Cache {
             .channels
             .iter()
             .find(|c| c.name().eq_ignore_ascii_case("rowifi-logs"))
-            .map(|c| c.id());
+            .map(GuildChannel::id);
         let admin_role = guild
             .roles
             .iter()
@@ -415,9 +416,9 @@ impl Cache {
             .find(|r| r.name.eq_ignore_ascii_case("RoWifi Trainer"))
             .map(|r| r.id);
 
-        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|v| v));
-        self.cache_roles(guild.id, guild.roles.into_iter().map(|r| r));
-        self.cache_members(guild.id, guild.members.into_iter().map(|m| m));
+        self.cache_guild_channels(guild.id, guild.channels.into_iter());
+        self.cache_roles(guild.id, guild.roles.into_iter());
+        self.cache_members(guild.id, guild.members.into_iter());
 
         let cached = CachedGuild {
             id: guild.id,

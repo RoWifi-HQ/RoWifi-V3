@@ -5,7 +5,8 @@
     clippy::missing_errors_doc,
     clippy::cast_possible_wrap,
     clippy::single_match_else,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    clippy::missing_panics_doc
 )]
 
 pub mod error;

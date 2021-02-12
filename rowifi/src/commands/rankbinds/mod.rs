@@ -61,7 +61,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::Miscellanous(
+        .ok_or_else(|| RoError::Command(CommandError::Miscellanous(
             "No RoGuild".into(),
         )))?;
 

@@ -49,13 +49,13 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .level(RoLevel::Admin)
         .names(&["verification"])
         .description("Command to change the verification role")
-        .handler(update_on_verify);
+        .handler(settings_verification);
 
     let settings_verified_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["verified"])
         .description("Command to change the verified role")
-        .handler(update_on_verify);
+        .handler(settings_verified);
 
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)

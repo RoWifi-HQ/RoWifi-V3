@@ -51,6 +51,7 @@ where
     }
 }
 
+#[allow(clippy::type_complexity)]
 impl<F, R, K> Service<(CommandContext, ServiceRequest)>
     for CommandHandler<F, (CommandContext, K), R>
 where

@@ -9,7 +9,7 @@ pub enum PrefixType<'p> {
     String(&'p str),
 }
 
-pub fn find_mention<'a>(stream: &mut Stream, on_mention: &str) -> bool {
+pub fn find_mention(stream: &mut Stream, on_mention: &str) -> bool {
     let start = stream.offset();
     if !stream.eat("<@") {
         return false;

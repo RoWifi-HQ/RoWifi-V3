@@ -68,7 +68,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        let stmt = match ty {
+        match ty {
             Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                 quote! {
                     let #field_name = match args.next().map(<#ty>::from_arg) {
@@ -98,8 +98,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                     };
                 }
             }
-        };
-        stmt
+        }
     });
 
     let field_interaction_decs = fields.iter().map(|f| {
@@ -107,7 +106,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
         let name = format!("{}", field_name);
         let struct_name = struct_name.clone();
         let ty = &f.ty;
-        let stmt = match ty {
+        match ty {
             Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                 quote! {
                     let #field_name = match options.get(&(#name)).map(|s| <#ty>::from_interaction(*s)) {
@@ -137,8 +136,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                     };
                 }
             }
-        };
-        stmt
+        }
     });
 
     let field_names = fields.iter().map(|f| {
