@@ -5,7 +5,7 @@ use rowifi_framework::prelude::*;
 pub struct RankBindsDelete {
     #[arg(help = "The Group ID of the Rankbind to delete")]
     pub group_id: i64,
-    #[arg(help = "The Rank ID of the Rankbind to delete")]
+    #[arg(help = "The Rank ID of the Rankbind to delete", rest)]
     pub rank_id: String,
 }
 

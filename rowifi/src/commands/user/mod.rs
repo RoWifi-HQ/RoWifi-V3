@@ -33,7 +33,7 @@ pub fn user_config(cmds: &mut Vec<Command>) {
 
     let support_cmd = Command::builder()
         .level(RoLevel::Normal)
-        .names(&["support"])
+        .names(&["support", "invite"])
         .description("View important links related to the bot")
         .group("User")
         .handler(support);
