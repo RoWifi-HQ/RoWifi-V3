@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
 pub struct CustombindsDeleteArguments {
-    #[arg(help = "The ID of the custombind to delete")]
+    #[arg(help = "The ID of the custombind to delete", rest)]
     pub id: String,
 }
 

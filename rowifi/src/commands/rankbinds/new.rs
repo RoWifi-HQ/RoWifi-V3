@@ -20,7 +20,8 @@ pub struct NewRankbind {
     #[arg(help = "The number that tells the bot which rankbind to choose for the nickname")]
     pub priority: Option<i64>,
     #[arg(
-        help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto` "
+        help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto` ",
+        rest
     )]
     pub discord_roles: Option<String>,
 }

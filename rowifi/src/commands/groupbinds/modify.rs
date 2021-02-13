@@ -8,7 +8,7 @@ pub struct GroupbindsModifyArguments {
     pub option: ModifyOption,
     #[arg(help = "The id of the groupbind to modify")]
     pub group_id: i64,
-    #[arg(help = "The actual modification to be made")]
+    #[arg(help = "The actual modification to be made", rest)]
     pub change: String,
 }
 

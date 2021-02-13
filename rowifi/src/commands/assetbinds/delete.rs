@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
 pub struct DeleteArguments {
-    #[arg(help = "The ID of the Asset to delete")]
+    #[arg(help = "The ID of the Asset to delete", rest)]
     pub asset_id: String,
 }
 

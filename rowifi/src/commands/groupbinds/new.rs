@@ -8,7 +8,7 @@ use twilight_model::id::RoleId;
 pub struct GroupbindsNewArguments {
     #[arg(help = "The Roblox Group Id to create a bind with")]
     pub group_id: i64,
-    #[arg(help = "The discord roles to add to the bind")]
+    #[arg(help = "The discord roles to add to the bind", rest)]
     pub roles: String,
 }
 

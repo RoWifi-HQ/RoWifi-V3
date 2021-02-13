@@ -307,7 +307,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             tracing::error!(err = ?err);
             let _ = ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().await;
             let content = format!(
-                "Guild Id: {:?}\n Cluster Id: {}\nError: {:?}",
+                "```Guild Id: {:?}\n Cluster Id: {}\nError: {:?}```",
                 ctx.guild_id, ctx.bot.cluster_id, err
             );
             ctx.log_error(&content).await;

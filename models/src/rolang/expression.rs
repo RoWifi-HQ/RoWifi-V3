@@ -93,7 +93,7 @@ impl Expression {
                             token.to_owned(),
                             "Expected 2 arguments. {Group Id} {Rank Id}".to_string(),
                         ));
-                    } 
+                    }
                     match args[0] {
                         Literal::Number(_) => {}
                         _ => {
@@ -111,7 +111,7 @@ impl Expression {
                                 "Expected Rank Id to be an integer".to_string(),
                             ))
                         }
-                    };   
+                    };
                 }
                 TokenType::IsInGroup | TokenType::GetRank => {
                     if args.len() != 1 {
@@ -136,7 +136,7 @@ impl Expression {
                             token.to_owned(),
                             "Expected 1 argument. {Role Id}".to_string(),
                         ));
-                    } 
+                    }
                     match args[0] {
                         Literal::Number(_) => {}
                         _ => {
@@ -153,7 +153,7 @@ impl Expression {
                             token.to_owned(),
                             "Expected 1 argument. {Name}".to_string(),
                         ));
-                    } 
+                    }
                     match args[0] {
                         Literal::String(_) => {}
                         _ => {

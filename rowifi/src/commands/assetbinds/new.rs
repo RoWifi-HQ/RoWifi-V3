@@ -10,7 +10,7 @@ pub struct NewArguments {
     pub option: AssetType,
     #[arg(help = "The ID of asset to bind")]
     pub asset_id: i64,
-    #[arg(help = "The Discord Roles to add to the bind")]
+    #[arg(help = "The Discord Roles to add to the bind", rest)]
     pub discord_roles: String,
 }
 

@@ -8,7 +8,7 @@ pub struct ModifyArguments {
     pub option: ModifyOption,
     #[arg(help = "The id of the asset to modify")]
     pub asset_id: i64,
-    #[arg(help = "The actual modification to be made")]
+    #[arg(help = "The actual modification to be made", rest)]
     pub change: String,
 }
 
