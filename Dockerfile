@@ -1,4 +1,4 @@
-FROM rustlang/rust@sha256:319fd4f46b09e5b426b037181a6c0e5a160f1af7c5e316b5b89d06023d2b8d2e as builder
+FROM rustlang/rust:nightly as builder
 WORKDIR /usr/src/rowifi
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.sh \
       -q -O /tmp/cmake-install.sh \

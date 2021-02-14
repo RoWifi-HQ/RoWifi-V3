@@ -66,11 +66,14 @@ impl Arguments {
                     let v = buf[start_idx..i].trim();
                     args.push(v.to_string());
                     start_idx = i + 1;
+                    quoted = false;
                 }
             } else if ch == ' ' {
                 if started {
                     let v = buf[start_idx..i].trim();
-                    args.push(v.to_string());
+                    if !v.is_empty() {
+                        args.push(v.to_string());
+                    }
                     start_idx = i + 1;
                 } else {
                     start_idx = i;
