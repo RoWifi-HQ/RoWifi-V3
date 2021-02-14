@@ -72,7 +72,12 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             Type::Path(typepath) if path_is(&typepath.path, "Option") => {
                 quote! {
                     let #field_name = match args.next().map(<#ty>::from_arg) {
-                        Some(Ok(s)) => s,
+                        Some(Ok(s)) => {
+                            if s.is_none() {
+                                args.back();
+                            }
+                            s
+                        },
                         Some(Err(err)) => return Err(ArgumentError::ParseError{
                             expected: err.0,
                             usage: <#struct_name>::generate_help(),
