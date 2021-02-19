@@ -7,6 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+base64 = "0.13"
+chacha20poly1305 = "0"
 chrono = "0"
 dashmap = "4"
 dotenv = "0"

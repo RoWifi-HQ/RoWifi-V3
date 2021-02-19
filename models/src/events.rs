@@ -26,7 +26,7 @@ pub struct EventLog {
     pub attendees: Vec<i64>,
 
     #[serde(rename = "Notes")]
-    pub notes: Option<String>,
+    pub notes: Option<(String, String)>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

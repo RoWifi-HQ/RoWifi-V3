@@ -1,3 +1,4 @@
+use chacha20poly1305::{Nonce, aead::Aead};
 use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
@@ -343,8 +344,11 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         );
     }
 
-    if let Some(notes) = &event.notes {
-        embed = embed.field(EmbedFieldBuilder::new("Notes", notes).unwrap());
+    if let Some((nonce, notes)) = &event.notes {
+        let notes = base64::decode(notes).unwrap();
+        let nonce = Nonce::from_slice(nonce.as_bytes());
+        let plaintext = ctx.bot.cipher.decrypt(nonce, notes.as_slice()).unwrap();
+        embed = embed.field(EmbedFieldBuilder::new("Notes", String::from_utf8(plaintext).unwrap()).unwrap());
     }
     let embed = embed.build().unwrap();
 
