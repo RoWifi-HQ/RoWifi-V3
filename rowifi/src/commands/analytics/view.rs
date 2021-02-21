@@ -11,7 +11,7 @@ pub struct ViewArguments {
     #[arg(help = "The ID of the group whose analytics is to be viewed")]
     pub group_id: i64,
     #[arg(help = "The Duration of the graph")]
-    pub duration: Option<ViewDuration>
+    pub duration: Option<ViewDuration>,
 }
 
 pub struct ViewDuration(pub Duration);
@@ -114,7 +114,11 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .build_cartesian_2d(min_timestamp..max_timestamp, min_members..max_members)
             .unwrap();
 
-        chart.configure_mesh().x_label_formatter(&|x: &DateTime<Utc>| x.date().naive_utc().to_string()).draw().unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|x: &DateTime<Utc>| x.date().naive_utc().to_string())
+            .draw()
+            .unwrap();
 
         chart.draw_series(LineSeries::new(iterator, &RED)).unwrap();
     }
@@ -146,7 +150,7 @@ impl FromArg for ViewDuration {
                     _ => {}
                 }
             }
-        } 
+        }
         Err(ParseError("a time duration such as `30d` `2m` `1h`"))
     }
 

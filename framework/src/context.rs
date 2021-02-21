@@ -47,7 +47,7 @@ pub struct BotContextRef {
     pub cluster_id: u64,
     pub total_shards: u64,
     pub shards_per_cluster: u64,
-    pub cipher: ChaCha20Poly1305
+    pub cipher: ChaCha20Poly1305,
 }
 
 #[derive(Clone)]
@@ -79,7 +79,7 @@ impl BotContext {
         cluster_id: u64,
         total_shards: u64,
         shards_per_cluster: u64,
-        cipher: ChaCha20Poly1305
+        cipher: ChaCha20Poly1305,
     ) -> Self {
         let mut _owners = DashSet::new();
         _owners.extend(owners.iter().map(|u| u.to_owned()));
@@ -108,7 +108,7 @@ impl BotContext {
                 cluster_id,
                 total_shards,
                 shards_per_cluster,
-                cipher
+                cipher,
             }),
         }
     }

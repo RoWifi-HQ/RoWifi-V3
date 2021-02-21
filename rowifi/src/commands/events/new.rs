@@ -1,6 +1,6 @@
-use chacha20poly1305::{Nonce, aead::Aead};
+use chacha20poly1305::{aead::Aead, Nonce};
 use mongodb::bson::{oid::ObjectId, DateTime};
-use rand::{Rng, thread_rng, distributions::Alphanumeric};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use twilight_mention::Mention;
@@ -142,7 +142,11 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
     let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
         None
     } else {
-        let nonce_str = thread_rng().sample_iter(&Alphanumeric).take(12).map(char::from).collect::<String>();
+        let nonce_str = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(12)
+            .map(char::from)
+            .collect::<String>();
         let nonce = Nonce::from_slice(nonce_str.as_bytes());
         let ciphertext = ctx.bot.cipher.encrypt(nonce, notes_raw.as_bytes()).unwrap();
         let notes = base64::encode(ciphertext);

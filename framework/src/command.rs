@@ -158,8 +158,10 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
             }
         };
 
-        if ctx.bot.disabled_channels.contains(&ctx.channel_id) && !self.names.contains(&"command-channel") {
-            return Box::pin(async move {Ok(())});
+        if ctx.bot.disabled_channels.contains(&ctx.channel_id)
+            && !self.names.contains(&"command-channel")
+        {
+            return Box::pin(async move { Ok(()) });
         }
 
         let fut = fut.then(move |res: Result<(), RoError>| async move {

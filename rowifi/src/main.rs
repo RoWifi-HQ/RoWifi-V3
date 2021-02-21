@@ -13,7 +13,7 @@
 mod commands;
 mod services;
 
-use chacha20poly1305::{ChaCha20Poly1305, Key, aead::NewAead};
+use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
     events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
@@ -72,6 +72,7 @@ impl Service<(u64, Event)> for RoWifi {
             .update(&event.1)
             .expect("Failed to update cache");
         self.bot.standby.process(&event.1);
+        self.bot.stats.update(&event.1);
         let fut = self.framework.call(&event.1);
         let eh_fut = self.event_handler.call((event.0, event.1));
         tokio::spawn(async move {
@@ -184,7 +185,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_id,
         total_shards,
         shards_per_cluster,
-        cipher
+        cipher,
     );
     let framework = Framework::new(
         bot.clone(),
