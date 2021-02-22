@@ -9,7 +9,9 @@ edition = "2018"
 [dependencies]
 bson = "1"
 itertools = "0"
+lazy_static = "1"
 prometheus = "0"
+regex = "1"
 serde = "1"
 serde_repr = "0"
 twilight-http = { branch = "feature/slash", git = "https://github.com/Erk-/twilight" }

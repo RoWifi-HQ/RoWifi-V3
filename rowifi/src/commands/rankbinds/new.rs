@@ -197,6 +197,7 @@ async fn single_rank(
         prefix: prefix.clone(),
         priority,
         discord_roles: roles,
+        template: None
     };
     add_rankbind(&ctx, &bind).await?;
     log_rankbind(&ctx, bind).await;
@@ -275,6 +276,7 @@ async fn single_rank_with_auto(
         prefix: prefix.clone(),
         priority,
         discord_roles,
+        template: None
     };
     add_rankbind(&ctx, &bind).await?;
     log_rankbind(&ctx, bind).await;
@@ -335,6 +337,7 @@ async fn multiple_rank(
             prefix: prefix_to_set.clone(),
             priority,
             discord_roles: roles.clone(),
+            template: None,
         };
 
         match guild
@@ -454,6 +457,7 @@ async fn multiple_rank_with_auto(
             prefix: prefix_to_set.clone(),
             priority,
             discord_roles,
+            template: None
         };
 
         match guild

@@ -22,6 +22,7 @@ pub enum ModifyOption {
     Priority,
     RolesAdd,
     RolesRemove,
+    Template
 }
 
 pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> CommandResult {
@@ -92,6 +93,10 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
             format!("Removed Roles: {}", modification)
+        },
+        ModifyOption::Template => {
+            let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
+            format!("`New Template`: {}", template)
         }
     };
     let desc = format!("Rank Id: {}\n{}", bind.rank_id, desc);
@@ -127,17 +132,17 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     Ok(())
 }
 
-async fn modify_prefix(
+async fn modify_prefix<'p>(
     ctx: &CommandContext,
     guild: &RoGuild,
     bind_index: usize,
-    prefix: &str,
-) -> Result<String, RoError> {
+    prefix: &'p str,
+) -> Result<&'p str, RoError> {
     let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Prefix", bind_index);
     let update = doc! {"$set": {index_str: prefix}};
     ctx.bot.database.modify_guild(filter, update).await?;
-    Ok(prefix.to_string())
+    Ok(prefix)
 }
 
 async fn modify_priority(
@@ -149,7 +154,7 @@ async fn modify_priority(
     let priority = match priority.parse::<i64>() {
         Ok(p) => p,
         Err(_) => {
-            unimplemented!()
+            return Err(RoError::Command(CommandError::Miscellanous("Given priority was found not to be a number".into())))
         }
     };
     let filter = doc! {"_id": guild.id};
@@ -157,6 +162,14 @@ async fn modify_priority(
     let update = doc! {"$set": {index_str: priority}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(priority)
+}
+
+async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, bind_index: usize, template: &'t str) -> Result<&'t str, RoError> {
+    let filter = doc! {"_id": guild.id};
+    let index_str = format!("RankBinds.{}.Template", bind_index);
+    let update = doc! {"$set": {index_str: template}};
+    ctx.bot.database.modify_guild(filter, update).await?;
+    Ok(template)
 }
 
 async fn add_roles(
@@ -206,6 +219,7 @@ impl FromArg for ModifyOption {
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
+            "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError(
                 "one of `prefix` `priority` `roles-add` `roles-remove`",
             )),

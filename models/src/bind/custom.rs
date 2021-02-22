@@ -5,7 +5,7 @@ use serde::{
 use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
-use super::Backup;
+use super::Bind;
 use crate::rolang::RoCommand;
 
 #[derive(Serialize, Clone)]
@@ -59,10 +59,10 @@ impl fmt::Debug for CustomBind {
     }
 }
 
-impl Backup for CustomBind {
-    type Bind = BackupCustomBind;
+impl Bind for CustomBind {
+    type BackupBind = BackupCustomBind;
 
-    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::Bind {
+    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
         let mut discord_roles = Vec::new();
         for role_id in &self.discord_roles {
             if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
@@ -79,7 +79,7 @@ impl Backup for CustomBind {
         }
     }
 
-    fn from_backup(bind: &Self::Bind, roles: &HashMap<String, RoleId>) -> Self {
+    fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
         for role_name in &bind.discord_roles {
             let role = roles.get(role_name).unwrap().0 as i64;

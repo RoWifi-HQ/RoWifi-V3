@@ -296,20 +296,20 @@ impl BotContext {
             .sorted_by_key(|c| -c.priority)
             .next();
 
-        let prefix: &str;
-        if nick_bind.is_none() && custom.is_none() {
-            prefix = "N/A";
-        } else if nick_bind.is_none() {
-            prefix = &custom.unwrap().prefix;
-        } else if custom.is_none() {
-            prefix = &nick_bind.unwrap().prefix;
-        } else {
-            prefix = if custom.unwrap().priority > nick_bind.unwrap().priority {
-                &custom.unwrap().prefix
-            } else {
-                &nick_bind.unwrap().prefix
-            };
-        }
+        let discord_name = member.nick.as_ref().map_or_else(|| member.user.name.as_str(), |n| n.as_str());
+
+        let prefix = match (nick_bind, custom) {
+            (None, None) => "N/A",
+            (Some(nick_bind), None) => nick_bind.prefix.as_str(),
+            (None, Some(custom)) => custom.prefix.as_str(),
+            (Some(nick_bind), Some(custom)) => {
+                if custom.priority > nick_bind.priority {
+                    custom.prefix.as_str()
+                } else {
+                    nick_bind.prefix.as_str()
+                }
+            }
+        };
 
         let display_name = member
             .nick

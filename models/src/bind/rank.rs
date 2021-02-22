@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use twilight_model::id::RoleId;
 
-use super::Backup;
+use super::{Bind, template::Template};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RankBind {
@@ -23,6 +23,9 @@ pub struct RankBind {
 
     #[serde(rename = "Priority")]
     pub priority: i64,
+
+    #[serde(rename = "Template")]
+    pub template: Option<Template>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,12 +47,15 @@ pub struct BackupRankBind {
 
     #[serde(rename = "Priority")]
     pub priority: i64,
+
+    #[serde(rename = "Template")]
+    pub template: Option<Template>
 }
 
-impl Backup for RankBind {
-    type Bind = BackupRankBind;
+impl Bind for RankBind {
+    type BackupBind = BackupRankBind;
 
-    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::Bind {
+    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
         let mut discord_roles = Vec::new();
         for role_id in &self.discord_roles {
             if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
@@ -64,10 +70,11 @@ impl Backup for RankBind {
             prefix: self.prefix.clone(),
             priority: self.priority,
             discord_roles,
+            template: self.template.clone()
         }
     }
 
-    fn from_backup(bind: &Self::Bind, roles: &HashMap<String, RoleId>) -> Self {
+    fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
         for role_name in &bind.discord_roles {
             let role = roles.get(role_name).unwrap().0 as i64;
@@ -80,6 +87,7 @@ impl Backup for RankBind {
             prefix: bind.prefix.clone(),
             priority: bind.priority,
             discord_roles,
+            template: bind.template.clone()
         }
     }
 }
