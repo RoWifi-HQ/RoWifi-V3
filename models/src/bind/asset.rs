@@ -3,7 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{collections::HashMap, fmt, str::FromStr};
 use twilight_model::id::RoleId;
 
-use super::Backup;
+use super::Bind;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AssetBind {
@@ -59,10 +59,10 @@ impl FromStr for AssetType {
     }
 }
 
-impl Backup for AssetBind {
-    type Bind = BackupAssetBind;
+impl Bind for AssetBind {
+    type BackupBind = BackupAssetBind;
 
-    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::Bind {
+    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
         let mut discord_roles = Vec::new();
         for role_id in &self.discord_roles {
             if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
@@ -77,7 +77,7 @@ impl Backup for AssetBind {
         }
     }
 
-    fn from_backup(bind: &Self::Bind, roles: &HashMap<String, RoleId>) -> Self {
+    fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
         for role_name in &bind.discord_roles {
             let role = roles.get(role_name).unwrap().0 as i64;

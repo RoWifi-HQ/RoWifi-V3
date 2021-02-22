@@ -2086,7 +2086,9 @@ version = "3.0.0"
 dependencies = [
  "bson",
  "itertools",
+ "lazy_static",
  "prometheus",
+ "regex",
  "serde",
  "serde_repr",
  "twilight-http",
