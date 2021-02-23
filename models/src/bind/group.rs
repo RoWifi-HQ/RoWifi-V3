@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use twilight_model::id::RoleId;
 
-use super::Bind;
+use crate::user::RoUser;
+
+use super::{Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupBind {
@@ -22,7 +24,7 @@ pub struct BackupGroupBind {
     pub discord_roles: Vec<String>,
 }
 
-impl Bind for GroupBind {
+impl Backup for GroupBind {
     type BackupBind = BackupGroupBind;
 
     fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
@@ -50,5 +52,15 @@ impl Bind for GroupBind {
             group_id: bind.group_id,
             discord_roles,
         }
+    }
+}
+
+impl Bind for GroupBind {
+    fn nickname(&self, _roblox_username: &str, _user: &RoUser, discord_nick: &str) -> String {
+        format!("{}", discord_nick)
+    }
+
+    fn priority(&self) -> i64 {
+        0
     }
 }

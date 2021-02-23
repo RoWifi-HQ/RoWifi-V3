@@ -206,7 +206,7 @@ impl Database {
         while let Some(res) = cursor.next().await {
             match res {
                 Ok(document) => result.push(bson::from_bson::<RoUser>(Bson::Document(document))?),
-                Err(e) => return Err(e.into()),
+                Err(e) => tracing::error!(err = ?e),
             }
         }
         Ok(result)

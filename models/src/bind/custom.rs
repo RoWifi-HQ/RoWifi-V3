@@ -5,8 +5,8 @@ use serde::{
 use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
-use super::Bind;
-use crate::rolang::RoCommand;
+use super::{Backup, Bind};
+use crate::{rolang::RoCommand, user::RoUser};
 
 #[derive(Serialize, Clone)]
 pub struct CustomBind {
@@ -59,7 +59,7 @@ impl fmt::Debug for CustomBind {
     }
 }
 
-impl Bind for CustomBind {
+impl Backup for CustomBind {
     type BackupBind = BackupCustomBind;
 
     fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
@@ -96,6 +96,25 @@ impl Bind for CustomBind {
             prefix: bind.prefix.clone(),
             command,
         }
+    }
+}
+
+impl Bind for CustomBind {
+    fn nickname(&self, roblox_username: &str, _user: &RoUser, discord_nick: &str) -> String {
+        // if let Some(template) = &self.template {
+        //     return template.nickname(roblox_username, user, discord_nick);
+        // }
+        // else
+        if self.prefix.eq_ignore_ascii_case("N/A") {
+            return roblox_username.to_string()
+        } else if self.prefix.eq_ignore_ascii_case("disable") {
+            return discord_nick.to_string()
+        }
+        format!("{} {}", self.prefix, discord_nick)
+    }
+
+    fn priority(&self) -> i64 {
+        self.priority
     }
 }
 

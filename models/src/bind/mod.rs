@@ -9,12 +9,19 @@ pub use custom::*;
 pub use group::*;
 pub use rank::*;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 use twilight_model::id::RoleId;
 
-pub trait Bind {
+use crate::user::RoUser;
+
+pub trait Backup {
     type BackupBind;
 
     fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind;
     fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self;
+}
+
+pub trait Bind: Send + Sync + Debug {
+    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String;
+    fn priority(&self) -> i64;
 }

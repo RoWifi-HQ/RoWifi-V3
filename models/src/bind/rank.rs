@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use twilight_model::id::RoleId;
 
-use super::{Bind, template::Template};
+use crate::user::RoUser;
+
+use super::{Backup, Bind, template::Template};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RankBind {
@@ -52,7 +54,7 @@ pub struct BackupRankBind {
     pub template: Option<Template>
 }
 
-impl Bind for RankBind {
+impl Backup for RankBind {
     type BackupBind = BackupRankBind;
 
     fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
@@ -89,5 +91,23 @@ impl Bind for RankBind {
             discord_roles,
             template: bind.template.clone()
         }
+    }
+}
+
+impl Bind for RankBind {
+    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+        if let Some(template) = &self.template {
+            return template.nickname(roblox_username, user, discord_nick);
+        }
+        else if self.prefix.eq_ignore_ascii_case("N/A") {
+            return roblox_username.to_string()
+        } else if self.prefix.eq_ignore_ascii_case("disable") {
+            return discord_nick.to_string()
+        }
+        format!("{} {}", self.prefix, roblox_username)
+    }
+
+    fn priority(&self) -> i64 {
+        self.priority
     }
 }
