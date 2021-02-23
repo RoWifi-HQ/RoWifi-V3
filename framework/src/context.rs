@@ -5,14 +5,8 @@ use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
-use rowifi_models::{
-    guild::{BlacklistActionType, RoGuild},
-    rolang::RoCommandUser,
-    stats::BotStats,
-    user::RoUser,
-};
+use rowifi_models::{bind::Bind, guild::{BlacklistActionType, RoGuild}, rolang::RoCommandUser, stats::BotStats, user::RoUser};
 use std::{
-    borrow::Cow,
     collections::{HashMap, HashSet},
     ops::Deref,
     sync::Arc,
@@ -230,49 +224,64 @@ impl BotContext {
             }
         }
 
-        let rankbinds_to_add = guild
-            .rankbinds
-            .iter()
-            .filter(|r| match user_roles.get(&r.group_id) {
+        let mut nick_bind: Option<&dyn Bind> = None;
+        let mut roles_to_add = Vec::new();
+
+        for r in &guild.rankbinds {
+            let to_add = match user_roles.get(&r.group_id) {
                 Some(rank_id) => *rank_id == r.rank_id as i64,
                 None => r.rank_id == 0,
-            })
-            .collect::<Vec<_>>();
-        let groupbinds_to_add = guild
-            .groupbinds
-            .iter()
-            .filter(|g| user_roles.contains_key(&g.group_id));
-        let custombinds_to_add = guild
-            .custombinds
-            .iter()
-            .filter(|c| c.command.evaluate(&command_user).unwrap())
-            .collect::<Vec<_>>();
-        let mut assetbinds_to_add = Vec::new();
-        for asset in &guild.assetbinds {
-            if self
-                .roblox
-                .has_asset(user.roblox_id, asset.id, &asset.asset_type.to_string())
-                .await?
-            {
-                assetbinds_to_add.push(asset);
+            };
+            if to_add {
+                if let Some(highest) = nick_bind {
+                    if highest.priority() < r.priority() {
+                        nick_bind = Some(r); 
+                    }
+                } else {
+                    nick_bind = Some(r);
+                }
+                roles_to_add.extend(r.discord_roles.iter().cloned());
             }
         }
 
-        let roles_to_add = rankbinds_to_add
-            .iter()
-            .flat_map(|r| r.discord_roles.iter().cloned())
-            .chain(groupbinds_to_add.flat_map(|g| g.discord_roles.iter().cloned()))
-            .chain(
-                custombinds_to_add
-                    .iter()
-                    .flat_map(|c| c.discord_roles.iter().cloned()),
-            )
-            .chain(
-                assetbinds_to_add
-                    .iter()
-                    .flat_map(|a| a.discord_roles.iter().cloned()),
-            )
-            .collect::<Vec<_>>();
+        for g in &guild.groupbinds {
+            if user_roles.contains_key(&g.group_id) {
+                if let Some(highest) = nick_bind {
+                    if highest.priority() < g.priority() {
+                        nick_bind = Some(g); 
+                    }
+                } else {
+                    nick_bind = Some(g);
+                }
+                roles_to_add.extend(g.discord_roles.iter().cloned());
+            }
+        }
+
+        for c in &guild.custombinds {
+            if c.command.evaluate(&command_user).unwrap() {
+                if let Some(highest) = nick_bind {
+                    if highest.priority() < c.priority() {
+                        nick_bind = Some(c); 
+                    }
+                } else {
+                    nick_bind = Some(c);
+                }
+                roles_to_add.extend(c.discord_roles.iter().cloned());
+            }
+        }
+
+        for a in &guild.assetbinds {
+            if self.roblox.has_asset(user.roblox_id, a.id, &a.asset_type.to_string()).await? {
+                if let Some(highest) = nick_bind {
+                    if highest.priority() < a.priority() {
+                        nick_bind = Some(a); 
+                    }
+                } else {
+                    nick_bind = Some(a);
+                }
+                roles_to_add.extend(a.discord_roles.iter().cloned());
+            }
+        }
 
         for bind_role in &guild.all_roles {
             let r = RoleId(*bind_role as u64);
@@ -287,53 +296,25 @@ impl BotContext {
             }
         }
 
-        let nick_bind = rankbinds_to_add
-            .iter()
-            .sorted_by_key(|r| -r.priority)
-            .next();
-        let custom = custombinds_to_add
-            .iter()
-            .sorted_by_key(|c| -c.priority)
-            .next();
-
-        let discord_name = member.nick.as_ref().map_or_else(|| member.user.name.as_str(), |n| n.as_str());
-
-        let prefix = match (nick_bind, custom) {
-            (None, None) => "N/A",
-            (Some(nick_bind), None) => nick_bind.prefix.as_str(),
-            (None, Some(custom)) => custom.prefix.as_str(),
-            (Some(nick_bind), Some(custom)) => {
-                if custom.priority > nick_bind.priority {
-                    custom.prefix.as_str()
-                } else {
-                    nick_bind.prefix.as_str()
-                }
-            }
-        };
-
-        let display_name = member
-            .nick
-            .as_ref()
-            .map_or_else(|| Cow::Owned(member.user.name.clone()), Cow::Borrowed);
-        let mut disc_nick = display_name.clone();
-
+        let discord_nick = member.nick.as_ref().map_or_else(|| member.user.name.as_str(), |s| s.as_str());
         let nick_bypass = match server.nickname_bypass {
             Some(n) => member.roles.contains(&n),
             None => false,
         };
-        if !nick_bypass {
-            if prefix.eq_ignore_ascii_case("N/A") {
-                disc_nick = Cow::Borrowed(&username);
-            } else if prefix.eq_ignore_ascii_case("Disable") {
+        let nickname = if nick_bypass {
+            discord_nick.to_string()
+        } else {
+            if let Some(nick_bind) = nick_bind {
+                nick_bind.nickname(&username, &user, discord_nick)
             } else {
-                disc_nick = Cow::Owned(format!("{} {}", prefix, username));
+                discord_nick.to_string()
             }
-        }
+        };
 
-        if disc_nick.len() > 32 {
+        if nickname.len() > 32 {
             return Err(RoError::Command(CommandError::Miscellanous(format!(
                 "The supposed nickname {} was found to be more than 32 characters",
-                disc_nick
+                nickname
             ))));
         }
 
@@ -344,17 +325,17 @@ impl BotContext {
         roles.retain(|r| !removed_roles.contains(r));
         roles = roles.into_iter().unique().collect::<Vec<RoleId>>();
 
-        let nick_changes = disc_nick != display_name;
+        let nick_changes = nickname != discord_nick;
 
         if role_changes || nick_changes {
             update
                 .roles(roles)
-                .nick(disc_nick.to_string())
+                .nick(nickname.clone())
                 .unwrap()
                 .await?;
         }
 
-        Ok((added_roles, removed_roles, disc_nick.to_string()))
+        Ok((added_roles, removed_roles, nickname))
     }
 
     pub async fn log_debug(&self, embed: Embed) {

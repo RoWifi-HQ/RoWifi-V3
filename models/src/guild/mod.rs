@@ -12,7 +12,7 @@ use twilight_http::Client as DiscordClient;
 use twilight_model::id::{GuildId, RoleId};
 
 use super::{
-    bind::{AssetBind, Bind, CustomBind, GroupBind, RankBind},
+    bind::{AssetBind, Backup, CustomBind, GroupBind, RankBind},
     blacklist::Blacklist,
     events::EventType,
 };
