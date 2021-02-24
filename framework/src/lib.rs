@@ -282,10 +282,6 @@ fn run_checks(
     channel_id: ChannelId,
     author: UserId,
 ) -> bool {
-    if bot.disabled_channels.contains(&channel_id) && !cmd.names.contains(&"command-channel") {
-        return false;
-    }
-
     if bot.owners.contains(&author) {
         return true;
     }

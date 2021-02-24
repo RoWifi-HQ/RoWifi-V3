@@ -157,7 +157,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .title("Update Failed")
                         .unwrap()
-                        .description("You seem to have a role higher than or equal to mine")
+                        .description(
+                            "There was an error in updating the user. Possible causes:
+                        1. The user has a role higher than or equal to mine
+                        2. I am trying to add/remove a binded role that is above my highest role
+                        3. Either the verification & verified role are above my highest role",
+                        )
                         .unwrap()
                         .build()
                         .unwrap();

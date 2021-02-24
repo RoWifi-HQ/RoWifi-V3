@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use image::{png::PngEncoder, ColorType};
 use mongodb::bson::doc;
 use plotters::prelude::*;
@@ -10,7 +10,11 @@ use std::io::Cursor;
 pub struct ViewArguments {
     #[arg(help = "The ID of the group whose analytics is to be viewed")]
     pub group_id: i64,
+    #[arg(help = "The Duration of the graph")]
+    pub duration: Option<ViewDuration>,
 }
+
+pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
     let guild = ctx
@@ -63,7 +67,8 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
 
     let server = ctx.bot.cache.guild(ctx.guild_id.unwrap()).unwrap();
 
-    let start_time = Utc::now() - Duration::days(5);
+    let view_duration = args.duration.unwrap_or(ViewDuration(Duration::days(7)));
+    let start_time = Utc::now() - view_duration.0;
     let filter = doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
     let group_data = ctx.bot.database.get_analytics_membercount(filter).await?;
 
@@ -74,7 +79,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .unwrap()
             .title("Analytics Viewing failed")
             .unwrap()
-            .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data")
+            .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data or use another timeframe")
             .unwrap()
             .build()
             .unwrap();
@@ -109,7 +114,11 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .build_cartesian_2d(min_timestamp..max_timestamp, min_members..max_members)
             .unwrap();
 
-        chart.configure_mesh().x_labels(4).draw().unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|x: &DateTime<Utc>| x.date().naive_utc().to_string())
+            .draw()
+            .unwrap();
 
         chart.draw_series(LineSeries::new(iterator, &RED)).unwrap();
     }
@@ -124,4 +133,33 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         .attachment("analytics.png", bytes)
         .await?;
     Ok(())
+}
+
+impl FromArg for ViewDuration {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        let mut arg = arg.to_string();
+        if let Some(dur) = arg.pop() {
+            if let Ok(num) = arg.parse::<i64>() {
+                match dur {
+                    'h' => return Ok(ViewDuration(Duration::hours(num))),
+                    'd' => return Ok(ViewDuration(Duration::days(num))),
+                    'm' => return Ok(ViewDuration(Duration::days(30 * num))),
+                    'y' => return Ok(ViewDuration(Duration::days(365 * num))),
+                    _ => {}
+                }
+            }
+        }
+        Err(ParseError("a time duration such as `30d` `2m` `1h`"))
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            CommandDataOption::String { value, .. } => value.to_string(),
+            _ => unreachable!("ViewDuration unreached"),
+        };
+        Self::from_arg(&arg)
+    }
 }

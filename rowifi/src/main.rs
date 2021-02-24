@@ -13,6 +13,7 @@
 mod commands;
 mod services;
 
+use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
     events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
@@ -71,6 +72,7 @@ impl Service<(u64, Event)> for RoWifi {
             .update(&event.1)
             .expect("Failed to update cache");
         self.bot.standby.process(&event.1);
+        self.bot.stats.update(&event.1);
         let fut = self.framework.call(&event.1);
         let eh_fut = self.event_handler.call((event.0, event.1));
         tokio::spawn(async move {
@@ -107,6 +109,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .parse::<u64>()
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
+    let cipher_key = env::var("CIPHER_KEY").expect("Expected the cipher key in the environment");
     sleep(Duration::from_secs(cluster_id * 60)).await;
 
     let mut webhooks = HashMap::new();
@@ -157,6 +160,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let roblox = RobloxClient::default();
     let patreon = PatreonClient::new(&patreon_key);
 
+    let cipher_key = Key::from_slice(cipher_key.as_bytes());
+    let cipher = ChaCha20Poly1305::new(cipher_key);
+
     let cluster_spawn = cluster.clone();
     tokio::spawn(async move {
         cluster_spawn.up().await;
@@ -179,6 +185,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_id,
         total_shards,
         shards_per_cluster,
+        cipher,
     );
     let framework = Framework::new(
         bot.clone(),
