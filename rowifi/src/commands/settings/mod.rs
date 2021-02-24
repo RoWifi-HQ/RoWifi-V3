@@ -5,7 +5,7 @@ mod verify;
 use rowifi_framework::prelude::*;
 
 pub use misc::{blacklist_action, settings_prefix, toggle_commands};
-pub use update::{update_on_join, update_on_verify};
+pub use update::update_on_join;
 pub use verify::*;
 
 pub fn settings_config(cmds: &mut Vec<Command>) {
@@ -39,12 +39,6 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to toggle the `Update On Join` setting in the server")
         .handler(update_on_join);
 
-    let update_on_verify_cmd = Command::builder()
-        .level(RoLevel::Admin)
-        .names(&["update-on-verify", "uov"])
-        .description("Command to toggle the `Update On Verify` setting in the server")
-        .handler(update_on_verify);
-
     let settings_verification_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["verification"])
@@ -67,7 +61,6 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(settings_toggle_commands_cmd)
         .sub_command(settings_prefix_cmd)
         .sub_command(update_on_join_cmd)
-        .sub_command(update_on_verify_cmd)
         .sub_command(settings_verification_cmd)
         .sub_command(settings_verified_cmd)
         .handler(settings_view);
@@ -118,14 +111,6 @@ pub async fn settings_view(ctx: CommandContext, _args: SettingsViewArguments) ->
             EmbedFieldBuilder::new("Update On Join", guild.settings.update_on_join.to_string())
                 .unwrap()
                 .inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Update On Verify",
-                guild.settings.update_on_verify.to_string(),
-            )
-            .unwrap()
-            .inline(),
         )
         .field(
             EmbedFieldBuilder::new(

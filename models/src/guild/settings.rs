@@ -16,8 +16,4 @@ pub struct GuildSettings {
     #[serde(rename = "UpdateOnJoin")]
     #[serde(default)]
     pub update_on_join: bool,
-
-    #[serde(rename = "UpdateOnVerify")]
-    #[serde(default)]
-    pub update_on_verify: bool,
 }
