@@ -61,30 +61,27 @@ impl Arguments {
         let idxs = buf.char_indices();
 
         for (i, ch) in idxs {
-            if quoted {
+            if quoted && started {
                 if ch == '"' {
-                    let v = buf[start_idx..i].trim();
-                    args.push(v.to_string());
-                    start_idx = i + 1;
                     quoted = false;
                 }
-            } else if ch == ' ' {
-                if started {
+            } else if started {
+                if ch == ' ' {
                     let v = buf[start_idx..i].trim();
                     if !v.is_empty() {
                         args.push(v.to_string());
                     }
                     start_idx = i + 1;
-                } else {
-                    start_idx = i;
-                    started = true;
-                    continue;
+                    started = false;
+                } else if ch == '"' {
+                    quoted = true;
                 }
-            } else if ch == '"' {
-                start_idx = i + 1;
-                quoted = true;
+            } else {
+                if ch == '"' {
+                    quoted = true;
+                }
+                started = true;
             }
-            started = true;
         }
 
         match buf.get(start_idx..) {
@@ -261,4 +258,16 @@ impl From<ParseIntError> for ParseError {
     fn from(_err: ParseIntError) -> Self {
         ParseError("a number")
     }
+}
+
+#[test]
+fn arg_test_1() {
+    let mut args = Arguments::new("111111 1 template:\"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
+    assert_eq!(args.next(), Some("111111"));
+    assert_eq!(args.next(), Some("1"));
+    assert_eq!(args.next(), Some("template:\"Prefix1 | {roblox_username}\""));
+    assert_eq!(args.next(), Some("1"));
+    assert_eq!(args.next(), Some("\"@Role @Role2\""));
+    assert_eq!(args.next(), Some("r"));
+    assert_eq!(args.next(), None);
 }

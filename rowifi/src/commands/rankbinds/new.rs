@@ -194,7 +194,7 @@ async fn single_rank(
         group_id,
         rank_id,
         rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
-        prefix: prefix.clone(),
+        prefix: Some(prefix.clone()),
         priority,
         discord_roles: roles,
         template: None
@@ -273,7 +273,7 @@ async fn single_rank_with_auto(
         group_id,
         rank_id,
         rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
-        prefix: prefix.clone(),
+        prefix: Some(prefix.clone()),
         priority,
         discord_roles,
         template: None
@@ -334,7 +334,7 @@ async fn multiple_rank(
             group_id,
             rank_id,
             rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
-            prefix: prefix_to_set.clone(),
+            prefix: Some(prefix_to_set.clone()),
             priority,
             discord_roles: roles.clone(),
             template: None,
@@ -454,7 +454,7 @@ async fn multiple_rank_with_auto(
             group_id,
             rank_id,
             rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
-            prefix: prefix_to_set.clone(),
+            prefix: Some(prefix_to_set.clone()),
             priority,
             discord_roles,
             template: None
@@ -521,7 +521,7 @@ async fn add_rankbind(ctx: &CommandContext, bind: &RankBind) -> Result<(), RoErr
         .collect::<String>();
     let desc = format!(
         "Prefix: {}\nPriority: {}\nDiscord Roles: {}",
-        bind.prefix, bind.priority, roles_str
+        bind.prefix.as_ref().map_or("", |s| s.as_str()), bind.priority, roles_str
     );
     let embed = EmbedBuilder::new()
         .default_data()
@@ -550,7 +550,7 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         .collect::<String>();
     let desc = format!(
         "Rank Id: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
-        bind.rank_id, bind.prefix, bind.priority, roles_str
+        bind.rank_id, bind.prefix.unwrap_or_default(), bind.priority, roles_str
     );
     let log_embed = EmbedBuilder::new()
         .default_data()

@@ -351,7 +351,7 @@ mod tests {
             Some(Err(err)) => {}
             None => {}
         }
-        assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), true);
+        assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), false);
     }
 
     #[test]

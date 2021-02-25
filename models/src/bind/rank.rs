@@ -21,7 +21,7 @@ pub struct RankBind {
     pub rbx_rank_id: i64,
 
     #[serde(rename = "Prefix")]
-    pub prefix: String,
+    pub prefix: Option<String>,
 
     #[serde(rename = "Priority")]
     pub priority: i64,
@@ -45,7 +45,7 @@ pub struct BackupRankBind {
     pub rbx_rank_id: i64,
 
     #[serde(rename = "Prefix")]
-    pub prefix: String,
+    pub prefix: Option<String>,
 
     #[serde(rename = "Priority")]
     pub priority: i64,
@@ -99,12 +99,15 @@ impl Bind for RankBind {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
         }
-        else if self.prefix.eq_ignore_ascii_case("N/A") {
-            return roblox_username.to_string()
-        } else if self.prefix.eq_ignore_ascii_case("disable") {
-            return discord_nick.to_string()
-        }
-        format!("{} {}", self.prefix, roblox_username)
+        else if let Some(prefix) = &self.prefix {
+            if prefix.eq_ignore_ascii_case("N/A") {
+                return roblox_username.to_string();
+            } else if prefix.eq_ignore_ascii_case("disable") {
+                return discord_nick.to_string();
+            }
+            return format!("{} {}", prefix, roblox_username)
+        } 
+        discord_nick.to_string()
     }
 
     fn priority(&self) -> i64 {
