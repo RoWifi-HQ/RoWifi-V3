@@ -93,8 +93,13 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
         let gbs = gbs.sorted_by_key(|g| g.group_id);
         for gb in gbs {
             let name = format!("Group Id: {}", gb.group_id);
+            let nick = match &gb.template {
+                Some(template) => format!("Template: {}\n", template),
+                None => String::default()
+            };
             let desc = format!(
-                "Roles: {}",
+                "{}Roles: {}",
+                nick,
                 gb.discord_roles
                     .iter()
                     .map(|r| RoleId(*r as u64).mention().to_string())

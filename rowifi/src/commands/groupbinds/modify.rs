@@ -15,6 +15,7 @@ pub struct GroupbindsModifyArguments {
 pub enum ModifyOption {
     RolesAdd,
     RolesRemove,
+    Template
 }
 
 pub async fn groupbinds_modify(
@@ -72,6 +73,10 @@ pub async fn groupbinds_modify(
                 .collect::<String>();
             let desc = format!("Removed Roles: {}", modification);
             desc
+        },
+        ModifyOption::Template => {
+            let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
+            format!("`New Template`: {}", template)
         }
     };
 
@@ -144,6 +149,14 @@ async fn remove_roles(
     Ok(role_ids)
 }
 
+async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, bind_index: usize, template: &'t str) -> Result<&'t str, RoError> {
+    let filter = doc! {"_id": guild.id};
+    let index_str = format!("GroupBinds.{}.Template", bind_index);
+    let update = doc! {"$set": {index_str: template}};
+    ctx.bot.database.modify_guild(filter, update).await?;
+    Ok(template)
+}
+
 impl FromArg for ModifyOption {
     type Error = ParseError;
 
@@ -151,6 +164,7 @@ impl FromArg for ModifyOption {
         match arg.to_ascii_lowercase().as_str() {
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
+            "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError("one of `roles-add` `roles-remove`")),
         }
     }
