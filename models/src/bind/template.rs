@@ -1,6 +1,7 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use lazy_static::lazy_static;
+use std::fmt::{Formatter, Display, Result as FmtResult};
 
 use crate::user::RoUser;
 
@@ -53,5 +54,11 @@ impl Template {
         }
         
         parts.join("")
+    }
+}
+
+impl Display for Template {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{}", self.0)
     }
 }
