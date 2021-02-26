@@ -4,7 +4,7 @@ use twilight_model::id::RoleId;
 
 use crate::user::RoUser;
 
-use super::{Backup, Bind};
+use super::{Backup, Bind, template::Template};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupBind {
@@ -13,6 +13,12 @@ pub struct GroupBind {
 
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
+
+    #[serde(rename = "Priority", default)]
+    pub priority: i64,
+
+    #[serde(rename = "Template")]
+    pub template: Option<Template>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,6 +28,12 @@ pub struct BackupGroupBind {
 
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<String>,
+
+    #[serde(rename = "Priority", default)]
+    pub priority: i64,
+
+    #[serde(rename = "Template")]
+    pub template: Option<Template>
 }
 
 impl Backup for GroupBind {
@@ -38,6 +50,8 @@ impl Backup for GroupBind {
         BackupGroupBind {
             group_id: self.group_id,
             discord_roles,
+            priority: self.priority,
+            template: self.template.clone()
         }
     }
 
@@ -51,16 +65,21 @@ impl Backup for GroupBind {
         GroupBind {
             group_id: bind.group_id,
             discord_roles,
+            priority: bind.priority,
+            template: bind.template.clone()
         }
     }
 }
 
 impl Bind for GroupBind {
-    fn nickname(&self, _roblox_username: &str, _user: &RoUser, discord_nick: &str) -> String {
-        format!("{}", discord_nick)
+    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+        if let Some(template) = &self.template {
+            return template.nickname(roblox_username, user, discord_nick);
+        }
+        discord_nick.to_string()
     }
 
     fn priority(&self) -> i64 {
-        0
+        self.priority
     }
 }
