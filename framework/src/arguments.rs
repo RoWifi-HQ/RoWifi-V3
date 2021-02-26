@@ -67,7 +67,7 @@ impl Arguments {
                 }
             } else if started {
                 if ch == ' ' {
-                    let v = buf[start_idx..i].trim();
+                    let v = buf[start_idx..i].trim_matches(|c: char| c.is_whitespace() || c == '"');
                     if !v.is_empty() {
                         args.push(v.to_string());
                     }
@@ -262,12 +262,12 @@ impl From<ParseIntError> for ParseError {
 
 #[test]
 fn arg_test_1() {
-    let mut args = Arguments::new("111111 1 template:\"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
+    let mut args = Arguments::new("111111 1 \"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
     assert_eq!(args.next(), Some("111111"));
     assert_eq!(args.next(), Some("1"));
-    assert_eq!(args.next(), Some("template:\"Prefix1 | {roblox_username}\""));
+    assert_eq!(args.next(), Some("Prefix1 | {roblox_username}"));
     assert_eq!(args.next(), Some("1"));
-    assert_eq!(args.next(), Some("\"@Role @Role2\""));
+    assert_eq!(args.next(), Some("@Role @Role2"));
     assert_eq!(args.next(), Some("r"));
     assert_eq!(args.next(), None);
 }

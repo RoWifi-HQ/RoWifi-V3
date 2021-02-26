@@ -1,4 +1,3 @@
-mod create;
 mod delete;
 mod modify;
 mod new;
@@ -9,7 +8,6 @@ use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_mention::Mention;
 use twilight_model::id::RoleId;
 
-pub use create::*;
 pub use delete::*;
 pub use modify::*;
 pub use new::*;
@@ -20,12 +18,6 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .names(&["new"])
         .description("Command to add a new rankbind")
         .handler(rankbinds_new);
-
-    let rankbinds_create_command = Command::builder()
-        .level(RoLevel::Admin)
-        .names(&["create"])
-        .description("Command to add a new rankbind")
-        .handler(rankbinds_create);
 
     let rankbinds_modify_command = Command::builder()
         .level(RoLevel::Admin)
@@ -51,7 +43,6 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to view the rankbinds")
         .group("Binds")
         .sub_command(rankbinds_new_command)
-        .sub_command(rankbinds_create_command)
         .sub_command(rankbinds_modify_command)
         .sub_command(rankbinds_delete_command)
         .sub_command(rankbinds_view_command)
@@ -106,9 +97,16 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
             let rbs = rbs.sorted_by_key(|r| r.rank_id);
             for rb in rbs {
                 let name = format!("Rank: {}", rb.rank_id);
+                let nick = if let Some(template) = &rb.template {
+                    format!("Template: `{}`\n", template)
+                } else if let Some(prefix) = &rb.prefix {
+                    format!("Prefix: `{}`\n", prefix)
+                } else {
+                    String::default()
+                };
                 let desc = format!(
-                    "Prefix: {}\nPriority: {}\n Roles: {}",
-                    rb.prefix.as_ref().map_or("", |s| s.as_str()),
+                    "{}Priority: {}\n Roles: {}",
+                    nick,
                     rb.priority,
                     rb.discord_roles
                         .iter()
