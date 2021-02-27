@@ -101,9 +101,16 @@ pub async fn custombinds_view(
                 .iter()
                 .map(|r| RoleId(*r as u64).mention().to_string())
                 .collect::<String>();
+            let nick = if let Some(template) = &cb.template {
+                format!("Template: `{}`\n", template)
+            } else if let Some(prefix) = &cb.prefix {
+                format!("Prefix: `{}`\n", prefix)
+            } else {
+                String::default()
+            };
             let desc = format!(
-                "Code: {}\nPrefix: {}\nPriority: {}\nRoles: {}",
-                cb.code, cb.prefix, cb.priority, roles_str
+                "Code: {}\n{}Priority: {}\nRoles: {}",
+                cb.code, nick, cb.priority, roles_str
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
         }

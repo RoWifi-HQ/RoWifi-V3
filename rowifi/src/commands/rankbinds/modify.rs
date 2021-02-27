@@ -72,7 +72,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     let desc = match args.option {
         ModifyOption::Prefix => {
             let new_prefix = modify_prefix(&ctx, &guild, bind_index, &args.change).await?;
-            format!("`Prefix`: {} -> {}", bind.prefix.as_ref().map_or("", |s| s.as_str()), new_prefix)
+            format!("`Prefix`: {} -> {}", bind.prefix.as_ref().map_or("None", |s| s.as_str()), new_prefix)
         }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, bind_index, &args.change).await?;
