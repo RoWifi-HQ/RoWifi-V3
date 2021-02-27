@@ -98,7 +98,11 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
                 .iter()
                 .map(|r| RoleId(*r as u64).mention().to_string())
                 .collect::<String>();
-            let desc = format!("Type: {}\nRoles: {}", ab.asset_type, roles_str);
+            let nick = match &ab.template {
+                Some(template) => format!("Template: {}\n", template),
+                None => String::default()
+            };
+            let desc = format!("Type: {}\n{}Priority: {}\nRoles: {}", ab.asset_type, nick, ab.priority, roles_str);
             embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
         }
         pages.push(embed.build().unwrap());

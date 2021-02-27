@@ -15,6 +15,8 @@ pub struct ModifyArguments {
 pub enum ModifyOption {
     RolesAdd,
     RolesRemove,
+    Priority,
+    Template
 }
 
 pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> CommandResult {
@@ -29,25 +31,28 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
     let field = args.option;
     let asset_id = args.asset_id;
 
-    if !guild.assetbinds.iter().any(|a| a.id == asset_id) {
-        let e = EmbedBuilder::new()
-            .default_data()
-            .color(Color::Red as u32)
-            .unwrap()
-            .title("Asset Modification Failed")
-            .unwrap()
-            .description(format!("A bind with Asset Id {} does not exist", asset_id))
-            .unwrap()
-            .build()
-            .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(e)
-            .unwrap()
-            .await?;
-        return Ok(());
-    }
+    let bind = match guild.assetbinds.iter().find(|a| a.id == asset_id) {
+        Some(a) => a,
+        None => {
+            let e = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .unwrap()
+                .title("Asset Modification Failed")
+                .unwrap()
+                .description(format!("A bind with Asset Id {} does not exist", asset_id))
+                .unwrap()
+                .build()
+                .unwrap();
+            ctx.bot
+                .http
+                .create_message(ctx.channel_id)
+                .embed(e)
+                .unwrap()
+                .await?;
+            return Ok(());
+        }
+    };
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -83,6 +88,14 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 .collect::<String>();
             let desc = format!("Removed Roles: {}", modification);
             desc
+        },
+        ModifyOption::Priority => {
+            let new_priority = modify_priority(&ctx, &guild, asset_id, &args.change).await?;
+            format!("`Priority`: {} -> {}", bind.priority, new_priority)
+        },
+        ModifyOption::Template => {
+            let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
+            format!("`New Template`: {}", template)
         }
     };
 
@@ -140,6 +153,35 @@ async fn remove_roles(
     Ok(role_ids)
 }
 
+async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, asset_id: i64, template: &'t str) -> Result<&'t str, RoError> {
+    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
+    let update = doc! {"$set": {"AssetBinds.$.Template": template}};
+    ctx.bot.database.modify_guild(filter, update).await?;
+    Ok(template)
+}
+
+async fn modify_priority(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    asset_id: i64,
+    priority: &str,
+) -> Result<i64, RoError> {
+    let priority = match priority.parse::<i64>() {
+        Ok(p) => p,
+        Err(_) => {
+            return Err(RoError::Argument(ArgumentError::ParseError {
+                expected: "a number",
+                usage: ModifyArguments::generate_help(),
+                name: "change",
+            }));
+        }
+    };
+    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
+    let update = doc! {"$set": {"AssetBinds.$.Priority": priority}};
+    ctx.bot.database.modify_guild(filter, update).await?;
+    Ok(priority)
+}
+
 impl FromArg for ModifyOption {
     type Error = ParseError;
 
@@ -147,6 +189,8 @@ impl FromArg for ModifyOption {
         match arg.to_ascii_lowercase().as_str() {
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
+            "priority" => Ok(ModifyOption::Priority),
+            "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError("one of `roles-add` `roles-remove`")),
         }
     }

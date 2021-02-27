@@ -17,7 +17,7 @@ pub struct GroupBind {
     #[serde(rename = "Priority", default)]
     pub priority: i64,
 
-    #[serde(rename = "Template")]
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>
 }
 
@@ -32,7 +32,7 @@ pub struct BackupGroupBind {
     #[serde(rename = "Priority", default)]
     pub priority: i64,
 
-    #[serde(rename = "Template")]
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>
 }
 

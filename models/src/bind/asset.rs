@@ -5,7 +5,7 @@ use twilight_model::id::RoleId;
 
 use crate::user::RoUser;
 
-use super::{Backup, Bind};
+use super::{Backup, Bind, template::Template};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AssetBind {
@@ -17,6 +17,12 @@ pub struct AssetBind {
 
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
+
+    #[serde(rename = "Priority", default)]
+    pub priority: i64,
+
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
+    pub template: Option<Template>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,6 +35,12 @@ pub struct BackupAssetBind {
 
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<String>,
+
+    #[serde(rename = "Priority", default)]
+    pub priority: i64,
+
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
+    pub template: Option<Template>
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
@@ -76,6 +88,8 @@ impl Backup for AssetBind {
             id: self.id,
             asset_type: self.asset_type,
             discord_roles,
+            priority: self.priority,
+            template: self.template.clone()
         }
     }
 
@@ -90,16 +104,21 @@ impl Backup for AssetBind {
             id: bind.id,
             asset_type: bind.asset_type,
             discord_roles,
+            priority: bind.priority,
+            template: bind.template.clone()
         }
     }
 }
 
 impl Bind for AssetBind {
-    fn nickname(&self, _roblox_username: &str, _user: &RoUser, discord_nick: &str) -> String {
-        format!("{}", discord_nick)
+    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+        if let Some(template) = &self.template {
+            return template.nickname(roblox_username, user, discord_nick);
+        }
+        discord_nick.to_string()
     }
 
     fn priority(&self) -> i64 {
-        0
+        self.priority
     }
 }
