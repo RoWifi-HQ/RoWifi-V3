@@ -20,13 +20,13 @@ pub struct RankBind {
     #[serde(rename = "RbxGrpRoleId")]
     pub rbx_rank_id: i64,
 
-    #[serde(rename = "Prefix")]
+    #[serde(rename = "Prefix", skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
 
     #[serde(rename = "Priority")]
     pub priority: i64,
 
-    #[serde(rename = "Template")]
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>
 }
 
