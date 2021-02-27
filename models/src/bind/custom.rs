@@ -43,13 +43,13 @@ pub struct BackupCustomBind {
     #[serde(rename = "Code")]
     pub code: String,
 
-    #[serde(rename = "Prefix")]
+    #[serde(rename = "Prefix", skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
 
     #[serde(rename = "Priority")]
     pub priority: i64,
 
-    #[serde(rename = "Template")]
+    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>
 }
 
