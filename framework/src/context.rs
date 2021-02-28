@@ -5,8 +5,15 @@ use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
-use rowifi_models::{bind::Bind, guild::{BlacklistActionType, RoGuild}, rolang::RoCommandUser, stats::BotStats, user::RoUser};
+use rowifi_models::{
+    bind::Bind,
+    guild::{BlacklistActionType, RoGuild},
+    rolang::RoCommandUser,
+    stats::BotStats,
+    user::RoUser,
+};
 use std::{
+    borrow::ToOwned,
     collections::{HashMap, HashSet},
     ops::Deref,
     sync::Arc,
@@ -75,13 +82,13 @@ impl BotContext {
         shards_per_cluster: u64,
         cipher: ChaCha20Poly1305,
     ) -> Self {
-        let mut _owners = DashSet::new();
-        _owners.extend(owners.iter().map(|u| u.to_owned()));
+        let mut owners_set = DashSet::new();
+        owners_set.extend(owners.iter().map(ToOwned::to_owned));
 
-        let mut _webhooks = HashMap::new();
+        let mut webhooks_map = HashMap::new();
         for (name, url) in webhooks {
             let (id, token) = webhook::parse(url).unwrap();
-            _webhooks.insert(name, (id, token.unwrap().to_owned()));
+            webhooks_map.insert(name, (id, token.unwrap().to_owned()));
         }
         Self {
             0: Arc::new(BotContextRef {
@@ -89,7 +96,7 @@ impl BotContext {
                 prefixes: DashMap::new(),
                 default_prefix,
                 disabled_channels: DashSet::new(),
-                owners: _owners,
+                owners: owners_set,
                 http,
                 cache,
                 cluster,
@@ -98,7 +105,7 @@ impl BotContext {
                 roblox,
                 patreon,
                 stats,
-                webhooks: _webhooks,
+                webhooks: webhooks_map,
                 cluster_id,
                 total_shards,
                 shards_per_cluster,
@@ -235,7 +242,7 @@ impl BotContext {
             if to_add {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < r.priority() {
-                        nick_bind = Some(r); 
+                        nick_bind = Some(r);
                     }
                 } else {
                     nick_bind = Some(r);
@@ -248,7 +255,7 @@ impl BotContext {
             if user_roles.contains_key(&g.group_id) {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < g.priority() {
-                        nick_bind = Some(g); 
+                        nick_bind = Some(g);
                     }
                 } else {
                     nick_bind = Some(g);
@@ -261,7 +268,7 @@ impl BotContext {
             if c.command.evaluate(&command_user).unwrap() {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < c.priority() {
-                        nick_bind = Some(c); 
+                        nick_bind = Some(c);
                     }
                 } else {
                     nick_bind = Some(c);
@@ -271,10 +278,14 @@ impl BotContext {
         }
 
         for a in &guild.assetbinds {
-            if self.roblox.has_asset(user.roblox_id, a.id, &a.asset_type.to_string()).await? {
+            if self
+                .roblox
+                .has_asset(user.roblox_id, a.id, &a.asset_type.to_string())
+                .await?
+            {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < a.priority() {
-                        nick_bind = Some(a); 
+                        nick_bind = Some(a);
                     }
                 } else {
                     nick_bind = Some(a);
@@ -296,7 +307,10 @@ impl BotContext {
             }
         }
 
-        let discord_nick = member.nick.as_ref().map_or_else(|| member.user.name.as_str(), |s| s.as_str());
+        let discord_nick = member
+            .nick
+            .as_ref()
+            .map_or_else(|| member.user.name.as_str(), |s| s.as_str());
         let nick_bypass = match server.nickname_bypass {
             Some(n) => member.roles.contains(&n),
             None => false,
@@ -304,11 +318,10 @@ impl BotContext {
         let nickname = if nick_bypass {
             discord_nick.to_string()
         } else {
-            if let Some(nick_bind) = nick_bind {
-                nick_bind.nickname(&username, &user, discord_nick)
-            } else {
-                discord_nick.to_string()
-            }
+            nick_bind.map_or_else(
+                || discord_nick.to_string(),
+                |nick_bind| nick_bind.nickname(&username, &user, discord_nick),
+            )
         };
 
         if nickname.len() > 32 {
@@ -328,11 +341,7 @@ impl BotContext {
         let nick_changes = nickname != discord_nick;
 
         if role_changes || nick_changes {
-            update
-                .roles(roles)
-                .nick(nickname.clone())
-                .unwrap()
-                .await?;
+            update.roles(roles).nick(nickname.clone()).unwrap().await?;
         }
 
         Ok((added_roles, removed_roles, nickname))

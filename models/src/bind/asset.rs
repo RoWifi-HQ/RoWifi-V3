@@ -5,7 +5,7 @@ use twilight_model::id::RoleId;
 
 use crate::user::RoUser;
 
-use super::{Backup, Bind, template::Template};
+use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AssetBind {
@@ -22,7 +22,7 @@ pub struct AssetBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -40,7 +40,7 @@ pub struct BackupAssetBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
@@ -89,7 +89,7 @@ impl Backup for AssetBind {
             asset_type: self.asset_type,
             discord_roles,
             priority: self.priority,
-            template: self.template.clone()
+            template: self.template.clone(),
         }
     }
 
@@ -105,7 +105,7 @@ impl Backup for AssetBind {
             asset_type: bind.asset_type,
             discord_roles,
             priority: bind.priority,
-            template: bind.template.clone()
+            template: bind.template.clone(),
         }
     }
 }

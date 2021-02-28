@@ -53,7 +53,7 @@ pub trait FromArg {
 }
 
 impl Arguments {
-    pub fn new(buf: String) -> Self {
+    pub fn new(buf: &str) -> Self {
         let mut args = Vec::new();
         let mut start_idx = 0;
         let mut quoted = false;
@@ -96,7 +96,7 @@ impl Arguments {
     pub fn next(&mut self) -> Option<&str> {
         let res = self.buf.get(self.idx);
         self.idx += 1;
-        res.map(|s| s.as_str())
+        res.map(String::as_str)
     }
 
     pub fn back(&mut self) {
@@ -262,7 +262,8 @@ impl From<ParseIntError> for ParseError {
 
 #[test]
 fn arg_test_1() {
-    let mut args = Arguments::new("111111 1 \"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
+    let mut args =
+        Arguments::new("111111 1 \"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
     assert_eq!(args.next(), Some("111111"));
     assert_eq!(args.next(), Some("1"));
     assert_eq!(args.next(), Some("Prefix1 | {roblox_username}"));

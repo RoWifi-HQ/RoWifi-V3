@@ -4,7 +4,7 @@ use twilight_model::id::RoleId;
 
 use crate::user::RoUser;
 
-use super::{Backup, Bind, template::Template};
+use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupBind {
@@ -18,7 +18,7 @@ pub struct GroupBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,7 +33,7 @@ pub struct BackupGroupBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 impl Backup for GroupBind {
@@ -51,7 +51,7 @@ impl Backup for GroupBind {
             group_id: self.group_id,
             discord_roles,
             priority: self.priority,
-            template: self.template.clone()
+            template: self.template.clone(),
         }
     }
 
@@ -66,7 +66,7 @@ impl Backup for GroupBind {
             group_id: bind.group_id,
             discord_roles,
             priority: bind.priority,
-            template: bind.template.clone()
+            template: bind.template.clone(),
         }
     }
 }

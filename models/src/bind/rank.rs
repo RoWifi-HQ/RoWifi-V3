@@ -4,7 +4,7 @@ use twilight_model::id::RoleId;
 
 use crate::user::RoUser;
 
-use super::{Backup, Bind, template::Template};
+use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RankBind {
@@ -27,7 +27,7 @@ pub struct RankBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -51,7 +51,7 @@ pub struct BackupRankBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 impl Backup for RankBind {
@@ -72,7 +72,7 @@ impl Backup for RankBind {
             prefix: self.prefix.clone(),
             priority: self.priority,
             discord_roles,
-            template: self.template.clone()
+            template: self.template.clone(),
         }
     }
 
@@ -89,7 +89,7 @@ impl Backup for RankBind {
             prefix: bind.prefix.clone(),
             priority: bind.priority,
             discord_roles,
-            template: bind.template.clone()
+            template: bind.template.clone(),
         }
     }
 }
@@ -98,15 +98,14 @@ impl Bind for RankBind {
     fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
-        }
-        else if let Some(prefix) = &self.prefix {
+        } else if let Some(prefix) = &self.prefix {
             if prefix.eq_ignore_ascii_case("N/A") {
                 return roblox_username.to_string();
             } else if prefix.eq_ignore_ascii_case("disable") {
                 return discord_nick.to_string();
             }
-            return format!("{} {}", prefix, roblox_username)
-        } 
+            return format!("{} {}", prefix, roblox_username);
+        }
         discord_nick.to_string()
     }
 

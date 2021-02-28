@@ -83,7 +83,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         asset_type,
         discord_roles: roles,
         priority: 0,
-        template: None
+        template: None,
     };
     let bind_bson = to_bson(&bind)?;
 

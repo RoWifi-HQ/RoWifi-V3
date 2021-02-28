@@ -100,9 +100,12 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
                 .collect::<String>();
             let nick = match &ab.template {
                 Some(template) => format!("Template: {}\n", template),
-                None => String::default()
+                None => String::default(),
             };
-            let desc = format!("Type: {}\n{}Priority: {}\nRoles: {}", ab.asset_type, nick, ab.priority, roles_str);
+            let desc = format!(
+                "Type: {}\n{}Priority: {}\nRoles: {}",
+                ab.asset_type, nick, ab.priority, roles_str
+            );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
         }
         pages.push(embed.build().unwrap());

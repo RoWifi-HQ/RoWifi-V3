@@ -1,7 +1,7 @@
+use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use lazy_static::lazy_static;
-use std::fmt::{Formatter, Display, Result as FmtResult};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::user::RoUser;
 
@@ -20,10 +20,13 @@ impl Template {
         let template_str = &self.0;
         let mut parts = vec![];
 
-        let mut matches = TEMPLATE_REGEX.find_iter(template_str).map(|m| (m.start(), m.end())).peekable();
+        let mut matches = TEMPLATE_REGEX
+            .find_iter(template_str)
+            .map(|m| (m.start(), m.end()))
+            .peekable();
         let first = match matches.peek() {
             Some((start, _)) => *start,
-            None => return template_str.clone()
+            None => return template_str.clone(),
         };
 
         if first > 0 {
@@ -37,13 +40,13 @@ impl Template {
             }
 
             let arg = &template_str[start..end];
-            let arg_name = &arg[1..arg.len()-1];
+            let arg_name = &arg[1..arg.len() - 1];
             match arg_name {
                 "roblox-username" => parts.push(roblox_username),
                 "roblox-id" => parts.push(&roblox_id),
                 "discord-id" => parts.push(&discord_id),
                 "discord-name" => parts.push(discord_nick),
-                _ => parts.push(arg)
+                _ => parts.push(arg),
             }
 
             previous_end = end;
@@ -52,7 +55,7 @@ impl Template {
         if previous_end < template_str.len() {
             parts.push(&template_str[previous_end..]);
         }
-        
+
         parts.join("")
     }
 }

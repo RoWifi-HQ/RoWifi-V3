@@ -7,7 +7,8 @@
     clippy::single_match_else,
     clippy::filter_map,
     clippy::too_many_lines,
-    clippy::needless_lifetimes
+    clippy::needless_lifetimes,
+    clippy::let_underscore_drop
 )]
 
 mod commands;

@@ -67,7 +67,9 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
 
     let server = ctx.bot.cache.guild(ctx.guild_id.unwrap()).unwrap();
 
-    let view_duration = args.duration.unwrap_or(ViewDuration(Duration::days(7)));
+    let view_duration = args
+        .duration
+        .unwrap_or_else(|| ViewDuration(Duration::days(7)));
     let start_time = Utc::now() - view_duration.0;
     let filter = doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
     let group_data = ctx.bot.database.get_analytics_membercount(filter).await?;

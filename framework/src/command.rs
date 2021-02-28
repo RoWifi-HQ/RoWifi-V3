@@ -60,7 +60,7 @@ impl Command {
 
     fn _master_name(&mut self, top_name: &str) {
         self.master_name = format!("{} {}", top_name, self.names[0]).trim().to_string();
-        for sub_cmd in self.sub_commands.iter_mut() {
+        for sub_cmd in &mut self.sub_commands {
             sub_cmd._master_name(&self.master_name);
         }
     }
@@ -166,7 +166,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
 
         let fut = fut.then(move |res: Result<(), RoError>| async move {
             match res {
-                Ok(r) => {
+                Ok(_) => {
                     if let Ok(metric) = ctx
                         .bot
                         .stats
@@ -233,8 +233,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             }
         },
         RoError::Command(cmd_err) => match cmd_err {
-            CommandError::Blacklist(ref b) => { /*Handled invidually by the methods that raise this */
-            }
+            CommandError::Blacklist(_) => { /*Handled invidually by the methods that raise this */ }
             CommandError::Miscellanous(ref b) => {
                 let embed = EmbedBuilder::new()
                     .default_data()

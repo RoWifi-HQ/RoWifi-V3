@@ -197,7 +197,7 @@ async fn single_rank(
         prefix: Some(prefix.clone()),
         priority,
         discord_roles: roles,
-        template: None
+        template: None,
     };
     add_rankbind(&ctx, &bind).await?;
     log_rankbind(&ctx, bind).await;
@@ -276,7 +276,7 @@ async fn single_rank_with_auto(
         prefix: Some(prefix.clone()),
         priority,
         discord_roles,
-        template: None
+        template: None,
     };
     add_rankbind(&ctx, &bind).await?;
     log_rankbind(&ctx, bind).await;
@@ -457,7 +457,7 @@ async fn multiple_rank_with_auto(
             prefix: Some(prefix_to_set.clone()),
             priority,
             discord_roles,
-            template: None
+            template: None,
         };
 
         match guild
@@ -521,7 +521,9 @@ async fn add_rankbind(ctx: &CommandContext, bind: &RankBind) -> Result<(), RoErr
         .collect::<String>();
     let desc = format!(
         "Prefix: {}\nPriority: {}\nDiscord Roles: {}",
-        bind.prefix.as_ref().map_or("", |s| s.as_str()), bind.priority, roles_str
+        bind.prefix.as_ref().map_or("", |s| s.as_str()),
+        bind.priority,
+        roles_str
     );
     let embed = EmbedBuilder::new()
         .default_data()
@@ -550,7 +552,10 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         .collect::<String>();
     let desc = format!(
         "Rank Id: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
-        bind.rank_id, bind.prefix.unwrap_or_default(), bind.priority, roles_str
+        bind.rank_id,
+        bind.prefix.unwrap_or_default(),
+        bind.priority,
+        roles_str
     );
     let log_embed = EmbedBuilder::new()
         .default_data()

@@ -16,7 +16,7 @@ pub enum ModifyOption {
     RolesAdd,
     RolesRemove,
     Priority,
-    Template
+    Template,
 }
 
 pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> CommandResult {
@@ -88,11 +88,11 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 .collect::<String>();
             let desc = format!("Removed Roles: {}", modification);
             desc
-        },
+        }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, asset_id, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
-        },
+        }
         ModifyOption::Template => {
             let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
             format!("`New Template`: {}", template)
@@ -153,7 +153,12 @@ async fn remove_roles(
     Ok(role_ids)
 }
 
-async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, asset_id: i64, template: &'t str) -> Result<&'t str, RoError> {
+async fn modify_template<'t>(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    asset_id: i64,
+    template: &'t str,
+) -> Result<&'t str, RoError> {
     let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
     let update = doc! {"$set": {"AssetBinds.$.Template": template}};
     ctx.bot.database.modify_guild(filter, update).await?;

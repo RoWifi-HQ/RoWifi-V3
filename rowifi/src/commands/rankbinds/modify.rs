@@ -22,7 +22,7 @@ pub enum ModifyOption {
     Priority,
     RolesAdd,
     RolesRemove,
-    Template
+    Template,
 }
 
 pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> CommandResult {
@@ -72,7 +72,11 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     let desc = match args.option {
         ModifyOption::Prefix => {
             let new_prefix = modify_prefix(&ctx, &guild, bind_index, &args.change).await?;
-            format!("`Prefix`: {} -> {}", bind.prefix.as_ref().map_or("None", |s| s.as_str()), new_prefix)
+            format!(
+                "`Prefix`: {} -> {}",
+                bind.prefix.as_ref().map_or("None", |s| s.as_str()),
+                new_prefix
+            )
         }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, bind_index, &args.change).await?;
@@ -93,7 +97,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
             format!("Removed Roles: {}", modification)
-        },
+        }
         ModifyOption::Template => {
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
@@ -154,7 +158,9 @@ async fn modify_priority(
     let priority = match priority.parse::<i64>() {
         Ok(p) => p,
         Err(_) => {
-            return Err(RoError::Command(CommandError::Miscellanous("Given priority was found not to be a number".into())))
+            return Err(RoError::Command(CommandError::Miscellanous(
+                "Given priority was found not to be a number".into(),
+            )))
         }
     };
     let filter = doc! {"_id": guild.id};
@@ -164,7 +170,12 @@ async fn modify_priority(
     Ok(priority)
 }
 
-async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, bind_index: usize, template: &'t str) -> Result<&'t str, RoError> {
+async fn modify_template<'t>(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    bind_index: usize,
+    template: &'t str,
+) -> Result<&'t str, RoError> {
     let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Template", bind_index);
     let update = doc! {"$set": {index_str: template}};
