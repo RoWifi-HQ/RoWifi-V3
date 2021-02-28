@@ -54,8 +54,8 @@ pub struct BucketService<S> {
 }
 
 impl<S> BucketService<S> {
-    pub fn get(&self, guild_id: &GuildId) -> Option<Duration> {
-        match self.guilds.get(guild_id) {
+    pub fn get(&self, guild_id: GuildId) -> Option<Duration> {
+        match self.guilds.get(&guild_id) {
             Some(g) => {
                 if g.object == 0 {
                     return g.expiration.checked_duration_since(Instant::now());
@@ -84,7 +84,7 @@ where
 
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         if let Some(guild_id) = req.0.guild_id {
-            if let Some(duration) = self.get(&guild_id) {
+            if let Some(duration) = self.get(guild_id) {
                 let dur = duration;
                 let fut = async move { Err(RoError::Command(CommandError::Ratelimit(dur))) };
                 return Box::pin(fut);
@@ -94,7 +94,7 @@ where
             let calls = self.calls;
             let fut = self.service.call(req).then(move |res| async move {
                 if res.is_ok() {
-                    take(guilds, calls, guild_id);
+                    take(&guilds, calls, guild_id);
                 }
 
                 res
@@ -108,22 +108,19 @@ where
 }
 
 fn take(
-    guilds: Arc<TransientDashMap<GuildId, u64>>,
+    guilds: &TransientDashMap<GuildId, u64>,
     calls: u64,
     guild_id: GuildId,
 ) -> Option<Duration> {
-    let (new_remaining, expiration) = match guilds.get(&guild_id) {
-        Some(g) => {
-            let remaining = g.object;
-            if remaining == 0 {
-                return g.expiration.checked_duration_since(Instant::now());
-            }
-            (remaining - 1, g.expiration)
+    let (new_remaining, expiration) = if let Some(g) = guilds.get(&guild_id) {
+        let remaining = g.object;
+        if remaining == 0 {
+            return g.expiration.checked_duration_since(Instant::now());
         }
-        None => {
-            guilds.insert(guild_id, calls - 1);
-            return None;
-        }
+        (remaining - 1, g.expiration)
+    } else {
+        guilds.insert(guild_id, calls - 1);
+        return None;
     };
     guilds.insert_with_expiration(guild_id, new_remaining, expiration);
     None

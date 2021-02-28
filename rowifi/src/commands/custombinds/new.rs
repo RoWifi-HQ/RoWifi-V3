@@ -126,7 +126,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         priority,
         command,
         discord_roles,
-        template: None
+        template: None,
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};
@@ -141,7 +141,10 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .collect::<String>();
     let desc = format!(
         "Code: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
-        bind.code, bind.prefix.unwrap(), bind.priority, roles_str
+        bind.code,
+        bind.prefix.unwrap(),
+        bind.priority,
+        roles_str
     );
     let embed = EmbedBuilder::new()
         .default_data()

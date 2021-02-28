@@ -95,7 +95,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
             let name = format!("Group Id: {}", gb.group_id);
             let nick = match &gb.template {
                 Some(template) => format!("Template: {}\n", template),
-                None => String::default()
+                None => String::default(),
             };
             let desc = format!(
                 "{}Roles: {}",

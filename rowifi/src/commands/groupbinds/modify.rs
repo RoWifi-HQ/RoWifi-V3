@@ -15,7 +15,7 @@ pub struct GroupbindsModifyArguments {
 pub enum ModifyOption {
     RolesAdd,
     RolesRemove,
-    Template
+    Template,
 }
 
 pub async fn groupbinds_modify(
@@ -73,7 +73,7 @@ pub async fn groupbinds_modify(
                 .collect::<String>();
             let desc = format!("Removed Roles: {}", modification);
             desc
-        },
+        }
         ModifyOption::Template => {
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
@@ -149,7 +149,12 @@ async fn remove_roles(
     Ok(role_ids)
 }
 
-async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, bind_index: usize, template: &'t str) -> Result<&'t str, RoError> {
+async fn modify_template<'t>(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    bind_index: usize,
+    template: &'t str,
+) -> Result<&'t str, RoError> {
     let filter = doc! {"_id": guild.id};
     let index_str = format!("GroupBinds.{}.Template", bind_index);
     let update = doc! {"$set": {index_str: template}};

@@ -1,11 +1,11 @@
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
-use super::{Backup, Bind, template::Template};
+use super::{template::Template, Backup, Bind};
 use crate::{rolang::RoCommand, user::RoUser};
 
 #[derive(Serialize, Clone)]
@@ -29,7 +29,7 @@ pub struct CustomBind {
     pub command: RoCommand,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -50,7 +50,7 @@ pub struct BackupCustomBind {
     pub priority: i64,
 
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>
+    pub template: Option<Template>,
 }
 
 impl fmt::Debug for CustomBind {
@@ -82,7 +82,7 @@ impl Backup for CustomBind {
             code: self.code.clone(),
             priority: self.priority,
             prefix: self.prefix.clone(),
-            template: self.template.clone()
+            template: self.template.clone(),
         }
     }
 
@@ -102,7 +102,7 @@ impl Backup for CustomBind {
             priority: bind.priority,
             prefix: bind.prefix.clone(),
             command,
-            template: bind.template.clone()
+            template: bind.template.clone(),
         }
     }
 }
@@ -111,14 +111,13 @@ impl Bind for CustomBind {
     fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
-        }
-        else if let Some(prefix) = &self.prefix {
+        } else if let Some(prefix) = &self.prefix {
             if prefix.eq_ignore_ascii_case("N/A") {
                 return roblox_username.to_string();
             } else if prefix.eq_ignore_ascii_case("disable") {
                 return discord_nick.to_string();
             }
-            return format!("{} {}", prefix, roblox_username)
+            return format!("{} {}", prefix, roblox_username);
         }
         discord_nick.to_string()
     }
@@ -142,7 +141,7 @@ impl<'de> Deserialize<'de> for CustomBind {
             Code,
             Prefix,
             Priority,
-            Template
+            Template,
         }
 
         struct CustomBindVisitor;
@@ -162,7 +161,16 @@ impl<'de> Deserialize<'de> for CustomBind {
                 let mut priority = None;
                 let mut template = None;
 
-                while let Some(key) = map.next_key()? {
+                loop {
+                    let key = match map.next_key() {
+                        Ok(Some(key)) => key,
+                        Ok(None) => break,
+                        Err(_) => {
+                            map.next_value::<IgnoredAny>()?;
+                            continue;
+                        }
+                    };
+
                     match key {
                         Field::Id => {
                             if id.is_some() {
@@ -193,7 +201,7 @@ impl<'de> Deserialize<'de> for CustomBind {
                                 return Err(DeError::duplicate_field("Priority"));
                             }
                             priority = Some(map.next_value()?);
-                        },
+                        }
                         Field::Template => {
                             if template.is_some() {
                                 return Err(DeError::duplicate_field("Template"));
@@ -214,16 +222,23 @@ impl<'de> Deserialize<'de> for CustomBind {
                 Ok(CustomBind {
                     id,
                     discord_roles,
+                    code,
                     prefix,
                     priority,
-                    code,
                     command,
-                    template
+                    template,
                 })
             }
         }
 
-        const FIELDS: &[&str] = &["_id", "DiscordRoles", "Code", "Priority", "Prefix", "Template"];
+        const FIELDS: &[&str] = &[
+            "_id",
+            "DiscordRoles",
+            "Code",
+            "Priority",
+            "Prefix",
+            "Template",
+        ];
 
         deserializer.deserialize_struct("CustomBind", FIELDS, CustomBindVisitor)
     }

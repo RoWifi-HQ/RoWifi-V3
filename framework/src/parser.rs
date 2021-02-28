@@ -47,9 +47,8 @@ pub fn find_prefix<'a>(
                 stream.increment(prefix.len());
                 stream.take_while_char(char::is_whitespace);
                 return Some(PrefixType::String(peeked));
-            } else {
-                return None;
             }
+            return None;
         }
     }
 

@@ -66,7 +66,7 @@ impl Database {
                     self.guild_cache.insert(guild.id, guild);
                 }
             } else {
-                let _ = guilds.insert_one(g, InsertOneOptions::default()).await?;
+                let _res = guilds.insert_one(g, InsertOneOptions::default()).await?;
                 self.guild_cache.insert(guild.id, Arc::new(guild));
             }
         }
@@ -144,7 +144,7 @@ impl Database {
         let user_doc = bson::to_bson(&user)?;
         if let Bson::Document(u) = user_doc {
             if exists {
-                let _ = queue
+                let _res = queue
                     .find_one_and_replace(
                         doc! {"_id": user.roblox_id},
                         u,
@@ -152,7 +152,7 @@ impl Database {
                     )
                     .await?;
             } else {
-                let _ = queue.insert_one(u, InsertOneOptions::default()).await?;
+                let _res = queue.insert_one(u, InsertOneOptions::default()).await?;
             }
         }
         self.user_cache.remove(&user.discord_id);
@@ -164,7 +164,7 @@ impl Database {
         let user_doc = bson::to_bson(&user)?;
         if let Bson::Document(u) = user_doc {
             if verified {
-                let _ = users
+                let _res = users
                     .find_one_and_replace(
                         doc! {"_id": user.discord_id},
                         u,
@@ -172,7 +172,7 @@ impl Database {
                     )
                     .await?;
             } else {
-                let _ = users.insert_one(u, InsertOneOptions::default()).await?;
+                let _res = users.insert_one(u, InsertOneOptions::default()).await?;
             }
             self.user_cache.insert(user.discord_id, Arc::new(user));
         }
@@ -219,7 +219,7 @@ impl Database {
                 backup.id = b.id;
                 let backup_bson = bson::to_bson(&backup)?;
                 if let Bson::Document(b) = backup_bson {
-                    let _ = backups
+                    let _res = backups
                         .find_one_and_replace(
                             doc! {"UserId": backup.user_id, "Name": backup.name},
                             b,
@@ -231,7 +231,7 @@ impl Database {
             None => {
                 let backup_bson = bson::to_bson(&backup)?;
                 if let Bson::Document(b) = backup_bson {
-                    let _ = backups.insert_one(b, InsertOneOptions::default()).await?;
+                    let _res = backups.insert_one(b, InsertOneOptions::default()).await?;
                 }
             }
         }
@@ -293,7 +293,7 @@ impl Database {
         let premium_doc = bson::to_bson(&premium_user)?;
         if let Bson::Document(p) = premium_doc {
             if premium_already {
-                let _ = premium
+                let _res = premium
                     .find_one_and_replace(
                         doc! {"_id": premium_user.discord_id},
                         p,
@@ -301,7 +301,7 @@ impl Database {
                     )
                     .await?;
             } else {
-                let _ = premium.insert_one(p, InsertOneOptions::default()).await?;
+                let _res = premium.insert_one(p, InsertOneOptions::default()).await?;
             }
         }
         Ok(())

@@ -1,5 +1,14 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::let_underscore_drop,
+    clippy::too_many_lines,
+    clippy::must_use_candidate,
+    clippy::non_ascii_literal,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::cast_sign_loss
+)]
 
 pub mod arguments;
 pub mod bucket;
@@ -28,11 +37,11 @@ use twilight_model::{
     channel::Message,
     gateway::event::Event,
     guild::Permissions,
-    id::{ChannelId, GuildId, UserId},
+    id::{GuildId, UserId},
 };
 use uwl::Stream;
 
-use arguments::{ArgumentError, Arguments, FromArg, FromArgs};
+use arguments::Arguments;
 use command::{Command, ServiceRequest};
 use context::{BotContext, CommandContext};
 use error::RoError;
@@ -129,7 +138,7 @@ impl Service<&Event> for Framework {
         Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>,
     >;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
     }
 
@@ -169,7 +178,7 @@ impl Service<&Event> for Framework {
                 }
 
                 let content = stream.rest().to_string();
-                let mut cmd_str = Arguments::new(content);
+                let mut cmd_str = Arguments::new(&content);
 
                 let command = if let Some(arg) = cmd_str.next() {
                     if arg.eq_ignore_ascii_case("help")
@@ -211,13 +220,7 @@ impl Service<&Event> for Framework {
                     None => return Either::Left(ready(Ok(()))),
                 }
 
-                if !run_checks(
-                    &self.bot,
-                    command,
-                    msg.guild_id,
-                    msg.channel_id,
-                    msg.author.id,
-                ) {
+                if !run_checks(&self.bot, command, msg.guild_id, msg.author.id) {
                     return Either::Left(ready(Ok(())));
                 }
 
@@ -249,7 +252,6 @@ impl Service<&Event> for Framework {
                         &self.bot,
                         command,
                         Some(top_command.guild_id),
-                        top_command.channel_id,
                         top_command.member.user.clone().unwrap().id,
                     ) {
                         return Either::Left(ready(Ok(())));
@@ -275,13 +277,7 @@ impl Service<&Event> for Framework {
     }
 }
 
-fn run_checks(
-    bot: &BotContext,
-    cmd: &Command,
-    guild_id: Option<GuildId>,
-    channel_id: ChannelId,
-    author: UserId,
-) -> bool {
+fn run_checks(bot: &BotContext, cmd: &Command, guild_id: Option<GuildId>, author: UserId) -> bool {
     if bot.owners.contains(&author) {
         return true;
     }
@@ -327,37 +323,4 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
     }
 
     RoLevel::Normal
-}
-
-mod tests {
-    use super::*;
-
-    #[derive(Debug, FromArgs)]
-    pub struct UpdateArguments2 {
-        #[arg(help = "User to update")]
-        pub user_id: UserId,
-        pub priority: u64,
-    }
-
-    pub async fn update(_ctx: CommandContext, _args: UpdateArguments2) -> Result<(), RoError> {
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_update() {
-        let mut args = Arguments::new("12345".into());
-        match args.next().map(|s| i64::from_arg(s)) {
-            Some(Ok(i)) => {}
-            Some(Err(err)) => {}
-            None => {}
-        }
-        assert_eq!(UpdateArguments2::from_args(&mut args).is_ok(), false);
-    }
-
-    #[test]
-    pub fn test_builder() {
-        let command = Command::builder()
-            .names(&["update2"])
-            .service(Box::new(handler::CommandHandler::new(update)));
-    }
 }

@@ -23,7 +23,7 @@ pub enum ModifyOption {
     Priority,
     RolesAdd,
     RolesRemove,
-    Template
+    Template,
 }
 
 pub async fn custombinds_modify(
@@ -74,7 +74,11 @@ pub async fn custombinds_modify(
         }
         ModifyOption::Prefix => {
             let new_prefix = modify_prefix(&ctx, &guild, bind_id, &args.change).await?;
-            format!("`Prefix`: {} -> {}", bind.prefix.as_ref().map_or("None", |s| s.as_str()), new_prefix)
+            format!(
+                "`Prefix`: {} -> {}",
+                bind.prefix.as_ref().map_or("None", |s| s.as_str()),
+                new_prefix
+            )
         }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, bind_id, &args.change).await?;
@@ -95,7 +99,7 @@ pub async fn custombinds_modify(
                 .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
             format!("Removed Roles: {}", modification)
-        },
+        }
         ModifyOption::Template => {
             let template = modify_template(&ctx, &guild, bind_id, &args.change).await?;
             format!("`New Template`: {}", template)
@@ -213,7 +217,12 @@ async fn modify_prefix(
     Ok(prefix.to_string())
 }
 
-async fn modify_template<'t>(ctx: &CommandContext, guild: &RoGuild, bind_id: i64, template: &'t str) -> Result<&'t str, RoError> {
+async fn modify_template<'t>(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    bind_id: i64,
+    template: &'t str,
+) -> Result<&'t str, RoError> {
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
     let update = doc! {"$set": {"CustomBinds.$.Template": template}};
     ctx.bot.database.modify_guild(filter, update).await?;

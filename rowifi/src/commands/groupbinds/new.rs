@@ -56,7 +56,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         group_id,
         discord_roles: roles,
         priority: 0,
-        template: None
+        template: None,
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};

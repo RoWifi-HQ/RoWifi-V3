@@ -64,7 +64,7 @@ pub async fn paginate_embed(
     pages: Vec<Embed>,
     page_count: usize,
 ) -> Result<(), RoError> {
-    let page_count = page_count as isize;
+    let page_count = page_count;
     if page_count <= 1 {
         let _ = ctx
             .bot
@@ -152,7 +152,7 @@ pub async fn paginate_embed(
             .timeout(Duration::from_secs(300));
         tokio::pin!(reactions);
 
-        let mut page_pointer: isize = 0;
+        let mut page_pointer: usize = 0;
         while let Some(Ok(reaction)) = reactions.next().await {
             if let ReactionType::Unicode { name } = &reaction.emoji {
                 if name == "⏮️" {
