@@ -296,7 +296,7 @@ impl BotContext {
 
         for bind_role in &guild.all_roles {
             let r = RoleId(*bind_role as u64);
-            if let Some(_role) = guild_roles.get(&r) {
+            if guild_roles.get(&r).is_some() {
                 if roles_to_add.contains(&bind_role) {
                     if !member.roles.contains(&r) {
                         added_roles.push(r);

@@ -8,7 +8,7 @@ use rowifi_models::{
 #[derive(FromArgs)]
 pub struct CustombindsModifyArguments {
     #[arg(
-        help = "The field to modify. Must be one of `code` `prefix` `priority` `roles-add` roles-remove`"
+        help = "The field to modify. Must be one of `code` `prefix` `priority` `roles-add` roles-remove` `template`"
     )]
     pub option: ModifyOption,
     #[arg(help = "The ID of the bind to modify")]
@@ -299,7 +299,7 @@ impl FromArg for ModifyOption {
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError(
-                "one of `code` `prefix` `priority` `roles-add` `roles-remove`",
+                "one of `code` `prefix` `priority` `roles-add` `roles-remove` `template`",
             )),
         }
     }

@@ -4,7 +4,9 @@ use rowifi_models::guild::RoGuild;
 
 #[derive(FromArgs)]
 pub struct GroupbindsModifyArguments {
-    #[arg(help = "The field to modify. Must be either `roles-add` or `roles-remove`")]
+    #[arg(
+        help = "The field to modify. Must be one of `roles-add` `roles-remove` `priority` `template`"
+    )]
     pub option: ModifyOption,
     #[arg(help = "The id of the groupbind to modify")]
     pub group_id: i64,
@@ -15,6 +17,7 @@ pub struct GroupbindsModifyArguments {
 pub enum ModifyOption {
     RolesAdd,
     RolesRemove,
+    Priority,
     Template,
 }
 
@@ -53,6 +56,7 @@ pub async fn groupbinds_modify(
             return Ok(());
         }
     };
+    let bind = &guild.groupbinds[bind_index];
 
     let name = format!("Id: {}", group_id);
     let desc = match field {
@@ -73,6 +77,10 @@ pub async fn groupbinds_modify(
                 .collect::<String>();
             let desc = format!("Removed Roles: {}", modification);
             desc
+        }
+        ModifyOption::Priority => {
+            let new_priority = modify_priority(&ctx, &guild, bind_index, &args.change).await?;
+            format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::Template => {
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
@@ -162,6 +170,29 @@ async fn modify_template<'t>(
     Ok(template)
 }
 
+async fn modify_priority(
+    ctx: &CommandContext,
+    guild: &RoGuild,
+    bind_index: usize,
+    priority: &str,
+) -> Result<i64, RoError> {
+    let priority = match priority.parse::<i64>() {
+        Ok(p) => p,
+        Err(_) => {
+            return Err(RoError::Argument(ArgumentError::ParseError {
+                expected: "a number",
+                usage: GroupbindsModifyArguments::generate_help(),
+                name: "change",
+            }));
+        }
+    };
+    let filter = doc! {"_id": guild.id};
+    let index_str = format!("GroupBinds.{}.Priority", bind_index);
+    let update = doc! {"$set": {index_str: priority}};
+    ctx.bot.database.modify_guild(filter, update).await?;
+    Ok(priority)
+}
+
 impl FromArg for ModifyOption {
     type Error = ParseError;
 
@@ -170,7 +201,10 @@ impl FromArg for ModifyOption {
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             "template" => Ok(ModifyOption::Template),
-            _ => Err(ParseError("one of `roles-add` `roles-remove`")),
+            "priority" => Ok(ModifyOption::Priority),
+            _ => Err(ParseError(
+                "one of `roles-add` `roles-remove` `template` `priority`",
+            )),
         }
     }
 
