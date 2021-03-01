@@ -86,7 +86,10 @@ impl Arguments {
 
         match buf.get(start_idx..) {
             Some("") | None => {}
-            Some(s) => args.push(s.to_string()),
+            Some(s) => args.push(
+                s.trim_matches(|c: char| c.is_whitespace() || c == '"')
+                    .to_string(),
+            ),
         }
 
         Self { buf: args, idx: 0 }

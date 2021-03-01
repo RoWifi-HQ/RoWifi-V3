@@ -4,7 +4,9 @@ use rowifi_models::guild::RoGuild;
 
 #[derive(FromArgs)]
 pub struct ModifyArguments {
-    #[arg(help = "The field to modify. Must be either `roles-add` or `roles-remove`")]
+    #[arg(
+        help = "The field to modify. Must be one of `roles-add` `roles-remove` `priority` `template`"
+    )]
     pub option: ModifyOption,
     #[arg(help = "The id of the asset to modify")]
     pub asset_id: i64,
@@ -196,7 +198,9 @@ impl FromArg for ModifyOption {
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             "priority" => Ok(ModifyOption::Priority),
             "template" => Ok(ModifyOption::Template),
-            _ => Err(ParseError("one of `roles-add` `roles-remove`")),
+            _ => Err(ParseError(
+                "one of `roles-add` `roles-remove` `template` `priority`",
+            )),
         }
     }
 
