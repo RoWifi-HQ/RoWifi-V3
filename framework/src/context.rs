@@ -319,7 +319,7 @@ impl BotContext {
             discord_nick.to_string()
         } else {
             nick_bind.map_or_else(
-                || discord_nick.to_string(),
+                || username.to_string(),
                 |nick_bind| nick_bind.nickname(&username, &user, discord_nick),
             )
         };
