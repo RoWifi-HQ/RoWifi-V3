@@ -106,7 +106,7 @@ impl Bind for RankBind {
             }
             return format!("{} {}", prefix, roblox_username);
         }
-        discord_nick.to_string()
+        roblox_username.to_string()
     }
 
     fn priority(&self) -> i64 {

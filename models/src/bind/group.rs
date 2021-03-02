@@ -76,7 +76,7 @@ impl Bind for GroupBind {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
         }
-        discord_nick.to_string()
+        roblox_username.to_string()
     }
 
     fn priority(&self) -> i64 {
