@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly as builder
+FROM rust:latest as builder
 WORKDIR /usr/src/rowifi
 RUN yum groupinstall "Development Tools" && yum install cmake
 RUN echo 'deb http://apt.llvm.org/buster/ llvm-toolchain-buster main' > /etc/apt/sources.list.d/llvm.list && \
