@@ -1,21 +1,16 @@
-FROM rustlang/rust:nightly as builder
+FROM rust:latest as builder
 WORKDIR /usr/src/rowifi
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.sh \
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-aarch64.sh \
       -q -O /tmp/cmake-install.sh \
       && chmod u+x /tmp/cmake-install.sh \
       && mkdir /usr/bin/cmake \
       && /tmp/cmake-install.sh --skip-license --prefix=/usr/bin/cmake \
       && rm /tmp/cmake-install.sh
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
-RUN echo 'deb http://apt.llvm.org/buster/ llvm-toolchain-buster main' > /etc/apt/sources.list.d/llvm.list && \
-    (wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -) && \
-    apt-get update && apt-get install -y lld-13 && \
-    rm -rf /var/lib/apt/lists/* && \
-    ln -s /usr/bin/ld.lld-* /usr/bin/ld.lld
 COPY . .
 RUN cargo build --release
 
-FROM debian:buster-slim
-RUN apt-get update && apt-get install -y libfontconfig libfontconfig1-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+FROM amazonlinux:latest
+RUN yum update && yum install -y fontconfig ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/rowifi/target/release/rowifi /usr/local/bin/rowifi
 CMD ["rowifi"]
