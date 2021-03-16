@@ -1,5 +1,5 @@
 FROM amazonlinux:latest as builder 
-RUN yum update && yum install -y gcc curl && curl -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain nightly -y
+RUN yum update && yum install -y gcc curl wget tar unzip && curl -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain nightly -y
 WORKDIR /usr/src/rowifi
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-aarch64.sh \
       -q -O /tmp/cmake-install.sh \
