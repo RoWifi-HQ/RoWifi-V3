@@ -111,6 +111,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
     let cipher_key = env::var("CIPHER_KEY").expect("Expected the cipher key in the environment");
+    let proxy = env::var("PROXY").ok();
     sleep(Duration::from_secs(cluster_id * 60)).await;
 
     let mut webhooks = HashMap::new();
@@ -131,10 +132,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     };
     let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
     let hyper_client = hyper::client::Builder::default().build(connector);
-    let http = HttpClient::builder()
+    let mut config = HttpClient::builder()
         .hyper_client(hyper_client)
-        .token(token.clone())
-        .build();
+        .token(token.clone());
+    if let Some(proxy) = proxy {
+        config = config.proxy(proxy, true).ratelimiter(None);
+    }
+    let http = config.build();
     let app_info = http.current_user().await?;
 
     let mut owners = Vec::new();
