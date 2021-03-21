@@ -7,7 +7,7 @@ pub use info::{botinfo, support, userinfo};
 use rowifi_framework::prelude::*;
 pub use test::test;
 pub use update::update;
-pub use verify::{reverify, verify};
+pub use verify::verify;
 
 pub fn user_config(cmds: &mut Vec<Command>) {
     let update_cmd = Command::builder()
@@ -45,13 +45,6 @@ pub fn user_config(cmds: &mut Vec<Command>) {
         .group("User")
         .handler(verify);
 
-    let reverify_cmd = Command::builder()
-        .level(RoLevel::Normal)
-        .names(&["reverify"])
-        .description("Command to re-link a roblox account to your discord account")
-        .group("User")
-        .handler(reverify);
-
     let test_cmd = Command::builder()
         .level(RoLevel::Creator)
         .names(&["test"])
@@ -62,6 +55,5 @@ pub fn user_config(cmds: &mut Vec<Command>) {
     cmds.push(botinfo_cmd);
     cmds.push(support_cmd);
     cmds.push(verify_cmd);
-    cmds.push(reverify_cmd);
     cmds.push(test_cmd);
 }

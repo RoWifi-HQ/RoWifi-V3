@@ -32,29 +32,6 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
     verify_common(ctx, args, false).await
 }
 
-pub async fn reverify(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    if ctx.bot.database.get_user(ctx.author.id.0).await?.is_none() {
-        let embed = EmbedBuilder::new()
-            .default_data()
-            .title("User Not Verified")
-            .unwrap()
-            .description("You are not verified. Please use `verify` to link your account")
-            .unwrap()
-            .color(Color::Red as u32)
-            .unwrap()
-            .build()
-            .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
-        return Ok(());
-    }
-    verify_common(ctx, args, true).await
-}
-
 pub async fn verify_common(
     ctx: CommandContext,
     args: VerifyArguments,
