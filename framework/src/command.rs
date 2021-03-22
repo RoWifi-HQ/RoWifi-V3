@@ -154,7 +154,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                 }
                 return self
                     .service
-                    .call((req.0, ServiceRequest::Help(args.to_owned(), embed)));
+                    .call((req.0, ServiceRequest::Help(args.clone(), embed)));
             }
         };
 

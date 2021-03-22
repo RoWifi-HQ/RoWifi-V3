@@ -24,7 +24,7 @@ impl Scanner {
             self.scan_token()?;
         }
         self.tokens.push(Token::new(TokenType::EOF, "", None));
-        Ok(self.tokens.to_vec())
+        Ok(self.tokens.clone())
     }
 
     fn scan_token(&mut self) -> Result<(), String> {

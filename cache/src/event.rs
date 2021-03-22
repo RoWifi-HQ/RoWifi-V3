@@ -166,7 +166,7 @@ impl UpdateCache for InteractionCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Interaction::ApplicationCommand(inner) = &self.0 {
             if let Some(user) = &inner.member.user {
-                let user = c.cache_user(user.to_owned());
+                let user = c.cache_user(user.clone());
                 let id = (inner.guild_id, user.id);
                 match c.0.members.get(&id) {
                     Some(m) if **m == &inner.member => return Ok(()),
@@ -179,9 +179,9 @@ impl UpdateCache for InteractionCreate {
                     .insert(user.id);
 
                 let cached = Arc::new(CachedMember {
-                    nick: inner.member.nick.to_owned(),
+                    nick: inner.member.nick.clone(),
                     pending: false,
-                    roles: inner.member.roles.to_owned(),
+                    roles: inner.member.roles.clone(),
                     user,
                 });
                 c.0.members.insert(id, Arc::clone(&cached));
@@ -267,9 +267,9 @@ impl UpdateCache for MessageCreate {
                 .insert(user.id);
 
             let cached = Arc::new(CachedMember {
-                nick: member.nick.to_owned(),
+                nick: member.nick.clone(),
                 pending: false,
-                roles: member.roles.to_owned(),
+                roles: member.roles.clone(),
                 user,
             });
             c.0.members.insert(id, Arc::clone(&cached));

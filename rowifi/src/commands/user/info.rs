@@ -9,8 +9,8 @@ pub struct UserInfoArguments {
 
 pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandResult {
     let author = match args.user.and_then(|u| ctx.bot.cache.user(u)) {
-        Some(u) => (u.id, u.name.to_owned()),
-        None => (ctx.author.id, ctx.author.name.to_owned()),
+        Some(u) => (u.id, u.name.clone()),
+        None => (ctx.author.id, ctx.author.name.clone()),
     };
     let user = match ctx.bot.database.get_user((author.0).0).await? {
         Some(u) => u,

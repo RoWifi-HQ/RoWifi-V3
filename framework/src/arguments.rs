@@ -209,7 +209,7 @@ impl FromArg for String {
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match option {
             CommandDataOption::Integer { value, .. } => Ok(value.to_string()),
-            CommandDataOption::String { value, .. } => Ok(value.to_owned()),
+            CommandDataOption::String { value, .. } => Ok(value.clone()),
             _ => unreachable!("String unreached"),
         }
     }

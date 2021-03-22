@@ -23,7 +23,7 @@ impl Parser {
     fn equality(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.comparison1()?;
         while self.match_types(vec![TokenType::BangEqual, TokenType::EqualEqual]) {
-            let operator = self.previous().to_owned();
+            let operator = self.previous().clone();
             let right = self.comparison1()?;
             expr = Expression::Binary(Box::new(expr), operator, Box::new(right));
         }
@@ -34,7 +34,7 @@ impl Parser {
     fn comparison1(&mut self) -> Result<Expression, ParseError> {
         let mut expr = self.comparison2()?;
         while self.match_types(vec![TokenType::And, TokenType::Or]) {
-            let operator = self.previous().to_owned();
+            let operator = self.previous().clone();
             let right = self.comparison2()?;
             expr = Expression::Binary(Box::new(expr), operator, Box::new(right));
         }
@@ -50,7 +50,7 @@ impl Parser {
             TokenType::Less,
             TokenType::LessEqual,
         ]) {
-            let operator = self.previous().to_owned();
+            let operator = self.previous().clone();
             let right = self.unary()?;
             expr = Expression::Binary(Box::new(expr), operator, Box::new(right));
         }
@@ -60,7 +60,7 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Expression, ParseError> {
         if self.match_types(vec![TokenType::Not, TokenType::Bang]) {
-            let operator = self.previous().to_owned();
+            let operator = self.previous().clone();
             let right = self.unary()?;
             return Ok(Expression::Unary(operator, Box::new(right)));
         }
@@ -78,7 +78,7 @@ impl Parser {
 
         if self.match_types(vec![TokenType::String, TokenType::Number]) {
             return Ok(Expression::Literal(
-                self.previous().to_owned().literal.unwrap(),
+                self.previous().clone().literal.unwrap(),
             ));
         }
 
@@ -89,11 +89,11 @@ impl Parser {
             TokenType::IsInGroup,
             TokenType::GetRank,
         ]) {
-            let func = self.previous().to_owned();
+            let func = self.previous().clone();
             self.consume(TokenType::LeftParen, "Expect ( after function call".into())?;
             let mut args = Vec::<Literal>::new();
             while self.match_types(vec![TokenType::String, TokenType::Number]) {
-                args.push(self.previous().to_owned().literal.unwrap());
+                args.push(self.previous().clone().literal.unwrap());
             }
             self.consume(TokenType::RightParen, "Expect ) after function args".into())?;
             let function = Expression::Function(func, args);
@@ -108,7 +108,7 @@ impl Parser {
         }
 
         Err(ParseError(
-            self.peek().to_owned(),
+            self.peek().clone(),
             "Expect expression".into(),
         ))
     }
@@ -136,7 +136,7 @@ impl Parser {
             self.advance();
             return Ok(());
         }
-        Err(ParseError(self.peek().to_owned(), message))
+        Err(ParseError(self.peek().clone(), message))
     }
 
     fn check(&self, token_type: TokenType) -> bool {

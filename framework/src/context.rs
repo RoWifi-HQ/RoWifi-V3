@@ -226,7 +226,7 @@ impl BotContext {
                     }
                 };
                 return Err(RoError::Command(CommandError::Blacklist(
-                    success.reason.to_owned(),
+                    success.reason.clone(),
                 )));
             }
         }
