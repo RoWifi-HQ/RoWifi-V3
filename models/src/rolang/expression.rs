@@ -18,7 +18,7 @@ pub enum Expression {
 impl Expression {
     pub fn evaluate(&self, user: &RoCommandUser) -> Result<Literal, String> {
         match self {
-            Expression::Literal(l) => return Ok(l.to_owned()),
+            Expression::Literal(l) => return Ok(l.clone()),
             Expression::Unary(t, e) => {
                 let flip = t.token_type == TokenType::Not || t.token_type == TokenType::Bang;
                 let res = flip ^ e.evaluate(user)?;
@@ -90,7 +90,7 @@ impl Expression {
                 TokenType::HasRank => {
                     if args.len() != 2 {
                         return Err(ParseError(
-                            token.to_owned(),
+                            token.clone(),
                             "Expected 2 arguments. {Group Id} {Rank Id}".to_string(),
                         ));
                     }
@@ -98,7 +98,7 @@ impl Expression {
                         Literal::Number(_) => {}
                         _ => {
                             return Err(ParseError(
-                                token.to_owned(),
+                                token.clone(),
                                 "Expected Group Id to be an integer".to_string(),
                             ))
                         }
@@ -107,7 +107,7 @@ impl Expression {
                         Literal::Number(_) => {}
                         _ => {
                             return Err(ParseError(
-                                token.to_owned(),
+                                token.clone(),
                                 "Expected Rank Id to be an integer".to_string(),
                             ))
                         }
@@ -116,7 +116,7 @@ impl Expression {
                 TokenType::IsInGroup | TokenType::GetRank => {
                     if args.len() != 1 {
                         return Err(ParseError(
-                            token.to_owned(),
+                            token.clone(),
                             "Expected 1 argument. {Group Id}".to_string(),
                         ));
                     }
@@ -124,7 +124,7 @@ impl Expression {
                         Literal::Number(_) => {}
                         _ => {
                             return Err(ParseError(
-                                token.to_owned(),
+                                token.clone(),
                                 "Expected Group Id to be an integer".to_string(),
                             ))
                         }
@@ -133,7 +133,7 @@ impl Expression {
                 TokenType::HasRole => {
                     if args.len() != 1 {
                         return Err(ParseError(
-                            token.to_owned(),
+                            token.clone(),
                             "Expected 1 argument. {Role Id}".to_string(),
                         ));
                     }
@@ -141,7 +141,7 @@ impl Expression {
                         Literal::Number(_) => {}
                         _ => {
                             return Err(ParseError(
-                                token.to_owned(),
+                                token.clone(),
                                 "Expected Role Id to be an integer".to_string(),
                             ))
                         }
@@ -150,7 +150,7 @@ impl Expression {
                 TokenType::WithString => {
                     if args.len() != 1 {
                         return Err(ParseError(
-                            token.to_owned(),
+                            token.clone(),
                             "Expected 1 argument. {Name}".to_string(),
                         ));
                     }
@@ -158,13 +158,13 @@ impl Expression {
                         Literal::String(_) => {}
                         _ => {
                             return Err(ParseError(
-                                token.to_owned(),
+                                token.clone(),
                                 "Expected Name to be an word".to_string(),
                             ))
                         }
                     }
                 }
-                _ => return Err(ParseError(token.to_owned(), "Unknown function".to_string())),
+                _ => return Err(ParseError(token.clone(), "Unknown function".to_string())),
             }
         }
         Ok(())

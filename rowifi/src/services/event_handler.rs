@@ -35,7 +35,7 @@ impl EventHandler {
     pub fn new(bot: &BotContext) -> Self {
         Self {
             0: Arc::new(EventHandlerRef {
-                bot: bot.to_owned(),
+                bot: bot.clone(),
                 unavailable: DashSet::new(),
                 auto_detection_started: AtomicBool::new(false),
             }),

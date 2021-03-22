@@ -264,7 +264,7 @@ impl Service<&Event> for Framework {
                         author: Arc::new(top_command.member.user.clone().unwrap()),
                     };
 
-                    let request = ServiceRequest::Interaction(command_options.to_owned());
+                    let request = ServiceRequest::Interaction(command_options.clone());
                     let cmd_fut = command.call((ctx, request));
                     let fut = async move { cmd_fut.await };
                     return Either::Right(Box::pin(fut));

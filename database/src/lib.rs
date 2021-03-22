@@ -104,7 +104,7 @@ impl Database {
         while let Some(res) = cursor.next().await {
             match res {
                 Ok(ref document) => {
-                    let doc = Bson::Document(document.to_owned());
+                    let doc = Bson::Document(document.clone());
                     match bson::from_bson::<RoGuild>(doc) {
                         Ok(guild) => result.push(guild),
                         Err(e) => {
@@ -354,7 +354,7 @@ impl Database {
         while let Some(res) = cursor.next().await {
             match res {
                 Ok(ref document) => {
-                    let doc = Bson::Document(document.to_owned());
+                    let doc = Bson::Document(document.clone());
                     match bson::from_bson::<Group>(doc) {
                         Ok(group) => result.push(group),
                         Err(e) => {

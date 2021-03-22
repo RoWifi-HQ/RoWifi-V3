@@ -63,7 +63,7 @@ impl<'de> Deserialize<'de> for Blacklist {
 
         let input = EncodedBlacklist::deserialize(deserializer)?;
         let command = match input.blacklist_type {
-            0 => BlacklistType::Name(input.id.to_owned()),
+            0 => BlacklistType::Name(input.id.clone()),
             1 => BlacklistType::Group(input.id.parse::<i64>().unwrap()),
             2 => BlacklistType::Custom(RoCommand::new(&input.id).unwrap()),
             _ => return Err(serde::de::Error::custom("Invalid blacklist type")),

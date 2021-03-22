@@ -121,7 +121,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
     let id = binds.last().unwrap_or(&0) + 1;
     let bind = CustomBind {
         id,
-        code: code.to_owned(),
+        code: code.clone(),
         prefix: Some(prefix),
         priority,
         command,

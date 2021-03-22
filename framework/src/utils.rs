@@ -54,7 +54,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
             event.author.id == id && !event.content.is_empty()
         });
     match timeout(Duration::from_secs(300), fut).await {
-        Ok(Ok(m)) if !m.content.eq_ignore_ascii_case("cancel") => Ok(m.content.to_owned()),
+        Ok(Ok(m)) if !m.content.eq_ignore_ascii_case("cancel") => Ok(m.content.clone()),
         _ => Err(RoError::Command(CommandError::Timeout)),
     }
 }
