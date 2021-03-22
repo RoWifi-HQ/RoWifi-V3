@@ -1,5 +1,25 @@
+mod manage;
+
 use rowifi_framework::prelude::*;
 use rowifi_models::user::QueueUser;
+
+pub fn verify_config(cmds: &mut Vec<Command>) {
+    let verify_add_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["add"])
+        .description("Command to link an additional Roblox account to your Discord Account")
+        .handler(verify_add);
+
+    let verify_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["verify"])
+        .description("Command to link a roblox account to your discord account")
+        .group("User")
+        .sub_command(verify_add_cmd)
+        .handler(verify);
+
+    cmds.push(verify_cmd);
+}
 
 #[derive(FromArgs)]
 pub struct VerifyArguments {
@@ -30,6 +50,29 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
         return Ok(());
     }
     verify_common(ctx, args, false).await
+}
+
+pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
+    if ctx.bot.database.get_user(ctx.author.id.0).await?.is_none() {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .title("User Not Verified")
+            .unwrap()
+            .description("You are not verified. Please use `verify` to link your account")
+            .unwrap()
+            .color(Color::Red as u32)
+            .unwrap()
+            .build()
+            .unwrap();
+        ctx.bot
+            .http
+            .create_message(ctx.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+        return Ok(());
+    }
+    verify_common(ctx, args, true).await
 }
 
 pub async fn verify_common(

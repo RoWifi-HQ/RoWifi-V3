@@ -9,6 +9,8 @@ pub use test::test;
 pub use update::update;
 pub use verify::verify;
 
+use self::verify::verify_config;
+
 pub fn user_config(cmds: &mut Vec<Command>) {
     let update_cmd = Command::builder()
         .level(RoLevel::Normal)
@@ -38,13 +40,6 @@ pub fn user_config(cmds: &mut Vec<Command>) {
         .group("User")
         .handler(support);
 
-    let verify_cmd = Command::builder()
-        .level(RoLevel::Normal)
-        .names(&["verify"])
-        .description("Command to link a roblox account to your discord account")
-        .group("User")
-        .handler(verify);
-
     let test_cmd = Command::builder()
         .level(RoLevel::Creator)
         .names(&["test"])
@@ -54,6 +49,7 @@ pub fn user_config(cmds: &mut Vec<Command>) {
     cmds.push(userinfo_cmd);
     cmds.push(botinfo_cmd);
     cmds.push(support_cmd);
-    cmds.push(verify_cmd);
     cmds.push(test_cmd);
+
+    verify_config(cmds);
 }

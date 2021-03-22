@@ -9,6 +9,9 @@ pub struct RoUser {
 
     #[serde(rename = "RobloxId")]
     pub roblox_id: i64,
+
+    #[serde(rename = "Alts", default)]
+    pub alts: Vec<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
