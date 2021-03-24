@@ -3,6 +3,8 @@ mod manage;
 use rowifi_framework::prelude::*;
 use rowifi_models::user::QueueUser;
 
+use manage::{verify_default, verify_switch};
+
 pub fn verify_config(cmds: &mut Vec<Command>) {
     let verify_add_cmd = Command::builder()
         .level(RoLevel::Normal)
@@ -10,12 +12,26 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .description("Command to link an additional Roblox account to your Discord Account")
         .handler(verify_add);
 
+    let verify_switch_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["switch"])
+        .description("Command to switch your Roblox account for this server")
+        .handler(verify_switch);
+
+    let verify_default_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["default"])
+        .description("Command to change the default Roblox Account")
+        .handler(verify_default);
+
     let verify_cmd = Command::builder()
         .level(RoLevel::Normal)
         .names(&["verify"])
         .description("Command to link a roblox account to your discord account")
         .group("User")
         .sub_command(verify_add_cmd)
+        .sub_command(verify_switch_cmd)
+        .sub_command(verify_default_cmd)
         .handler(verify);
 
     cmds.push(verify_cmd);

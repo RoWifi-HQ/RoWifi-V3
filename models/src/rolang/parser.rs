@@ -107,10 +107,7 @@ impl Parser {
             return Ok(Expression::Grouping(Box::new(expr)));
         }
 
-        Err(ParseError(
-            self.peek().clone(),
-            "Expect expression".into(),
-        ))
+        Err(ParseError(self.peek().clone(), "Expect expression".into()))
     }
 
     fn match_type(&mut self, token: TokenType) -> bool {
