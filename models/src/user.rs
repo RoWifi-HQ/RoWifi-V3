@@ -1,4 +1,5 @@
 use super::guild::GuildType;
+use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -12,6 +13,21 @@ pub struct RoUser {
 
     #[serde(rename = "Alts", default)]
     pub alts: Vec<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RoGuildUser {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+
+    #[serde(rename = "GuildId")]
+    pub guild_id: i64,
+
+    #[serde(rename = "UserId")]
+    pub user_id: i64,
+
+    #[serde(rename = "RobloxId")]
+    pub roblox_id: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

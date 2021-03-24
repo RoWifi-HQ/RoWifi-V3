@@ -24,7 +24,7 @@ use rowifi_models::{
     analytics::Group,
     events::EventLog,
     guild::{BackupGuild, GuildType, RoGuild},
-    user::{PremiumUser, QueueUser, RoUser},
+    user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
@@ -179,6 +179,25 @@ impl Database {
         Ok(())
     }
 
+    pub async fn add_linked_user(&self, mut linked_user: RoGuildUser) -> Result<()> {
+        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let old_linked_user = self
+            .get_linked_user(linked_user.user_id, linked_user.guild_id)
+            .await?;
+        if let Some(olu) = &old_linked_user {
+            linked_user.id = olu.id.clone();
+        }
+        let linked_user_doc = bson::to_document(&linked_user)?;
+        if old_linked_user.is_some() {
+            let _res = linked_users
+                .find_one_and_replace(doc! {"_id": linked_user.id}, linked_user_doc, None)
+                .await?;
+        } else {
+            let _res = linked_users.insert_one(linked_user_doc, None).await?;
+        }
+        Ok(())
+    }
+
     pub async fn get_user(&self, user_id: u64) -> Result<Option<Arc<RoUser>>> {
         let user_id = user_id as i64;
         match self.user_cache.get(&user_id) {
@@ -195,6 +214,21 @@ impl Database {
                 self.user_cache.insert(user_id, user.clone());
                 Ok(Some(user))
             }
+        }
+    }
+
+    pub async fn get_linked_user(
+        &self,
+        user_id: i64,
+        guild_id: i64,
+    ) -> Result<Option<RoGuildUser>> {
+        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let result = linked_users
+            .find_one(doc! {"GuildId": guild_id, "UserId": user_id}, None)
+            .await?;
+        match result {
+            None => Ok(None),
+            Some(doc) => Ok(Some(bson::from_document::<RoGuildUser>(doc)?)),
         }
     }
 
