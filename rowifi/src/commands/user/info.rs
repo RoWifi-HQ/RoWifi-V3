@@ -13,9 +13,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         None => (ctx.author.id, ctx.author.name.clone()),
     };
     let user = match ctx
-        .bot
-        .database
-        .get_linked_user((author.0).0 as i64, ctx.guild_id.unwrap().0 as i64)
+        .get_linked_user(author.0, ctx.guild_id.unwrap())
         .await?
     {
         Some(u) => u,

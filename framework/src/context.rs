@@ -162,23 +162,7 @@ impl CommandContext {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<RoGuildUser>, RoError> {
-        let mut linked_user = self
-            .bot
-            .database
-            .get_linked_user(user_id.0 as i64, guild_id.0 as i64)
-            .await?;
-        if linked_user.is_none() {
-            let user = self.bot.database.get_user(user_id.0).await?;
-            if let Some(user) = user {
-                linked_user = Some(RoGuildUser {
-                    id: ObjectId::new(),
-                    guild_id: guild_id.0 as i64,
-                    discord_id: user.discord_id,
-                    roblox_id: user.roblox_id,
-                });
-            }
-        }
-        Ok(linked_user)
+        self.bot.get_linked_user(user_id, guild_id).await
     }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
@@ -370,6 +354,29 @@ impl BotContext {
         }
 
         Ok((added_roles, removed_roles, nickname))
+    }
+
+    pub async fn get_linked_user(
+        &self,
+        user_id: UserId,
+        guild_id: GuildId,
+    ) -> Result<Option<RoGuildUser>, RoError> {
+        let mut linked_user = self
+            .database
+            .get_linked_user(user_id.0 as i64, guild_id.0 as i64)
+            .await?;
+        if linked_user.is_none() {
+            let user = self.database.get_user(user_id.0).await?;
+            if let Some(user) = user {
+                linked_user = Some(RoGuildUser {
+                    id: ObjectId::new(),
+                    guild_id: guild_id.0 as i64,
+                    discord_id: user.discord_id,
+                    roblox_id: user.roblox_id,
+                });
+            }
+        }
+        Ok(linked_user)
     }
 
     pub async fn log_debug(&self, embed: Embed) {
