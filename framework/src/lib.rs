@@ -186,7 +186,9 @@ impl Service<&Event> for Framework {
                     {
                         return Either::Right(self.help(&msg, cmd_str));
                     }
-                    self.cmds.iter_mut().find(|c| c.names.contains(&arg))
+                    self.cmds
+                        .iter_mut()
+                        .find(|c| c.names.iter().any(|c| c.eq_ignore_ascii_case(arg)))
                 } else {
                     None
                 };

@@ -86,7 +86,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     if let Some(sub_cmd) = self
                         .sub_commands
                         .iter_mut()
-                        .find(|c| c.names.contains(&lit))
+                        .find(|c| c.names.iter().any(|c| c.eq_ignore_ascii_case(lit)))
                     {
                         return sub_cmd.call(req);
                     }
@@ -114,7 +114,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     if let Some(sub_cmd) = self
                         .sub_commands
                         .iter_mut()
-                        .find(|c| c.names.contains(&lit))
+                        .find(|c| c.names.iter().any(|c| c.eq_ignore_ascii_case(lit)))
                     {
                         return sub_cmd.call(req);
                     }
