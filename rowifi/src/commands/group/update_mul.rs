@@ -78,7 +78,11 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
             .map(|m| m.0)
             .collect::<Vec<_>>();
     }
-    let users = ctx.bot.database.get_users(members).await?;
+    let users = ctx
+        .bot
+        .database
+        .get_linked_users(&members, guild_id.0 as i64)
+        .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
@@ -199,7 +203,11 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .map(|m| m.0)
             .collect::<Vec<_>>();
     }
-    let users = ctx.bot.database.get_users(members).await?;
+    let users = ctx
+        .bot
+        .database
+        .get_linked_users(&members, guild_id.0 as i64)
+        .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;

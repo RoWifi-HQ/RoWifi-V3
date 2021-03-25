@@ -177,7 +177,7 @@ impl Service<(u64, Event)> for EventHandler {
                     if !guild.settings.update_on_join {
                         return Ok(());
                     }
-                    let user = match eh.bot.database.get_user(m.user.id.0).await? {
+                    let user = match eh.bot.database.get_linked_user(m.user.id.0 as i64, m.guild_id.0 as i64).await? {
                         Some(u) => u,
                         None => return Ok(()),
                     };

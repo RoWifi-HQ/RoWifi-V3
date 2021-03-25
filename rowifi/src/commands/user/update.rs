@@ -89,7 +89,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         }
     }
 
-    let user = match ctx.bot.database.get_user(user_id.0).await? {
+    let user = match ctx.get_linked_user(user_id, guild_id).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

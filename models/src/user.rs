@@ -24,7 +24,7 @@ pub struct RoGuildUser {
     pub guild_id: i64,
 
     #[serde(rename = "UserId")]
-    pub user_id: i64,
+    pub discord_id: i64,
 
     #[serde(rename = "RobloxId")]
     pub roblox_id: i64,
