@@ -356,15 +356,13 @@ impl BotContext {
         Ok((added_roles, removed_roles, nickname))
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     pub async fn get_linked_user(
         &self,
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<RoGuildUser>, RoError> {
-        let mut linked_user = self
-            .database
-            .get_linked_user(user_id.0 as i64, guild_id.0 as i64)
-            .await?;
+        let mut linked_user = self.database.get_linked_user(user_id.0, guild_id.0).await?;
         if linked_user.is_none() {
             let user = self.database.get_user(user_id.0).await?;
             if let Some(user) = user {

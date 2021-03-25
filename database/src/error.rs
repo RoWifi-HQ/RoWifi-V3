@@ -11,7 +11,7 @@ use std::{
 pub enum DatabaseError {
     Serialization(SerializationError),
     Deserialization(DeserializationError),
-    Mongo(MongoError),
+    Mongo(Box<MongoError>),
 }
 
 impl Display for DatabaseError {
@@ -38,7 +38,7 @@ impl From<DeserializationError> for DatabaseError {
 
 impl From<MongoError> for DatabaseError {
     fn from(err: MongoError) -> Self {
-        DatabaseError::Mongo(err)
+        DatabaseError::Mongo(Box::new(err))
     }
 }
 

@@ -154,11 +154,11 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
     };
 
     let event_id = ObjectId::new();
-    let guild_id = guild_id.0 as i64;
+    let guild_id = guild_id.0;
 
     let new_event = EventLog {
         id: event_id,
-        guild_id,
+        guild_id: guild_id as i64,
         event_type: event_type_id,
         guild_event_id: guild.event_counter + 1,
         host_id: user.roblox_id,

@@ -57,10 +57,7 @@ async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
                 .map(|m| m.0)
                 .collect::<Vec<_>>();
         }
-        let users = ctx
-            .database
-            .get_linked_users(&members, guild_id.0 as i64)
-            .await?;
+        let users = ctx.database.get_linked_users(&members, guild_id.0).await?;
         let guild_roles = ctx.cache.roles(guild_id);
         for user in users {
             if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
