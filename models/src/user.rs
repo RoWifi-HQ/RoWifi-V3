@@ -3,7 +3,7 @@ use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RoUser {
     #[serde(rename = "_id")]
     pub discord_id: i64,
@@ -15,7 +15,7 @@ pub struct RoUser {
     pub alts: Vec<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RoGuildUser {
     #[serde(rename = "_id")]
     pub id: ObjectId,

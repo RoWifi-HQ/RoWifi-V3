@@ -37,9 +37,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
     }
 
     let user = match ctx
-        .bot
-        .database
-        .get_linked_user(ctx.author.id.0 as i64, guild_id.0 as i64)
+        .get_linked_user(ctx.author.id, guild_id)
         .await?
     {
         Some(u) => u,

@@ -64,9 +64,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         },
         None => {
             let user = ctx
-                .bot
-                .database
-                .get_linked_user(ctx.author.id.0 as i64, guild_id.0 as i64)
+                .get_linked_user(ctx.author.id, guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id as i64,
@@ -193,9 +191,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         },
         None => {
             let user = ctx
-                .bot
-                .database
-                .get_linked_user(ctx.author.id.0 as i64, guild_id.0 as i64)
+                .get_linked_user(ctx.author.id, guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id as i64,
