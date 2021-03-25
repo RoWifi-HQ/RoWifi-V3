@@ -24,7 +24,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
 
     let code = args.code;
 
-    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

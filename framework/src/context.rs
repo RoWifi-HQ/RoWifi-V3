@@ -1,6 +1,7 @@
 use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
 use itertools::Itertools;
+use mongodb::bson::oid::ObjectId;
 use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
@@ -10,7 +11,7 @@ use rowifi_models::{
     guild::{BlacklistActionType, RoGuild},
     rolang::RoCommandUser,
     stats::BotStats,
-    user::RoUser,
+    user::RoGuildUser,
 };
 use std::{
     borrow::ToOwned,
@@ -146,7 +147,7 @@ impl CommandContext {
     pub async fn update_user(
         &self,
         member: Arc<CachedMember>,
-        user: &RoUser,
+        user: &RoGuildUser,
         server: &CachedGuild,
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,
@@ -154,6 +155,30 @@ impl CommandContext {
         self.bot
             .update_user(member, user, server, guild, guild_roles)
             .await
+    }
+
+    pub async fn get_linked_user(
+        &self,
+        user_id: UserId,
+        guild_id: GuildId,
+    ) -> Result<Option<RoGuildUser>, RoError> {
+        let mut linked_user = self
+            .bot
+            .database
+            .get_linked_user(user_id.0 as i64, guild_id.0 as i64)
+            .await?;
+        if linked_user.is_none() {
+            let user = self.bot.database.get_user(user_id.0).await?;
+            if let Some(user) = user {
+                linked_user = Some(RoGuildUser {
+                    id: ObjectId::new(),
+                    guild_id: guild_id.0 as i64,
+                    discord_id: user.discord_id,
+                    roblox_id: user.roblox_id,
+                });
+            }
+        }
+        Ok(linked_user)
     }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
@@ -178,7 +203,7 @@ impl BotContext {
     pub async fn update_user(
         &self,
         member: Arc<CachedMember>,
-        user: &RoUser,
+        user: &RoGuildUser,
         server: &CachedGuild,
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,

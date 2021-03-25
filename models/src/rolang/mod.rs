@@ -3,7 +3,7 @@ mod parser;
 mod scanner;
 mod token;
 
-use crate::user::RoUser;
+use crate::user::RoGuildUser;
 
 use std::{
     collections::HashMap,
@@ -24,7 +24,7 @@ pub struct RoCommand {
 
 #[derive(Debug)]
 pub struct RoCommandUser<'rc> {
-    pub user: &'rc RoUser,
+    pub user: &'rc RoGuildUser,
     pub roles: &'rc [RoleId],
     pub ranks: &'rc HashMap<i64, i64>,
     pub username: &'rc str,

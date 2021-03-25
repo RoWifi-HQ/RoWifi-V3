@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use twilight_model::id::RoleId;
 
-use crate::user::RoUser;
+use crate::user::RoGuildUser;
 
 use super::{template::Template, Backup, Bind};
 
@@ -95,7 +95,7 @@ impl Backup for RankBind {
 }
 
 impl Bind for RankBind {
-    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+    fn nickname(&self, roblox_username: &str, user: &RoGuildUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
         } else if let Some(prefix) = &self.prefix {

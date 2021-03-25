@@ -13,7 +13,7 @@ pub mod error;
 
 use futures::stream::StreamExt;
 use mongodb::{
-    bson::{self, doc, document::Document, Bson},
+    bson::{self, doc, document::Document, oid::ObjectId, Bson},
     options::{
         ClientOptions, FindOneAndDeleteOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions,
         FindOneOptions, FindOptions, InsertOneOptions, ReturnDocument,
@@ -26,7 +26,7 @@ use rowifi_models::{
     guild::{BackupGuild, GuildType, RoGuild},
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
-use std::{result::Result as StdResult, sync::Arc, time::Duration};
+use std::{collections::HashMap, result::Result as StdResult, sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
 
 pub use error::DatabaseError;
@@ -182,7 +182,7 @@ impl Database {
     pub async fn add_linked_user(&self, mut linked_user: RoGuildUser) -> Result<()> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let old_linked_user = self
-            .get_linked_user(linked_user.user_id, linked_user.guild_id)
+            .get_linked_user(linked_user.discord_id, linked_user.guild_id)
             .await?;
         if let Some(olu) = &old_linked_user {
             linked_user.id = olu.id.clone();
@@ -232,7 +232,7 @@ impl Database {
         }
     }
 
-    pub async fn get_users(&self, user_ids: Vec<u64>) -> Result<Vec<RoUser>> {
+    pub async fn get_users(&self, user_ids: &[u64]) -> Result<Vec<RoUser>> {
         let users = self.client.database("RoWifi").collection("users");
         let filter = doc! {"_id": {"$in": user_ids}};
         let mut cursor = users.find(filter, FindOptions::default()).await?;
@@ -244,6 +244,37 @@ impl Database {
             }
         }
         Ok(result)
+    }
+
+    pub async fn get_linked_users(
+        &self,
+        user_ids: &[u64],
+        guild_id: i64,
+    ) -> Result<Vec<RoGuildUser>> {
+        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let filter = doc! {"UserId": {"$in": user_ids}, "GuildId": guild_id};
+        let mut cursor = linked_users.find(filter, None).await?;
+        let mut result = HashMap::<i64, RoGuildUser>::new();
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(document) => {
+                    let u = bson::from_document::<RoGuildUser>(document)?;
+                    result.insert(u.discord_id, u);
+                }
+                Err(e) => tracing::error!(err = ?e),
+            }
+        }
+
+        let users = self.get_users(user_ids).await?;
+        for user in users {
+            result.entry(user.discord_id).or_insert(RoGuildUser {
+                id: ObjectId::new(),
+                discord_id: user.discord_id,
+                guild_id,
+                roblox_id: user.roblox_id,
+            });
+        }
+        Ok(result.into_iter().map(|u| u.1).collect())
     }
 
     pub async fn add_backup(&self, mut backup: BackupGuild, name: &str) -> Result<()> {

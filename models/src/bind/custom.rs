@@ -6,7 +6,7 @@ use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
 use super::{template::Template, Backup, Bind};
-use crate::{rolang::RoCommand, user::RoUser};
+use crate::{rolang::RoCommand, user::RoGuildUser};
 
 #[derive(Serialize, Clone)]
 pub struct CustomBind {
@@ -108,7 +108,7 @@ impl Backup for CustomBind {
 }
 
 impl Bind for CustomBind {
-    fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+    fn nickname(&self, roblox_username: &str, user: &RoGuildUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
             return template.nickname(roblox_username, user, discord_nick);
         } else if let Some(prefix) = &self.prefix {

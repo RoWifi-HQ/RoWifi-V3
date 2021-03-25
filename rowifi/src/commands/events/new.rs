@@ -36,7 +36,12 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         return Ok(());
     }
 
-    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_linked_user(ctx.author.id.0 as i64, guild_id.0 as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

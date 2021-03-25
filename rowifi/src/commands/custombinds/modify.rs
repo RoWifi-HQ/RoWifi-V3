@@ -4,6 +4,7 @@ use rowifi_models::{
     guild::RoGuild,
     rolang::{RoCommand, RoCommandUser},
 };
+use twilight_model::id::GuildId;
 
 #[derive(FromArgs)]
 pub struct CustombindsModifyArguments {
@@ -143,7 +144,10 @@ async fn modify_code<'a>(
     bind_id: i64,
     code: &'a str,
 ) -> Result<Option<&'a str>, RoError> {
-    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let user = match ctx
+        .get_linked_user(ctx.author.id, GuildId(guild.id as u64))
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

@@ -3,7 +3,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use crate::user::RoUser;
+use crate::user::RoGuildUser;
 
 lazy_static! {
     static ref TEMPLATE_REGEX: Regex = Regex::new(r"\{(.*?)\}").unwrap();
@@ -13,7 +13,12 @@ lazy_static! {
 pub struct Template(pub String);
 
 impl Template {
-    pub fn nickname(&self, roblox_username: &str, user: &RoUser, discord_nick: &str) -> String {
+    pub fn nickname(
+        &self,
+        roblox_username: &str,
+        user: &RoGuildUser,
+        discord_nick: &str,
+    ) -> String {
         let roblox_id = user.roblox_id.to_string();
         let discord_id = user.discord_id.to_string();
 

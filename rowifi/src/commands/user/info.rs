@@ -12,7 +12,12 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         Some(u) => (u.id, u.name.clone()),
         None => (ctx.author.id, ctx.author.name.clone()),
     };
-    let user = match ctx.bot.database.get_user((author.0).0).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_linked_user((author.0).0 as i64, ctx.guild_id.unwrap().0 as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

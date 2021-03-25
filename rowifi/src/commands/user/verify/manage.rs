@@ -62,7 +62,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         }
     };
 
-    if !user.alts.contains(&roblox_id) {
+    if !user.alts.contains(&roblox_id) && user.roblox_id != roblox_id {
         let e = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -85,7 +85,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     let linked_user = RoGuildUser {
         id: ObjectId::new(),
         guild_id: guild_id.0 as i64,
-        user_id: ctx.author.id.0 as i64,
+        discord_id: ctx.author.id.0 as i64,
         roblox_id,
     };
 
