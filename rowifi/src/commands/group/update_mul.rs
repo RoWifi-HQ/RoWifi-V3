@@ -81,7 +81,7 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
     let users = ctx
         .bot
         .database
-        .get_linked_users(&members, guild_id.0 as i64)
+        .get_linked_users(&members, guild_id.0)
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
@@ -206,7 +206,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     let users = ctx
         .bot
         .database
-        .get_linked_users(&members, guild_id.0 as i64)
+        .get_linked_users(&members, guild_id.0)
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();

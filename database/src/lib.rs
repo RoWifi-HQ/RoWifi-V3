@@ -182,7 +182,7 @@ impl Database {
     pub async fn add_linked_user(&self, mut linked_user: RoGuildUser) -> Result<()> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let old_linked_user = self
-            .get_linked_user(linked_user.discord_id, linked_user.guild_id)
+            .get_linked_user(linked_user.discord_id as u64, linked_user.guild_id as u64)
             .await?;
         if let Some(olu) = &old_linked_user {
             linked_user.id = olu.id.clone();
@@ -219,8 +219,8 @@ impl Database {
 
     pub async fn get_linked_user(
         &self,
-        user_id: i64,
-        guild_id: i64,
+        user_id: u64,
+        guild_id: u64,
     ) -> Result<Option<RoGuildUser>> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let result = linked_users
@@ -249,7 +249,7 @@ impl Database {
     pub async fn get_linked_users(
         &self,
         user_ids: &[u64],
-        guild_id: i64,
+        guild_id: u64,
     ) -> Result<Vec<RoGuildUser>> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let filter = doc! {"UserId": {"$in": user_ids}, "GuildId": guild_id};
@@ -270,7 +270,7 @@ impl Database {
             result.entry(user.discord_id).or_insert(RoGuildUser {
                 id: ObjectId::new(),
                 discord_id: user.discord_id,
-                guild_id,
+                guild_id: guild_id as i64,
                 roblox_id: user.roblox_id,
             });
         }
@@ -433,7 +433,7 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn add_event(&self, guild_id: i64, event_log: &EventLog) -> Result<()> {
+    pub async fn add_event(&self, guild_id: u64, event_log: &EventLog) -> Result<()> {
         let events = self.client.database("Events").collection("Logs");
 
         let event_log_doc = bson::to_bson(event_log)?;
