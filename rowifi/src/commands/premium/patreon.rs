@@ -66,6 +66,11 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
         return Ok(());
     }
 
+    let transferred_premium = ctx.bot.database.get_transferred_premium(author).await?;
+    if let Some(transferred_premium) = transferred_premium {
+        ctx.bot.database.delete_premium(transferred_premium.discord_id as u64).await?;
+    }
+    
     ctx.bot
         .database
         .add_premium(premium_user, premium_already)

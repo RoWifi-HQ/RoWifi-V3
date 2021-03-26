@@ -292,7 +292,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     user.alts.remove(account_index);
     ctx.bot
         .database
-        .delete_linked_users(ctx.author.id.0, user.roblox_id)
+        .delete_linked_users(ctx.author.id.0, roblox_id)
         .await?;
     ctx.bot.database.add_user(user, true).await?;
     let embed = EmbedBuilder::new()
