@@ -111,7 +111,7 @@ impl RoGuild {
             assetbinds,
             blacklists: self.blacklists.clone(),
             registered_groups: self.registered_groups.clone(),
-            event_types: self.event_types.clone()
+            event_types: self.event_types.clone(),
         }
     }
 

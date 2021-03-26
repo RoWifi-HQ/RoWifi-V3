@@ -23,7 +23,7 @@ use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
 use twilight_model::{
     channel::embed::Embed,
-    id::{ChannelId, GuildId, RoleId, UserId, WebhookId},
+    id::{ChannelId, GuildId, InteractionId, RoleId, UserId, WebhookId},
     user::User,
 };
 use twilight_standby::Standby;
@@ -61,6 +61,8 @@ pub struct CommandContext {
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,
     pub author: Arc<User>,
+    pub interaction_id: Option<InteractionId>,
+    pub interaction_token: Option<String>,
 }
 
 impl BotContext {

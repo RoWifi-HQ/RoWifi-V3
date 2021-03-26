@@ -1,9 +1,9 @@
+use super::GuildSettings;
 use crate::{
     bind::{BackupAssetBind, BackupCustomBind, BackupGroupBind, BackupRankBind},
     blacklist::Blacklist,
-    events::EventType
+    events::EventType,
 };
-use super::GuildSettings;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
