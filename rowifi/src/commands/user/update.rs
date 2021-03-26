@@ -220,12 +220,22 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    if let Some(interaction_token) = &ctx.interaction_token {
+        ctx.bot
+            .http
+            .update_interaction_original(interaction_token)
+            .unwrap()
+            .embeds(Some(vec![embed]))
+            .unwrap()
+            .await?;
+    } else {
+        ctx.bot
+            .http
+            .create_message(ctx.channel_id)
+            .embed(embed)
+            .unwrap()
+            .await?;
+    }
 
     let log_embed = EmbedBuilder::new()
         .default_data()

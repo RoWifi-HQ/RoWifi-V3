@@ -142,7 +142,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let app_info = http.current_user().await?;
 
     let mut owners = Vec::new();
-    let owner = http.current_user_application().await?.owner.id;
+    let current_user = http.current_user_application().await?;
+    let owner = current_user.owner.id;
+    http.set_application_id(current_user.id);
     owners.push(owner);
 
     let cluster = Cluster::builder(
