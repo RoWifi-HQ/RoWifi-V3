@@ -110,6 +110,8 @@ impl RoGuild {
             custombinds,
             assetbinds,
             blacklists: self.blacklists.clone(),
+            registered_groups: self.registered_groups.clone(),
+            event_types: self.event_types.clone()
         }
     }
 
@@ -250,8 +252,8 @@ impl RoGuild {
             assetbinds,
             blacklists: backup.blacklists,
             disabled_channels: Vec::new(),
-            registered_groups: Vec::new(),
-            event_types: Vec::new(),
+            registered_groups: backup.registered_groups,
+            event_types: backup.event_types,
             event_counter: 0,
             all_roles,
         }

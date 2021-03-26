@@ -33,7 +33,7 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
-    applications::interaction::Interaction,
+    applications::{interaction::Interaction, response::InteractionResponse},
     channel::Message,
     gateway::event::Event,
     guild::Permissions,
@@ -265,10 +265,16 @@ impl Service<&Event> for Framework {
                         guild_id: Some(top_command.guild_id),
                         author: Arc::new(top_command.member.user.clone().unwrap()),
                     };
+                    let http = self.bot.http.clone();
+                    let id = top_command.id;
+                    let token = top_command.token.clone();
 
                     let request = ServiceRequest::Interaction(command_options.clone());
                     let cmd_fut = command.call((ctx, request));
-                    let fut = async move { cmd_fut.await };
+                    let fut = async move { 
+                        let _ = http.interaction_callback(id, token, InteractionResponse::DeferredChannelMessageWithSource).await; 
+                        cmd_fut.await 
+                    };
                     return Either::Right(Box::pin(fut));
                 }
             }

@@ -1,6 +1,7 @@
-use super::super::{
+use crate::{
     bind::{BackupAssetBind, BackupCustomBind, BackupGroupBind, BackupRankBind},
     blacklist::Blacklist,
+    events::EventType
 };
 use super::GuildSettings;
 use serde::{Deserialize, Serialize};
@@ -34,15 +35,18 @@ pub struct BackupGuild {
     #[serde(rename = "Groupbinds")]
     pub groupbinds: Vec<BackupGroupBind>,
 
-    #[serde(rename = "Custombinds")]
-    #[serde(default)]
+    #[serde(rename = "Custombinds", default)]
     pub custombinds: Vec<BackupCustomBind>,
 
-    #[serde(rename = "Assetbinds")]
-    #[serde(default)]
+    #[serde(rename = "Assetbinds", default)]
     pub assetbinds: Vec<BackupAssetBind>,
 
-    #[serde(rename = "Blacklists")]
-    #[serde(default)]
+    #[serde(rename = "Blacklists", default)]
     pub blacklists: Vec<Blacklist>,
+
+    #[serde(rename = "RegisteredGroups", default)]
+    pub registered_groups: Vec<i64>,
+
+    #[serde(rename = "EventTypes", default)]
+    pub event_types: Vec<EventType>,
 }
