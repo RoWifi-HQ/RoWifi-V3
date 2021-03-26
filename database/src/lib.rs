@@ -198,6 +198,13 @@ impl Database {
         Ok(())
     }
 
+    pub async fn delete_linked_users(&self, user_id: u64, roblox_id: i64) -> Result<()> {
+        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let filter = doc! {"UserId": user_id, "RobloxId": roblox_id};
+        let _res = linked_users.delete_many(filter, None).await?;
+        Ok(())
+    }
+
     pub async fn get_user(&self, user_id: u64) -> Result<Option<Arc<RoUser>>> {
         let user_id = user_id as i64;
         match self.user_cache.get(&user_id) {

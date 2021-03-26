@@ -3,7 +3,7 @@ mod manage;
 use rowifi_framework::prelude::*;
 use rowifi_models::user::QueueUser;
 
-use manage::{verify_default, verify_switch};
+use manage::{verify_default, verify_delete, verify_switch};
 
 pub fn verify_config(cmds: &mut Vec<Command>) {
     let verify_add_cmd = Command::builder()
@@ -24,6 +24,18 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .description("Command to change the default Roblox Account")
         .handler(verify_default);
 
+    let verify_delete_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["delete"])
+        .description("Command to unlink a non-default account")
+        .handler(verify_delete);
+
+    let verify_view_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["view"])
+        .description("Command to view all linked accounts")
+        .handler(verify_view);
+
     let verify_cmd = Command::builder()
         .level(RoLevel::Normal)
         .names(&["verify"])
@@ -32,6 +44,8 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .sub_command(verify_add_cmd)
         .sub_command(verify_switch_cmd)
         .sub_command(verify_default_cmd)
+        .sub_command(verify_delete_cmd)
+        .sub_command(verify_view_cmd)
         .handler(verify);
 
     cmds.push(verify_cmd);
@@ -160,5 +174,80 @@ pub async fn verify_common(
         verified,
     };
     ctx.bot.database.add_queue_user(q_user).await?;
+    Ok(())
+}
+
+#[derive(FromArgs)]
+pub struct VerifyViewArguments {}
+
+pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
+    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+        Some(u) => u,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .title("User Not Verified")
+                .unwrap()
+                .description("You are not verified. Please use `verify` to link your account")
+                .unwrap()
+                .color(Color::Red as u32)
+                .unwrap()
+                .build()
+                .unwrap();
+            ctx.bot
+                .http
+                .create_message(ctx.channel_id)
+                .embed(embed)
+                .unwrap()
+                .await?;
+            return Ok(());
+        }
+    };
+    let linked_user = ctx
+        .bot
+        .database
+        .get_linked_user(ctx.author.id.0, guild_id.0)
+        .await?;
+
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .title("Linked Accounts")
+        .unwrap()
+        .color(Color::Blue as u32)
+        .unwrap();
+
+    let mut acc_string = String::new();
+
+    let main_username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
+    acc_string.push_str(&main_username);
+    acc_string.push_str(" - `Default`");
+    if let Some(linked_user) = &linked_user {
+        if linked_user.roblox_id == user.roblox_id {
+            acc_string.push_str(", `This Server`");
+        }
+    } else {
+        acc_string.push_str(", `This Server`");
+    }
+    acc_string.push('\n');
+    for alt in &user.alts {
+        let username = ctx.bot.roblox.get_username_from_id(*alt).await?;
+        acc_string.push_str(&username);
+        if let Some(linked_user) = &linked_user {
+            if linked_user.roblox_id == *alt {
+                acc_string.push_str(" - `This Server`");
+            }
+        }
+        acc_string.push('\n');
+    }
+
+    let embed = embed.description(acc_string).unwrap().build().unwrap();
+    ctx.bot
+        .http
+        .create_message(ctx.channel_id)
+        .embed(embed)
+        .unwrap()
+        .await?;
+
     Ok(())
 }
