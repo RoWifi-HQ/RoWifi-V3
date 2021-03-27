@@ -64,7 +64,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .title("User Already Verified")
             .unwrap()
             .description(
-                "To change your verified account, use `reverify`. To get your roles, use `update`",
+                "To link another account, use `verify add`. To get your roles, use `update`",
             )
             .unwrap()
             .color(Color::Red as u32)
