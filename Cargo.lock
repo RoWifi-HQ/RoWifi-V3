@@ -1811,7 +1811,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "3.0.0-alpha-8"
+version = "3.0.0-alpha-9"
 dependencies = [
  "base64 0.13.0",
  "chacha20poly1305",
