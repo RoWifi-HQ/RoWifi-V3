@@ -96,7 +96,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .default_data()
                 .title("Update Failed")
                 .unwrap()
-                .description("User was not verified. Please ask him/her to verify themselves")
+                .description("User was not verified. Please ask them to verify themselves")
                 .unwrap()
                 .color(Color::Red as u32)
                 .unwrap()

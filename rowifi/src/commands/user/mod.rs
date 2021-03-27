@@ -14,7 +14,7 @@ use self::verify::verify_config;
 pub fn user_config(cmds: &mut Vec<Command>) {
     let update_cmd = Command::builder()
         .level(RoLevel::Normal)
-        .names(&["update"])
+        .names(&["update", "getroles"])
         .description("Command to update an user")
         .group("User")
         .handler(update);
