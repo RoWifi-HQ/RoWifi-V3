@@ -1,7 +1,6 @@
 use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
 use itertools::Itertools;
-use mongodb::bson::oid::ObjectId;
 use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
@@ -369,7 +368,6 @@ impl BotContext {
             let user = self.database.get_user(user_id.0).await?;
             if let Some(user) = user {
                 linked_user = Some(RoGuildUser {
-                    id: ObjectId::new(),
                     guild_id: guild_id.0 as i64,
                     discord_id: user.discord_id,
                     roblox_id: user.roblox_id,

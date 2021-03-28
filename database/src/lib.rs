@@ -13,7 +13,7 @@ pub mod error;
 
 use futures::stream::StreamExt;
 use mongodb::{
-    bson::{self, doc, document::Document, oid::ObjectId, Bson},
+    bson::{self, doc, document::Document, Bson},
     options::{
         ClientOptions, FindOneAndDeleteOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions,
         FindOneOptions, FindOptions, InsertOneOptions, ReturnDocument,
@@ -179,18 +179,15 @@ impl Database {
         Ok(())
     }
 
-    pub async fn add_linked_user(&self, mut linked_user: RoGuildUser) -> Result<()> {
+    pub async fn add_linked_user(&self, linked_user: RoGuildUser) -> Result<()> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let old_linked_user = self
             .get_linked_user(linked_user.discord_id as u64, linked_user.guild_id as u64)
             .await?;
-        if let Some(olu) = &old_linked_user {
-            linked_user.id = olu.id.clone();
-        }
         let linked_user_doc = bson::to_document(&linked_user)?;
-        if old_linked_user.is_some() {
+        if let Some(old_linked_user) = old_linked_user {
             let _res = linked_users
-                .find_one_and_replace(doc! {"_id": linked_user.id}, linked_user_doc, None)
+                .find_one_and_replace(doc! {"GuildId": old_linked_user.guild_id, "UserId": old_linked_user.discord_id}, linked_user_doc, None)
                 .await?;
         } else {
             let _res = linked_users.insert_one(linked_user_doc, None).await?;
@@ -275,7 +272,6 @@ impl Database {
         let users = self.get_users(user_ids).await?;
         for user in users {
             result.entry(user.discord_id).or_insert(RoGuildUser {
-                id: ObjectId::new(),
                 discord_id: user.discord_id,
                 guild_id: guild_id as i64,
                 roblox_id: user.roblox_id,

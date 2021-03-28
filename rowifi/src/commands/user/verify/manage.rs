@@ -1,4 +1,3 @@
-use mongodb::bson::oid::ObjectId;
 use rowifi_framework::prelude::*;
 use rowifi_models::user::RoGuildUser;
 
@@ -83,7 +82,6 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     }
 
     let linked_user = RoGuildUser {
-        id: ObjectId::new(),
         guild_id: guild_id.0 as i64,
         discord_id: ctx.author.id.0 as i64,
         roblox_id,
