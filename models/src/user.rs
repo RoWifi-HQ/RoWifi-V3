@@ -1,5 +1,4 @@
 use super::guild::GuildType;
-use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -17,9 +16,6 @@ pub struct RoUser {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RoGuildUser {
-    #[serde(rename = "_id")]
-    pub id: ObjectId,
-
     #[serde(rename = "GuildId")]
     pub guild_id: i64,
 

@@ -1880,7 +1880,6 @@ dependencies = [
  "framework-derive",
  "futures",
  "itertools",
- "mongodb",
  "patreon",
  "roblox",
  "rowifi-cache",

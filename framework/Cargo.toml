@@ -13,7 +13,6 @@ dashmap = "4"
 framework-derive = { path = "./framework-derive" }
 futures = "0"
 itertools = "0"
-mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
 rowifi-cache = { path = "../cache" }
