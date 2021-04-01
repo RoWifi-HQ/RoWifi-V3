@@ -247,6 +247,10 @@ impl Service<&Event> for Framework {
             }
             Event::InteractionCreate(interaction) => {
                 if let Interaction::ApplicationCommand(top_command) = &interaction.0 {
+                    let user = match top_command.member.clone().and_then(|m| m.user) {
+                        Some(u) => u,
+                        None => return Either::Left(ready(Ok(()))),
+                    };
                     let command_options = &top_command.command_data.options;
                     let command = self
                         .cmds
@@ -259,12 +263,7 @@ impl Service<&Event> for Framework {
                     let id = top_command.id;
                     let token = top_command.token.clone();
 
-                    if !run_checks(
-                        &self.bot,
-                        command,
-                        Some(top_command.guild_id),
-                        top_command.member.user.clone().unwrap().id,
-                    ) {
+                    if !run_checks(&self.bot, command, top_command.guild_id, user.id) {
                         let http = self.bot.http.clone();
                         let fut = async move {
                             let _ = http
@@ -289,8 +288,8 @@ impl Service<&Event> for Framework {
                     let ctx = CommandContext {
                         bot: self.bot.clone(),
                         channel_id: top_command.channel_id,
-                        guild_id: Some(top_command.guild_id),
-                        author: Arc::new(top_command.member.user.clone().unwrap()),
+                        guild_id: top_command.guild_id,
+                        author: Arc::new(user),
                         interaction_id: Some(top_command.id),
                         interaction_token: Some(top_command.token.clone()),
                     };

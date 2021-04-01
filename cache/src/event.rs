@@ -165,26 +165,30 @@ impl UpdateCache for GuildUpdate {
 impl UpdateCache for InteractionCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Interaction::ApplicationCommand(inner) = &self.0 {
-            if let Some(user) = &inner.member.user {
-                let user = c.cache_user(user.clone());
-                let id = (inner.guild_id, user.id);
-                match c.0.members.get(&id) {
-                    Some(m) if **m == &inner.member => return Ok(()),
-                    _ => {}
+            if let Some(member) = &inner.member {
+                if let Some(user) = &member.user {
+                    if let Some(guild_id) = inner.guild_id {
+                        let user = c.cache_user(user.clone());
+                        let id = (guild_id, user.id);
+                        match c.0.members.get(&id) {
+                            Some(m) if **m == member => return Ok(()),
+                            _ => {}
+                        }
+
+                        c.0.guild_members
+                            .entry(guild_id)
+                            .or_default()
+                            .insert(user.id);
+
+                        let cached = Arc::new(CachedMember {
+                            nick: member.nick.clone(),
+                            pending: false,
+                            roles: member.roles.clone(),
+                            user,
+                        });
+                        c.0.members.insert(id, Arc::clone(&cached));
+                    }
                 }
-
-                c.0.guild_members
-                    .entry(inner.guild_id)
-                    .or_default()
-                    .insert(user.id);
-
-                let cached = Arc::new(CachedMember {
-                    nick: inner.member.nick.clone(),
-                    pending: false,
-                    roles: inner.member.roles.clone(),
-                    user,
-                });
-                c.0.members.insert(id, Arc::clone(&cached));
             }
         }
         Ok(())
