@@ -36,8 +36,8 @@ type Result<T> = StdResult<T, DatabaseError>;
 #[derive(Clone)]
 pub struct Database {
     client: Client,
-    guild_cache: TransientDashMap<i64, Arc<RoGuild>>,
-    user_cache: TransientDashMap<i64, Arc<RoUser>>,
+    guild_cache: Arc<TransientDashMap<i64, Arc<RoGuild>>>,
+    user_cache: Arc<TransientDashMap<i64, Arc<RoUser>>>,
 }
 
 impl Database {
@@ -46,8 +46,8 @@ impl Database {
         let client = Client::with_options(client_options).unwrap();
         Self {
             client,
-            guild_cache: TransientDashMap::new(Duration::from_secs(6 * 3600)),
-            user_cache: TransientDashMap::new(Duration::from_secs(6 * 3600)),
+            guild_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
+            user_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
         }
     }
 
@@ -76,7 +76,7 @@ impl Database {
     pub async fn get_guild(&self, guild_id: u64) -> Result<Option<Arc<RoGuild>>> {
         let guild_id = guild_id as i64;
         match self.guild_cache.get(&guild_id) {
-            Some(g) => Ok(Some(g.value().object.clone())),
+            Some(g) => Ok(Some(g.clone())),
             None => {
                 let guilds = self.client.database("RoWifi").collection("guilds");
                 let result = guilds
@@ -205,7 +205,7 @@ impl Database {
     pub async fn get_user(&self, user_id: u64) -> Result<Option<Arc<RoUser>>> {
         let user_id = user_id as i64;
         match self.user_cache.get(&user_id) {
-            Some(u) => Ok(Some(u.value().object.clone())),
+            Some(u) => Ok(Some(u.clone())),
             None => {
                 let users = self.client.database("RoWifi").collection("users");
                 let result = users

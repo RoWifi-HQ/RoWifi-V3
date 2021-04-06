@@ -57,8 +57,8 @@ impl<S> BucketService<S> {
     pub fn get(&self, guild_id: GuildId) -> Option<Duration> {
         match self.guilds.get(&guild_id) {
             Some(g) => {
-                if g.object == 0 {
-                    return g.expiration.checked_duration_since(Instant::now());
+                if **g == 0 {
+                    return g.expiration().checked_duration_since(Instant::now());
                 }
                 None
             }
@@ -113,11 +113,11 @@ fn take(
     guild_id: GuildId,
 ) -> Option<Duration> {
     let (new_remaining, expiration) = if let Some(g) = guilds.get(&guild_id) {
-        let remaining = g.object;
+        let remaining = **g;
         if remaining == 0 {
-            return g.expiration.checked_duration_since(Instant::now());
+            return g.expiration().checked_duration_since(Instant::now());
         }
-        (remaining - 1, g.expiration)
+        (remaining - 1, g.expiration())
     } else {
         guilds.insert(guild_id, calls - 1);
         return None;
