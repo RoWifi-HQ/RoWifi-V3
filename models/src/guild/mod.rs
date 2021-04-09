@@ -484,3 +484,5 @@ impl<'de> Deserialize<'de> for RoGuild {
         deserializer.deserialize_struct("RoGuild", FIELDS, RoGuildVisitor)
     }
 }
+
+impl_redis!(RoGuild);

@@ -31,6 +31,7 @@ use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::stats::BotStats;
+use rowifi_redis::{RedisManager, RedisPool};
 use services::EventHandler;
 use std::{
     collections::HashMap,
@@ -111,6 +112,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
     let cipher_key = env::var("CIPHER_KEY").expect("Expected the cipher key in the environment");
+    let redis_conn =
+        env::var("REDIS_CONN").expect("Expected the redis connection in the environment");
     let proxy = env::var("PROXY").ok();
     sleep(Duration::from_secs(cluster_id * 60)).await;
 
@@ -163,7 +166,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cache = Cache::new(stats.clone());
     let standby = Standby::new();
 
-    let database = Database::new(&conn_string).await;
+    let redis = RedisPool::new(RedisManager::new(redis_conn).unwrap(), 4);
+    let _res = redis.get().await.expect("Redis Connection failed");
+
+    let database = Database::new(&conn_string, redis.clone()).await;
     let roblox = RobloxClient::default();
     let patreon = PatreonClient::new(&patreon_key);
 

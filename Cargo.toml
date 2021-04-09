@@ -5,7 +5,8 @@ members = [
     "database",
     "framework",
     "framework/framework-derive",
-    "models"
+    "models",
+    "redis"
 ]
 
 [profile.release]
