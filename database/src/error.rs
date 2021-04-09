@@ -2,6 +2,7 @@ pub use mongodb::{
     bson::{de::Error as DeserializationError, ser::Error as SerializationError},
     error::Error as MongoError,
 };
+use rowifi_redis::{redis::RedisError, PoolError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -12,6 +13,7 @@ pub enum DatabaseError {
     Serialization(SerializationError),
     Deserialization(DeserializationError),
     Mongo(Box<MongoError>),
+    Redis(PoolError<RedisError>),
 }
 
 impl Display for DatabaseError {
@@ -20,6 +22,7 @@ impl Display for DatabaseError {
             DatabaseError::Serialization(err) => write!(f, "Serialization Error - {}", err),
             DatabaseError::Deserialization(err) => write!(f, "Deserialization Error - {}", err),
             DatabaseError::Mongo(err) => write!(f, "Mongo Error - {}", err),
+            DatabaseError::Redis(err) => write!(f, "Redis Error - {}", err),
         }
     }
 }
@@ -39,6 +42,18 @@ impl From<DeserializationError> for DatabaseError {
 impl From<MongoError> for DatabaseError {
     fn from(err: MongoError) -> Self {
         DatabaseError::Mongo(Box::new(err))
+    }
+}
+
+impl From<RedisError> for DatabaseError {
+    fn from(err: RedisError) -> Self {
+        DatabaseError::Redis(PoolError::Backend(err))
+    }
+}
+
+impl From<PoolError<RedisError>> for DatabaseError {
+    fn from(err: PoolError<RedisError>) -> Self {
+        DatabaseError::Redis(err)
     }
 }
 

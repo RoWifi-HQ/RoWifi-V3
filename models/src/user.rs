@@ -98,3 +98,6 @@ impl PremiumType {
         }
     }
 }
+
+impl_redis!(RoUser);
+impl_redis!(RoGuildUser);

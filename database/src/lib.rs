@@ -6,7 +6,8 @@
     clippy::cast_possible_wrap,
     clippy::single_match_else,
     clippy::cast_sign_loss,
-    clippy::missing_panics_doc
+    clippy::missing_panics_doc,
+    clippy::let_unit_value
 )]
 
 pub mod error;
@@ -26,6 +27,7 @@ use rowifi_models::{
     guild::{BackupGuild, GuildType, RoGuild},
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
+use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use std::{collections::HashMap, result::Result as StdResult, sync::Arc, time::Duration};
 use transient_dashmap::TransientDashMap;
 
@@ -38,22 +40,26 @@ pub struct Database {
     client: Client,
     guild_cache: Arc<TransientDashMap<i64, Arc<RoGuild>>>,
     user_cache: Arc<TransientDashMap<i64, Arc<RoUser>>>,
+    redis_pool: RedisPool,
 }
 
 impl Database {
-    pub async fn new(conn_string: &str) -> Self {
+    pub async fn new(conn_string: &str, redis_pool: RedisPool) -> Self {
         let client_options = ClientOptions::parse(conn_string).await.unwrap();
         let client = Client::with_options(client_options).unwrap();
         Self {
             client,
             guild_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
             user_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
+            redis_pool,
         }
     }
 
     pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<()> {
         let guilds = self.client.database("RoWifi").collection("guilds");
         let guild_bson = bson::to_bson(&guild)?;
+        let key = format!("database:g:{}", guild.id);
+        let mut conn = self.redis_pool.get().await?;
         if let Bson::Document(g) = guild_bson {
             if replace {
                 let mut options = FindOneAndReplaceOptions::default();
@@ -62,12 +68,12 @@ impl Database {
                     .find_one_and_replace(doc! {"_id": guild.id}, g, options)
                     .await?;
                 if let Some(res) = res {
-                    let guild = Arc::new(bson::from_bson::<RoGuild>(Bson::Document(res))?);
-                    self.guild_cache.insert(guild.id, guild);
+                    let guild = bson::from_bson::<RoGuild>(Bson::Document(res))?;
+                    let _: () = conn.set_ex(key, guild, 6 * 3600).await.unwrap();
                 }
             } else {
                 let _res = guilds.insert_one(g, InsertOneOptions::default()).await?;
-                self.guild_cache.insert(guild.id, Arc::new(guild));
+                let _: () = conn.set_ex(key, guild, 6 * 3600).await.unwrap();
             }
         }
         Ok(())
@@ -75,8 +81,11 @@ impl Database {
 
     pub async fn get_guild(&self, guild_id: u64) -> Result<Option<Arc<RoGuild>>> {
         let guild_id = guild_id as i64;
-        match self.guild_cache.get(&guild_id) {
-            Some(g) => Ok(Some(g.clone())),
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:g:{}", guild_id);
+        let guild: Option<RoGuild> = conn.get(&key).await?;
+        match guild {
+            Some(g) => Ok(Some(Arc::new(g))),
             None => {
                 let guilds = self.client.database("RoWifi").collection("guilds");
                 let result = guilds
@@ -84,10 +93,10 @@ impl Database {
                     .await?;
                 let guild = match result {
                     None => return Ok(None),
-                    Some(res) => Arc::new(bson::from_bson::<RoGuild>(Bson::Document(res))?),
+                    Some(res) => bson::from_bson::<RoGuild>(Bson::Document(res))?,
                 };
-                self.guild_cache.insert(guild_id, guild.clone());
-                Ok(Some(guild))
+                let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await.unwrap();
+                Ok(Some(Arc::new(guild)))
             }
         }
     }
@@ -129,7 +138,9 @@ impl Database {
             .unwrap();
         let guild = bson::from_bson::<RoGuild>(Bson::Document(res))?;
 
-        self.guild_cache.insert(guild.id, Arc::new(guild));
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:g:{}", guild.id);
+        let _: () = conn.set_ex(key, guild, 6 * 3600).await?;
         Ok(())
     }
 
@@ -140,6 +151,9 @@ impl Database {
             .find_one(doc! {"_id": user.roblox_id}, FindOneOptions::default())
             .await?
             .is_some();
+
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:u:{}", user.discord_id);
 
         let user_doc = bson::to_bson(&user)?;
         if let Bson::Document(u) = user_doc {
@@ -155,13 +169,15 @@ impl Database {
                 let _res = queue.insert_one(u, InsertOneOptions::default()).await?;
             }
         }
-        self.user_cache.remove(&user.discord_id);
+        conn.del(key).await?;
         Ok(())
     }
 
     pub async fn add_user(&self, user: RoUser, verified: bool) -> Result<()> {
         let users = self.client.database("RoWifi").collection("users");
         let user_doc = bson::to_bson(&user)?;
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:u:{}", user.discord_id);
         if let Bson::Document(u) = user_doc {
             if verified {
                 let _res = users
@@ -174,7 +190,7 @@ impl Database {
             } else {
                 let _res = users.insert_one(u, InsertOneOptions::default()).await?;
             }
-            self.user_cache.insert(user.discord_id, Arc::new(user));
+            let _: () = conn.set_ex(key, user, 6 * 3600).await?;
         }
         Ok(())
     }
@@ -204,8 +220,13 @@ impl Database {
 
     pub async fn get_user(&self, user_id: u64) -> Result<Option<Arc<RoUser>>> {
         let user_id = user_id as i64;
-        match self.user_cache.get(&user_id) {
-            Some(u) => Ok(Some(u.clone())),
+
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:u:{}", user_id);
+
+        let user: Option<RoUser> = conn.get(&key).await?;
+        match user {
+            Some(u) => Ok(Some(Arc::new(u))),
             None => {
                 let users = self.client.database("RoWifi").collection("users");
                 let result = users
@@ -213,10 +234,10 @@ impl Database {
                     .await?;
                 let user = match result {
                     None => return Ok(None),
-                    Some(res) => Arc::new(bson::from_bson::<RoUser>(Bson::Document(res))?),
+                    Some(res) => bson::from_bson::<RoUser>(Bson::Document(res))?,
                 };
-                self.user_cache.insert(user_id, user.clone());
-                Ok(Some(user))
+                let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+                Ok(Some(Arc::new(user)))
             }
         }
     }
