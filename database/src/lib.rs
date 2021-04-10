@@ -199,8 +199,11 @@ impl Database {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
 
         let mut conn = self.redis_pool.get().await?;
-        let key = format!("database:l:{}:{}", linked_user.discord_id, linked_user.guild_id);
-        
+        let key = format!(
+            "database:l:{}:{}",
+            linked_user.discord_id, linked_user.guild_id
+        );
+
         let old_linked_user = self
             .get_linked_user(linked_user.discord_id as u64, linked_user.guild_id as u64)
             .await?;
@@ -226,7 +229,9 @@ impl Database {
         let mut result = Vec::<RoGuildUser>::new();
         while let Some(res) = cursor.next().await {
             match res {
-                Ok(document) => result.push(bson::from_bson::<RoGuildUser>(Bson::Document(document))?),
+                Ok(document) => {
+                    result.push(bson::from_bson::<RoGuildUser>(Bson::Document(document))?)
+                }
                 Err(e) => tracing::error!(err = ?e),
             }
         }
@@ -273,7 +278,7 @@ impl Database {
 
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:l:{}:{}", user_id, guild_id);
-        
+
         let linked_user: Option<RoGuildUser> = conn.get(&key).await?;
         match linked_user {
             Some(l) => Ok(Some(l)),
