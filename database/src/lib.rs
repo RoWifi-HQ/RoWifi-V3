@@ -197,6 +197,10 @@ impl Database {
 
     pub async fn add_linked_user(&self, linked_user: RoGuildUser) -> Result<()> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
+
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:l:{}:{}", linked_user.discord_id, linked_user.guild_id);
+        
         let old_linked_user = self
             .get_linked_user(linked_user.discord_id as u64, linked_user.guild_id as u64)
             .await?;
@@ -208,12 +212,30 @@ impl Database {
         } else {
             let _res = linked_users.insert_one(linked_user_doc, None).await?;
         }
+
+        let _: () = conn.set_ex(key, linked_user, 6 * 3600).await?;
         Ok(())
     }
 
     pub async fn delete_linked_users(&self, user_id: u64, roblox_id: i64) -> Result<()> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
         let filter = doc! {"UserId": user_id, "RobloxId": roblox_id};
+        let mut conn = self.redis_pool.get().await?;
+
+        let mut cursor = linked_users.find(filter.clone(), None).await?;
+        let mut result = Vec::<RoGuildUser>::new();
+        while let Some(res) = cursor.next().await {
+            match res {
+                Ok(document) => result.push(bson::from_bson::<RoGuildUser>(Bson::Document(document))?),
+                Err(e) => tracing::error!(err = ?e),
+            }
+        }
+
+        for lu in result {
+            let key = format!("database:l:{}:{}", lu.discord_id, lu.guild_id);
+            let _: () = conn.del(key).await?;
+        }
+
         let _res = linked_users.delete_many(filter, None).await?;
         Ok(())
     }
@@ -248,12 +270,24 @@ impl Database {
         guild_id: u64,
     ) -> Result<Option<RoGuildUser>> {
         let linked_users = self.client.database("RoWifi").collection("linked_users");
-        let result = linked_users
-            .find_one(doc! {"GuildId": guild_id, "UserId": user_id}, None)
-            .await?;
-        match result {
-            None => Ok(None),
-            Some(doc) => Ok(Some(bson::from_document::<RoGuildUser>(doc)?)),
+
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:l:{}:{}", user_id, guild_id);
+        
+        let linked_user: Option<RoGuildUser> = conn.get(&key).await?;
+        match linked_user {
+            Some(l) => Ok(Some(l)),
+            None => {
+                let result = linked_users
+                    .find_one(doc! {"GuildId": guild_id, "UserId": user_id}, None)
+                    .await?;
+                let user = match result {
+                    None => return Ok(None),
+                    Some(doc) => bson::from_document::<RoGuildUser>(doc)?,
+                };
+                let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+                Ok(Some(user))
+            }
         }
     }
 
