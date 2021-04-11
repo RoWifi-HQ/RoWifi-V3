@@ -1867,7 +1867,9 @@ version = "0.1.0"
 dependencies = [
  "hyper",
  "hyper-rustls",
+ "rowifi-redis",
  "serde",
+ "serde_cbor",
  "serde_json",
  "tokio",
 ]

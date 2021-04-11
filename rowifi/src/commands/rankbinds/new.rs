@@ -2,7 +2,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use mongodb::bson::{doc, to_bson};
 use regex::Regex;
-use roblox::models::{group::PartialRole, id::GroupId};
+use roblox::models::{group::PartialRank, id::GroupId};
 use rowifi_framework::prelude::*;
 use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
@@ -578,7 +578,7 @@ async fn get_group_rank(
     ctx: &CommandContext,
     group_id: GroupId,
     rank_id: i64,
-) -> Result<Option<PartialRole>, RoError> {
+) -> Result<Option<PartialRank>, RoError> {
     let group = ctx.bot.roblox.get_group_ranks(group_id).await?;
     match group {
         None => Ok(None),
@@ -591,7 +591,7 @@ async fn get_group_ranks(
     group_id: GroupId,
     min_rank: i64,
     max_rank: i64,
-) -> Result<Vec<PartialRole>, RoError> {
+) -> Result<Vec<PartialRank>, RoError> {
     let group = ctx.bot.roblox.get_group_ranks(group_id).await?;
     match group {
         None => Ok(Vec::new()),

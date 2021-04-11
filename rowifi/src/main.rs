@@ -170,7 +170,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let _res = redis.get().await.expect("Redis Connection failed");
 
     let database = Database::new(&conn_string, redis.clone()).await;
-    let roblox = RobloxClient::default();
+    let roblox = RobloxClient::new(redis.clone());
     let patreon = PatreonClient::new(&patreon_key);
 
     let cipher_key = Key::from_slice(cipher_key.as_bytes());

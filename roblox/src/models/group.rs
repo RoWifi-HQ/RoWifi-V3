@@ -11,7 +11,7 @@ pub struct PartialGroup {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct PartialRole {
+pub struct PartialRank {
     pub id: RoleId,
     pub name: String,
     pub rank: u8,
@@ -24,11 +24,11 @@ pub struct Group {
     #[serde(rename = "groupId")]
     pub id: GroupId,
     #[serde(default)]
-    pub roles: Vec<PartialRole>,
+    pub roles: Vec<PartialRank>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GroupUserRole {
     pub group: PartialGroup,
-    pub role: PartialRole,
+    pub role: PartialRank,
 }

@@ -20,3 +20,5 @@ pub struct PartialUser {
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
 }
+
+impl_redis!(User);
