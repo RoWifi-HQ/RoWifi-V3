@@ -1,6 +1,7 @@
 use chacha20poly1305::{aead::Aead, Nonce};
 use itertools::Itertools;
 use mongodb::bson::doc;
+use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
@@ -41,7 +42,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
 
     let roblox_id = match args.username {
         Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
-            Some(i) => i,
+            Some(i) => i.id.0 as i64,
             None => {
                 let embed = EmbedBuilder::new()
                     .default_data()
@@ -65,7 +66,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         None => {
             let user = ctx.get_linked_user(ctx.author.id, guild_id).await?;
             match user {
-                Some(u) => u.roblox_id as i64,
+                Some(u) => u.roblox_id,
                 None => {
                     let embed = EmbedBuilder::new()
                         .default_data()
@@ -108,11 +109,15 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             .iter()
             .find(|e| e.id == event.event_type)
             .unwrap();
-        let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
+        let host = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(event.host_id as u64))
+            .await?;
         let desc = format!(
             "Event Type: {}\nHost: {}\nTimestamp:{}",
             event_type.name,
-            host,
+            host.name,
             event.timestamp.to_rfc3339()
         );
 
@@ -166,7 +171,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
 
     let roblox_id = match args.username {
         Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
-            Some(i) => i,
+            Some(i) => i.id.0 as i64,
             None => {
                 let embed = EmbedBuilder::new()
                     .default_data()
@@ -190,7 +195,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         None => {
             let user = ctx.get_linked_user(ctx.author.id, guild_id).await?;
             match user {
-                Some(u) => u.roblox_id as i64,
+                Some(u) => u.roblox_id,
                 None => {
                     let embed = EmbedBuilder::new()
                         .default_data()
@@ -231,11 +236,15 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             .iter()
             .find(|e| e.id == event.event_type)
             .unwrap();
-        let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
+        let host = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(event.host_id as u64))
+            .await?;
         let desc = format!(
             "Event Type: {}\nHost: {}\nTimestamp:{}\nAttendees: {}",
             event_type.name,
-            host,
+            host.name,
             event.timestamp.to_rfc3339(),
             event.attendees.len()
         );
@@ -319,10 +328,14 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         .iter()
         .find(|e| e.id == event.event_type)
         .unwrap();
-    let host = ctx.bot.roblox.get_username_from_id(event.host_id).await?;
+    let host = ctx
+        .bot
+        .roblox
+        .get_user(RobloxUserId(event.host_id as u64))
+        .await?;
     let mut attendees = Vec::new();
     for a in &event.attendees {
-        let roblox_name = ctx.bot.roblox.get_username_from_id(*a).await?;
+        let roblox_name = ctx.bot.roblox.get_user(RobloxUserId(*a as u64)).await?;
         attendees.push(roblox_name);
     }
 
@@ -331,14 +344,14 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         .title(format!("Event Id: {}", event.guild_event_id))
         .unwrap()
         .field(EmbedFieldBuilder::new("Event Type", event_type.name.clone()).unwrap())
-        .field(EmbedFieldBuilder::new("Host", host).unwrap())
+        .field(EmbedFieldBuilder::new("Host", host.name).unwrap())
         .timestamp(event.timestamp.to_rfc3339());
 
     if !event.attendees.is_empty() {
         embed = embed.field(
             EmbedFieldBuilder::new(
                 "Attendees",
-                attendees.iter().map(|a| format!("- {}", a)).join("\n"),
+                attendees.iter().map(|a| format!("- {}", a.name)).join("\n"),
             )
             .unwrap(),
         );

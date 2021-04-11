@@ -20,7 +20,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         .ok_or(RoError::Command(CommandError::NoRoGuild))?;
 
     let username = args.username;
-    let user_id = match ctx.bot.roblox.get_id_from_username(&username).await? {
+    let user = match ctx.bot.roblox.get_id_from_username(&username).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -52,9 +52,9 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
     }
 
     let blacklist = Blacklist {
-        id: user_id.to_string(),
+        id: user.id.0.to_string(),
         reason,
-        blacklist_type: BlacklistType::Name(user_id.to_string()),
+        blacklist_type: BlacklistType::Name(user.id.0.to_string()),
     };
     let blacklist_bson = to_bson(&blacklist)?;
     let filter = doc! {"_id": guild.id};

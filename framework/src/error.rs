@@ -1,5 +1,5 @@
 use patreon::PatreonError;
-use roblox::RobloxError;
+use roblox::error::Error as RobloxError;
 use rowifi_database::error::{DatabaseError, SerializationError};
 use std::{
     error::Error as StdError,

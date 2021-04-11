@@ -60,6 +60,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
             return Ok(());
         }
     };
+    let roblox_id = roblox_id.id.0 as i64;
 
     if !user.alts.contains(&roblox_id) && user.roblox_id != roblox_id {
         let e = EmbedBuilder::new()
@@ -162,6 +163,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
             return Ok(());
         }
     };
+    let roblox_id = roblox_id.id.0 as i64;
 
     let account_index = match user.alts.iter().position(|r| *r == roblox_id) {
         Some(i) => i,
@@ -264,6 +266,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
             return Ok(());
         }
     };
+    let roblox_id = roblox_id.id.0 as i64;
 
     let account_index = match user.alts.iter().position(|r| *r == roblox_id) {
         Some(i) => i,

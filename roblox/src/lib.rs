@@ -6,22 +6,28 @@
     clippy::must_use_candidate
 )]
 
-mod error;
-mod models;
+pub mod error;
+pub mod models;
 
 use body::Buf;
 use hyper::{
     body,
     client::HttpConnector,
     header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE},
-    Body, Client as HyperClient, Method, Request,
+    Body, Client as HyperClient, Method, Request, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use std::result::Result as StdResult;
 
 use error::Error;
-use models::{group::GroupUserRole, user::PartialUser, VecWrapper};
+use models::{
+    asset::Asset,
+    group::{Group, GroupUserRole},
+    id::{AssetId, GroupId, UserId},
+    user::{PartialUser, User},
+    VecWrapper,
+};
 
 type Result<T> = StdResult<T, Error>;
 
@@ -57,7 +63,9 @@ impl Client {
         let res = self.client.request(req).await?;
 
         let status = res.status();
-        if !status.is_success() {}
+        if !status.is_success() {
+            return Err(Error::APIError(status));
+        }
 
         let mut buf = body::aggregate(res.into_body()).await?;
         let mut bytes = vec![0; buf.remaining()];
@@ -67,10 +75,10 @@ impl Client {
         Ok(result)
     }
 
-    pub async fn get_user_roles(&self, user_id: u64) -> Result<Vec<GroupUserRole>> {
+    pub async fn get_user_roles(&self, user_id: UserId) -> Result<Vec<GroupUserRole>> {
         let url = format!(
             "https://groups.roblox.com/v2/users/{}/groups/roles",
-            user_id
+            user_id.0
         );
         let user_roles = self
             .request::<VecWrapper<GroupUserRole>>(&url, Method::GET, None)
@@ -90,6 +98,48 @@ impl Client {
             .into_iter();
         match ids.next() {
             Some(u) => Ok(Some(u)),
+            None => Ok(None),
+        }
+    }
+
+    pub async fn get_user(&self, user_id: UserId) -> Result<User> {
+        let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
+        let user = self.request::<User>(&url, Method::GET, None).await?;
+        Ok(user)
+    }
+
+    pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {
+        let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id.0);
+        let group = self.request::<Group>(&url, Method::GET, None).await;
+        match group {
+            Ok(g) => Ok(Some(g)),
+            Err(Error::APIError(status_code)) => {
+                if status_code == StatusCode::BAD_REQUEST {
+                    return Ok(None);
+                }
+                Err(Error::APIError(status_code))
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    pub async fn get_asset(
+        &self,
+        user_id: UserId,
+        asset_id: AssetId,
+        asset_type: &str,
+    ) -> Result<Option<Asset>> {
+        let url = format!(
+            "https://inventory.roblox.com/v1/users/{}/items/{}/{}",
+            user_id.0, asset_type, asset_id.0
+        );
+        let mut assets = self
+            .request::<VecWrapper<Asset>>(&url, Method::GET, None)
+            .await?
+            .data
+            .into_iter();
+        match assets.next() {
+            Some(a) => Ok(Some(a)),
             None => Ok(None),
         }
     }

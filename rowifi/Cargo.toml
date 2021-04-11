@@ -24,7 +24,7 @@ prometheus = "0"
 rand = "0.8"
 regex = "1"
 reqwest = { version = "0", default-features = false, features = ["json", "rustls-tls"] }
-roblox = { branch = "main", git = "https://github.com/AsianIntel/roblox" }
+roblox = { path = "../roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-framework = { path = '../framework' }

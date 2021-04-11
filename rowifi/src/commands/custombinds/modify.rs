@@ -1,9 +1,11 @@
 use mongodb::bson::doc;
+use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     guild::RoGuild,
     rolang::{RoCommand, RoCommandUser},
 };
+use std::collections::HashMap;
 use twilight_model::id::GuildId;
 
 #[derive(FromArgs)]
@@ -169,18 +171,27 @@ async fn modify_code<'a>(
             return Ok(None);
         }
     };
+
+    let user_id = RobloxUserId(user.roblox_id as u64);
     let member = ctx
         .member(ctx.guild_id.unwrap(), ctx.author.id.0)
         .await?
         .unwrap();
-    let ranks = ctx.bot.roblox.get_user_roles(user.roblox_id).await?;
-    let username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
+    let ranks = ctx
+        .bot
+        .roblox
+        .get_user_roles(user_id)
+        .await?
+        .iter()
+        .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
+        .collect::<HashMap<_, _>>();
+    let roblox_user = ctx.bot.roblox.get_user(user_id).await?;
 
     let command_user = RoCommandUser {
         user: &user,
         roles: &member.roles,
         ranks: &ranks,
-        username: &username,
+        username: &roblox_user.name,
     };
     let command = match RoCommand::new(code) {
         Ok(c) => c,

@@ -2,7 +2,10 @@ use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
 use itertools::Itertools;
 use patreon::Client as Patreon;
-use roblox::Client as Roblox;
+use roblox::{
+    models::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
+    Client as Roblox,
+};
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
 use rowifi_models::{
@@ -208,13 +211,20 @@ impl BotContext {
             added_roles.push(verified_role);
         }
 
-        let user_roles = self.roblox.get_user_roles(user.roblox_id).await?;
-        let username = self.roblox.get_username_from_id(user.roblox_id).await?;
+        let user_id = RobloxUserId(user.roblox_id as u64);
+        let user_roles = self
+            .roblox
+            .get_user_roles(user_id)
+            .await?
+            .iter()
+            .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
+            .collect::<HashMap<_, _>>();
+        let roblox_user = self.roblox.get_user(user_id).await?;
         let command_user = RoCommandUser {
             user: &user,
             roles: &member.roles,
             ranks: &user_roles,
-            username: &username,
+            username: &roblox_user.name,
         };
 
         if !guild.blacklists.is_empty() {
@@ -290,8 +300,13 @@ impl BotContext {
         for a in &guild.assetbinds {
             if self
                 .roblox
-                .has_asset(user.roblox_id, a.id, &a.asset_type.to_string())
+                .get_asset(
+                    user_id,
+                    RobloxAssetId(a.id as u64),
+                    &a.asset_type.to_string(),
+                )
                 .await?
+                .is_some()
             {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < a.priority() {
@@ -329,8 +344,8 @@ impl BotContext {
             discord_nick.to_string()
         } else {
             nick_bind.map_or_else(
-                || username.to_string(),
-                |nick_bind| nick_bind.nickname(&username, &user, discord_nick),
+                || roblox_user.name.to_string(),
+                |nick_bind| nick_bind.nickname(&roblox_user.name, &user, discord_nick),
             )
         };
 
