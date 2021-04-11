@@ -162,7 +162,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         event_type: event_type_id,
         guild_event_id: guild.event_counter + 1,
         host_id: user.roblox_id,
-        attendees,
+        attendees: attendees.iter().map(|a| a.id.0 as i64).collect(),
         timestamp: DateTime {
             0: chrono::Utc::now(),
         },

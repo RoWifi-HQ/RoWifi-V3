@@ -2,6 +2,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use mongodb::bson::{doc, to_bson};
 use regex::Regex;
+use roblox::models::{group::PartialRole, id::GroupId};
 use rowifi_framework::prelude::*;
 use rowifi_models::{bind::RankBind, guild::RoGuild};
 use twilight_embed_builder::EmbedFieldBuilder;
@@ -157,7 +158,7 @@ async fn single_rank(
         return Ok(());
     }
 
-    let roblox_rank = match ctx.bot.roblox.get_group_rank(group_id, rank_id).await? {
+    let roblox_rank = match get_group_rank(&ctx, GroupId(group_id as u64), rank_id).await? {
         Some(r) => r,
         None => {
             let embed = EmbedBuilder::new()
@@ -184,7 +185,7 @@ async fn single_rank(
     };
 
     if prefix.eq("auto") {
-        prefix = match PREFIX_REGEX.captures(roblox_rank["name"].as_str().unwrap()) {
+        prefix = match PREFIX_REGEX.captures(&roblox_rank.name) {
             Some(m) => format!("[{}]", m.get(1).unwrap().as_str()),
             None => "N/A".into(),
         };
@@ -193,7 +194,7 @@ async fn single_rank(
     let bind = RankBind {
         group_id,
         rank_id,
-        rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
+        rbx_rank_id: roblox_rank.id.0 as i64,
         prefix: Some(prefix.clone()),
         priority,
         discord_roles: roles,
@@ -240,30 +241,30 @@ async fn single_rank_with_auto(
         return Ok(());
     }
 
-    let roblox_rank = match ctx.bot.roblox.get_group_rank(group_id, rank_id).await? {
+    let roblox_rank = match get_group_rank(&ctx, GroupId(group_id as u64), rank_id).await? {
         Some(r) => r,
         None => return Ok(()),
     };
 
     if prefix.eq("auto") {
-        prefix = match PREFIX_REGEX.captures(roblox_rank["name"].as_str().unwrap()) {
+        prefix = match PREFIX_REGEX.captures(&roblox_rank.name) {
             Some(m) => format!("[{}]", m.get(1).unwrap().as_str()),
             None => "N/A".into(),
         };
     }
 
     let server_roles = ctx.bot.cache.guild_roles(ctx.guild_id.unwrap());
-    let role = match server_roles.iter().find(|r| {
-        r.name
-            .eq_ignore_ascii_case(roblox_rank["name"].as_str().unwrap())
-    }) {
+    let role = match server_roles
+        .iter()
+        .find(|r| r.name.eq_ignore_ascii_case(&roblox_rank.name))
+    {
         Some(r) => r.id.0 as i64,
         None => {
             let new_role = ctx
                 .bot
                 .http
                 .create_role(ctx.guild_id.unwrap())
-                .name(roblox_rank["name"].as_str().unwrap())
+                .name(roblox_rank.name)
                 .await?;
             new_role.id.0 as i64
         }
@@ -272,7 +273,7 @@ async fn single_rank_with_auto(
     let bind = RankBind {
         group_id,
         rank_id,
-        rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
+        rbx_rank_id: roblox_rank.id.0 as i64,
         prefix: Some(prefix.clone()),
         priority,
         discord_roles,
@@ -294,11 +295,7 @@ async fn multiple_rank(
     priority: i64,
     roles: Vec<i64>,
 ) -> Result<(), RoError> {
-    let roblox_ranks = ctx
-        .bot
-        .roblox
-        .get_group_ranks(group_id, min_rank, max_rank)
-        .await?;
+    let roblox_ranks = get_group_ranks(&ctx, GroupId(group_id as u64), min_rank, max_rank).await?;
     if roblox_ranks.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -324,16 +321,16 @@ async fn multiple_rank(
     for roblox_rank in roblox_ranks {
         let mut prefix_to_set = prefix.to_string();
         if prefix.eq("auto") {
-            prefix_to_set = match PREFIX_REGEX.captures(roblox_rank["name"].as_str().unwrap()) {
+            prefix_to_set = match PREFIX_REGEX.captures(&roblox_rank.name) {
                 Some(m) => format!("[{}]", m.get(1).unwrap().as_str()),
                 None => "N/A".into(),
             };
         }
-        let rank_id = roblox_rank["rank"].as_i64().unwrap();
+        let rank_id = roblox_rank.rank as i64;
         let bind = RankBind {
             group_id,
             rank_id,
-            rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
+            rbx_rank_id: roblox_rank.id.0 as i64,
             prefix: Some(prefix_to_set.clone()),
             priority,
             discord_roles: roles.clone(),
@@ -396,11 +393,7 @@ async fn multiple_rank_with_auto(
     prefix: &str,
     priority: i64,
 ) -> Result<(), RoError> {
-    let roblox_ranks = ctx
-        .bot
-        .roblox
-        .get_group_ranks(group_id, min_rank, max_rank)
-        .await?;
+    let roblox_ranks = get_group_ranks(&ctx, GroupId(group_id as u64), min_rank, max_rank).await?;
     if roblox_ranks.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -426,25 +419,25 @@ async fn multiple_rank_with_auto(
     for roblox_rank in roblox_ranks {
         let mut prefix_to_set = prefix.to_string();
         if prefix.eq("auto") {
-            prefix_to_set = match PREFIX_REGEX.captures(roblox_rank["name"].as_str().unwrap()) {
+            prefix_to_set = match PREFIX_REGEX.captures(&roblox_rank.name) {
                 Some(m) => format!("[{}]", m.get(1).unwrap().as_str()),
                 None => "N/A".into(),
             };
         }
-        let rank_id = roblox_rank["rank"].as_i64().unwrap();
+        let rank_id = roblox_rank.rank as i64;
 
         let server_roles = ctx.bot.cache.guild_roles(ctx.guild_id.unwrap());
-        let role = match server_roles.iter().find(|r| {
-            r.name
-                .eq_ignore_ascii_case(roblox_rank["name"].as_str().unwrap())
-        }) {
+        let role = match server_roles
+            .iter()
+            .find(|r| r.name.eq_ignore_ascii_case(&roblox_rank.name))
+        {
             Some(r) => r.id.0 as i64,
             None => {
                 let new_role = ctx
                     .bot
                     .http
                     .create_role(ctx.guild_id.unwrap())
-                    .name(roblox_rank["name"].as_str().unwrap())
+                    .name(roblox_rank.name)
                     .await?;
                 new_role.id.0 as i64
             }
@@ -453,7 +446,7 @@ async fn multiple_rank_with_auto(
         let bind = RankBind {
             group_id,
             rank_id,
-            rbx_rank_id: roblox_rank["id"].as_i64().unwrap(),
+            rbx_rank_id: roblox_rank.id.0 as i64,
             prefix: Some(prefix_to_set.clone()),
             priority,
             discord_roles,
@@ -579,4 +572,33 @@ fn extract_ids(rank_str: &str) -> Option<(i64, i64)> {
         }
     }
     None
+}
+
+async fn get_group_rank(
+    ctx: &CommandContext,
+    group_id: GroupId,
+    rank_id: i64,
+) -> Result<Option<PartialRole>, RoError> {
+    let group = ctx.bot.roblox.get_group_ranks(group_id).await?;
+    match group {
+        None => Ok(None),
+        Some(g) => Ok(g.roles.into_iter().find(|r| r.rank as i64 == rank_id)),
+    }
+}
+
+async fn get_group_ranks(
+    ctx: &CommandContext,
+    group_id: GroupId,
+    min_rank: i64,
+    max_rank: i64,
+) -> Result<Vec<PartialRole>, RoError> {
+    let group = ctx.bot.roblox.get_group_ranks(group_id).await?;
+    match group {
+        None => Ok(Vec::new()),
+        Some(g) => Ok(g
+            .roles
+            .into_iter()
+            .filter(|r| r.rank as i64 >= min_rank && r.rank as i64 <= max_rank)
+            .collect()),
+    }
 }

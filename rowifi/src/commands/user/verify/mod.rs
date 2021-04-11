@@ -1,5 +1,6 @@
 mod manage;
 
+use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use rowifi_models::user::QueueUser;
 
@@ -144,6 +145,7 @@ pub async fn verify_common(
             return Ok(());
         }
     };
+    let roblox_id = roblox_id.id.0 as i64;
 
     let game_url = "https://www.roblox.com/games/5146847848/Verification-Center";
     let e = EmbedBuilder::new()
@@ -219,8 +221,12 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
 
     let mut acc_string = String::new();
 
-    let main_username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
-    acc_string.push_str(&main_username);
+    let main_user = ctx
+        .bot
+        .roblox
+        .get_user(RobloxUserId(user.roblox_id as u64))
+        .await?;
+    acc_string.push_str(&main_user.name);
     acc_string.push_str(" - `Default`");
     if let Some(linked_user) = &linked_user {
         if linked_user.roblox_id == user.roblox_id {
@@ -231,8 +237,8 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
     }
     acc_string.push('\n');
     for alt in &user.alts {
-        let username = ctx.bot.roblox.get_username_from_id(*alt).await?;
-        acc_string.push_str(&username);
+        let user = ctx.bot.roblox.get_user(RobloxUserId(*alt as u64)).await?;
+        acc_string.push_str(&user.name);
         if let Some(linked_user) = &linked_user {
             if linked_user.roblox_id == *alt {
                 acc_string.push_str(" - `This Server`");

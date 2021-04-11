@@ -1864,15 +1864,6 @@ dependencies = [
 [[package]]
 name = "roblox"
 version = "0.1.0"
-source = "git+https://github.com/AsianIntel/roblox?branch=main#3dd1dda05379a58b3420a40838bf2c4010a47cb3"
-dependencies = [
- "reqwest",
- "serde_json",
-]
-
-[[package]]
-name = "roblox"
-version = "0.1.0"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -1903,7 +1894,7 @@ dependencies = [
  "rand 0.8.3",
  "regex",
  "reqwest",
- "roblox 0.1.0 (git+https://github.com/AsianIntel/roblox?branch=main)",
+ "roblox",
  "rowifi-cache",
  "rowifi-database",
  "rowifi-framework",
@@ -1955,7 +1946,7 @@ dependencies = [
  "futures",
  "itertools",
  "patreon",
- "roblox 0.1.0 (git+https://github.com/AsianIntel/roblox?branch=main)",
+ "roblox",
  "rowifi-cache",
  "rowifi-database",
  "rowifi-models",

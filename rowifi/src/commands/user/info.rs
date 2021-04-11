@@ -1,3 +1,4 @@
+use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
 use twilight_model::id::{GuildId, UserId};
@@ -35,7 +36,11 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         }
     };
 
-    let username = ctx.bot.roblox.get_username_from_id(user.roblox_id).await?;
+    let roblox_user = ctx
+        .bot
+        .roblox
+        .get_user(RobloxUserId(user.roblox_id as u64))
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -43,13 +48,13 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         .unwrap()
         .description("Profile Information")
         .unwrap()
-        .field(EmbedFieldBuilder::new("Username", username.clone()).unwrap())
+        .field(EmbedFieldBuilder::new("Username", roblox_user.name.clone()).unwrap())
         .field(EmbedFieldBuilder::new("Roblox Id", user.roblox_id.to_string()).unwrap())
         .field(EmbedFieldBuilder::new("Discord Id", user.discord_id.to_string()).unwrap())
         .thumbnail(
             ImageSource::url(format!(
                 "http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}",
-                username
+                roblox_user.name
             ))
             .unwrap(),
         )

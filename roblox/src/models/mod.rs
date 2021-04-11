@@ -1,3 +1,4 @@
+pub mod asset;
 pub mod group;
 pub mod id;
 pub mod user;
