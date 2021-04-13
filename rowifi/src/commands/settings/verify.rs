@@ -18,7 +18,7 @@ pub async fn settings_verification(
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let verification_role = args.role.0;
     let filter = doc! {"_id": guild.id};
@@ -73,7 +73,7 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let verified_role = args.role.0;
     let filter = doc! {"_id": guild.id};

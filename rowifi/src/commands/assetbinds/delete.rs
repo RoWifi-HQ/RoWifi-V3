@@ -14,7 +14,7 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let mut assets_to_delete = Vec::new();
     for arg in args.asset_id.split_ascii_whitespace() {

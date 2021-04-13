@@ -74,7 +74,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let filter = doc! {"_id": guild_id.0};
     let update =
@@ -148,7 +148,7 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let filter = doc! {"_id": guild_id.0};
     let update =

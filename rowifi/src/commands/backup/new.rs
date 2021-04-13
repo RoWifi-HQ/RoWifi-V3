@@ -33,7 +33,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let name = args.name;
     let server_roles = ctx.bot.cache.roles(guild_id);

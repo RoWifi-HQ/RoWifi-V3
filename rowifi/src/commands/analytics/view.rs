@@ -22,7 +22,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         .database
         .get_guild(ctx.guild_id.unwrap().0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()

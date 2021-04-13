@@ -18,7 +18,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(CommandError::NoRoGuild)?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -147,7 +147,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(CommandError::NoRoGuild)?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -276,7 +276,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(CommandError::NoRoGuild)?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()

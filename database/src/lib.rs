@@ -28,8 +28,7 @@ use rowifi_models::{
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
-use std::{collections::HashMap, result::Result as StdResult, sync::Arc, time::Duration};
-use transient_dashmap::TransientDashMap;
+use std::{collections::HashMap, result::Result as StdResult, sync::Arc};
 
 pub use error::DatabaseError;
 
@@ -38,8 +37,6 @@ type Result<T> = StdResult<T, DatabaseError>;
 #[derive(Clone)]
 pub struct Database {
     client: Client,
-    guild_cache: Arc<TransientDashMap<i64, Arc<RoGuild>>>,
-    user_cache: Arc<TransientDashMap<i64, Arc<RoUser>>>,
     redis_pool: RedisPool,
 }
 
@@ -47,12 +44,7 @@ impl Database {
     pub async fn new(conn_string: &str, redis_pool: RedisPool) -> Self {
         let client_options = ClientOptions::parse(conn_string).await.unwrap();
         let client = Client::with_options(client_options).unwrap();
-        Self {
-            client,
-            guild_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
-            user_cache: Arc::new(TransientDashMap::new(Duration::from_secs(6 * 3600))),
-            redis_pool,
-        }
+        Self { client, redis_pool }
     }
 
     pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<()> {
@@ -102,7 +94,10 @@ impl Database {
     }
 
     pub async fn get_guilds(&self, guild_ids: &[u64], premium_only: bool) -> Result<Vec<RoGuild>> {
-        let guilds = self.client.database("RoWifi").collection("guilds");
+        let guilds = self
+            .client
+            .database("RoWifi")
+            .collection::<Document>("guilds");
         let filter = if premium_only {
             doc! {"Settings.AutoDetection": true, "_id": {"$in": guild_ids}}
         } else {
@@ -436,7 +431,10 @@ impl Database {
     }
 
     pub async fn modify_premium(&self, filter: Document, update: Document) -> Result<()> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self
+            .client
+            .database("RoWifi")
+            .collection::<Document>("premium_new");
         let _res = premium
             .find_one_and_update(filter, update, FindOneAndUpdateOptions::default())
             .await?;
@@ -476,7 +474,10 @@ impl Database {
     }
 
     pub async fn get_analytics_membercount(&self, filter: Document) -> Result<Vec<Group>> {
-        let member_count = self.client.database("Analytics").collection("member_count");
+        let member_count = self
+            .client
+            .database("Analytics")
+            .collection::<Document>("member_count");
         let mut cursor = member_count.find(filter, FindOptions::default()).await?;
         let mut result = Vec::<Group>::new();
         while let Some(res) = cursor.next().await {
@@ -511,7 +512,10 @@ impl Database {
     }
 
     pub async fn get_events(&self, pipeline: Vec<Document>) -> Result<Vec<EventLog>> {
-        let events_attendees_collection = self.client.database("Events").collection("Logs");
+        let events_attendees_collection = self
+            .client
+            .database("Events")
+            .collection::<Document>("Logs");
         let mut cursor = events_attendees_collection
             .aggregate(pipeline, None)
             .await?;

@@ -7,7 +7,9 @@
     clippy::non_ascii_literal,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_lossless
 )]
 
 pub mod arguments;

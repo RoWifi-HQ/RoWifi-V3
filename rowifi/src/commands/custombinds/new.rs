@@ -22,7 +22,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let code = args.code;
 

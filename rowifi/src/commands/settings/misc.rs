@@ -22,7 +22,7 @@ pub async fn blacklist_action(
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let bl_type = args.option;
     let filter = doc! {"_id": guild.id};
@@ -79,7 +79,7 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let option = args.option;
     let (update, desc, add) = match option {
@@ -136,7 +136,7 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let prefix = args.prefix;
     let filter = doc! {"_id": guild.id};

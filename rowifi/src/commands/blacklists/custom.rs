@@ -23,7 +23,7 @@ pub async fn blacklist_custom(
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let code = args.code;
     if code.is_empty() {
