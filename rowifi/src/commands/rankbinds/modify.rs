@@ -32,7 +32,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let group_id = args.group_id;
     let rank_id = args.rank_id;

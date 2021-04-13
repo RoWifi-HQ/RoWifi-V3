@@ -66,7 +66,7 @@ pub async fn blacklist(ctx: CommandContext, _args: BlacklistViewArguments) -> Co
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.blacklists.is_empty() {
         let e = EmbedBuilder::new()

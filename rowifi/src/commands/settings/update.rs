@@ -16,7 +16,7 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let option = args.option;
     let (option, desc) = match option {

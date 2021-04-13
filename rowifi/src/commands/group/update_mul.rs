@@ -17,7 +17,7 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -137,7 +137,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()

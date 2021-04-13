@@ -6,7 +6,8 @@
     clippy::missing_errors_doc,
     clippy::manual_find_map,
     clippy::implicit_hasher,
-    clippy::missing_panics_doc
+    clippy::missing_panics_doc,
+    clippy::explicit_deref_methods
 )]
 
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};

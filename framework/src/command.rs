@@ -13,7 +13,7 @@ use twilight_model::applications::interaction::CommandDataOption;
 use crate::{
     arguments::{ArgumentError, Arguments, FromArgs},
     context::CommandContext,
-    error::{CommandError, RoError},
+    error::{CommandError, CommonError, RoError},
     handler::{CommandHandler, Handler},
     prelude::{Color, EmbedExtensions},
     utils::RoLevel,
@@ -294,10 +294,31 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .await;
             }
-            CommandError::NoRoGuild => {
+        },
+        RoError::Common(err) => match err {
+            CommonError::UnknownGuild => {
                 let embed = EmbedBuilder::new()
-                    .default_data().title("Command Failure").unwrap().color(Color::Red as u32).unwrap()
-                    .description("This server has not been set up. Please ask the server owner to do so using `!setup`").unwrap().build().unwrap();
+                        .default_data().title("Command Failure").unwrap().color(Color::Red as u32).unwrap()
+                        .description("This server has not been set up. Please ask the server owner to do so using `!setup`").unwrap().build().unwrap();
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(ctx.channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
+            CommonError::UnknownMember => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Command Failure")
+                    .unwrap()
+                    .description("User was not verified. Please ask them to verify themselves")
+                    .unwrap()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .build()
+                    .unwrap();
                 let _ = ctx
                     .bot
                     .http
@@ -307,7 +328,6 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .await;
             }
         },
-
         _ => {
             tracing::error!(err = ?err);
             let _ = ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().await;

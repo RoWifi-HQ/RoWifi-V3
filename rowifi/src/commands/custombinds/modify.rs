@@ -39,7 +39,7 @@ pub async fn custombinds_modify(
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let field = args.option;
     let bind_id = args.id;

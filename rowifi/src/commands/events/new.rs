@@ -14,7 +14,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(CommandError::NoRoGuild)?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()

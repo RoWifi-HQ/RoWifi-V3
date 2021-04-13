@@ -1,5 +1,5 @@
 use hyper::{http::Error as HttpError, Error as HyperError, StatusCode};
-use rowifi_redis::{PoolError, redis::RedisError};
+use rowifi_redis::{redis::RedisError, PoolError};
 use serde_json::Error as SerdeError;
 
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub enum Error {
     Request(HyperError),
     Parsing(SerdeError),
     APIError(StatusCode),
-    Redis(PoolError<RedisError>)
+    Redis(PoolError<RedisError>),
 }
 
 impl From<HttpError> for Error {

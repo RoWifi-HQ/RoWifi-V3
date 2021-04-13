@@ -17,7 +17,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let group_id = args.group_id;
     let mut reason = args.reason;

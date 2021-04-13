@@ -62,7 +62,7 @@ pub async fn custombinds_view(
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     if guild.custombinds.is_empty() {
         let e = EmbedBuilder::new()

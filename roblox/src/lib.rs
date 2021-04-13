@@ -3,20 +3,22 @@
     clippy::module_name_repetitions,
     clippy::similar_names,
     clippy::missing_errors_doc,
-    clippy::must_use_candidate
+    clippy::must_use_candidate,
+    clippy::pub_enum_variant_names,
+    clippy::let_unit_value
 )]
 
 pub mod error;
 pub mod models;
 
 use hyper::{
-    body::{Buf, self},
+    body::{self, Buf},
     client::HttpConnector,
     header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE},
     Body, Client as HyperClient, Method, Request, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
-use rowifi_redis::{RedisPool, redis::AsyncCommands};
+use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use serde::de::DeserializeOwned;
 use std::result::Result as StdResult;
 
@@ -34,17 +36,14 @@ type Result<T> = StdResult<T, Error>;
 #[derive(Clone)]
 pub struct Client {
     client: HyperClient<HttpsConnector<HttpConnector>>,
-    redis_pool: RedisPool
+    redis_pool: RedisPool,
 }
 
 impl Client {
     pub fn new(redis_pool: RedisPool) -> Self {
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
-        Self { 
-            client,
-            redis_pool
-        }
+        Self { client, redis_pool }
     }
 
     pub async fn request<T: DeserializeOwned>(
@@ -110,14 +109,13 @@ impl Client {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
         let user: Option<User> = conn.get(&key).await?;
-        match user {
-            Some(u) => Ok(u),
-            None => {
-                let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
-                let user = self.request::<User>(&url, Method::GET, None).await?;
-                let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
-                Ok(user)
-            }
+        if let Some(u) = user {
+            Ok(u)
+        } else {
+            let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
+            let user = self.request::<User>(&url, Method::GET, None).await?;
+            let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+            Ok(user)
         }
     }
 

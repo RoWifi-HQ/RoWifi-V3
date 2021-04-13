@@ -11,7 +11,7 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(RoError::Command(CommandError::NoRoGuild))?;
+        .ok_or(CommonError::UnknownGuild)?;
 
     let embed = EmbedBuilder::new()
         .default_data()

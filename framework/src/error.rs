@@ -15,8 +15,13 @@ pub enum CommandError {
     Timeout,
     Blacklist(String),
     Miscellanous(String),
-    NoRoGuild,
     Ratelimit(Duration),
+}
+
+#[derive(Debug)]
+pub enum CommonError {
+    UnknownGuild,
+    UnknownMember,
 }
 
 #[derive(Debug)]
@@ -27,6 +32,7 @@ pub enum RoError {
     Discord(DiscordHttpError),
     Patreon(PatreonError),
     Command(CommandError),
+    Common(CommonError),
 }
 
 impl From<ArgumentError> for RoError {
@@ -44,6 +50,7 @@ impl Display for RoError {
             RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
             RoError::Argument(err) => write!(f, "Argument Error - {:?}", err),
             RoError::Command(err) => write!(f, "Command Error - {:?}", err),
+            RoError::Common(err) => write!(f, "Common Error - {:?}", err),
         }
     }
 }
@@ -81,6 +88,12 @@ impl From<SerializationError> for RoError {
 impl From<CommandError> for RoError {
     fn from(err: CommandError) -> Self {
         RoError::Command(err)
+    }
+}
+
+impl From<CommonError> for RoError {
+    fn from(err: CommonError) -> Self {
+        RoError::Common(err)
     }
 }
 
