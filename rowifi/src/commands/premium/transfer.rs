@@ -25,12 +25,7 @@ pub async fn premium_transfer(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
         let to_transfer_id = match args.user_id {
@@ -46,12 +41,7 @@ pub async fn premium_transfer(
                     .unwrap()
                     .build()
                     .unwrap();
-                ctx.bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await?;
+                ctx.respond().embed(embed).await?;
                 return Ok(());
             }
         };
@@ -72,12 +62,7 @@ pub async fn premium_transfer(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
 
@@ -103,12 +88,7 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
     } else if let Some(transferred_premium_user) = ctx
         .bot
         .database
@@ -138,12 +118,7 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
     } else {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -155,12 +130,7 @@ pub async fn premium_transfer(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
     }
     Ok(())
 }

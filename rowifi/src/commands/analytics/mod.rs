@@ -65,12 +65,7 @@ pub async fn analytics_config_view(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -85,12 +80,7 @@ pub async fn analytics_config_view(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -108,11 +98,6 @@ pub async fn analytics_config_view(
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }

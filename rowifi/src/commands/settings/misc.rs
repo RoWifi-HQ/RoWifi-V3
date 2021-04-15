@@ -42,12 +42,7 @@ pub async fn blacklist_action(
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -108,12 +103,7 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     if add {
         ctx.bot.disabled_channels.insert(ctx.channel_id);
@@ -156,12 +146,7 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     ctx.bot.prefixes.insert(guild_id, prefix);
     Ok(())

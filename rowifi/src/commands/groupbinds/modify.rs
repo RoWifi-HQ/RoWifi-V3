@@ -48,11 +48,7 @@ pub async fn groupbinds_modify(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap();
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -88,7 +84,7 @@ pub async fn groupbinds_modify(
         }
     };
 
-    let e = EmbedBuilder::new()
+    let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
         .unwrap()
@@ -99,12 +95,7 @@ pub async fn groupbinds_modify(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(e)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

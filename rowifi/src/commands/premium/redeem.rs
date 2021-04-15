@@ -16,12 +16,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
                 .title("Premium Redeem Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -38,12 +33,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -60,12 +50,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     }
@@ -97,12 +82,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let req = RequestGuildMembers::builder(server.id).query("", None);
     let total_shards = env::var("TOTAL_SHARDS").unwrap().parse::<u64>().unwrap();
@@ -120,12 +100,7 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
                 .title("Premium Disable Failed").unwrap()
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
                 .build().unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -135,12 +110,7 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
             .title("Premium Disable Failed").unwrap()
             .description("This server either does not have premium enabled or the premium is owned by an another member").unwrap()
             .build().unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -170,12 +140,7 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     Ok(())
 }

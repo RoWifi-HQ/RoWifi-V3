@@ -33,12 +33,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -55,12 +50,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -79,12 +69,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     }
@@ -102,12 +87,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -148,12 +128,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .build()
                         .unwrap();
-                    ctx.bot
-                        .http
-                        .create_message(ctx.channel_id)
-                        .embed(embed)
-                        .unwrap()
-                        .await?;
+                    ctx.respond().embed(embed).await?;
                     return Ok(());
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
@@ -168,12 +143,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .unwrap()
                     .build()
                     .unwrap();
-                ctx.bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await?;
+                ctx.respond().embed(embed).await?;
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
                     ctx.bot
                         .http
@@ -202,22 +172,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )
         .build()
         .unwrap();
-    if let Some(interaction_token) = &ctx.interaction_token {
-        ctx.bot
-            .http
-            .update_interaction_original(interaction_token)
-            .unwrap()
-            .embeds(Some(vec![embed]))
-            .unwrap()
-            .await?;
-    } else {
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
-    }
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

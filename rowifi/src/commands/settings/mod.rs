@@ -128,12 +128,7 @@ pub async fn settings_view(ctx: CommandContext, _args: SettingsViewArguments) ->
         .build()
         .unwrap();
 
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
 

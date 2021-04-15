@@ -33,12 +33,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -80,12 +75,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()).unwrap())
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

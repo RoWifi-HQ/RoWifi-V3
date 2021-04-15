@@ -203,13 +203,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
                     master_name, usage.0, name, usage.1
                 );
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .content(content)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().content(content).await;
             }
             ArgumentError::ParseError {
                 expected,
@@ -220,13 +214,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
                     master_name, usage.0, name, expected, usage.1
                 );
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .content(content)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().content(content).await;
             }
             ArgumentError::BadArgument => {
                 //This shouldn't be happening but still report it to the user
@@ -245,13 +233,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().embed(embed).await;
             }
             CommandError::Timeout => {
                 let embed = EmbedBuilder::new()
@@ -260,17 +242,11 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .color(Color::Red as u32)
                     .unwrap()
-                    .description("Timeout reached. Please try again")
+                    .description("Command cancelled. Please try again")
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().embed(embed).await;
             }
             CommandError::Ratelimit(ref d) => {
                 let embed = EmbedBuilder::new()
@@ -286,27 +262,22 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().embed(embed).await;
             }
         },
         RoError::Common(err) => match err {
             CommonError::UnknownGuild => {
                 let embed = EmbedBuilder::new()
-                        .default_data().title("Command Failure").unwrap().color(Color::Red as u32).unwrap()
-                        .description("This server has not been set up. Please ask the server owner to do so using `!setup`").unwrap().build().unwrap();
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await;
+                        .default_data()
+                        .title("Command Failure")
+                        .unwrap()
+                        .color(Color::Red as u32)
+                        .unwrap()
+                        .description("This server has not been set up. Please ask the server owner to do so using `!setup`")
+                        .unwrap()
+                        .build()
+                        .unwrap();
+                let _ = ctx.respond().embed(embed).await;
             }
             CommonError::UnknownMember => {
                 let embed = EmbedBuilder::new()
@@ -319,18 +290,12 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .unwrap()
                     .build()
                     .unwrap();
-                let _ = ctx
-                    .bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await;
+                let _ = ctx.respond().embed(embed).await;
             }
         },
         _ => {
             tracing::error!(err = ?err);
-            let _ = ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().await;
+            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").await;
             let content = format!(
                 "```Guild Id: {:?}\n Cluster Id: {}\nError: {:?}```",
                 ctx.guild_id, ctx.bot.cluster_id, err

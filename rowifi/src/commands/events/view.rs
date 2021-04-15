@@ -31,12 +31,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -54,12 +49,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                     .unwrap()
                     .build()
                     .unwrap();
-                ctx.bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await?;
+                ctx.respond().embed(embed).await?;
                 return Ok(());
             }
         },
@@ -78,12 +68,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                         .unwrap()
                         .build()
                         .unwrap();
-                    ctx.bot
-                        .http
-                        .create_message(ctx.channel_id)
-                        .embed(embed)
-                        .unwrap()
-                        .await?;
+                    ctx.respond().embed(embed).await?;
                     return Ok(());
                 }
             }
@@ -124,13 +109,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline());
     }
 
-    let embed = embed.build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
 }
 
@@ -160,12 +139,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -183,12 +157,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                     .unwrap()
                     .build()
                     .unwrap();
-                ctx.bot
-                    .http
-                    .create_message(ctx.channel_id)
-                    .embed(embed)
-                    .unwrap()
-                    .await?;
+                ctx.respond().embed(embed).await?;
                 return Ok(());
             }
         },
@@ -207,12 +176,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                         .unwrap()
                         .build()
                         .unwrap();
-                    ctx.bot
-                        .http
-                        .create_message(ctx.channel_id)
-                        .embed(embed)
-                        .unwrap()
-                        .await?;
+                    ctx.respond().embed(embed).await?;
                     return Ok(());
                 }
             }
@@ -252,14 +216,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline());
     }
 
-    let embed = embed.build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
-
+    ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
 }
 
@@ -289,12 +246,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -312,12 +264,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -364,13 +311,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         embed = embed
             .field(EmbedFieldBuilder::new("Notes", String::from_utf8(plaintext).unwrap()).unwrap());
     }
-    let embed = embed.build().unwrap();
 
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
 }

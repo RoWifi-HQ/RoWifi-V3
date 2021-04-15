@@ -17,12 +17,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -47,12 +42,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -68,11 +58,8 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     let guild = RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles).await;
     ctx.bot.database.add_guild(guild, existing).await?;
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
+    ctx.respond()
         .content("Backup successfully restored")
-        .unwrap()
         .await?;
     Ok(())
 }

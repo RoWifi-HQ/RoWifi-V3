@@ -17,12 +17,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -47,11 +42,8 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
 
     let backup = guild.to_backup(ctx.author.id.0 as i64, &name, &roles);
     ctx.bot.database.add_backup(backup, &name).await?;
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
+    ctx.respond()
         .content(format!("New backup with {} was created", name))
-        .unwrap()
         .await?;
     Ok(())
 }

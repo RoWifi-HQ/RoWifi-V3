@@ -85,13 +85,7 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
             .field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())
             .field(EmbedFieldBuilder::new("Perks", "None").unwrap());
     }
-    let embed = embed.build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed.build().unwrap()).await?;
 
     Ok(())
 }

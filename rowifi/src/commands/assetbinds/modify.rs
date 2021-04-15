@@ -36,7 +36,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
     let bind = match guild.assetbinds.iter().find(|a| a.id == asset_id) {
         Some(a) => a,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .unwrap()
@@ -46,12 +46,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(e)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -105,12 +100,8 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
+
     let log_embed = log_embed
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()

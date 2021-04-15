@@ -24,12 +24,7 @@ pub async fn event_type(ctx: CommandContext, _args: EventArguments) -> CommandRe
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -42,13 +37,7 @@ pub async fn event_type(ctx: CommandContext, _args: EventArguments) -> CommandRe
         let value = format!("Name: {}", event_type.name);
         embed = embed.field(EmbedFieldBuilder::new(name, value).unwrap().inline());
     }
-    let embed = embed.build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
 }
 
@@ -80,12 +69,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -97,12 +81,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             .title("Event Type Addition Failed").unwrap()
             .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id)).unwrap()
             .build().unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -132,12 +111,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
 
@@ -161,12 +135,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -185,12 +154,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -212,11 +176,6 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         .field(EmbedFieldBuilder::new(name, desc).unwrap())
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }

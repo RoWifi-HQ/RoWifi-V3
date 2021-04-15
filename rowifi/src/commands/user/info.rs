@@ -60,12 +60,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
 
@@ -118,12 +113,7 @@ pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandRes
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
 
@@ -165,11 +155,6 @@ pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandRes
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
