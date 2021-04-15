@@ -32,12 +32,7 @@ pub async fn blacklist_delete(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -45,7 +40,7 @@ pub async fn blacklist_delete(
     let update = doc! {"$pull": {"Blacklists": {"_id": id}}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
-    let e = EmbedBuilder::new()
+    let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
         .unwrap()
@@ -55,12 +50,7 @@ pub async fn blacklist_delete(
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(e)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let blacklist = blacklist.unwrap();
     let name = format!("Type: {:?}", blacklist.blacklist_type);

@@ -52,12 +52,7 @@ pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResul
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -73,11 +68,6 @@ pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResul
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val).unwrap());
     }
 
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed.build().unwrap())
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
 }

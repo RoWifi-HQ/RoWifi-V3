@@ -37,12 +37,7 @@ pub async fn blacklist_custom(
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
     let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
@@ -58,12 +53,7 @@ pub async fn blacklist_custom(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -88,22 +78,12 @@ pub async fn blacklist_custom(
     let command = match RoCommand::new(&code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .content(s)
-                .unwrap()
-                .await?;
+            ctx.respond().content(s).await?;
             return Ok(());
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .content(res)
-            .unwrap()
-            .await?;
+        ctx.respond().content(res).await?;
         return Ok(());
     }
     let reason = await_reply("Enter the reason of this blacklist.", &ctx).await?;
@@ -130,12 +110,7 @@ pub async fn blacklist_custom(
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

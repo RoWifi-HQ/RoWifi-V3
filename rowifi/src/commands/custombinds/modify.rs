@@ -56,12 +56,7 @@ pub async fn custombinds_modify(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };
@@ -109,7 +104,7 @@ pub async fn custombinds_modify(
         }
     };
 
-    let e = EmbedBuilder::new()
+    let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
         .unwrap()
@@ -120,12 +115,7 @@ pub async fn custombinds_modify(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(e)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -162,12 +152,7 @@ async fn modify_code<'a>(
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(None);
         }
     };
@@ -196,22 +181,12 @@ async fn modify_code<'a>(
     let command = match RoCommand::new(code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .content(s)
-                .unwrap()
-                .await?;
+            ctx.respond().content(s).await?;
             return Ok(None);
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .content(res)
-            .unwrap()
-            .await?;
+        ctx.respond().content(res).await?;
         return Ok(None);
     }
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};

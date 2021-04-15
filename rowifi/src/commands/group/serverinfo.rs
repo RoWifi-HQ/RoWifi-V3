@@ -81,11 +81,6 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
         )
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }

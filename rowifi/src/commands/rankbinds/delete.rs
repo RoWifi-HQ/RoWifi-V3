@@ -49,12 +49,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -62,7 +57,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     let update = doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": binds_to_delete.clone()}}}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
-    let e = EmbedBuilder::new()
+    let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
         .unwrap()
@@ -72,12 +67,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(e)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let ids_str = binds_to_delete
         .iter()

@@ -72,12 +72,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
     verify_common(ctx, args, false).await
@@ -95,12 +90,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
     verify_common(ctx, args, true).await

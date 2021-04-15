@@ -91,12 +91,7 @@ pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -107,12 +102,7 @@ pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult
         .field(EmbedFieldBuilder::new("For Trainers", "To add a new event: `!event new`").unwrap())
         .field(EmbedFieldBuilder::new("Viewing Events", "To see the last 12 events attended by the member: `!event attendee [RobloxName]`\nTo see the last 12 events hosted by the member: `!event host [RobloxName]`\nTo view specific information about an event: `!event view <Event Id>`").unwrap())
         .build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     Ok(())
 }

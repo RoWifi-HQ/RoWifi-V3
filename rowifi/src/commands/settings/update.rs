@@ -38,12 +38,7 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

@@ -62,7 +62,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
         .ok_or(CommonError::UnknownGuild)?;
 
     if guild.groupbinds.is_empty() {
-        let e = EmbedBuilder::new()
+        let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
             .unwrap()
@@ -72,12 +72,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(e)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 

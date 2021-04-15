@@ -1,5 +1,6 @@
 use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
+use futures::{Future, FutureExt};
 use itertools::Itertools;
 use patreon::Client as Patreon;
 use roblox::{
@@ -19,10 +20,15 @@ use std::{
     borrow::ToOwned,
     collections::{HashMap, HashSet},
     ops::Deref,
+    pin::Pin,
     sync::Arc,
+    task::{Context, Poll},
 };
 use twilight_gateway::Cluster;
-use twilight_http::Client as Http;
+use twilight_http::{
+    request::prelude::{CreateMessage, UpdateWebhookMessage},
+    Client as Http, Error as DiscordHttpError,
+};
 use twilight_model::{
     channel::embed::Embed,
     id::{ChannelId, GuildId, InteractionId, RoleId, UserId, WebhookId},
@@ -129,6 +135,10 @@ impl Deref for BotContext {
 }
 
 impl CommandContext {
+    pub fn respond(&self) -> Responder {
+        Responder::new(self)
+    }
+
     pub async fn member(
         &self,
         guild_id: GuildId,
@@ -428,6 +438,65 @@ impl BotContext {
                 .embed(embed)
                 .unwrap()
                 .await;
+        }
+    }
+}
+
+pub struct Responder<'a> {
+    message: Option<CreateMessage<'a>>,
+    interaction: Option<UpdateWebhookMessage<'a>>,
+}
+
+impl<'a> Responder<'a> {
+    pub fn new(ctx: &'a CommandContext) -> Self {
+        ctx.interaction_token.as_ref().map_or_else(
+            || Self {
+                message: Some(ctx.bot.http.create_message(ctx.channel_id)),
+                interaction: None,
+            },
+            |interaction_token| Self {
+                message: None,
+                interaction: Some(
+                    ctx.bot
+                        .http
+                        .update_interaction_original(interaction_token)
+                        .unwrap(),
+                ),
+            },
+        )
+    }
+
+    pub fn content(mut self, content: impl Into<String>) -> Self {
+        let content = content.into();
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.content(Some(content)).unwrap());
+        } else if let Some(message) = self.message {
+            self.message = Some(message.content(content).unwrap());
+        }
+        self
+    }
+
+    pub fn embed(mut self, embed: Embed) -> Self {
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.embeds(Some(vec![embed])).unwrap());
+        } else if let Some(message) = self.message {
+            self.message = Some(message.embed(embed).unwrap());
+        }
+        self
+    }
+}
+
+#[allow(clippy::option_if_let_else)]
+impl Future for Responder<'_> {
+    type Output = Result<(), DiscordHttpError>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if let Some(interaction) = self.interaction.as_mut() {
+            interaction.poll_unpin(cx)
+        } else if let Some(message) = self.message.as_mut() {
+            message.poll_unpin(cx).map(|p| p.map(|_| ()))
+        } else {
+            Poll::Ready(Ok(()))
         }
     }
 }

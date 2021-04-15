@@ -39,12 +39,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };

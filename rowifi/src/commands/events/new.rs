@@ -27,12 +27,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -49,12 +44,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
                 .unwrap()
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
+            ctx.respond().embed(embed).await?;
             return Ok(());
         }
     };

@@ -14,12 +14,7 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
             .title("Patreon Linking Failed").unwrap()
             .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account").unwrap()
             .build().unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
     if tier.is_none() {
@@ -33,12 +28,7 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
             .unwrap()
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -88,11 +78,6 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
         .unwrap()
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
