@@ -1929,7 +1929,7 @@ dependencies = [
 name = "rowifi-database"
 version = "3.0.0"
 dependencies = [
- "futures",
+ "futures-util",
  "mongodb",
  "rowifi-models",
  "rowifi-redis",

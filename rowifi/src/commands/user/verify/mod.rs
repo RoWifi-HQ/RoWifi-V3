@@ -152,6 +152,13 @@ pub async fn verify_common(
             )
             .unwrap(),
         )
+        .field(
+            EmbedFieldBuilder::new(
+                "Post Verification", 
+                "Once successfully verified, you must use `update` to get your roles. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`."
+            )
+            .unwrap()
+        )
         .build()
         .unwrap();
     ctx.bot
