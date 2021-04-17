@@ -211,7 +211,7 @@ impl Cache {
         value.update(self)
     }
 
-    pub fn cache_current_user(&self, mut current_user: CurrentUser) {
+    fn cache_current_user(&self, mut current_user: CurrentUser) {
         let mut user = self.0.current_user.lock().expect("current user poisoned");
         if let Some(mut user) = user.as_mut() {
             if let Some(user) = Arc::get_mut(&mut user) {
@@ -223,7 +223,7 @@ impl Cache {
         *user = Some(Arc::new(current_user));
     }
 
-    pub fn cache_guild_channels(
+    fn cache_guild_channels(
         &self,
         guild: GuildId,
         channels: impl IntoIterator<Item = GuildChannel>,
@@ -237,7 +237,7 @@ impl Cache {
         c
     }
 
-    pub fn cache_guild_channel(&self, guild: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
+    fn cache_guild_channel(&self, guild: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
         if let GuildChannel::Text(tc) = &channel {
             if tc.name.eq_ignore_ascii_case("rowifi-logs") {
                 if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
@@ -251,7 +251,7 @@ impl Cache {
         upsert_item(&self.0.channels, id, channel)
     }
 
-    pub fn cache_members(
+    fn cache_members(
         &self,
         guild: GuildId,
         members: impl IntoIterator<Item = Member>,
@@ -284,7 +284,7 @@ impl Cache {
         cached
     }
 
-    pub fn cache_roles(
+    fn cache_roles(
         &self,
         guild: GuildId,
         roles: impl IntoIterator<Item = Role>,
@@ -298,7 +298,7 @@ impl Cache {
         r
     }
 
-    pub fn cache_role(&self, guild: GuildId, role: Role) -> Arc<CachedRole> {
+    fn cache_role(&self, guild: GuildId, role: Role) -> Arc<CachedRole> {
         self.cache_extra_roles(guild, &role);
 
         let role = CachedRole {
@@ -312,7 +312,7 @@ impl Cache {
         upsert_item(&self.0.roles, role.id, role)
     }
 
-    pub fn cache_extra_roles(&self, guild: GuildId, role: &Role) {
+    fn cache_extra_roles(&self, guild: GuildId, role: &Role) {
         if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
             if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
                 let mut guild = Arc::make_mut(&mut guild);
@@ -330,7 +330,7 @@ impl Cache {
         }
     }
 
-    pub fn cache_guild_permissions(&self, guild_id: GuildId) {
+    fn cache_guild_permissions(&self, guild_id: GuildId) {
         let user = self.0.current_user.lock().expect("current user poisoned");
         if let Some(user) = user.as_ref() {
             let guild = self.guild(guild_id).unwrap();
@@ -352,7 +352,7 @@ impl Cache {
         }
     }
 
-    pub fn cache_channel_permissions(&self, guild_id: GuildId, channel_id: ChannelId) {
+    fn cache_channel_permissions(&self, guild_id: GuildId, channel_id: ChannelId) {
         let channel = self.channel(channel_id).unwrap();
         if let GuildChannel::Text(_) = channel.as_ref() {
             let user = self.0.current_user.lock().expect("current user poisoned");
@@ -384,7 +384,7 @@ impl Cache {
         }
     }
 
-    pub fn cache_guild(&self, guild: Guild) -> Option<Arc<CachedGuild>> {
+    fn cache_guild(&self, guild: Guild) -> Option<Arc<CachedGuild>> {
         self.0.guild_roles.insert(guild.id, HashSet::new());
         self.0.guild_channels.insert(guild.id, HashSet::new());
         if !self.0.guild_members.contains_key(&guild.id) {
@@ -443,7 +443,7 @@ impl Cache {
         self.0.guilds.insert(guild.id, Arc::new(cached))
     }
 
-    pub fn cache_user(&self, user: User) -> Arc<User> {
+    fn cache_user(&self, user: User) -> Arc<User> {
         match self.0.users.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
             _ => {}
@@ -454,7 +454,7 @@ impl Cache {
         user
     }
 
-    pub fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
+    fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
         let channel = self.0.channels.remove(&tc.id()).map(|(_, c)| c)?;
         if let Some(mut channels) = self.0.guild_channels.get_mut(&tc.guild_id().unwrap()) {
             channels.remove(&tc.id());
@@ -468,7 +468,7 @@ impl Cache {
         Some(channel)
     }
 
-    pub fn delete_role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
+    fn delete_role(&self, role_id: RoleId) -> Option<Arc<CachedRole>> {
         let role = self.0.roles.remove(&role_id).map(|(_, r)| r)?;
         if let Some(mut roles) = self.0.guild_roles.get_mut(&role.guild_id) {
             roles.remove(&role_id);
@@ -497,7 +497,7 @@ impl Cache {
         Some(role)
     }
 
-    pub fn unavailable_guild(&self, guild_id: GuildId) {
+    fn unavailable_guild(&self, guild_id: GuildId) {
         self.0.unavailable_guilds.insert(guild_id);
     }
 }
