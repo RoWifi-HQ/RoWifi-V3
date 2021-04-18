@@ -25,11 +25,18 @@ use rowifi_models::{
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
-use std::{collections::HashMap, result::Result as StdResult, sync::Arc};
+use std::{collections::HashMap, result::Result as StdResult};
 
 pub use error::DatabaseError;
 
 type Result<T> = StdResult<T, DatabaseError>;
+
+const DATABASE: &str = "RoWifi";
+const GUILDS: &str = "guilds";
+const QUEUE: &str = "queue";
+const USERS: &str = "users";
+const LINKED_USERS: &str = "linked_users";
+const PREMIUM: &str = "premium_new";
 
 #[derive(Clone)]
 pub struct Database {
@@ -47,7 +54,7 @@ impl Database {
 
     /// Add or replace a guild in the database
     pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<()> {
-        let guilds = self.client.database("RoWifi").collection("guilds");
+        let guilds = self.client.database(DATABASE).collection(GUILDS);
         let guild_doc = bson::to_document(&guild)?;
         let key = format!("database:g:{}", guild.id);
         let mut conn = self.redis_pool.get().await?;
@@ -69,22 +76,21 @@ impl Database {
     }
 
     /// Get the guild from its id. If it's not present in the cache, it will be brought from the database and stored in the cache.
-    pub async fn get_guild(&self, guild_id: u64) -> Result<Option<Arc<RoGuild>>> {
-        let guild_id = guild_id as i64;
+    pub async fn get_guild(&self, guild_id: u64) -> Result<Option<RoGuild>> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:g:{}", guild_id);
         let guild: Option<RoGuild> = conn.get(&key).await?;
         match guild {
-            Some(g) => Ok(Some(Arc::new(g))),
+            Some(g) => Ok(Some(g)),
             None => {
-                let guilds = self.client.database("RoWifi").collection("guilds");
+                let guilds = self.client.database(DATABASE).collection(GUILDS);
                 let result = guilds.find_one(doc! {"_id": guild_id}, None).await?;
                 let guild = match result {
                     None => return Ok(None),
                     Some(res) => bson::from_document::<RoGuild>(res)?,
                 };
-                let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await.unwrap();
-                Ok(Some(Arc::new(guild)))
+                let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await?;
+                Ok(Some(guild))
             }
         }
     }
@@ -93,8 +99,8 @@ impl Database {
     pub async fn get_guilds(&self, guild_ids: &[u64], premium_only: bool) -> Result<Vec<RoGuild>> {
         let guilds = self
             .client
-            .database("RoWifi")
-            .collection::<Document>("guilds");
+            .database(DATABASE)
+            .collection::<Document>(GUILDS);
         let filter = if premium_only {
             doc! {"Settings.AutoDetection": true, "_id": {"$in": guild_ids}}
         } else {
@@ -118,7 +124,7 @@ impl Database {
 
     /// Modify the guild in the database and store the updated result in the cache
     pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<()> {
-        let guilds = self.client.database("RoWifi").collection("guilds");
+        let guilds = self.client.database(DATABASE).collection(GUILDS);
         let mut conn = self.redis_pool.get().await?;
 
         let options = FindOneAndUpdateOptions::builder()
@@ -137,7 +143,7 @@ impl Database {
 
     /// Add an user who's currently initiated a verification prompt
     pub async fn add_queue_user(&self, user: QueueUser) -> Result<()> {
-        let queue = self.client.database("RoWifi").collection("queue");
+        let queue = self.client.database(DATABASE).collection(QUEUE);
 
         let exists = queue
             .find_one(doc! {"_id": user.roblox_id}, None)
@@ -156,7 +162,7 @@ impl Database {
 
     /// Add or replace the user in the database and store the result in the cache
     pub async fn add_user(&self, user: RoUser, verified: bool) -> Result<()> {
-        let users = self.client.database("RoWifi").collection("users");
+        let users = self.client.database(DATABASE).collection(USERS);
         let user_doc = bson::to_document(&user)?;
         let mut conn = self.redis_pool.get().await?;
 
@@ -175,7 +181,7 @@ impl Database {
 
     /// Add a user to the `linked_user` collection
     pub async fn add_linked_user(&self, linked_user: RoGuildUser) -> Result<()> {
-        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
 
         let mut conn = self.redis_pool.get().await?;
         let key = format!(
@@ -201,7 +207,7 @@ impl Database {
 
     /// Delete all documents of a discord user with the given roblox id. This method is called after an user runs `verify delete`
     pub async fn delete_linked_users(&self, user_id: u64, roblox_id: i64) -> Result<()> {
-        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
         let filter = doc! {"UserId": user_id, "RobloxId": roblox_id};
         let mut conn = self.redis_pool.get().await?;
 
@@ -224,24 +230,22 @@ impl Database {
     }
 
     /// Get the user from the database
-    pub async fn get_user(&self, user_id: u64) -> Result<Option<Arc<RoUser>>> {
-        let user_id = user_id as i64;
-
+    pub async fn get_user(&self, user_id: u64) -> Result<Option<RoUser>> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:u:{}", user_id);
 
         let user: Option<RoUser> = conn.get(&key).await?;
         match user {
-            Some(u) => Ok(Some(Arc::new(u))),
+            Some(u) => Ok(Some(u)),
             None => {
-                let users = self.client.database("RoWifi").collection("users");
+                let users = self.client.database(DATABASE).collection(USERS);
                 let result = users.find_one(doc! {"_id": user_id}, None).await?;
                 let user = match result {
                     None => return Ok(None),
                     Some(res) => bson::from_document::<RoUser>(res)?,
                 };
                 let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
-                Ok(Some(Arc::new(user)))
+                Ok(Some(user))
             }
         }
     }
@@ -252,7 +256,7 @@ impl Database {
         user_id: u64,
         guild_id: u64,
     ) -> Result<Option<RoGuildUser>> {
-        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
 
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:l:{}:{}", user_id, guild_id);
@@ -276,7 +280,7 @@ impl Database {
 
     /// Get multiple users from provided ids. This method bypasses the cache
     pub async fn get_users(&self, user_ids: &[u64]) -> Result<Vec<RoUser>> {
-        let users = self.client.database("RoWifi").collection("users");
+        let users = self.client.database(DATABASE).collection(USERS);
         let filter = doc! {"_id": {"$in": user_ids}};
         let mut cursor = users.find(filter, None).await?;
         let mut result = Vec::<RoUser>::new();
@@ -295,7 +299,7 @@ impl Database {
         user_ids: &[u64],
         guild_id: u64,
     ) -> Result<Vec<RoGuildUser>> {
-        let linked_users = self.client.database("RoWifi").collection("linked_users");
+        let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
         let filter = doc! {"UserId": {"$in": user_ids}, "GuildId": guild_id};
         let mut cursor = linked_users.find(filter, None).await?;
         let mut result = HashMap::<i64, RoGuildUser>::new();
@@ -322,7 +326,7 @@ impl Database {
 
     /// Add a backup to the database with the given name
     pub async fn add_backup(&self, mut backup: BackupGuild, name: &str) -> Result<()> {
-        let backups = self.client.database("RoWifi").collection("backups");
+        let backups = self.client.database(DATABASE).collection("backups");
         match self.get_backup(backup.user_id as u64, name).await? {
             Some(b) => {
                 backup.id = b.id;
@@ -345,7 +349,7 @@ impl Database {
 
     /// Get a backup provided the `user_id` and `name`
     pub async fn get_backup(&self, user_id: u64, name: &str) -> Result<Option<BackupGuild>> {
-        let backups = self.client.database("RoWifi").collection("backups");
+        let backups = self.client.database(DATABASE).collection("backups");
         let filter = doc! {"UserId": user_id, "Name": name};
         let result = backups.find_one(filter, None).await?;
         match result {
@@ -356,7 +360,7 @@ impl Database {
 
     /// Get all the backups of a certain user
     pub async fn get_backups(&self, user_id: u64) -> Result<Vec<BackupGuild>> {
-        let backups = self.client.database("RoWifi").collection("backups");
+        let backups = self.client.database(DATABASE).collection("backups");
         let filter = doc! {"UserId": user_id};
         let mut cursor = backups.find(filter, None).await?;
         let mut result = Vec::<BackupGuild>::new();
@@ -371,7 +375,7 @@ impl Database {
 
     /// Get the premium information about an user
     pub async fn get_premium(&self, user_id: u64) -> Result<Option<PremiumUser>> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self.client.database(DATABASE).collection(PREMIUM);
         let filter = doc! {"_id": user_id};
         let result = premium.find_one(filter, None).await?;
         match result {
@@ -382,7 +386,7 @@ impl Database {
 
     /// Get the premium information about a user who has premium transferred to them provided the premium owner's id
     pub async fn get_transferred_premium(&self, user_id: u64) -> Result<Option<PremiumUser>> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self.client.database(DATABASE).collection(PREMIUM);
         let filter = doc! {"PremiumOwner": user_id};
         let result = premium.find_one(filter, None).await?;
         match result {
@@ -397,7 +401,7 @@ impl Database {
         premium_user: PremiumUser,
         premium_already: bool,
     ) -> Result<()> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self.client.database(DATABASE).collection(PREMIUM);
         let premium_doc = bson::to_document(&premium_user)?;
         if premium_already {
             let _res = premium
@@ -413,15 +417,15 @@ impl Database {
     pub async fn modify_premium(&self, filter: Document, update: Document) -> Result<()> {
         let premium = self
             .client
-            .database("RoWifi")
-            .collection::<Document>("premium_new");
+            .database(DATABASE)
+            .collection::<Document>(PREMIUM);
         let _res = premium.find_one_and_update(filter, update, None).await?;
         Ok(())
     }
 
     /// Delete the premium of an user
     pub async fn delete_premium(&self, user_id: u64) -> Result<()> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self.client.database(DATABASE).collection(PREMIUM);
         let res = premium
             .find_one_and_delete(doc! {"_id": user_id}, None)
             .await?;
@@ -438,7 +442,7 @@ impl Database {
 
     /// Get all premium users from the database
     pub async fn get_all_premium(&self) -> Result<Vec<PremiumUser>> {
-        let premium = self.client.database("RoWifi").collection("premium_new");
+        let premium = self.client.database(DATABASE).collection(PREMIUM);
         let mut cursor = premium.find(None, None).await?;
         let mut docs = Vec::new();
         while let Some(res) = cursor.next().await {

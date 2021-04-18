@@ -104,7 +104,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
 
 pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
     let mut user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
-        Some(u) => u.as_ref().clone(),
+        Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
@@ -202,7 +202,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
 
 pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
     let mut user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
-        Some(u) => u.as_ref().clone(),
+        Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
