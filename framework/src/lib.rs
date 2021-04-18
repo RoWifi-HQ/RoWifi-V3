@@ -98,7 +98,7 @@ impl Framework {
                     channel_id: msg.channel_id,
                     guild_id: msg.guild_id,
                     author: Arc::new(msg.author.clone()),
-                    interaction_id: None,
+                    message_id: Some(msg.id),
                     interaction_token: None,
                 };
                 let req = ServiceRequest::Help(args, embed);
@@ -238,7 +238,7 @@ impl Service<&Event> for Framework {
                     channel_id: msg.channel_id,
                     guild_id: msg.guild_id,
                     author: Arc::new(msg.author.clone()),
-                    interaction_id: None,
+                    message_id: Some(msg.id),
                     interaction_token: None,
                 };
 
@@ -292,7 +292,7 @@ impl Service<&Event> for Framework {
                         channel_id: top_command.channel_id,
                         guild_id: top_command.guild_id,
                         author: Arc::new(user),
-                        interaction_id: Some(top_command.id),
+                        message_id: None,
                         interaction_token: Some(top_command.token.clone()),
                     };
                     let http = self.bot.http.clone();
