@@ -1867,6 +1867,7 @@ version = "0.1.0"
 dependencies = [
  "hyper",
  "hyper-rustls",
+ "rowifi-models",
  "rowifi-redis",
  "serde",
  "serde_cbor",

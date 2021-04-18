@@ -9,7 +9,6 @@
 )]
 
 pub mod error;
-pub mod models;
 
 use hyper::{
     body::{self, Buf},
@@ -23,7 +22,7 @@ use serde::de::DeserializeOwned;
 use std::result::Result as StdResult;
 
 use error::Error;
-use models::{
+use rowifi_models::roblox::{
     asset::Asset,
     group::{Group, GroupUserRole},
     id::{AssetId, GroupId, UserId},

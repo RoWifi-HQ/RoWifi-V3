@@ -6,7 +6,7 @@ use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
 use super::{template::Template, Backup, Bind};
-use crate::{rolang::RoCommand, user::RoGuildUser};
+use crate::{roblox::user::User as RobloxUser, rolang::RoCommand, user::RoGuildUser};
 
 #[derive(Serialize, Clone)]
 pub struct CustomBind {
@@ -108,18 +108,18 @@ impl Backup for CustomBind {
 }
 
 impl Bind for CustomBind {
-    fn nickname(&self, roblox_username: &str, user: &RoGuildUser, discord_nick: &str) -> String {
+    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
-            return template.nickname(roblox_username, user, discord_nick);
+            return template.nickname(roblox_user, user, discord_nick);
         } else if let Some(prefix) = &self.prefix {
             if prefix.eq_ignore_ascii_case("N/A") {
-                return roblox_username.to_string();
+                return roblox_user.name.clone();
             } else if prefix.eq_ignore_ascii_case("disable") {
                 return discord_nick.to_string();
             }
-            return format!("{} {}", prefix, roblox_username);
+            return format!("{} {}", prefix, roblox_user.name);
         }
-        roblox_username.to_string()
+        roblox_user.name.clone()
     }
 
     fn priority(&self) -> i64 {

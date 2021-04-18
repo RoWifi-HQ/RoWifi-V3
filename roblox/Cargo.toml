@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 hyper = { version = "0.14", default-features = false, features = ["client", "http2", "runtime"] }
 hyper-rustls = { version = "0.22", default-features = false, features = ["webpki-tokio"] }
+rowifi-models = { path = "../models" }
 rowifi-redis = { path = "../redis"}
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde_cbor = "0"

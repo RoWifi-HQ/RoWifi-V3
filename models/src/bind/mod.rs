@@ -12,6 +12,7 @@ pub use rank::*;
 use std::{collections::HashMap, fmt::Debug};
 use twilight_model::id::RoleId;
 
+use crate::roblox::user::User as RobloxUser;
 use crate::user::RoGuildUser;
 
 pub trait Backup {
@@ -22,6 +23,6 @@ pub trait Backup {
 }
 
 pub trait Bind: Send + Sync + Debug {
-    fn nickname(&self, roblox_username: &str, user: &RoGuildUser, discord_nick: &str) -> String;
+    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String;
     fn priority(&self) -> i64;
 }

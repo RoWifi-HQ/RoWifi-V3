@@ -3,15 +3,13 @@ use dashmap::{DashMap, DashSet};
 use futures::{Future, FutureExt};
 use itertools::Itertools;
 use patreon::Client as Patreon;
-use roblox::{
-    models::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
-    Client as Roblox,
-};
+use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
 use rowifi_models::{
     bind::Bind,
     guild::{BlacklistActionType, RoGuild},
+    roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
     rolang::RoCommandUser,
     stats::BotStats,
     user::RoGuildUser,
@@ -29,7 +27,11 @@ use twilight_http::{
     request::prelude::{CreateMessage, UpdateWebhookMessage},
     Client as Http, Error as DiscordHttpError,
 };
-use twilight_model::{channel::embed::Embed, id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId}, user::User};
+use twilight_model::{
+    channel::embed::Embed,
+    id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
+    user::User,
+};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -89,7 +91,7 @@ pub struct CommandContext {
     pub bot: BotContext,
     /// The channel id from which the interaction or message came from
     pub channel_id: ChannelId,
-    /// The guild id from which the interaction or message came from. 
+    /// The guild id from which the interaction or message came from.
     /// We keep this an option in case we ever support DM commands
     pub guild_id: Option<GuildId>,
     /// The struct containing fields of the author
@@ -382,7 +384,7 @@ impl BotContext {
         } else {
             nick_bind.map_or_else(
                 || roblox_user.name.to_string(),
-                |nick_bind| nick_bind.nickname(&roblox_user.name, &user, discord_nick),
+                |nick_bind| nick_bind.nickname(&roblox_user, &user, discord_nick),
             )
         };
 
@@ -478,7 +480,12 @@ impl<'a> Responder<'a> {
     pub fn new(ctx: &'a CommandContext) -> Self {
         ctx.interaction_token.as_ref().map_or_else(
             || Self {
-                message: Some(ctx.bot.http.create_message(ctx.channel_id).reply(ctx.message_id.unwrap())),
+                message: Some(
+                    ctx.bot
+                        .http
+                        .create_message(ctx.channel_id)
+                        .reply(ctx.message_id.unwrap()),
+                ),
                 interaction: None,
             },
             |interaction_token| Self {

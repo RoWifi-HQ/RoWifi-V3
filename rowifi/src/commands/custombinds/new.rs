@@ -1,9 +1,9 @@
 use itertools::Itertools;
 use mongodb::bson::{doc, to_bson};
-use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::CustomBind,
+    roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
