@@ -29,47 +29,74 @@ use twilight_http::{
     request::prelude::{CreateMessage, UpdateWebhookMessage},
     Client as Http, Error as DiscordHttpError,
 };
-use twilight_model::{
-    channel::embed::Embed,
-    id::{ChannelId, GuildId, InteractionId, RoleId, UserId, WebhookId},
-    user::User,
-};
+use twilight_model::{channel::embed::Embed, id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId}, user::User};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
 use crate::error::{CommandError, RoError};
 
 pub struct BotContextRef {
+    // Config Items
+    /// The mention prefix of the bot.
+    /// TODO: Find an alternative way of checking mention prefixes rather storing this string
     pub on_mention: String,
+    /// The map containing prefixes of all servers
     pub prefixes: DashMap<GuildId, String>,
+    /// The default prefix of the bot
     pub default_prefix: String,
+    /// The set holding all channels where the bot is configured not to respond
     pub disabled_channels: DashSet<ChannelId>,
+    /// The set containing all owners of the bot
     pub owners: DashSet<UserId>,
+
+    // Twilight Components
+    /// The module used to make requests to discord
     pub http: Http,
+    /// The module holding all discord structs in-memory
     pub cache: Cache,
+    /// The module handling the gateway
     pub cluster: Cluster,
+    /// The module for waiting for certain events within commands
     pub standby: Standby,
-    pub database: Database,
-    pub roblox: Roblox,
-    pub patreon: Patreon,
-    pub stats: Arc<BotStats>,
+    /// The pre-configured webhooks that we write to for logging purposes
     pub webhooks: HashMap<&'static str, (WebhookId, String)>,
+    pub cipher: ChaCha20Poly1305,
+
+    // RoWifi Modules
+    /// The module handling all connections to Mongo
+    pub database: Database,
+    /// The Roblox API Wrapper struct
+    pub roblox: Roblox,
+    /// The Patreon API Wrapper struct
+    pub patreon: Patreon,
+    /// The module collecting events data. This is an Arc because we distribute this across multiple components
+    pub stats: Arc<BotStats>,
+
+    // Cluster Config
     pub cluster_id: u64,
     pub total_shards: u64,
     pub shards_per_cluster: u64,
-    pub cipher: ChaCha20Poly1305,
 }
 
+/// The struct that contains all bot config fields. We use an internally arced struct here
+/// since we have a lot of fields and we don't want to be bogged down by the clone function
 #[derive(Clone)]
 pub struct BotContext(Arc<BotContextRef>);
 
 #[derive(Clone)]
 pub struct CommandContext {
+    /// The struct holding all bot config fields
     pub bot: BotContext,
+    /// The channel id from which the interaction or message came from
     pub channel_id: ChannelId,
+    /// The guild id from which the interaction or message came from. 
+    /// We keep this an option in case we ever support DM commands
     pub guild_id: Option<GuildId>,
+    /// The struct containing fields of the author
     pub author: Arc<User>,
-    pub interaction_id: Option<InteractionId>,
+    /// The id of the original message invoked by the user
+    pub message_id: Option<MessageId>,
+    /// The token of the interaction. This is used to make followups or edit the original response
     pub interaction_token: Option<String>,
 }
 
@@ -451,7 +478,7 @@ impl<'a> Responder<'a> {
     pub fn new(ctx: &'a CommandContext) -> Self {
         ctx.interaction_token.as_ref().map_or_else(
             || Self {
-                message: Some(ctx.bot.http.create_message(ctx.channel_id)),
+                message: Some(ctx.bot.http.create_message(ctx.channel_id).reply(ctx.message_id.unwrap())),
                 interaction: None,
             },
             |interaction_token| Self {
