@@ -3,6 +3,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+use crate::roblox::user::User as RobloxUser;
 use crate::user::RoGuildUser;
 
 lazy_static! {
@@ -15,12 +16,13 @@ pub struct Template(pub String);
 impl Template {
     pub fn nickname(
         &self,
-        roblox_username: &str,
+        roblox_user: &RobloxUser,
         user: &RoGuildUser,
         discord_nick: &str,
     ) -> String {
         let roblox_id = user.roblox_id.to_string();
         let discord_id = user.discord_id.to_string();
+        let display_name = roblox_user.display_name.clone().unwrap_or_default();
 
         let template_str = &self.0;
         let mut parts = vec![];
@@ -47,10 +49,11 @@ impl Template {
             let arg = &template_str[start..end];
             let arg_name = &arg[1..arg.len() - 1];
             match arg_name {
-                "roblox-username" => parts.push(roblox_username),
+                "roblox-username" => parts.push(&roblox_user.name),
                 "roblox-id" => parts.push(&roblox_id),
                 "discord-id" => parts.push(&discord_id),
                 "discord-name" => parts.push(discord_nick),
+                "display-name" => parts.push(&display_name),
                 _ => parts.push(arg),
             }
 

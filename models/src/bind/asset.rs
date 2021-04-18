@@ -3,6 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{collections::HashMap, fmt, str::FromStr};
 use twilight_model::id::RoleId;
 
+use crate::roblox::user::User as RobloxUser;
 use crate::user::RoGuildUser;
 
 use super::{template::Template, Backup, Bind};
@@ -111,11 +112,11 @@ impl Backup for AssetBind {
 }
 
 impl Bind for AssetBind {
-    fn nickname(&self, roblox_username: &str, user: &RoGuildUser, discord_nick: &str) -> String {
+    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String {
         if let Some(template) = &self.template {
-            return template.nickname(roblox_username, user, discord_nick);
+            return template.nickname(roblox_user, user, discord_nick);
         }
-        roblox_username.to_string()
+        roblox_user.name.clone()
     }
 
     fn priority(&self) -> i64 {

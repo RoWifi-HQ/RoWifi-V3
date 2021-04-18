@@ -1,8 +1,7 @@
 mod manage;
 
-use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
-use rowifi_models::user::QueueUser;
+use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
 
 use manage::{verify_default, verify_delete, verify_switch};
 

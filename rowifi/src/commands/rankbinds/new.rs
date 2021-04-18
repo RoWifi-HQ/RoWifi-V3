@@ -2,9 +2,12 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use mongodb::bson::{doc, to_bson};
 use regex::Regex;
-use roblox::models::{group::PartialRank, id::GroupId};
 use rowifi_framework::prelude::*;
-use rowifi_models::{bind::RankBind, guild::RoGuild};
+use rowifi_models::{
+    bind::RankBind,
+    guild::RoGuild,
+    roblox::{group::PartialRank, id::GroupId},
+};
 use twilight_embed_builder::EmbedFieldBuilder;
 use twilight_model::id::RoleId;
 

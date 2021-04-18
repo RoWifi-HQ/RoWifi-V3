@@ -1,8 +1,8 @@
 use mongodb::bson::doc;
-use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     guild::RoGuild,
+    roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;

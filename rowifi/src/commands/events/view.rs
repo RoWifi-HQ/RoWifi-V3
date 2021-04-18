@@ -1,9 +1,8 @@
 use chacha20poly1305::{aead::Aead, Nonce};
 use itertools::Itertools;
 use mongodb::bson::doc;
-use roblox::models::id::UserId as RobloxUserId;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
+use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
 
 #[derive(FromArgs)]
 pub struct EventAttendeeArguments {
