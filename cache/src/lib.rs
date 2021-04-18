@@ -10,6 +10,9 @@
     clippy::explicit_deref_methods
 )]
 
+mod event;
+mod models;
+
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use rowifi_models::stats::BotStats;
 use std::{
@@ -27,10 +30,14 @@ use twilight_model::{
     user::{CurrentUser, User},
 };
 
-mod event;
-mod models;
 use event::UpdateCache;
 pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole};
+
+const LOG_CHANNEL: &str = "rowifi-logs";
+const BYPASS: &str = "RoWifi Bypass";
+const NICKNAME_BYPASS: &str = "RoWifi Nickname Bypass";
+const ADMIN: &str = "RoWifi Admin";
+const TRAINER: &str = "RoWifi Trainer";
 
 /// Add an element to the structure that maps the server ids to the set of the resource they hold
 fn upsert_guild_item<K: Eq + Hash, V: Eq + Hash>(map: &DashMap<K, HashSet<V>>, k: K, v: V) {
@@ -80,7 +87,7 @@ pub struct CacheRef {
     stats: Arc<BotStats>,
 }
 
-/// An wrapper around the actual structure that hold all the cache field allowing this to be sent across multiple threads
+/// An wrapper around the actual structure that hold all the cache fields allowing this to be sent across multiple threads
 #[derive(Clone)]
 pub struct Cache(Arc<CacheRef>);
 
@@ -239,7 +246,7 @@ impl Cache {
 
     fn cache_guild_channel(&self, guild: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
         if let GuildChannel::Text(tc) = &channel {
-            if tc.name.eq_ignore_ascii_case("rowifi-logs") {
+            if tc.name.eq_ignore_ascii_case(LOG_CHANNEL) {
                 if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
                     let mut guild = Arc::make_mut(&mut guild);
                     guild.log_channel = Some(channel.id());
@@ -314,16 +321,16 @@ impl Cache {
 
     fn cache_extra_roles(&self, guild: GuildId, role: &Role) {
         if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
-            if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
+            if role.name.eq_ignore_ascii_case(BYPASS) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.bypass_role = Some(role.id);
-            } else if role.name.eq_ignore_ascii_case("RoWifi Nickname Bypass") {
+            } else if role.name.eq_ignore_ascii_case(NICKNAME_BYPASS) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.nickname_bypass = Some(role.id);
-            } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
+            } else if role.name.eq_ignore_ascii_case(ADMIN) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.admin_role = Some(role.id);
-            } else if role.name.eq_ignore_ascii_case("RoWifi Trainer") {
+            } else if role.name.eq_ignore_ascii_case(TRAINER) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.trainer_role = Some(role.id);
             }
@@ -394,27 +401,27 @@ impl Cache {
         let bypass_role = guild
             .roles
             .iter()
-            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Bypass"))
+            .find(|r| r.name.eq_ignore_ascii_case(BYPASS))
             .map(|r| r.id);
         let nickname_bypass = guild
             .roles
             .iter()
-            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Nickname Bypass"))
+            .find(|r| r.name.eq_ignore_ascii_case(NICKNAME_BYPASS))
             .map(|r| r.id);
         let log_channel = guild
             .channels
             .iter()
-            .find(|c| c.name().eq_ignore_ascii_case("rowifi-logs"))
+            .find(|c| c.name().eq_ignore_ascii_case(LOG_CHANNEL))
             .map(GuildChannel::id);
         let admin_role = guild
             .roles
             .iter()
-            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Admin"))
+            .find(|r| r.name.eq_ignore_ascii_case(ADMIN))
             .map(|r| r.id);
         let trainer_role = guild
             .roles
             .iter()
-            .find(|r| r.name.eq_ignore_ascii_case("RoWifi Trainer"))
+            .find(|r| r.name.eq_ignore_ascii_case(TRAINER))
             .map(|r| r.id);
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter());
@@ -459,7 +466,7 @@ impl Cache {
         if let Some(mut channels) = self.0.guild_channels.get_mut(&tc.guild_id().unwrap()) {
             channels.remove(&tc.id());
         }
-        if channel.name().eq_ignore_ascii_case("rowifi-logs") {
+        if channel.name().eq_ignore_ascii_case(LOG_CHANNEL) {
             if let Some(mut guild) = self.0.guilds.get_mut(&tc.guild_id().unwrap()) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.log_channel = None;
@@ -473,22 +480,22 @@ impl Cache {
         if let Some(mut roles) = self.0.guild_roles.get_mut(&role.guild_id) {
             roles.remove(&role_id);
         }
-        if role.name.eq_ignore_ascii_case("RoWifi Bypass") {
+        if role.name.eq_ignore_ascii_case(BYPASS) {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.bypass_role = None;
             }
-        } else if role.name.eq_ignore_ascii_case("RoWifi Nickname Bypass") {
+        } else if role.name.eq_ignore_ascii_case(NICKNAME_BYPASS) {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.nickname_bypass = None;
             }
-        } else if role.name.eq_ignore_ascii_case("RoWifi Admin") {
+        } else if role.name.eq_ignore_ascii_case(ADMIN) {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.admin_role = None;
             }
-        } else if role.name.eq_ignore_ascii_case("RoWifi Trainer") {
+        } else if role.name.eq_ignore_ascii_case(TRAINER) {
             if let Some(mut guild) = self.0.guilds.get_mut(&role.guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.trainer_role = None;

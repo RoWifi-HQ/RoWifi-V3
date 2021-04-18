@@ -38,9 +38,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> Result<(),
         .database
         .get_guild(guild_id.0)
         .await?
-        .ok_or(CommonError::UnknownGuild)?
-        .as_ref()
-        .clone();
+        .ok_or(CommonError::UnknownGuild)?;
 
     let group_id = args.group_id;
     let mut create_type = args.rank_id;
