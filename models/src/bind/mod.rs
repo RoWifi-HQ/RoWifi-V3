@@ -8,6 +8,7 @@ pub use asset::*;
 pub use custom::*;
 pub use group::*;
 pub use rank::*;
+pub use template::*;
 
 use std::{collections::HashMap, fmt::Debug};
 use twilight_model::id::RoleId;

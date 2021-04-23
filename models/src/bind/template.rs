@@ -66,6 +66,20 @@ impl Template {
 
         parts.join("")
     }
+
+    pub fn has_slug(template_str: &str) -> bool {
+        let matches = TEMPLATE_REGEX.find_iter(template_str);
+        for m in matches {
+            let match_str = m.as_str();
+            let slug = &match_str[1..match_str.len() - 1];
+            match slug {
+                "roblox-username" | "roblox-id" | "discord-id" | "discord-name"
+                | "display-name" => return true,
+                _ => {}
+            }
+        }
+        false
+    }
 }
 
 impl Display for Template {
