@@ -516,3 +516,9 @@ impl Database {
         Ok(result)
     }
 }
+
+impl AsRef<Client> for Database {
+    fn as_ref(&self) -> &Client {
+        &self.client
+    }
+}

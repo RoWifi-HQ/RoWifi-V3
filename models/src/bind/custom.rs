@@ -214,7 +214,6 @@ impl<'de> Deserialize<'de> for CustomBind {
                 let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
                 let discord_roles =
                     discord_roles.ok_or_else(|| DeError::missing_field("DiscordRoles"))?;
-                let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
                 let priority = priority.ok_or_else(|| DeError::missing_field("Priority"))?;
                 let code = code.ok_or_else(|| DeError::missing_field("Code"))?;
                 let command = RoCommand::new(&code).unwrap();

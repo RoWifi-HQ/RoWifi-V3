@@ -82,6 +82,12 @@ impl Template {
     }
 }
 
+impl Default for Template {
+    fn default() -> Self {
+        Self("{discord-name}".into())
+    }
+}
+
 impl Display for Template {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.0)

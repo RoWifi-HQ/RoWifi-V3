@@ -79,6 +79,20 @@ pub async fn groupbinds_modify(
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::Template => {
+            if args.change.is_empty() {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .title("Group Bind Modification Failed")
+                    .unwrap()
+                    .description("You have entered a blank template")
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                ctx.respond().embed(embed).await?;
+                return Ok(());
+            }
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
         }

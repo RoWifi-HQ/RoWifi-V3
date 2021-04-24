@@ -93,8 +93,9 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
                 None => String::default(),
             };
             let desc = format!(
-                "{}Roles: {}",
+                "{}Priority: {}\nRoles: {}",
                 nick,
+                gb.priority,
                 gb.discord_roles
                     .iter()
                     .map(|r| RoleId(*r as u64).mention().to_string())

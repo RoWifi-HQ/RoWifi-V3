@@ -37,12 +37,7 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
             .await?;
         return Ok(());
     }
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .content("Updating all members...")
-        .unwrap()
-        .await?;
+    ctx.respond().content("Updating all members...").await?;
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot
@@ -168,6 +163,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         }));
     }
 
+    ctx.respond().content("Updating all members...").await?;
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot

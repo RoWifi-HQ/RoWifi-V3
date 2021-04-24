@@ -11,7 +11,7 @@ use twilight_model::id::GuildId;
 #[derive(FromArgs)]
 pub struct CustombindsModifyArguments {
     #[arg(
-        help = "The field to modify. Must be one of `code` `prefix` `priority` `roles-add` roles-remove` `template`"
+        help = "The field to modify. Must be one of `code` `priority` `roles-add` `roles-remove` `template`"
     )]
     pub option: ModifyOption,
     #[arg(help = "The ID of the bind to modify")]
@@ -22,7 +22,6 @@ pub struct CustombindsModifyArguments {
 
 pub enum ModifyOption {
     Code,
-    Prefix,
     Priority,
     RolesAdd,
     RolesRemove,
@@ -70,14 +69,6 @@ pub async fn custombinds_modify(
             };
             format!("`New Code`: {}", new_code)
         }
-        ModifyOption::Prefix => {
-            let new_prefix = modify_prefix(&ctx, &guild, bind_id, &args.change).await?;
-            format!(
-                "`Prefix`: {} -> {}",
-                bind.prefix.as_ref().map_or("None", |s| s.as_str()),
-                new_prefix
-            )
-        }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, bind_id, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
@@ -99,6 +90,20 @@ pub async fn custombinds_modify(
             format!("Removed Roles: {}", modification)
         }
         ModifyOption::Template => {
+            if args.change.is_empty() {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .title("Custom Bind Modification Failed")
+                    .unwrap()
+                    .description("You have entered a blank template")
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                ctx.respond().embed(embed).await?;
+                return Ok(());
+            }
             let template = modify_template(&ctx, &guild, bind_id, &args.change).await?;
             format!("`New Template`: {}", template)
         }
@@ -195,18 +200,6 @@ async fn modify_code<'a>(
     Ok(Some(code))
 }
 
-async fn modify_prefix(
-    ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
-    prefix: &str,
-) -> Result<String, RoError> {
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Prefix": prefix}};
-    ctx.bot.database.modify_guild(filter, update).await?;
-    Ok(prefix.to_string())
-}
-
 async fn modify_template<'t>(
     ctx: &CommandContext,
     guild: &RoGuild,
@@ -283,13 +276,12 @@ impl FromArg for ModifyOption {
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match arg.to_ascii_lowercase().as_str() {
             "code" => Ok(ModifyOption::Code),
-            "prefix" => Ok(ModifyOption::Prefix),
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError(
-                "one of `code` `prefix` `priority` `roles-add` `roles-remove` `template`",
+                "one of `code` `priority` `roles-add` `roles-remove` `template`",
             )),
         }
     }

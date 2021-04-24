@@ -4,10 +4,10 @@ use super::id::AssetId;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Asset {
-    #[serde(rename = "Id")]
+    #[serde(rename = "id")]
     pub id: AssetId,
-    #[serde(rename = "Name")]
+    #[serde(rename = "name")]
     pub name: String,
-    #[serde(rename = "Type")]
+    #[serde(rename = "type")]
     pub asset_type: String,
 }
