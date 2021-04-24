@@ -1,6 +1,6 @@
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::GroupBind;
+use rowifi_models::bind::{GroupBind, Template};
 use twilight_mention::Mention;
 use twilight_model::id::RoleId;
 
@@ -8,8 +8,12 @@ use twilight_model::id::RoleId;
 pub struct GroupbindsNewArguments {
     #[arg(help = "The Roblox Group Id to create a bind with")]
     pub group_id: i64,
+    #[arg(help = "The template to be used for the bind")]
+    pub template: String,
+    #[arg(help = "The number that tells the bot which bind to choose for the nickname")]
+    pub priority: Option<i64>,
     #[arg(help = "The discord roles to add to the bind", rest)]
-    pub roles: String,
+    pub discord_roles: Option<String>,
 }
 
 pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -> CommandResult {
@@ -37,9 +41,29 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         return Ok(());
     }
 
+    let template = args.template;
+    let template_str = match template.as_str() {
+        "disable" => "{discord-name}".into(),
+        "N/A" => "{roblox-username}".into(),
+        _ => {
+            if Template::has_slug(template.as_str()) {
+                template.clone()
+            } else {
+                format!("{} {{roblox-username}}", template)
+            }
+        }
+    };
+
+    let priority = args.priority.unwrap_or_default();
+
+    let discord_roles_str = args.discord_roles.unwrap_or_default();
+    let roles_to_add = discord_roles_str
+        .split_ascii_whitespace()
+        .collect::<Vec<_>>();
+
     let server_roles = ctx.bot.cache.roles(guild_id);
-    let mut roles: Vec<i64> = Vec::new();
-    for r in args.roles.split_ascii_whitespace() {
+    let mut roles = Vec::new();
+    for r in roles_to_add {
         if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId(role_id)) {
                 roles.push(role_id as i64);
@@ -50,8 +74,8 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     let bind = GroupBind {
         group_id,
         discord_roles: roles,
-        priority: 0,
-        template: None,
+        priority,
+        template: Some(Template(template_str.clone())),
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};
@@ -60,7 +84,9 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
 
     let name = format!("Group: {}", group_id);
     let value = format!(
-        "Roles: {}",
+        "Template: `{}`\nPriority: {}\nRoles: {}",
+        template_str,
+        priority,
         bind.discord_roles
             .iter()
             .map(|r| RoleId(*r as u64).mention().to_string())

@@ -91,6 +91,20 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::Template => {
+            if args.change.is_empty() {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .title("Asset Bind Modification Failed")
+                    .unwrap()
+                    .description("You have entered a blank template")
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                ctx.respond().embed(embed).await?;
+                return Ok(());
+            }
             let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
             format!("`New Template`: {}", template)
         }

@@ -22,7 +22,7 @@ pub struct NewRankbind {
         help = "The template that is used for the bind. Can be set to `N/A` or `auto` or `disable`"
     )]
     pub template: String,
-    #[arg(help = "The number that tells the bot which rankbind to choose for the nickname")]
+    #[arg(help = "The number that tells the bot which bind to choose for the nickname")]
     pub priority: Option<i64>,
     #[arg(
         help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto` ",
@@ -298,8 +298,11 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         .map(|r| format!("<@&{}> ", r))
         .collect::<String>();
     let desc = format!(
-        "Rank Id: {}\nTemplate: {:?}\nPriority: {}\nDiscord Roles: {}",
-        bind.rank_id, bind.template, bind.priority, roles_str
+        "Rank Id: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
+        bind.rank_id,
+        bind.template.unwrap(),
+        bind.priority,
+        roles_str
     );
     let log_embed = EmbedBuilder::new()
         .default_data()

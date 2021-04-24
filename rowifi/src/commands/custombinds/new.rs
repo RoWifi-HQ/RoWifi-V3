@@ -2,7 +2,7 @@ use itertools::Itertools;
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::CustomBind,
+    bind::{CustomBind, Template},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -86,7 +86,23 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         return Ok(());
     }
 
-    let prefix = await_reply("Enter the prefix you wish to set for the bind.\nEnter `N/A` if you would not like to set a prefix", &ctx).await?;
+    let template = await_reply(
+        "Enter the template you wish to set for the bind.\nYou may also enter `N/A`, `disable`",
+        &ctx,
+    )
+    .await?;
+    let template_str = match template.as_str() {
+        "disable" => "{discord-name}".into(),
+        "N/A" => "{roblox-username}".into(),
+        _ => {
+            if Template::has_slug(template.as_str()) {
+                template.clone()
+            } else {
+                format!("{} {{roblox-username}}", template)
+            }
+        }
+    };
+
     let priority = match await_reply("Enter the priority you wish to set for the bind.", &ctx)
         .await?
         .parse::<i64>()
@@ -130,11 +146,11 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
     let bind = CustomBind {
         id,
         code: code.clone(),
-        prefix: Some(prefix),
+        prefix: None,
         priority,
         command,
         discord_roles,
-        template: None,
+        template: Some(Template(template_str)),
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};
@@ -148,9 +164,9 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .map(|r| format!("<@&{}> ", r))
         .collect::<String>();
     let desc = format!(
-        "Code: {}\nPrefix: {}\nPriority: {}\nDiscord Roles: {}",
+        "Code: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
         bind.code,
-        bind.prefix.unwrap(),
+        bind.template.unwrap(),
         bind.priority,
         roles_str
     );

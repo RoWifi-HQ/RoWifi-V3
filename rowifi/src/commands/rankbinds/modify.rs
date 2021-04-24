@@ -6,7 +6,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 #[derive(FromArgs)]
 pub struct ModifyRankbind {
     #[arg(
-        help = "The field to modify. Must be one of `prefix` `priority` `roles-add` `roles-remove` `template`"
+        help = "The field to modify. Must be one of `priority` `roles-add` `roles-remove` `template`"
     )]
     pub option: ModifyOption,
     #[arg(help = "The Group ID of the rankbind to modify")]
@@ -18,7 +18,6 @@ pub struct ModifyRankbind {
 }
 
 pub enum ModifyOption {
-    Prefix,
     Priority,
     RolesAdd,
     RolesRemove,
@@ -65,14 +64,6 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
 
     let name = format!("Group Id: {}", bind.group_id);
     let desc = match args.option {
-        ModifyOption::Prefix => {
-            let new_prefix = modify_prefix(&ctx, &guild, bind_index, &args.change).await?;
-            format!(
-                "`Prefix`: {} -> {}",
-                bind.prefix.as_ref().map_or("None", |s| s.as_str()),
-                new_prefix
-            )
-        }
         ModifyOption::Priority => {
             let new_priority = modify_priority(&ctx, &guild, bind_index, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
@@ -94,6 +85,20 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
             format!("Removed Roles: {}", modification)
         }
         ModifyOption::Template => {
+            if args.change.is_empty() {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .color(Color::Red as u32)
+                    .unwrap()
+                    .title("Rank Bind Modification Failed")
+                    .unwrap()
+                    .description("You have entered a blank template")
+                    .unwrap()
+                    .build()
+                    .unwrap();
+                ctx.respond().embed(embed).await?;
+                return Ok(());
+            }
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
         }
@@ -124,19 +129,6 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
-}
-
-async fn modify_prefix<'p>(
-    ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_index: usize,
-    prefix: &'p str,
-) -> Result<&'p str, RoError> {
-    let filter = doc! {"_id": guild.id};
-    let index_str = format!("RankBinds.{}.Prefix", bind_index);
-    let update = doc! {"$set": {index_str: prefix}};
-    ctx.bot.database.modify_guild(filter, update).await?;
-    Ok(prefix)
 }
 
 async fn modify_priority(
@@ -216,13 +208,12 @@ impl FromArg for ModifyOption {
 
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match arg.to_ascii_lowercase().as_str() {
-            "prefix" => Ok(ModifyOption::Prefix),
             "priority" => Ok(ModifyOption::Priority),
             "roles-add" => Ok(ModifyOption::RolesAdd),
             "roles-remove" => Ok(ModifyOption::RolesRemove),
             "template" => Ok(ModifyOption::Template),
             _ => Err(ParseError(
-                "one of `prefix` `priority` `roles-add` `roles-remove` `template`",
+                "one of `priority` `roles-add` `roles-remove` `template`",
             )),
         }
     }
