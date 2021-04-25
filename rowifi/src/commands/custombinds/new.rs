@@ -54,7 +54,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .get_user_roles(user_id)
         .await?
         .iter()
-        .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
+        .map(|r| (r.group.id.0 as i64, i64::from(r.role.rank)))
         .collect::<HashMap<_, _>>();
     let roblox_user = ctx.bot.roblox.get_user(user_id).await?;
 

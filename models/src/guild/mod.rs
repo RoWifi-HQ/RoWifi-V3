@@ -23,48 +23,49 @@ pub use types::*;
 
 #[derive(Debug, Serialize, Default, Clone)]
 pub struct RoGuild {
+    /// The id of the guild
     #[serde(rename = "_id")]
     pub id: i64,
-
+    /// The prefix that is to be used by every command run in the guild
     #[serde(rename = "Prefix")]
     pub command_prefix: Option<String>,
-
+    /// The struct containing [GuildSettings]
     #[serde(rename = "Settings")]
     pub settings: GuildSettings,
-
+    /// The role meant for unverified users in the guild
     #[serde(rename = "VerificationRole")]
     pub verification_role: i64,
-
+    /// The role meant for verified users in the guild
     #[serde(rename = "VerifiedRole")]
     pub verified_role: i64,
-
+    /// The array containing all the [RankBind] of the guild
     #[serde(rename = "RankBinds")]
     pub rankbinds: Vec<RankBind>,
-
+    /// The array containing all the [GroupBind] of the guild
     #[serde(rename = "GroupBinds")]
     pub groupbinds: Vec<GroupBind>,
-
+    /// The array containing all the [CustomBind] of the guild
     #[serde(rename = "CustomBinds")]
     pub custombinds: Vec<CustomBind>,
-
+    /// The array containing all the [AssetBind] of the guild
     #[serde(rename = "AssetBinds")]
     pub assetbinds: Vec<AssetBind>,
-
+    /// The array containing all the [Blacklist] of the guild
     #[serde(rename = "Blacklists")]
     pub blacklists: Vec<Blacklist>,
-
+    /// The list of channels where commands are disabled
     #[serde(rename = "DisabledChannels")]
     pub disabled_channels: Vec<i64>,
-
+    /// The list of groups that the guild uses for analytics
     #[serde(rename = "RegisteredGroups")]
     pub registered_groups: Vec<i64>,
-
+    /// The list of [EventType] registered with the guild
     #[serde(rename = "EventTypes")]
     pub event_types: Vec<EventType>,
-
+    /// The counter of how many events have been logged with the guild
     #[serde(rename = "EventCounter")]
     pub event_counter: i64,
-
+    /// A non-serialized list of all roles that are covered by the binds
     #[serde(skip_serializing)]
     pub all_roles: Vec<i64>,
 }
@@ -221,21 +222,21 @@ impl RoGuild {
 
         let all_roles = rankbinds
             .iter()
-            .flat_map(|r| r.discord_roles.iter().cloned())
+            .flat_map(|r| r.discord_roles.iter().copied())
             .chain(
                 groupbinds
                     .iter()
-                    .flat_map(|g| g.discord_roles.iter().cloned()),
+                    .flat_map(|g| g.discord_roles.iter().copied()),
             )
             .chain(
                 custombinds
                     .iter()
-                    .flat_map(|c| c.discord_roles.iter().cloned()),
+                    .flat_map(|c| c.discord_roles.iter().copied()),
             )
             .chain(
                 assetbinds
                     .iter()
-                    .flat_map(|a| a.discord_roles.iter().cloned()),
+                    .flat_map(|a| a.discord_roles.iter().copied()),
             )
             .unique()
             .collect_vec();
@@ -426,21 +427,21 @@ impl<'de> Deserialize<'de> for RoGuild {
                 let event_counter = event_counter.unwrap_or_default();
                 let all_roles = rankbinds
                     .iter()
-                    .flat_map(|r| r.discord_roles.iter().cloned())
+                    .flat_map(|r| r.discord_roles.iter().copied())
                     .chain(
                         groupbinds
                             .iter()
-                            .flat_map(|g| g.discord_roles.iter().cloned()),
+                            .flat_map(|g| g.discord_roles.iter().copied()),
                     )
                     .chain(
                         custombinds
                             .iter()
-                            .flat_map(|c| c.discord_roles.iter().cloned()),
+                            .flat_map(|c| c.discord_roles.iter().copied()),
                     )
                     .chain(
                         assetbinds
                             .iter()
-                            .flat_map(|a| a.discord_roles.iter().cloned()),
+                            .flat_map(|a| a.discord_roles.iter().copied()),
                     )
                     .unique()
                     .collect_vec();

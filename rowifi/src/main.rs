@@ -5,11 +5,9 @@
     clippy::cast_sign_loss,
     clippy::cast_possible_wrap,
     clippy::single_match_else,
-    clippy::filter_map,
     clippy::too_many_lines,
     clippy::needless_lifetimes,
     clippy::let_underscore_drop,
-    clippy::cast_lossless
 )]
 
 mod commands;

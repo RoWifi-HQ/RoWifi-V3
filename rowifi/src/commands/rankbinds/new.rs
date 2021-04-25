@@ -82,12 +82,12 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         CreateType::Single(id) => roblox_group
             .roles
             .iter()
-            .filter(|r| r.rank as i64 == id)
+            .filter(|r| i64::from(r.rank) == id)
             .collect::<Vec<_>>(),
         CreateType::Multiple(min, max) => roblox_group
             .roles
             .iter()
-            .filter(|r| r.rank as i64 >= min && r.rank as i64 <= max)
+            .filter(|r| i64::from(r.rank) >= min && i64::from(r.rank) <= max)
             .collect::<Vec<_>>(),
     };
 
@@ -152,16 +152,14 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                     }
                 };
                 roles.push(role);
-            } else {
-                if let Some(role_id) = parse_role(role_to_add) {
-                    if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
-                        roles.push(role_id as i64);
-                    }
+            } else if let Some(role_id) = parse_role(role_to_add) {
+                if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
+                    roles.push(role_id as i64);
                 }
             }
         }
 
-        let rank_id = roblox_rank.rank as i64;
+        let rank_id = i64::from(roblox_rank.rank);
         let bind = RankBind {
             group_id,
             rank_id,

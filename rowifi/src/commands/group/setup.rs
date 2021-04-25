@@ -66,7 +66,7 @@ pub async fn setup(ctx: CommandContext, _args: SetupArguments) -> CommandResult 
         ..RoGuild::default()
     };
     if let Some(existing) = existing_guild {
-        guild.command_prefix = existing.command_prefix.clone();
+        guild.command_prefix = existing.command_prefix;
         replace = true;
     }
 

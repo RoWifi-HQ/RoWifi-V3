@@ -306,7 +306,7 @@ impl BotContext {
                 } else {
                     nick_bind = Some(r);
                 }
-                roles_to_add.extend(r.discord_roles.iter().cloned());
+                roles_to_add.extend(r.discord_roles.iter().copied());
             }
         }
 
@@ -319,7 +319,7 @@ impl BotContext {
                 } else {
                     nick_bind = Some(g);
                 }
-                roles_to_add.extend(g.discord_roles.iter().cloned());
+                roles_to_add.extend(g.discord_roles.iter().copied());
             }
         }
 
@@ -332,7 +332,7 @@ impl BotContext {
                 } else {
                     nick_bind = Some(c);
                 }
-                roles_to_add.extend(c.discord_roles.iter().cloned());
+                roles_to_add.extend(c.discord_roles.iter().copied());
             }
         }
 
@@ -354,7 +354,7 @@ impl BotContext {
                 } else {
                     nick_bind = Some(a);
                 }
-                roles_to_add.extend(a.discord_roles.iter().cloned());
+                roles_to_add.extend(a.discord_roles.iter().copied());
             }
         }
 
