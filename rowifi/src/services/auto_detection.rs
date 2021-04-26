@@ -1,4 +1,6 @@
+use itertools::Itertools;
 use rowifi_framework::{context::BotContext, prelude::EmbedExtensions};
+use rowifi_models::roblox::id::UserId as RobloxUserId;
 use std::{error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, Duration};
 use twilight_embed_builder::EmbedBuilder;
@@ -59,28 +61,35 @@ async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
         }
         let users = ctx.database.get_linked_users(&members, guild_id.0).await?;
         let guild_roles = ctx.cache.roles(guild_id);
-        for user in users {
-            if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                if let Some(bypass) = server.bypass_role {
-                    if member.roles.contains(&bypass) {
-                        continue;
+        for user_chunk in users.chunks(50) {
+            let user_ids = user_chunk
+                .iter()
+                .map(|u| RobloxUserId(u.roblox_id as u64))
+                .collect_vec();
+            let _roblox_ids = ctx.roblox.get_users(&user_ids).await?;
+            for user in user_chunk {
+                if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
+                    if let Some(bypass) = server.bypass_role {
+                        if member.roles.contains(&bypass) {
+                            continue;
+                        }
                     }
-                }
-                tracing::trace!(id = user.discord_id, "Auto Detection for member");
-                let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = ctx
-                    .update_user(member, &user, &server, &guild, &guild_roles)
-                    .await
-                {
-                    if !added_roles.is_empty() || !removed_roles.is_empty() {
-                        let log_embed = EmbedBuilder::new()
-                            .default_data()
-                            .title(format!("Auto Detection: {}", name))
-                            .unwrap()
-                            .update_log(&added_roles, &removed_roles, &disc_nick)
-                            .build()
-                            .unwrap();
-                        ctx.log_guild(guild_id, log_embed).await;
+                    tracing::trace!(id = user.discord_id, "Auto Detection for member");
+                    let name = member.user.name.clone();
+                    if let Ok((added_roles, removed_roles, disc_nick)) = ctx
+                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .await
+                    {
+                        if !added_roles.is_empty() || !removed_roles.is_empty() {
+                            let log_embed = EmbedBuilder::new()
+                                .default_data()
+                                .title(format!("Auto Detection: {}", name))
+                                .unwrap()
+                                .update_log(&added_roles, &removed_roles, &disc_nick)
+                                .build()
+                                .unwrap();
+                            ctx.log_guild(guild_id, log_embed).await;
+                        }
                     }
                 }
             }

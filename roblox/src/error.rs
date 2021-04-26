@@ -1,6 +1,10 @@
 use hyper::{http::Error as HttpError, Error as HyperError, StatusCode};
 use rowifi_redis::{redis::RedisError, PoolError};
 use serde_json::Error as SerdeError;
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 #[derive(Debug)]
 pub enum Error {
@@ -9,6 +13,18 @@ pub enum Error {
     Parsing(SerdeError),
     APIError(StatusCode),
     Redis(PoolError<RedisError>),
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Error::APIError(err) => write!(f, "API Error - {}", err),
+            Error::BuildingRequest(err) => write!(f, "Building Request Error - {}", err),
+            Error::Parsing(err) => write!(f, "Parsing Error - {}", err),
+            Error::Request(err) => write!(f, "Request Error - {}", err),
+            Error::Redis(err) => write!(f, "Redis Error - {}", err),
+        }
+    }
 }
 
 impl From<HttpError> for Error {
@@ -40,3 +56,5 @@ impl From<PoolError<RedisError>> for Error {
         Error::Redis(err)
     }
 }
+
+impl StdError for Error {}

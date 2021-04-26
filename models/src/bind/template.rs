@@ -3,7 +3,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use crate::roblox::user::User as RobloxUser;
+use crate::roblox::user::PartialUser as RobloxUser;
 use crate::user::RoGuildUser;
 
 lazy_static! {

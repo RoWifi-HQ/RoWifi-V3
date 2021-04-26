@@ -22,3 +22,4 @@ pub struct PartialUser {
 }
 
 impl_redis!(User);
+impl_redis!(PartialUser);

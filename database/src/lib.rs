@@ -144,6 +144,8 @@ impl Database {
     /// Add an user who's currently initiated a verification prompt
     pub async fn add_queue_user(&self, user: QueueUser) -> Result<()> {
         let queue = self.client.database(DATABASE).collection(QUEUE);
+        let mut conn = self.redis_pool.get().await?;
+        let key = format!("database:u:{}", user.discord_id);
 
         let exists = queue
             .find_one(doc! {"_id": user.roblox_id}, None)
@@ -157,6 +159,8 @@ impl Database {
         } else {
             let _res = queue.insert_one(user_doc, None).await?;
         }
+
+        let _: () = conn.del(key).await?;
         Ok(())
     }
 

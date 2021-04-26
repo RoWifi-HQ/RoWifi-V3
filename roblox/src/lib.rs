@@ -26,7 +26,7 @@ use rowifi_models::roblox::{
     asset::Asset,
     group::{Group, GroupUserRole},
     id::{AssetId, GroupId, UserId},
-    user::{PartialUser, User},
+    user::PartialUser,
     VecWrapper,
 };
 
@@ -91,7 +91,7 @@ impl Client {
     pub async fn get_id_from_username(&self, username: &str) -> Result<Option<PartialUser>> {
         let url = "https://users.roblox.com/v1/usernames/users";
         let usernames = vec![username];
-        let json = serde_json::json!({"usernames": usernames, "excludeBannedUsers": true});
+        let json = serde_json::json!({ "usernames": usernames });
         let body = serde_json::to_vec(&json)?;
         let mut ids = self
             .request::<VecWrapper<PartialUser>>(url, Method::POST, Some(body))
@@ -104,18 +104,38 @@ impl Client {
         }
     }
 
-    pub async fn get_user(&self, user_id: UserId) -> Result<User> {
+    pub async fn get_user(&self, user_id: UserId) -> Result<PartialUser> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
-        let user: Option<User> = conn.get(&key).await?;
+        let user: Option<PartialUser> = conn.get(&key).await?;
         if let Some(u) = user {
             Ok(u)
         } else {
             let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
-            let user = self.request::<User>(&url, Method::GET, None).await?;
+            let user = self.request::<PartialUser>(&url, Method::GET, None).await?;
             let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
             Ok(user)
         }
+    }
+
+    pub async fn get_users(&self, user_ids: &[UserId]) -> Result<Vec<PartialUser>> {
+        let mut conn = self.redis_pool.get().await?;
+        let url = "https://users.roblox.com/v1/users";
+        let json = serde_json::json!({ "userIds": user_ids });
+        let body = serde_json::to_vec(&json)?;
+        let users = self
+            .request::<VecWrapper<PartialUser>>(url, Method::POST, Some(body))
+            .await?;
+
+        let mut pipe = rowifi_redis::redis::pipe();
+        let mut pipe = pipe.atomic();
+        for user in &users.data {
+            let key = format!("roblox:u:{}", user.id.0);
+            pipe = pipe.set_ex(key, user.clone(), 6 * 3600);
+        }
+        let _: () = pipe.query_async(&mut conn).await?;
+
+        Ok(users.data)
     }
 
     pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {

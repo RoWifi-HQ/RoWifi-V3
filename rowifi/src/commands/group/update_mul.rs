@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
+use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
 use twilight_model::{
@@ -82,28 +82,35 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
     tokio::spawn(async move {
-        for user in users {
-            if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                if let Some(bypass) = server.bypass_role {
-                    if member.roles.contains(&bypass) {
-                        continue;
+        for user_chunk in users.chunks(50) {
+            let user_ids = user_chunk
+                .iter()
+                .map(|u| RobloxUserId(u.roblox_id as u64))
+                .collect::<Vec<_>>();
+            let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
+            for user in user_chunk {
+                if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
+                    if let Some(bypass) = server.bypass_role {
+                        if member.roles.contains(&bypass) {
+                            continue;
+                        }
                     }
-                }
-                tracing::trace!(id = user.discord_id, "Mass Update for member");
-                let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = c
-                    .update_user(member, &user, &server, &guild, &guild_roles)
-                    .await
-                {
-                    if !added_roles.is_empty() || !removed_roles.is_empty() {
-                        let log_embed = EmbedBuilder::new()
-                            .default_data()
-                            .title(format!("Mass Update: {}", name))
-                            .unwrap()
-                            .update_log(&added_roles, &removed_roles, &disc_nick)
-                            .build()
-                            .unwrap();
-                        c.log_guild(guild_id, log_embed).await;
+                    tracing::trace!(id = user.discord_id, "Mass Update for member");
+                    let name = member.user.name.clone();
+                    if let Ok((added_roles, removed_roles, disc_nick)) = c
+                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .await
+                    {
+                        if !added_roles.is_empty() || !removed_roles.is_empty() {
+                            let log_embed = EmbedBuilder::new()
+                                .default_data()
+                                .title(format!("Mass Update: {}", name))
+                                .unwrap()
+                                .update_log(&added_roles, &removed_roles, &disc_nick)
+                                .build()
+                                .unwrap();
+                            c.log_guild(guild_id, log_embed).await;
+                        }
                     }
                 }
             }
@@ -208,31 +215,38 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
     tokio::spawn(async move {
-        for user in users {
-            if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                if !member.roles.contains(&role_id) {
-                    continue;
-                }
-                if let Some(bypass) = server.bypass_role {
-                    if member.roles.contains(&bypass) {
+        for user_chunk in users.chunks(50) {
+            let user_ids = user_chunk
+                .iter()
+                .map(|u| RobloxUserId(u.roblox_id as u64))
+                .collect::<Vec<_>>();
+            let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
+            for user in user_chunk {
+                if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
+                    if !member.roles.contains(&role_id) {
                         continue;
                     }
-                }
-                tracing::trace!(id = user.discord_id, "Mass Update for member");
-                let name = member.user.name.clone();
-                if let Ok((added_roles, removed_roles, disc_nick)) = c
-                    .update_user(member, &user, &server, &guild, &guild_roles)
-                    .await
-                {
-                    if !added_roles.is_empty() || !removed_roles.is_empty() {
-                        let log_embed = EmbedBuilder::new()
-                            .default_data()
-                            .title(format!("Mass Update: {}", name))
-                            .unwrap()
-                            .update_log(&added_roles, &removed_roles, &disc_nick)
-                            .build()
-                            .unwrap();
-                        c.log_guild(guild_id, log_embed).await;
+                    if let Some(bypass) = server.bypass_role {
+                        if member.roles.contains(&bypass) {
+                            continue;
+                        }
+                    }
+                    tracing::trace!(id = user.discord_id, "Mass Update for member");
+                    let name = member.user.name.clone();
+                    if let Ok((added_roles, removed_roles, disc_nick)) = c
+                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .await
+                    {
+                        if !added_roles.is_empty() || !removed_roles.is_empty() {
+                            let log_embed = EmbedBuilder::new()
+                                .default_data()
+                                .title(format!("Mass Update: {}", name))
+                                .unwrap()
+                                .update_log(&added_roles, &removed_roles, &disc_nick)
+                                .build()
+                                .unwrap();
+                            c.log_guild(guild_id, log_embed).await;
+                        }
                     }
                 }
             }

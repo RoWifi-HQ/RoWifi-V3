@@ -122,7 +122,7 @@ pub struct SupportArguments {}
 
 pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandResult {
     let disc_link = "https://www.discord.gg/h4BGGyR";
-    let invite_link = "https://discord.com/oauth2/authorize?client_id=508968886998269962&scope=bot%20applications.commands&permissions=402672704";
+    let invite_link = "https://discord.com/oauth2/authorize?client_id=508968886998269962&scope=bot%20applications.commands&permissions=402738240";
     let website = "https://rowifi.link";
     let embed = EmbedBuilder::new()
         .default_data()

@@ -13,7 +13,7 @@ pub use template::*;
 use std::{collections::HashMap, fmt::Debug};
 use twilight_model::id::RoleId;
 
-use crate::roblox::user::User as RobloxUser;
+use crate::roblox::user::PartialUser as RobloxUser;
 use crate::user::RoGuildUser;
 
 pub trait Backup {

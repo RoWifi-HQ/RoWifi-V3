@@ -6,7 +6,7 @@ use std::{collections::HashMap, fmt};
 use twilight_model::id::RoleId;
 
 use super::{template::Template, Backup, Bind};
-use crate::{roblox::user::User as RobloxUser, rolang::RoCommand, user::RoGuildUser};
+use crate::{roblox::user::PartialUser as RobloxUser, rolang::RoCommand, user::RoGuildUser};
 
 #[derive(Serialize, Clone)]
 pub struct CustomBind {

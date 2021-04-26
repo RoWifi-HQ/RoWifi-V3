@@ -3,7 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{collections::HashMap, fmt, str::FromStr};
 use twilight_model::id::RoleId;
 
-use crate::roblox::user::User as RobloxUser;
+use crate::roblox::user::PartialUser as RobloxUser;
 use crate::user::RoGuildUser;
 
 use super::{template::Template, Backup, Bind};
