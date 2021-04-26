@@ -66,7 +66,7 @@ async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
                 .iter()
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect_vec();
-            let _roblox_ids = ctx.roblox.get_users(&user_ids).await?;
+            let _roblox_ids = ctx.roblox.get_users(&user_ids).await;
             for user in user_chunk {
                 if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
                     if let Some(bypass) = server.bypass_role {
