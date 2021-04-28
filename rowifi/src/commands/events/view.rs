@@ -35,7 +35,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
     }
 
     let roblox_id = match args.username {
-        Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
+        Some(s) => match ctx.bot.roblox.get_user_from_username(&s).await? {
             Some(i) => i.id.0 as i64,
             None => {
                 let embed = EmbedBuilder::new()
@@ -143,7 +143,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
     }
 
     let roblox_id = match args.username {
-        Some(s) => match ctx.bot.roblox.get_id_from_username(&s).await? {
+        Some(s) => match ctx.bot.roblox.get_user_from_username(&s).await? {
             Some(i) => i.id.0 as i64,
             None => {
                 let embed = EmbedBuilder::new()

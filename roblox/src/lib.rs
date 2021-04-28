@@ -17,11 +17,6 @@ use hyper::{
     Body, Client as HyperClient, Method, Request, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
-use rowifi_redis::{redis::AsyncCommands, RedisPool};
-use serde::de::DeserializeOwned;
-use std::result::Result as StdResult;
-
-use error::Error;
 use rowifi_models::roblox::{
     asset::Asset,
     group::{Group, GroupUserRole},
@@ -29,6 +24,11 @@ use rowifi_models::roblox::{
     user::PartialUser,
     VecWrapper,
 };
+use rowifi_redis::{redis::AsyncCommands, RedisPool};
+use serde::de::DeserializeOwned;
+use std::result::Result as StdResult;
+
+use error::Error;
 
 type Result<T> = StdResult<T, Error>;
 
@@ -39,12 +39,15 @@ pub struct Client {
 }
 
 impl Client {
+    /// Create an instance of the Roblox Client
+    #[must_use]
     pub fn new(redis_pool: RedisPool) -> Self {
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
         Self { client, redis_pool }
     }
 
+    /// Common method to make requests with the client
     pub async fn request<T: DeserializeOwned>(
         &self,
         url: &str,
@@ -77,6 +80,7 @@ impl Client {
         Ok(result)
     }
 
+    /// Get the group roles of an user
     pub async fn get_user_roles(&self, user_id: UserId) -> Result<Vec<GroupUserRole>> {
         let url = format!(
             "https://groups.roblox.com/v2/users/{}/groups/roles",
@@ -88,7 +92,8 @@ impl Client {
         Ok(user_roles.data)
     }
 
-    pub async fn get_id_from_username(&self, username: &str) -> Result<Option<PartialUser>> {
+    /// Get a [PartialUser] from the username
+    pub async fn get_user_from_username(&self, username: &str) -> Result<Option<PartialUser>> {
         let url = "https://users.roblox.com/v1/usernames/users";
         let usernames = vec![username];
         let json = serde_json::json!({ "usernames": usernames });
@@ -104,6 +109,7 @@ impl Client {
         }
     }
 
+    /// Get a [PartialUser] from the user id
     pub async fn get_user(&self, user_id: UserId) -> Result<PartialUser> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
@@ -118,6 +124,7 @@ impl Client {
         }
     }
 
+    /// Get multiple [PartialUser] from their ids
     pub async fn get_users(&self, user_ids: &[UserId]) -> Result<Vec<PartialUser>> {
         let mut conn = self.redis_pool.get().await?;
         let url = "https://users.roblox.com/v1/users";
@@ -138,6 +145,7 @@ impl Client {
         Ok(users.data)
     }
 
+    /// Get all ranks of a [Group] with its id
     pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {
         let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id.0);
         let group = self.request::<Group>(&url, Method::GET, None).await;
@@ -153,6 +161,7 @@ impl Client {
         }
     }
 
+    /// Get the [Asset] from an user's inventory
     pub async fn get_asset(
         &self,
         user_id: UserId,

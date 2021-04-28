@@ -115,7 +115,7 @@ pub async fn verify_common(
     let roblox_id = match ctx
         .bot
         .roblox
-        .get_id_from_username(&roblox_username)
+        .get_user_from_username(&roblox_username)
         .await?
     {
         Some(r) => r,

@@ -20,7 +20,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         .ok_or(CommonError::UnknownGuild)?;
 
     let username = args.username;
-    let user = match ctx.bot.roblox.get_id_from_username(&username).await? {
+    let user = match ctx.bot.roblox.get_user_from_username(&username).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
