@@ -1077,9 +1077,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.93"
+version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9385f66bf6105b241aa65a61cb923ef20efc665cb9f9bb50ac2f0c4b7f378d41"
+checksum = "18794a8ad5b29321f790b55d93dfba91e125cb1a9edbd4f8e3150acc771c1a5e"
 
 [[package]]
 name = "libz-sys"
@@ -1361,9 +1361,9 @@ dependencies = [
 
 [[package]]
 name = "os_info"
-version = "3.0.2"
+version = "3.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4181c9203e70e66f39def4240a7e33f74d1d95b42c08320f9ac298c580934ab2"
+checksum = "43b81dbdaffac3b1f0a97028ba368f32e3a63aa675548fc52f923e803e67961b"
 dependencies = [
  "log",
  "winapi",
@@ -1573,9 +1573,9 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.22.1"
+version = "2.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b7f4a129bb3754c25a4e04032a90173c68f85168f77118ac4cb4936e7f06f92"
+checksum = "45604fc7a88158e7d514d8e22e14ac746081e7a70d7690074dd0029ee37458d6"
 
 [[package]]
 name = "quick-error"
@@ -2665,7 +2665,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "twilight-model",
 ]
@@ -2673,7 +2673,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.3.4"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2696,7 +2696,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2707,8 +2707,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-http"
-version = "0.3.6"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+version = "0.3.8"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "bytes 1.0.1",
  "futures-channel",
@@ -2728,15 +2728,15 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "twilight-model",
 ]
 
 [[package]]
 name = "twilight-model"
-version = "0.3.5"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+version = "0.3.7"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "bitflags",
  "serde",
@@ -2748,7 +2748,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "dashmap",
  "futures-channel",
@@ -2760,7 +2760,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.3.0"
-source = "git+https://github.com/Erk-/twilight?branch=feature/slash#d04dc4aab42ce7e126bded2c7c3bc609b00e8017"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
 dependencies = [
  "twilight-model",
 ]
