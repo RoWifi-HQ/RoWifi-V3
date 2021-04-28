@@ -4,12 +4,14 @@ use crate::{
     blacklist::Blacklist,
     events::EventType,
 };
+
+use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BackupGuild {
     #[serde(rename = "_id")]
-    pub id: bson::oid::ObjectId,
+    pub id: ObjectId,
 
     #[serde(rename = "UserId")]
     pub user_id: i64,

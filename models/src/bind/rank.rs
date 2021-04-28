@@ -9,24 +9,25 @@ use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RankBind {
+    /// The Id of the Group
     #[serde(rename = "GroupId")]
     pub group_id: i64,
-
+    /// The discord roles bound to the rank
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
-
+    /// The Id of the rank in the group (0-255)
     #[serde(rename = "RbxRankId")]
     pub rank_id: i64,
-
+    /// The global id of the rank
     #[serde(rename = "RbxGrpRoleId")]
     pub rbx_rank_id: i64,
-
+    /// The prefix to set if the bind is chosen. Deprecated
     #[serde(rename = "Prefix", skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
-
+    /// The number that decides whether this bind is chosen for the nickname
     #[serde(rename = "Priority")]
     pub priority: i64,
-
+    /// The format of the nickname if this bind is chosen
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>,
 }

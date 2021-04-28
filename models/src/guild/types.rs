@@ -1,5 +1,8 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Clone)]
 #[repr(i8)]
@@ -29,8 +32,8 @@ impl Default for BlacklistActionType {
     }
 }
 
-impl fmt::Display for BlacklistActionType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for BlacklistActionType {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             BlacklistActionType::None => write!(f, "None"),
             BlacklistActionType::Kick => write!(f, "Kick"),
@@ -52,8 +55,8 @@ impl FromStr for BlacklistActionType {
     }
 }
 
-impl fmt::Display for GuildType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for GuildType {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             GuildType::Alpha => write!(f, "Alpha"),
             GuildType::Beta => write!(f, "Beta"),
