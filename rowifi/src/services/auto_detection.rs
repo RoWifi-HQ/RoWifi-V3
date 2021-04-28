@@ -1,12 +1,16 @@
 use itertools::Itertools;
-use rowifi_framework::{context::BotContext, prelude::EmbedExtensions};
-use rowifi_models::roblox::id::UserId as RobloxUserId;
-use std::{error::Error, sync::atomic::Ordering};
-use tokio::time::{interval, Duration};
+use rowifi_cache::CachedGuild;
+use rowifi_framework::{
+    context::BotContext,
+    prelude::{EmbedExtensions, RoError},
+};
+use rowifi_models::{guild::RoGuild, roblox::id::UserId as RobloxUserId, user::RoGuildUser};
+use std::{collections::HashSet, error::Error, sync::atomic::Ordering};
+use tokio::time::{interval, sleep, Duration};
 use twilight_embed_builder::EmbedBuilder;
 use twilight_model::{
     gateway::{event::Event, payload::RequestGuildMembers},
-    id::{GuildId, UserId},
+    id::{GuildId, RoleId, UserId},
 };
 
 pub async fn auto_detection(ctx: BotContext) {
@@ -67,37 +71,53 @@ async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect_vec();
             let _roblox_ids = ctx.roblox.get_users(&user_ids).await;
-            for user in user_chunk {
-                if let Some(member) = ctx.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                    if let Some(bypass) = server.bypass_role {
-                        if member.roles.contains(&bypass) {
-                            continue;
-                        }
-                    }
-                    tracing::trace!(id = user.discord_id, "Auto Detection for member");
-                    let name = member.user.name.clone();
-                    if let Ok((added_roles, removed_roles, disc_nick)) = ctx
-                        .update_user(member, &user, &server, &guild, &guild_roles)
-                        .await
-                    {
-                        if !added_roles.is_empty() || !removed_roles.is_empty() {
-                            let log_embed = EmbedBuilder::new()
-                                .default_data()
-                                .title(format!("Auto Detection: {}", name))
-                                .unwrap()
-                                .update_log(&added_roles, &removed_roles, &disc_nick)
-                                .build()
-                                .unwrap();
-                            ctx.log_guild(guild_id, log_embed).await;
-                        }
-                    }
-                }
+            for user_sec_chunk in user_chunk.chunks(6) {
+                let (_, _) = tokio::join!(
+                    execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles),
+                    sleep(Duration::from_secs(1))
+                );
             }
         }
         let end = chrono::Utc::now().timestamp_millis();
         tracing::info!(time = end-start, server_name = ?server.name, "Time to complete auto detection");
         ctx.log_premium(&format!("{} - {}", server.name, end - start))
             .await;
+    }
+    Ok(())
+}
+
+async fn execute_chunk(
+    user_chunk: &[RoGuildUser],
+    ctx: &BotContext,
+    server: &CachedGuild,
+    guild: &RoGuild,
+    guild_roles: &HashSet<RoleId>,
+) -> Result<(), RoError> {
+    for user in user_chunk {
+        if let Some(member) = ctx.cache.member(server.id, UserId(user.discord_id as u64)) {
+            if let Some(bypass) = server.bypass_role {
+                if member.roles.contains(&bypass) {
+                    continue;
+                }
+            }
+            tracing::debug!(id = user.discord_id, "Auto Detection for member");
+            let name = member.user.name.clone();
+            if let Ok((added_roles, removed_roles, disc_nick)) = ctx
+                .update_user(member, user, server, guild, guild_roles)
+                .await
+            {
+                if !added_roles.is_empty() || !removed_roles.is_empty() {
+                    let log_embed = EmbedBuilder::new()
+                        .default_data()
+                        .title(format!("Auto Detection: {}", name))
+                        .unwrap()
+                        .update_log(&added_roles, &removed_roles, &disc_nick)
+                        .build()
+                        .unwrap();
+                    ctx.log_guild(server.id, log_embed).await;
+                }
+            }
+        }
     }
     Ok(())
 }

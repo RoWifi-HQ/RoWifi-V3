@@ -117,9 +117,15 @@ impl Backup for AssetBind {
 }
 
 impl Bind for AssetBind {
-    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String {
+    fn nickname(
+        &self,
+        roblox_user: &RobloxUser,
+        user: &RoGuildUser,
+        discord_username: &str,
+        _discord_nick: &Option<String>,
+    ) -> String {
         if let Some(template) = &self.template {
-            return template.nickname(roblox_user, user, discord_nick);
+            return template.nickname(roblox_user, user, discord_username);
         }
         roblox_user.name.clone()
     }
