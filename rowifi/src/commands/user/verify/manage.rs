@@ -31,7 +31,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     let roblox_id = match ctx
         .bot
         .roblox
-        .get_id_from_username(&roblox_username)
+        .get_user_from_username(&roblox_username)
         .await?
     {
         Some(r) => r,
@@ -129,7 +129,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     let roblox_id = match ctx
         .bot
         .roblox
-        .get_id_from_username(&roblox_username)
+        .get_user_from_username(&roblox_username)
         .await?
     {
         Some(r) => r,
@@ -227,7 +227,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     let roblox_id = match ctx
         .bot
         .roblox
-        .get_id_from_username(&roblox_username)
+        .get_user_from_username(&roblox_username)
         .await?
     {
         Some(r) => r,
