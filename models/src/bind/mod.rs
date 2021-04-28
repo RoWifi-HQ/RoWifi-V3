@@ -24,6 +24,12 @@ pub trait Backup {
 }
 
 pub trait Bind: Send + Sync + Debug {
-    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String;
+    fn nickname(
+        &self,
+        roblox_user: &RobloxUser,
+        user: &RoGuildUser,
+        discord_username: &str,
+        discord_nick: &Option<String>,
+    ) -> String;
     fn priority(&self) -> i64;
 }

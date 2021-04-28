@@ -97,14 +97,20 @@ impl Backup for RankBind {
 }
 
 impl Bind for RankBind {
-    fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_nick: &str) -> String {
+    fn nickname(
+        &self,
+        roblox_user: &RobloxUser,
+        user: &RoGuildUser,
+        discord_username: &str,
+        discord_nick: &Option<String>,
+    ) -> String {
         if let Some(template) = &self.template {
-            return template.nickname(roblox_user, user, discord_nick);
+            return template.nickname(roblox_user, user, discord_username);
         } else if let Some(prefix) = &self.prefix {
             if prefix.eq_ignore_ascii_case("N/A") {
                 return roblox_user.name.clone();
             } else if prefix.eq_ignore_ascii_case("disable") {
-                return discord_nick.to_string();
+                return discord_nick.clone().unwrap_or(discord_username.to_string());
             }
             return format!("{} {}", prefix, roblox_user.name);
         }

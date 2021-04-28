@@ -371,7 +371,7 @@ impl BotContext {
             }
         }
 
-        let discord_nick = member
+        let original_nick = member
             .nick
             .as_ref()
             .map_or_else(|| member.user.name.as_str(), |s| s.as_str());
@@ -380,11 +380,13 @@ impl BotContext {
             None => false,
         };
         let nickname = if nick_bypass {
-            discord_nick.to_string()
+            original_nick.to_string()
         } else {
             nick_bind.map_or_else(
                 || roblox_user.name.to_string(),
-                |nick_bind| nick_bind.nickname(&roblox_user, &user, discord_nick),
+                |nick_bind| {
+                    nick_bind.nickname(&roblox_user, &user, &member.user.name, &member.nick)
+                },
             )
         };
 
@@ -402,7 +404,7 @@ impl BotContext {
         roles.retain(|r| !removed_roles.contains(r));
         roles = roles.into_iter().unique().collect::<Vec<RoleId>>();
 
-        let nick_changes = nickname != discord_nick;
+        let nick_changes = nickname != original_nick;
 
         if role_changes || nick_changes {
             update.roles(roles).nick(nickname.clone()).unwrap().await?;
@@ -480,12 +482,7 @@ impl<'a> Responder<'a> {
     pub fn new(ctx: &'a CommandContext) -> Self {
         ctx.interaction_token.as_ref().map_or_else(
             || Self {
-                message: Some(
-                    ctx.bot
-                        .http
-                        .create_message(ctx.channel_id)
-                        .reply(ctx.message_id.unwrap()),
-                ),
+                message: Some(ctx.bot.http.create_message(ctx.channel_id)),
                 interaction: None,
             },
             |interaction_token| Self {
