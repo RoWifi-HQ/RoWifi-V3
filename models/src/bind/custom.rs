@@ -2,7 +2,10 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::{collections::HashMap, fmt};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
+};
 use twilight_model::id::RoleId;
 
 use super::{template::Template, Backup, Bind};
@@ -10,26 +13,26 @@ use crate::{roblox::user::PartialUser as RobloxUser, rolang::RoCommand, user::Ro
 
 #[derive(Serialize, Clone)]
 pub struct CustomBind {
+    /// The ID of the Custom Bind
     #[serde(rename = "_id")]
     pub id: i64,
-
+    /// The discord roles bound to the custombind
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
-
+    /// The code of the bind
     #[serde(rename = "Code")]
     pub code: String,
-
+    /// The prefix to set if the bind is chosen. Deprecated
     #[serde(rename = "Prefix", skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
-
+    /// The number that decides whether this bind is chosen for the nickname
     #[serde(rename = "Priority")]
     pub priority: i64,
-
-    #[serde(skip_serializing)]
-    pub command: RoCommand,
-
+    /// The format of the nickname if this bind is chosen
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>,
+    #[serde(skip_serializing)]
+    pub command: RoCommand,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,8 +56,8 @@ pub struct BackupCustomBind {
     pub template: Option<Template>,
 }
 
-impl fmt::Debug for CustomBind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Debug for CustomBind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("CustomBind")
             .field("Id", &self.id)
             .field("Discord Roles", &self.discord_roles)
@@ -149,7 +152,7 @@ impl<'de> Deserialize<'de> for CustomBind {
         impl<'de> Visitor<'de> for CustomBindVisitor {
             type Value = CustomBind;
 
-            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
                 f.write_str("struct CustomBind")
             }
 

@@ -9,15 +9,16 @@ use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GroupBind {
+    /// The Id of the Roblox Group
     #[serde(rename = "GroupId")]
     pub group_id: i64,
-
+    /// The discord roles bound to the group
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
-
+    /// The number that decides whether this bind is chosen for the nickname
     #[serde(rename = "Priority", default)]
     pub priority: i64,
-
+    /// The format of the nickname if this bind is chosen
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>,
 }

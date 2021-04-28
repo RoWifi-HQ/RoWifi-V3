@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{collections::HashMap, fmt, str::FromStr};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 use twilight_model::id::RoleId;
 
 use crate::roblox::user::PartialUser as RobloxUser;
@@ -10,18 +14,19 @@ use super::{template::Template, Backup, Bind};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AssetBind {
+    /// The ID of the Roblox Asset
     #[serde(rename = "_id")]
     pub id: i64,
-
+    /// The type of the Asset. Can be one of Asset, Badge, Gamepass
     #[serde(rename = "Type")]
     pub asset_type: AssetType,
-
+    /// The discord roles bounded to the asset
     #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
-
+    /// The number that decides whether this bind is chosen for the nickname
     #[serde(rename = "Priority", default)]
     pub priority: i64,
-
+    /// The format of the nickname if this bind is chosen
     #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
     pub template: Option<Template>,
 }
@@ -52,8 +57,8 @@ pub enum AssetType {
     Gamepass,
 }
 
-impl fmt::Display for AssetType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for AssetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match *self {
             AssetType::Asset => f.write_str("Asset"),
             AssetType::Badge => f.write_str("Badge"),
