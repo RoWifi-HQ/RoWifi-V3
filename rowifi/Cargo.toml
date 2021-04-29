@@ -30,6 +30,7 @@ rowifi-database = { path = '../database' }
 rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
 rowifi-redis = { path = "../redis" }
+sha2 = "0"
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"

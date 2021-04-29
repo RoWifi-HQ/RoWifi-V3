@@ -15,9 +15,9 @@ mod services;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
 use commands::{
-    analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
-    events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
-    settings_config, user_config,
+    analytics_config, api_config, assetbinds_config, backup_config, blacklists_config,
+    custombinds_config, events_config, group_config, groupbinds_config, premium_config,
+    rankbinds_config, settings_config, user_config,
 };
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -215,6 +215,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .configure(custombinds_config)
     .configure(events_config)
     .configure(group_config)
+    .configure(api_config)
     .configure(groupbinds_config)
     .configure(settings_config)
     .configure(premium_config);
