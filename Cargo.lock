@@ -1867,6 +1867,7 @@ dependencies = [
  "rowifi-framework",
  "rowifi-models",
  "rowifi-redis",
+ "sha2",
  "tokio",
  "tokio-stream",
  "tower",

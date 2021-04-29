@@ -100,7 +100,7 @@ async fn execute_chunk(
                     continue;
                 }
             }
-            tracing::debug!(id = user.discord_id, "Auto Detection for member");
+            tracing::trace!(id = user.discord_id, "Auto Detection for member");
             let name = member.user.name.clone();
             if let Ok((added_roles, removed_roles, disc_nick)) = ctx
                 .update_user(member, user, server, guild, guild_roles)
