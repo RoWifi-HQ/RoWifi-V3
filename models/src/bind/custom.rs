@@ -124,7 +124,9 @@ impl Bind for CustomBind {
             if prefix.eq_ignore_ascii_case("N/A") {
                 return roblox_user.name.clone();
             } else if prefix.eq_ignore_ascii_case("disable") {
-                return discord_nick.clone().unwrap_or_else(|| discord_username.to_string());
+                return discord_nick
+                    .clone()
+                    .unwrap_or_else(|| discord_username.to_string());
             }
             return format!("{} {}", prefix, roblox_user.name);
         }

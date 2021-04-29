@@ -5,7 +5,7 @@ use rowifi_framework::{
     prelude::{EmbedExtensions, RoError},
 };
 use rowifi_models::{guild::RoGuild, roblox::id::UserId as RobloxUserId, user::RoGuildUser};
-use std::{collections::HashSet, error::Error, sync::atomic::Ordering};
+use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, Duration};
 use twilight_embed_builder::EmbedBuilder;
 use twilight_model::{
@@ -16,15 +16,20 @@ use twilight_model::{
 pub async fn auto_detection(ctx: BotContext) {
     tracing::info!("Auto Detection starting");
     let mut interval = interval(Duration::from_secs(3 * 3600));
+    let chunk_size = if let Ok(chunk_size) = env::var("CHUNK_SIZE") {
+        chunk_size.parse::<usize>().unwrap_or(5)
+    } else {
+        5
+    };
     loop {
         interval.tick().await;
-        if let Err(err) = execute(&ctx).await {
+        if let Err(err) = execute(&ctx, chunk_size).await {
             tracing::error!(err = ?err, "Error in auto detection");
         }
     }
 }
 
-async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
+async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Error>> {
     let servers = ctx.cache.guilds();
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
@@ -71,7 +76,7 @@ async fn execute(ctx: &BotContext) -> Result<(), Box<dyn Error>> {
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect_vec();
             let _roblox_ids = ctx.roblox.get_users(&user_ids).await;
-            for user_sec_chunk in user_chunk.chunks(6) {
+            for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
                     execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles),
                     sleep(Duration::from_secs(1))
