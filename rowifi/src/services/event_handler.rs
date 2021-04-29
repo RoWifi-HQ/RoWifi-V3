@@ -1,6 +1,6 @@
 use super::{activity, auto_detection};
 use dashmap::DashSet;
-use futures::{Future, FutureExt};
+use futures_util::future::{Future, FutureExt};
 use rowifi_framework::{
     context::BotContext,
     prelude::{CommandError, EmbedExtensions, RoError},

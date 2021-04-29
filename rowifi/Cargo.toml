@@ -1,45 +1,53 @@
 [package]
 name = "rowifi"
-version = "3.0.0-alpha-11"
+version = "3.0.0"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-base64 = "0.13"
-chacha20poly1305 = "0"
-chrono = "0"
-dashmap = "4"
-dotenv = "0"
-futures = "0"
-hyper = { version = "0", features = ["server", "client"] }
-hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
-image = "0.23"
-itertools = "0"
-lazy_static = "1"
-mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
-patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
-prometheus = "0"
-rand = "0.8"
-regex = "1"
-reqwest = { version = "0", default-features = false, features = ["json", "rustls-tls"] }
+# RoWifi Crates
 roblox = { path = "../roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
 rowifi-redis = { path = "../redis" }
-sha2 = "0"
-plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
+
+# Main Crates
+dashmap = "4"
+hyper = { version = "0", features = ["server", "client"] }
+hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
 tower = "0"
 tracing = "0"
 tracing-subscriber = "0"
+
+# Command Utilities
+base64 = "0.13"
+chacha20poly1305 = "0"
+chrono = "0"
+image = "0.23"
+plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
+rand = "0.8"
+regex = "1"
+sha2 = "0"
+
+# Twilight Modules
 twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
 twilight-gateway = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
 twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-mention = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+twilight-mention = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" } # TODO: Remove this
 twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
 twilight-standby = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+
+# Utilities Crates
+dotenv = "0"
+futures-util = "0"
+itertools = "0"
+lazy_static = "1"
+mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
+patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
+prometheus = "0"

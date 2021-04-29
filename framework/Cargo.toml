@@ -21,7 +21,7 @@ rowifi-models = { path = "../models" }
 tracing = "0"
 tokio = { version = "1", features = ["time"] }
 tokio-stream = { version = "0" }
-tower = { version = "0", features = ["util", "limit"] }
+tower = { version = "0", features = ["util"] }
 transient-dashmap = { branch = "main", git = "https://github.com/AsianIntel/transient-dashmap" }
 twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
 twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }

@@ -1841,14 +1841,14 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "3.0.0-alpha-11"
+version = "3.0.0"
 dependencies = [
  "base64 0.13.0",
  "chacha20poly1305",
  "chrono",
  "dashmap",
  "dotenv",
- "futures",
+ "futures-util",
  "hyper",
  "hyper-rustls",
  "image",
@@ -1860,7 +1860,6 @@ dependencies = [
  "prometheus",
  "rand 0.8.3",
  "regex",
- "reqwest",
  "roblox",
  "rowifi-cache",
  "rowifi-database",
@@ -2490,8 +2489,6 @@ dependencies = [
  "futures-core",
  "futures-util",
  "pin-project",
- "tokio",
- "tokio-util",
  "tower-layer",
  "tower-service",
  "tracing",

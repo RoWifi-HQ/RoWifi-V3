@@ -1,4 +1,4 @@
-use reqwest::StatusCode;
+use hyper::StatusCode;
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::Error as DiscordHttpError;
