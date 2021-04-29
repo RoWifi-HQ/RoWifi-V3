@@ -92,7 +92,7 @@ impl Client {
         Ok(user_roles.data)
     }
 
-    /// Get a [PartialUser] from the username
+    /// Get a [`PartialUser`] from the username
     pub async fn get_user_from_username(&self, username: &str) -> Result<Option<PartialUser>> {
         let url = "https://users.roblox.com/v1/usernames/users";
         let usernames = vec![username];
@@ -109,7 +109,7 @@ impl Client {
         }
     }
 
-    /// Get a [PartialUser] from the user id
+    /// Get a [`PartialUser`] from the user id
     pub async fn get_user(&self, user_id: UserId) -> Result<PartialUser> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
@@ -124,7 +124,7 @@ impl Client {
         }
     }
 
-    /// Get multiple [PartialUser] from their ids
+    /// Get multiple [`PartialUser`] from their ids
     pub async fn get_users(&self, user_ids: &[UserId]) -> Result<Vec<PartialUser>> {
         let mut conn = self.redis_pool.get().await?;
         let url = "https://users.roblox.com/v1/users";
@@ -145,7 +145,7 @@ impl Client {
         Ok(users.data)
     }
 
-    /// Get all ranks of a [Group] with its id
+    /// Get all ranks of a [`Group`] with its id
     pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {
         let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id.0);
         let group = self.request::<Group>(&url, Method::GET, None).await;
@@ -161,7 +161,7 @@ impl Client {
         }
     }
 
-    /// Get the [Asset] from an user's inventory
+    /// Get the [`Asset`] from an user's inventory
     pub async fn get_asset(
         &self,
         user_id: UserId,
