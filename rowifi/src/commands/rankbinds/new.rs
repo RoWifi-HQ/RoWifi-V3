@@ -32,7 +32,7 @@ pub struct NewRankbind {
 }
 
 lazy_static! {
-    static ref PREFIX_REGEX: Regex = Regex::new(r"\[(.*?)\]").unwrap();
+    pub static ref PREFIX_REGEX: Regex = Regex::new(r"\[(.*?)\]").unwrap();
 }
 
 pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandResult {

@@ -205,9 +205,14 @@ async fn modify_template<'t>(
     guild: &RoGuild,
     bind_id: i64,
     template: &'t str,
-) -> Result<&'t str, RoError> {
+) -> Result<String, RoError> {
+    let template = match template {
+        "N/A" => "{roblox-username}".into(),
+        "disable" => "{discord-name}".into(),
+        _ => template.to_string()
+    };
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Template": template}};
+    let update = doc! {"$set": {"CustomBinds.$.Template": template.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(template)
 }
