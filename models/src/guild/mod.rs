@@ -3,6 +3,7 @@ mod settings;
 mod types;
 
 use itertools::Itertools;
+use mongodb::bson::oid::ObjectId;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
@@ -99,7 +100,7 @@ impl RoGuild {
             .collect_vec();
 
         BackupGuild {
-            id: bson::oid::ObjectId::new(),
+            id: ObjectId::new(),
             user_id,
             name: name.to_string(),
             command_prefix: self.command_prefix.clone(),

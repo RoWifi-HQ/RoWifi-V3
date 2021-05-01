@@ -1,4 +1,4 @@
-use bson::{oid::ObjectId, DateTime};
+use mongodb::bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
