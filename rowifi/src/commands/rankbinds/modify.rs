@@ -1,7 +1,9 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::RoGuild;
+use rowifi_models::{guild::RoGuild, roblox::id::GroupId};
 use twilight_embed_builder::EmbedFieldBuilder;
+
+use super::new::PREFIX_REGEX;
 
 #[derive(FromArgs)]
 pub struct ModifyRankbind {
@@ -99,7 +101,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 ctx.respond().embed(embed).await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
+            let template = modify_template(&ctx, group_id, rank_id, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -154,13 +156,38 @@ async fn modify_priority(
 
 async fn modify_template<'t>(
     ctx: &CommandContext,
+    group_id: i64,
+    rank_id: i64,
     guild: &RoGuild,
     bind_index: usize,
     template: &'t str,
-) -> Result<&'t str, RoError> {
+) -> Result<String, RoError> {
+    let roblox_group = ctx.bot.roblox.get_group_ranks(GroupId(group_id as u64)).await?;
+    let roblox_rank = match &roblox_group {
+        Some(g) => {
+            g.roles.iter().find(|r| r.rank as i64 == rank_id)
+        },
+        None => None
+    };
+    let template = match template {
+        "auto" => {
+            if let Some(rank) = roblox_rank {
+                if let Some(m) = PREFIX_REGEX.captures(&rank.name) {
+                    format!("[{}] {{roblox-username}}", m.get(1).unwrap().as_str())
+                } else {
+                    "{roblox-username}".into()
+                }
+            } else {
+                "{roblox-username}".into()
+            }
+        },
+        "disable" => "{discord-name}".into(),
+        "N/A" => "{roblox-username}".into(),
+        _ => template.to_string()
+    };
     let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Template", bind_index);
-    let update = doc! {"$set": {index_str: template}};
+    let update = doc! {"$set": {index_str: template.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(template)
 }
