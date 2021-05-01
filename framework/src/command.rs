@@ -1,4 +1,3 @@
-use futures::FutureExt;
 use itertools::Itertools;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -8,7 +7,13 @@ use std::{
 };
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
-use twilight_model::applications::interaction::CommandDataOption;
+use twilight_model::{
+    applications::{
+        interaction::CommandDataOption,
+        response::{CommandCallbackData, InteractionResponse},
+    },
+    channel::message::MessageFlags,
+};
 
 use crate::{
     arguments::{ArgumentError, Arguments, FromArgs},
@@ -161,10 +166,42 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
         if ctx.bot.disabled_channels.contains(&ctx.channel_id)
             && !self.names.contains(&"command-channel")
         {
+            if let (Some(id), Some(token)) = (ctx.interaction_id, ctx.interaction_token) {
+                let http = ctx.bot.http.clone();
+                let fut = async move {
+                    let _ = http
+                        .interaction_callback(
+                            id,
+                            token,
+                            InteractionResponse::ChannelMessageWithSource(CommandCallbackData {
+                                tts: None,
+                                embeds: Vec::new(),
+                                content: "Commands are disabled in this channel".into(),
+                                flags: Some(MessageFlags::EPHEMERAL),
+                            }),
+                        )
+                        .await;
+                    Ok(())
+                };
+                return Box::pin(fut);
+            }
             return Box::pin(async move { Ok(()) });
         }
 
-        let fut = fut.then(move |res: Result<(), RoError>| async move {
+        let http = ctx.bot.http.clone();
+        let (interaction_id, interaction_token) =
+            (ctx.interaction_id, ctx.interaction_token.clone());
+        let fut = async move {
+            if let (Some(id), Some(token)) = (interaction_id, interaction_token) {
+                let _ = http
+                    .interaction_callback(
+                        id,
+                        token,
+                        InteractionResponse::DeferredChannelMessageWithSource,
+                    )
+                    .await;
+            }
+            let res = fut.await;
             match res {
                 Ok(_) => {
                     if let Ok(metric) = ctx
@@ -182,7 +219,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     Err(err)
                 }
             }
-        });
+        };
         Box::pin(fut)
     }
 }

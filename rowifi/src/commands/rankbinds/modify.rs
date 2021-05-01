@@ -101,7 +101,8 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 ctx.respond().embed(embed).await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, group_id, rank_id, &guild, bind_index, &args.change).await?;
+            let template =
+                modify_template(&ctx, group_id, rank_id, &guild, bind_index, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -162,12 +163,14 @@ async fn modify_template<'t>(
     bind_index: usize,
     template: &'t str,
 ) -> Result<String, RoError> {
-    let roblox_group = ctx.bot.roblox.get_group_ranks(GroupId(group_id as u64)).await?;
+    let roblox_group = ctx
+        .bot
+        .roblox
+        .get_group_ranks(GroupId(group_id as u64))
+        .await?;
     let roblox_rank = match &roblox_group {
-        Some(g) => {
-            g.roles.iter().find(|r| r.rank as i64 == rank_id)
-        },
-        None => None
+        Some(g) => g.roles.iter().find(|r| i64::from(r.rank) == rank_id),
+        None => None,
     };
     let template = match template {
         "auto" => {
@@ -180,10 +183,10 @@ async fn modify_template<'t>(
             } else {
                 "{roblox-username}".into()
             }
-        },
+        }
         "disable" => "{discord-name}".into(),
         "N/A" => "{roblox-username}".into(),
-        _ => template.to_string()
+        _ => template.to_string(),
     };
     let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Template", bind_index);
