@@ -9,7 +9,8 @@
     clippy::missing_panics_doc,
     clippy::cast_sign_loss,
     clippy::cast_possible_wrap,
-    clippy::cast_lossless
+    clippy::cast_lossless,
+    clippy::similar_names
 )]
 
 pub mod arguments;
@@ -39,7 +40,7 @@ use twilight_model::{
         interaction::Interaction,
         response::{CommandCallbackData, InteractionResponse},
     },
-    channel::Message,
+    channel::{message::MessageFlags, Message},
     gateway::event::Event,
     guild::Permissions,
     id::{GuildId, UserId},
@@ -99,6 +100,7 @@ impl Framework {
                     guild_id: msg.guild_id,
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
+                    interaction_id: None,
                     interaction_token: None,
                 };
                 let req = ServiceRequest::Help(args, embed);
@@ -239,6 +241,7 @@ impl Service<&Event> for Framework {
                     guild_id: msg.guild_id,
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
+                    interaction_id: None,
                     interaction_token: None,
                 };
 
@@ -276,8 +279,9 @@ impl Service<&Event> for Framework {
                                         CommandCallbackData {
                                             tts: None,
                                             embeds: Vec::new(),
-                                            content: "Commands have been disabled in this channel"
+                                            content: "You do not have sufficient perms to run this command"
                                                 .into(),
+                                            flags: Some(MessageFlags::EPHEMERAL)
                                         },
                                     ),
                                 )
@@ -293,23 +297,13 @@ impl Service<&Event> for Framework {
                         guild_id: top_command.guild_id,
                         author: Arc::new(user),
                         message_id: None,
+                        interaction_id: Some(id),
                         interaction_token: Some(top_command.token.clone()),
                     };
-                    let http = self.bot.http.clone();
 
                     let request = ServiceRequest::Interaction(command_options.clone());
                     let cmd_fut = command.call((ctx, request));
-                    let fut = async move {
-                        let _ = http
-                            .interaction_callback(
-                                id,
-                                token,
-                                InteractionResponse::DeferredChannelMessageWithSource,
-                            )
-                            .await;
-                        cmd_fut.await
-                    };
-                    return Either::Right(Box::pin(fut));
+                    return Either::Right(cmd_fut);
                 }
             }
             _ => {}

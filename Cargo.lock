@@ -1753,9 +1753,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.1"
+version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a068b905b8cb93815aa3069ae48653d90f382308aebd1d33d940ac1f1d771e2d"
+checksum = "1efb2352a0f4d4b128f734b5c44c79ff80117351138733f12f982fe3e2b13343"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -2576,9 +2576,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.2.17"
+version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "705096c6f83bf68ea5d357a6aa01829ddbdac531b357b45abeca842938085baa"
+checksum = "aa5553bf0883ba7c9cbe493b085c29926bd41b66afc31ff72cf17ff4fb60dcd5"
 dependencies = [
  "ansi_term",
  "chrono",
@@ -2677,7 +2677,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.3.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "twilight-model",
 ]
@@ -2685,7 +2685,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.3.4"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "async-tungstenite",
  "bitflags",
@@ -2708,7 +2708,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.3.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -2720,7 +2720,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.3.8"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "bytes 1.0.1",
  "futures-channel",
@@ -2740,7 +2740,7 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.3.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "twilight-model",
 ]
@@ -2748,7 +2748,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.3.7"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "bitflags",
  "serde",
@@ -2760,7 +2760,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.3.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "dashmap",
  "futures-channel",
@@ -2772,7 +2772,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.3.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#8c739093c17386da109f8c8978a96d7267da1bed"
+source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#61c275fc8a41722e183ea08fdbdd9c4c778928e6"
 dependencies = [
  "twilight-model",
 ]

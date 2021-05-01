@@ -209,7 +209,7 @@ async fn modify_template<'t>(
     let template = match template {
         "N/A" => "{roblox-username}".into(),
         "disable" => "{discord-name}".into(),
-        _ => template.to_string()
+        _ => template.to_string(),
     };
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
     let update = doc! {"$set": {"CustomBinds.$.Template": template.clone()}};

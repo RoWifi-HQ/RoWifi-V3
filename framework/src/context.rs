@@ -29,7 +29,7 @@ use twilight_http::{
 };
 use twilight_model::{
     channel::embed::Embed,
-    id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
+    id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
 use twilight_standby::Standby;
@@ -98,6 +98,8 @@ pub struct CommandContext {
     pub author: Arc<User>,
     /// The id of the original message invoked by the user
     pub message_id: Option<MessageId>,
+    /// The id of the interaction
+    pub interaction_id: Option<InteractionId>,
     /// The token of the interaction. This is used to make followups or edit the original response
     pub interaction_token: Option<String>,
 }
