@@ -62,13 +62,10 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Already Verified")
-            .unwrap()
             .description(
                 "To link another account, use `verify add`. To get your roles, use `update`",
             )
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -82,11 +79,8 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Not Verified")
-            .unwrap()
             .description("You are not verified. Please use `verify` to link your account")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -103,9 +97,7 @@ pub async fn verify_common(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::Red as u32)
-        .unwrap()
-        .title("Verification Process Failed")
-        .unwrap();
+        .title("Verification Process Failed");
 
     let roblox_username = match args.username {
         Some(r) => r,
@@ -122,7 +114,6 @@ pub async fn verify_common(
         None => {
             let e = embed
                 .description("Invalid Roblox Username. Please try again.")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -140,7 +131,6 @@ pub async fn verify_common(
     let e = EmbedBuilder::new()
         .default_data()
         .title("Verification Process")
-        .unwrap()
         .field(
             EmbedFieldBuilder::new(
                 "Further Steps",
@@ -148,15 +138,13 @@ pub async fn verify_common(
                     "Please join the following game to verify yourself: [Click Here]({})",
                     game_url
                 ),
-            )
-            .unwrap(),
+            ),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Post Verification", 
                 "Once successfully verified, you must use `update` to get your roles. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`."
             )
-            .unwrap()
         )
         .build()
         .unwrap();
@@ -186,11 +174,8 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("User Not Verified")
-                .unwrap()
                 .description("You are not verified. Please use `verify` to link your account")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -211,9 +196,7 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Linked Accounts")
-        .unwrap()
-        .color(Color::Blue as u32)
-        .unwrap();
+        .color(Color::Blue as u32);
 
     let mut acc_string = String::new();
 
@@ -243,7 +226,7 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
         acc_string.push('\n');
     }
 
-    let embed = embed.description(acc_string).unwrap().build().unwrap();
+    let embed = embed.description(acc_string).build().unwrap();
     ctx.bot
         .http
         .create_message(ctx.channel_id)

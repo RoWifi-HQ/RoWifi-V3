@@ -82,48 +82,37 @@ pub async fn settings_view(ctx: CommandContext, _args: SettingsViewArguments) ->
     let embed = EmbedBuilder::new()
         .default_data()
         .field(
-            EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string()).inline(),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Prefix",
                 guild.command_prefix.clone().unwrap_or_else(|| "!".into()),
             )
-            .unwrap()
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Auto Detection", guild.settings.auto_detection.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Auto Detection", guild.settings.auto_detection.to_string()).inline(),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Blacklist Action",
                 guild.settings.blacklist_action.to_string(),
             )
-            .unwrap()
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Update On Join", guild.settings.update_on_join.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Update On Join", guild.settings.update_on_join.to_string()).inline(),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Verification Role",
                 format!("<@&{}>", guild.verification_role),
             )
-            .unwrap()
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role))
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role)).inline(),
         )
         .build()
         .unwrap();

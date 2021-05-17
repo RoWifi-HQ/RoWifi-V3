@@ -66,11 +66,8 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("Rankbinds Addition Failed")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .description(format!("The group with id {} does not exist", group_id))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -102,11 +99,8 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Rankbinds Addition Failed")
-            .unwrap()
             .description(desc)
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -190,15 +184,12 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
-        .unwrap()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .description(format!(
             "Added {} rankbinds and modified {} rankbinds",
             added.len(),
             modified.len()
-        ))
-        .unwrap();
+        ));
 
     let mut count = 0;
     for rb in &added {
@@ -220,7 +211,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 .map(|r| format!("<@&{}>", r))
                 .collect::<String>()
         );
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         count += 1;
     }
 
@@ -243,7 +234,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 .map(|r| format!("<@&{}>", r))
                 .collect::<String>()
         );
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         count += 1;
     }
     ctx.respond().embed(embed.build().unwrap()).await?;
@@ -305,10 +296,8 @@ async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Rank Bind Addition")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(ctx.guild_id.unwrap(), log_embed).await;

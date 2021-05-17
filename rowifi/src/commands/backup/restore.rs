@@ -10,11 +10,8 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Backup Failed")
-                .unwrap()
                 .description("This module may only be used by a Beta Tier user")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -32,14 +29,11 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Backup Restore Failed")
-                .unwrap()
                 .description(format!(
                     "No backup with name {} was found associated to your account",
                     name
                 ))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;

@@ -65,25 +65,24 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
     };
     let mut embed = EmbedBuilder::new()
         .default_data()
-        .title(format!("{}#{}", author.1, author.2))
-        .unwrap();
+        .title(format!("{}#{}", author.1, author.2));
     if let Some(premium_user) = ctx.bot.database.get_premium((author.0).0).await? {
         embed = match premium_user.premium_type {
-            PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System").unwrap()),
-            PremiumType::Alpha => embed.field(EmbedFieldBuilder::new("Tier", "Alpha").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
-            PremiumType::Partner => embed.field(EmbedFieldBuilder::new("Tier", "Partner").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System").unwrap()),
-            PremiumType::Council => embed.field(EmbedFieldBuilder::new("Tier", "Council").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System").unwrap()),
-            PremiumType::Staff => embed.field(EmbedFieldBuilder::new("Tier", "Staff").unwrap())
-                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)").unwrap()),
+            PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta"))
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System")),
+            PremiumType::Alpha => embed.field(EmbedFieldBuilder::new("Tier", "Alpha"))
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)")),
+            PremiumType::Partner => embed.field(EmbedFieldBuilder::new("Tier", "Partner"))
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System")),
+            PremiumType::Council => embed.field(EmbedFieldBuilder::new("Tier", "Council"))
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System")),
+            PremiumType::Staff => embed.field(EmbedFieldBuilder::new("Tier", "Staff"))
+                                    .field(EmbedFieldBuilder::new("Perks", "Auto Detection for one owned server\nUpdate All/Update Role (3 times per 12 hours)")),
         };
     } else {
         embed = embed
-            .field(EmbedFieldBuilder::new("Tier", "Normal").unwrap())
-            .field(EmbedFieldBuilder::new("Perks", "None").unwrap());
+            .field(EmbedFieldBuilder::new("Tier", "Normal"))
+            .field(EmbedFieldBuilder::new("Perks", "None"));
     }
     ctx.respond().embed(embed.build().unwrap()).await?;
 

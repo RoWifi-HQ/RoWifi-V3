@@ -28,14 +28,11 @@ pub async fn settings_verification(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(format!(
             "The Verification Role was successfully set to <@&{}>",
             verification_role
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -43,12 +40,10 @@ pub async fn settings_verification(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description(format!(
             "Settings Modification: Verification Role set to <@&{}>",
             verification_role
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
@@ -78,14 +73,11 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(format!(
             "The Verified Role was successfully set to <@&{}>",
             verified_role
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -93,12 +85,10 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description(format!(
             "Settings Modification: Verified Role set to <@&{}>",
             verified_role
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

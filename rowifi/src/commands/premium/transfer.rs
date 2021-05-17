@@ -18,11 +18,8 @@ pub async fn premium_transfer(
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Premium Transfer Failed")
-                .unwrap()
                 .description("You may not transfer a premium that you do not own")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -34,11 +31,8 @@ pub async fn premium_transfer(
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .title("Premium Transfer Failed")
-                    .unwrap()
                     .description("You must specify a user id to transfer to")
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -55,11 +49,8 @@ pub async fn premium_transfer(
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Premium Transfer Failed")
-                .unwrap()
                 .description("You cannot transfer premium to a user who already has premium")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -83,9 +74,7 @@ pub async fn premium_transfer(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::DarkGreen as u32)
-            .unwrap()
             .title("Premium Transfer Successful")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -113,9 +102,7 @@ pub async fn premium_transfer(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::DarkGreen as u32)
-            .unwrap()
             .title("Premium Transfer Successful")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -123,11 +110,8 @@ pub async fn premium_transfer(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Premium Transfer Failed")
-            .unwrap()
             .description("You do not have a premium subscription")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;

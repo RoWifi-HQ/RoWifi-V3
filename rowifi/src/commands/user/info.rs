@@ -19,11 +19,8 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("User Info Failed")
-                .unwrap()
                 .description("User was not verified. Please ask him/her to verify themselves")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -45,12 +42,10 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     let embed = EmbedBuilder::new()
         .default_data()
         .title(author.1.clone())
-        .unwrap()
         .description("Profile Information")
-        .unwrap()
-        .field(EmbedFieldBuilder::new("Username", roblox_user.name.clone()).unwrap())
-        .field(EmbedFieldBuilder::new("Roblox Id", user.roblox_id.to_string()).unwrap())
-        .field(EmbedFieldBuilder::new("Discord Id", user.discord_id.to_string()).unwrap())
+        .field(EmbedFieldBuilder::new("Username", roblox_user.name.clone()))
+        .field(EmbedFieldBuilder::new("Roblox Id", user.roblox_id.to_string()))
+        .field(EmbedFieldBuilder::new("Discord Id", user.discord_id.to_string()))
         .thumbnail(
             ImageSource::url(format!(
                 "http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}",
@@ -82,34 +77,23 @@ pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandRes
                 "Name",
                 format!("{}#{}", current_user.name, current_user.discriminator),
             )
-            .unwrap()
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION"))
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION")).inline(),
         )
-        .field(EmbedFieldBuilder::new("Language", "Rust").unwrap().inline())
+        .field(EmbedFieldBuilder::new("Language", "Rust").inline())
         .field(
-            EmbedFieldBuilder::new("Shards", ctx.bot.total_shards.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Shards", ctx.bot.total_shards.to_string()).inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Servers", guilds.len().to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Servers", guilds.len().to_string()).inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Members", member_count.to_string())
-                .unwrap()
-                .inline(),
+            EmbedFieldBuilder::new("Members", member_count.to_string()).inline(),
         )
         .build()
         .unwrap();
@@ -133,8 +117,7 @@ pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandRes
                     "To know more about announcements, updates and other stuff: [Click Here]({})",
                     disc_link
                 ),
-            )
-            .unwrap(),
+            ),
         )
         .field(
             EmbedFieldBuilder::new(
@@ -143,15 +126,13 @@ pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandRes
                     "To invite the bot into your server: [Click Here]({})",
                     invite_link
                 ),
-            )
-            .unwrap(),
+            ),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Website",
                 format!("To check out our website: [Click Here]({})", website),
-            )
-            .unwrap(),
+            ),
         )
         .build()
         .unwrap();

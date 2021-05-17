@@ -48,14 +48,11 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Rank Bind Modification Failed")
-                .unwrap()
                 .description(format!(
                     "There was no bind found with Group Id {} and Rank Id {}",
                     group_id, rank_id
                 ))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -91,11 +88,8 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .title("Rank Bind Modification Failed")
-                    .unwrap()
                     .description("You have entered a blank template")
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -111,12 +105,9 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Success!")
-        .unwrap()
         .description("The bind was successfully modified")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -124,10 +115,8 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Rank Bind Modification")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

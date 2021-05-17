@@ -1,7 +1,7 @@
 use hyper::StatusCode;
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFooterBuilder;
-use twilight_http::Error as DiscordHttpError;
+use twilight_http::error::ErrorType as DiscordErrorType;
 use twilight_model::id::{RoleId, UserId};
 
 #[derive(Debug, FromArgs)]
@@ -26,11 +26,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("Update Failed")
-                .unwrap()
                 .description("No such member was found")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -43,11 +40,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Update Failed")
-            .unwrap()
             .description("Due to discord limitations, I cannot update the server owner")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -62,11 +56,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("Update Failed")
-                .unwrap()
                 .description("I cannot update users with the `RoWifi Bypass` role")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -80,11 +71,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("Update Failed")
-                .unwrap()
                 .description("User was not verified. Please ask them to verify themselves")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -106,41 +94,33 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     {
         Ok(a) => a,
         Err(e) => {
-            if let RoError::Discord(DiscordHttpError::Response {
-                body: _,
-                error: _,
-                status,
-            }) = e
-            {
-                if status == StatusCode::FORBIDDEN {
-                    let embed = EmbedBuilder::new()
-                        .default_data()
-                        .color(Color::Red as u32)
-                        .unwrap()
-                        .title("Update Failed")
-                        .unwrap()
-                        .description(
-                            "There was an error in updating the user. Possible causes:
-                        1. The user has a role higher than or equal to mine
-                        2. I am trying to add/remove a binded role that is above my highest role
-                        3. Either the verification & verified role are above my highest role",
-                        )
-                        .unwrap()
-                        .build()
-                        .unwrap();
-                    ctx.respond().embed(embed).await?;
-                    return Ok(());
+            if let RoError::Discord(d) = &e {
+                if let DiscordErrorType::Response { body: _, error: _, status} = d.kind() {
+                    if *status == StatusCode::FORBIDDEN {
+                        let embed = EmbedBuilder::new()
+                            .default_data()
+                            .color(Color::Red as u32)
+                            .title("Update Failed")
+                            .description(
+                                "There was an error in updating the user. Possible causes:
+                            1. The user has a role higher than or equal to mine
+                            2. I am trying to add/remove a binded role that is above my highest role
+                            3. Either the verification & verified role are above my highest role",
+                            )
+                            .build()
+                            .unwrap();
+                        ctx.respond().embed(embed).await?;
+                        return Ok(());
+                    }
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Update Failed")
-                    .unwrap()
                     .description(format!(
                         "User was found on the server blacklist. Reason: {}",
                         b
                     ))
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -163,12 +143,10 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Update")
-        .unwrap()
         .update_log(&added_roles, &removed_roles, &disc_nick)
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .footer(
-            EmbedFooterBuilder::new(format!("RoWifi | Executed in {} ms", (end - start))).unwrap(),
+            EmbedFooterBuilder::new(format!("RoWifi | Executed in {} ms", (end - start))),
         )
         .build()
         .unwrap();
@@ -177,7 +155,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title("Update")
-        .unwrap()
         .update_log(&added_roles, &removed_roles, &disc_nick)
         .build()
         .unwrap();

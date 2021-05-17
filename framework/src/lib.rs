@@ -90,7 +90,7 @@ impl Framework {
         msg: &Message,
         mut args: Arguments,
     ) -> Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>> {
-        let mut embed = EmbedBuilder::new().default_data().title("Help").unwrap();
+        let mut embed = EmbedBuilder::new().default_data().title("Help");
 
         if let Some(arg) = args.next() {
             if let Some(cmd) = self.cmds.iter_mut().find(|c| c.names.contains(&arg)) {
@@ -108,7 +108,7 @@ impl Framework {
             }
         }
 
-        embed = embed.description("Listing all top-level commands").unwrap();
+        embed = embed.description("Listing all top-level commands");
         let groups = self
             .cmds
             .iter()
@@ -120,7 +120,7 @@ impl Framework {
                     .filter(|c| !c.options.hidden)
                     .map(|m| format!("`{}`", m.names[0]))
                     .join(" ");
-                embed = embed.field(EmbedFieldBuilder::new(group, commands).unwrap());
+                embed = embed.field(EmbedFieldBuilder::new(group, commands));
             }
         }
         let embed = embed.build().unwrap();

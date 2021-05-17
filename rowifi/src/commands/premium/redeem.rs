@@ -12,9 +12,9 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
     let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,
         None => {
-            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Premium Redeem Failed").unwrap()
-                .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+                .title("Premium Redeem Failed")
+                .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
                 .build().unwrap();
             ctx.respond().embed(embed).await?;
             return Ok(());
@@ -26,11 +26,8 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Premium Redeem Failed")
-            .unwrap()
             .description("You must be the server owner to redeem premium in a server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -43,11 +40,8 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Premium Redeem Failed")
-                .unwrap()
                 .description("You may only use premium in one of your servers")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -75,11 +69,8 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Premium Redeem Successful")
-        .unwrap()
         .description(format!("Added Premium Features to {}", server.name))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -96,9 +87,9 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
     let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,
         None => {
-            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-                .title("Premium Disable Failed").unwrap()
-                .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details").unwrap()
+            let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+                .title("Premium Disable Failed")
+                .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
                 .build().unwrap();
             ctx.respond().embed(embed).await?;
             return Ok(());
@@ -106,9 +97,9 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
     };
 
     if !premium_user.discord_servers.contains(&(guild_id.0 as i64)) {
-        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-            .title("Premium Disable Failed").unwrap()
-            .description("This server either does not have premium enabled or the premium is owned by an another member").unwrap()
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+            .title("Premium Disable Failed")
+            .description("This server either does not have premium enabled or the premium is owned by an another member")
             .build().unwrap();
         ctx.respond().embed(embed).await?;
         return Ok(());
@@ -133,11 +124,8 @@ pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> Com
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Premium Disable Successful")
-        .unwrap()
         .description(format!("Removed Premium Features from {}", server.name))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

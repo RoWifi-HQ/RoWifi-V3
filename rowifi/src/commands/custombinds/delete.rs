@@ -37,11 +37,8 @@ pub async fn custombinds_delete(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Binds Deletion Failed")
-            .unwrap()
             .description("There were no binds found associated with given ids")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -55,11 +52,8 @@ pub async fn custombinds_delete(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Success!")
-        .unwrap()
         .description("The given binds were successfully deleted")
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -71,10 +65,8 @@ pub async fn custombinds_delete(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Custom Bind Deletion")
-        .unwrap()
-        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str).unwrap())
+        .field(EmbedFieldBuilder::new("Binds Deleted", ids_str))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

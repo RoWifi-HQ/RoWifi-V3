@@ -65,11 +65,8 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description("No groupbinds were found associated with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -82,9 +79,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Groupbinds")
-            .unwrap()
-            .description(format!("Page {}", page_count + 1))
-            .unwrap();
+            .description(format!("Page {}", page_count + 1));
         let gbs = gbs.sorted_by_key(|g| g.group_id);
         for gb in gbs {
             let name = format!("Group Id: {}", gb.group_id);
@@ -101,7 +96,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
                     .map(|r| RoleId(*r as u64).mention().to_string())
                     .collect::<String>()
             );
-            embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
         pages.push(embed.build().unwrap());
         page_count += 1;

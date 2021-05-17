@@ -26,9 +26,9 @@ pub fn api_config(cmds: &mut Vec<Command>) {
 pub struct APIArguments {}
 
 pub async fn api_view(ctx: CommandContext, _args: APIArguments) -> CommandResult {
-    let embed = EmbedBuilder::new().default_data().title("API Module").unwrap()
-        .description("The Module to interact with API keys of the server").unwrap()
-        .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key").unwrap())
+    let embed = EmbedBuilder::new().default_data().title("API Module")
+        .description("The Module to interact with API keys of the server")
+        .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key"))
         .build().unwrap();
     ctx.respond().embed(embed).await?;
     Ok(())

@@ -68,11 +68,8 @@ pub async fn custombinds_view(
         let e = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description("No custombinds were found associated with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -90,9 +87,7 @@ pub async fn custombinds_view(
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Custombinds")
-            .unwrap()
-            .description(format!("Page {}", page_count + 1))
-            .unwrap();
+            .description(format!("Page {}", page_count + 1));
         let cbs = cbs.sorted_by_key(|c| c.id);
         for cb in cbs {
             let name = format!("Bind Id: {}", cb.id);
@@ -112,7 +107,7 @@ pub async fn custombinds_view(
                 "Code: {}\n{}Priority: {}\nRoles: {}",
                 cb.code, nick, cb.priority, roles_str
             );
-            embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
         pages.push(embed.build().unwrap());
         page_count += 1;

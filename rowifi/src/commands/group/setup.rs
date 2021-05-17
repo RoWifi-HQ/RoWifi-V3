@@ -17,11 +17,8 @@ pub async fn setup(ctx: CommandContext, _args: SetupArguments) -> CommandResult 
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Setup Failed")
-                .unwrap()
                 .description("Invalid verification role found")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -41,11 +38,8 @@ pub async fn setup(ctx: CommandContext, _args: SetupArguments) -> CommandResult 
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Setup Failed")
-                .unwrap()
                 .description("Invalid verified role found")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -71,9 +65,9 @@ pub async fn setup(ctx: CommandContext, _args: SetupArguments) -> CommandResult 
     }
 
     ctx.bot.database.add_guild(guild, replace).await?;
-    let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32).unwrap()
-        .title("Setup Successful!").unwrap()
-        .description("Server has been setup successfully. Use `rankbinds new` or `groupbinds new` to start setting up your binds").unwrap()
+    let embed = EmbedBuilder::new().default_data().color(Color::DarkGreen as u32)
+        .title("Setup Successful!")
+        .description("Server has been setup successfully. Use `rankbinds new` or `groupbinds new` to start setting up your binds")
         .build().unwrap();
     ctx.bot
         .http

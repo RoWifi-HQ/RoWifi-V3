@@ -115,7 +115,6 @@ async fn execute_chunk(
                     let log_embed = EmbedBuilder::new()
                         .default_data()
                         .title(format!("Auto Detection: {}", name))
-                        .unwrap()
                         .update_log(&added_roles, &removed_roles, &disc_nick)
                         .build()
                         .unwrap();

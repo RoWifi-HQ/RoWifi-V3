@@ -132,10 +132,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         to: cluster_id * shards_per_cluster + shards_per_cluster - 1,
         total: total_shards,
     };
-    let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
-    let hyper_client = hyper::client::Builder::default().build(connector);
     let mut config = HttpClient::builder()
-        .hyper_client(hyper_client)
         .token(token.clone());
     if let Some(proxy) = proxy {
         config = config.proxy(proxy, true).ratelimiter(None);

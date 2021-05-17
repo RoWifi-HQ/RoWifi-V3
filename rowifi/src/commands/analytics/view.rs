@@ -28,11 +28,8 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         let embed = EmbedBuilder::new()
             .default_data()
             .color(DiscordColor::Red as u32)
-            .unwrap()
             .title("Analytics Viewing Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -49,11 +46,8 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         let embed = EmbedBuilder::new()
             .default_data()
             .color(DiscordColor::Red as u32)
-            .unwrap()
             .title("Analytics Viewing failed")
-            .unwrap()
             .description("You may only view groups that are registered with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -78,11 +72,8 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         let embed = EmbedBuilder::new()
             .default_data()
             .color(DiscordColor::Red as u32)
-            .unwrap()
             .title("Analytics Viewing failed")
-            .unwrap()
             .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data or use another timeframe")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -94,14 +85,14 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         return Ok(());
     }
 
-    let min_timestamp = group_data.iter().map(|g| g.timestamp).min().unwrap().0;
-    let max_timestamp = group_data.iter().map(|g| g.timestamp).max().unwrap().0;
+    let min_timestamp = DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).min().unwrap());
+    let max_timestamp = DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).max().unwrap());
     let mut min_members = group_data.iter().map(|g| g.member_count).min().unwrap();
     let mut max_members = group_data.iter().map(|g| g.member_count).max().unwrap();
     let diff = max_members - min_members;
     min_members -= diff / 10;
     max_members += diff / 10;
-    let iterator = group_data.iter().map(|g| (g.timestamp.0, g.member_count));
+    let iterator = group_data.iter().map(|g| (DateTime::<Utc>::from(g.timestamp), g.member_count));
 
     let mut buffer = vec![0_u8; 1024 * 768 * 3];
     {

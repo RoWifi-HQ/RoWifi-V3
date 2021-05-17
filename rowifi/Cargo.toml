@@ -18,7 +18,6 @@ rowifi-redis = { path = "../redis" }
 # Main Crates
 dashmap = "4"
 hyper = { version = "0", features = ["server", "client"] }
-hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
 tower = "0"
@@ -37,8 +36,8 @@ sha2 = "0"
 
 # Twilight Modules
 twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-gateway = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+twilight-gateway = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", default-features = false, features= ["stock-zlib", "rustls-webpki-roots"] }
+twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", default-features = false, features = ["rustls-webpki-roots"] }
 twilight-mention = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" } # TODO: Remove this
 twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
 twilight-standby = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }

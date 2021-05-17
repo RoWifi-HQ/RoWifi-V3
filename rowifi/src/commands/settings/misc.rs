@@ -32,14 +32,11 @@ pub async fn blacklist_action(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(format!(
             "Blacklist action has successfully been set to {}",
             bl_type
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -47,12 +44,10 @@ pub async fn blacklist_action(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description(format!(
             "Settings Modification: Blacklist Action - {} -> {}",
             guild.settings.blacklist_action, bl_type
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
@@ -96,11 +91,8 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(desc)
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -136,14 +128,11 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(format!(
             "The bot prefix has been successfully changed to {}",
             prefix
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

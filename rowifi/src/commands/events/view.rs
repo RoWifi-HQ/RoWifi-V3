@@ -3,6 +3,7 @@ use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
+use chrono::{DateTime, Utc};
 
 #[derive(FromArgs)]
 pub struct EventAttendeeArguments {
@@ -23,11 +24,8 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -41,11 +39,8 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Event Viewing Failed")
-                    .unwrap()
                     .description("Given roblox username does not have an associated id")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -60,11 +55,8 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                     let embed = EmbedBuilder::new()
                         .default_data()
                         .title("Event Viewing Failed")
-                        .unwrap()
-                        .description("You must be verified to use this command on yourselves")
-                        .unwrap()
+                        .description("You must be verified to use this command on yourself")
                         .color(Color::Red as u32)
-                        .unwrap()
                         .build()
                         .unwrap();
                     ctx.respond().embed(embed).await?;
@@ -84,7 +76,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
     ];
     let events = ctx.bot.database.get_events(pipeline).await?;
 
-    let mut embed = EmbedBuilder::new().default_data().title("Events").unwrap();
+    let mut embed = EmbedBuilder::new().default_data().title("Events");
     for event in events {
         let name = format!("Id: {}", event.guild_event_id);
 
@@ -102,10 +94,10 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             "Event Type: {}\nHost: {}\nTimestamp:{}",
             event_type.name,
             host.name,
-            event.timestamp.to_rfc3339()
+            DateTime::<Utc>::from(event.timestamp).to_rfc3339()
         );
 
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline());
+        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
     }
 
     ctx.respond().embed(embed.build().unwrap()).await?;
@@ -131,11 +123,8 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -149,11 +138,8 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Event Viewing Failed")
-                    .unwrap()
                     .description("Given roblox username does not have an associated id")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -168,11 +154,8 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                     let embed = EmbedBuilder::new()
                         .default_data()
                         .title("Event Viewing Failed")
-                        .unwrap()
                         .description("You must be verified to use this command on yourselves")
-                        .unwrap()
                         .color(Color::Red as u32)
-                        .unwrap()
                         .build()
                         .unwrap();
                     ctx.respond().embed(embed).await?;
@@ -190,7 +173,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
     ];
     let events = ctx.bot.database.get_events(pipeline).await?;
 
-    let mut embed = EmbedBuilder::new().default_data().title("Events").unwrap();
+    let mut embed = EmbedBuilder::new().default_data().title("Events");
     for event in events {
         let name = format!("Id: {}", event.guild_event_id);
 
@@ -208,11 +191,11 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             "Event Type: {}\nHost: {}\nTimestamp:{}\nAttendees: {}",
             event_type.name,
             host.name,
-            event.timestamp.to_rfc3339(),
+            DateTime::<Utc>::from(event.timestamp).to_rfc3339(),
             event.attendees.len()
         );
 
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline());
+        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
     }
 
     ctx.respond().embed(embed.build().unwrap()).await?;
@@ -238,11 +221,8 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -256,11 +236,8 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Event Viewing Failed")
-            .unwrap()
             .description(format!("An event with id {} does not exist", event_id))
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -288,18 +265,16 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Event Id: {}", event.guild_event_id))
-        .unwrap()
-        .field(EmbedFieldBuilder::new("Event Type", event_type.name.clone()).unwrap())
-        .field(EmbedFieldBuilder::new("Host", host.name).unwrap())
-        .timestamp(event.timestamp.to_rfc3339());
+        .field(EmbedFieldBuilder::new("Event Type", event_type.name.clone()))
+        .field(EmbedFieldBuilder::new("Host", host.name))
+        .timestamp(DateTime::<Utc>::from(event.timestamp).to_rfc3339());
 
     if !event.attendees.is_empty() {
         embed = embed.field(
             EmbedFieldBuilder::new(
                 "Attendees",
                 attendees.iter().map(|a| format!("- {}", a.name)).join("\n"),
-            )
-            .unwrap(),
+            ),
         );
     }
 
@@ -308,7 +283,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         let nonce = Nonce::from_slice(nonce.as_bytes());
         let plaintext = ctx.bot.cipher.decrypt(nonce, notes.as_slice()).unwrap();
         embed = embed
-            .field(EmbedFieldBuilder::new("Notes", String::from_utf8(plaintext).unwrap()).unwrap());
+            .field(EmbedFieldBuilder::new("Notes", String::from_utf8(plaintext).unwrap()));
     }
 
     ctx.respond().embed(embed.build().unwrap()).await?;

@@ -72,11 +72,8 @@ pub async fn blacklist(ctx: CommandContext, _args: BlacklistViewArguments) -> Co
         let e = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description("No blacklists were found associated with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -94,13 +91,11 @@ pub async fn blacklist(ctx: CommandContext, _args: BlacklistViewArguments) -> Co
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Blacklists")
-            .unwrap()
-            .description(format!("Page {}", page_count + 1))
-            .unwrap();
+            .description(format!("Page {}", page_count + 1));
         for bl in bls {
             let name = format!("Type: {:?}", bl.blacklist_type);
             let desc = format!("Id: {}\nReason: {}", bl.id, bl.reason);
-            embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
         pages.push(embed.build().unwrap());
         page_count += 1;

@@ -10,9 +10,9 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
     let premium_user: PremiumUser;
     let (patreon_id, tier) = ctx.bot.patreon.get_patron(author).await?;
     if patreon_id.is_none() {
-        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-            .title("Patreon Linking Failed").unwrap()
-            .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account").unwrap()
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+            .title("Patreon Linking Failed")
+            .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account")
             .build().unwrap();
         ctx.respond().embed(embed).await?;
         return Ok(());
@@ -21,11 +21,8 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Patreon Linking Failed")
-            .unwrap()
             .description("You were not found to be a member of any tier")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -71,11 +68,8 @@ pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Patreon Linking Successful")
-        .unwrap()
         .description("Your patreon account has successfully been registered with our database")
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

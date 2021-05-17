@@ -25,11 +25,8 @@ pub async fn blacklist_delete(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Blacklist Deletion Failed")
-            .unwrap()
             .description("A blacklist with the given id was not found")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -43,11 +40,8 @@ pub async fn blacklist_delete(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Blacklist Deletion Successful")
-        .unwrap()
         .description("The given blacklist was successfully deleted")
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -58,10 +52,8 @@ pub async fn blacklist_delete(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Blacklist Deletion")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

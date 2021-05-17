@@ -84,11 +84,8 @@ pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -96,11 +93,11 @@ pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult
     }
 
     let embed = EmbedBuilder::new().default_data()
-        .title("Events Module").unwrap()
-        .description("An amazing module of RoWifi to allow your members to log events they host and for you to track them").unwrap()
-        .field(EmbedFieldBuilder::new("Event Types", "To register a new event type: `!event type new <Event Id> <Event Name>`\nTo modify an existing event type: `!event type modify <Event Id> <Event Name>`").unwrap())
-        .field(EmbedFieldBuilder::new("For Trainers", "To add a new event: `!event new`").unwrap())
-        .field(EmbedFieldBuilder::new("Viewing Events", "To see the last 12 events attended by the member: `!event attendee [RobloxName]`\nTo see the last 12 events hosted by the member: `!event host [RobloxName]`\nTo view specific information about an event: `!event view <Event Id>`").unwrap())
+        .title("Events Module")
+        .description("An amazing module of RoWifi to allow your members to log events they host and for you to track them")
+        .field(EmbedFieldBuilder::new("Event Types", "To register a new event type: `!event type new <Event Id> <Event Name>`\nTo modify an existing event type: `!event type modify <Event Id> <Event Name>`"))
+        .field(EmbedFieldBuilder::new("For Trainers", "To add a new event: `!event new`"))
+        .field(EmbedFieldBuilder::new("Viewing Events", "To see the last 12 events attended by the member: `!event attendee [RobloxName]`\nTo see the last 12 events hosted by the member: `!event host [RobloxName]`\nTo view specific information about an event: `!event view <Event Id>`"))
         .build().unwrap();
     ctx.respond().embed(embed).await?;
 

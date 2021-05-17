@@ -21,11 +21,8 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Group Registration Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -42,9 +39,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Group Registration Already Exists")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -63,9 +58,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Group Registration Successful")
-        .unwrap()
         .build()
         .unwrap();
     ctx.bot
@@ -96,11 +89,8 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Group Registration Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -112,9 +102,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Group Registration doesn't exist")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -128,9 +116,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Group Unregistration Successful")
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

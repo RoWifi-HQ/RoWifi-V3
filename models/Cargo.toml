@@ -16,5 +16,5 @@ regex = "1"
 serde = "1"
 serde_cbor = "0"
 serde_repr = "0"
-twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", default-features = false, features = ["rustls-webpki-roots"] }
 twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }

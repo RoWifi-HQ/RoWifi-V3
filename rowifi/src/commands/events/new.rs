@@ -20,11 +20,8 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -37,11 +34,8 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
             let embed = EmbedBuilder::new()
                 .default_data()
                 .title("Event Addition Failed")
-                .unwrap()
                 .description("This command may only be used by verified users")
-                .unwrap()
                 .color(Color::Red as u32)
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -58,11 +52,8 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Event Addition Failed")
-                .unwrap()
                 .description("The event id has to be a number")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -80,14 +71,11 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Event Addition Failed")
-                .unwrap()
                 .description(format!(
                     "An event type with id {} does not exist",
                     event_type_id
                 ))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.bot
@@ -112,11 +100,8 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Event Addition Failed")
-            .unwrap()
             .description("The number of valid attendees was found to be zero")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -153,9 +138,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         guild_event_id: guild.event_counter + 1,
         host_id: user.roblox_id,
         attendees: attendees.iter().map(|a| a.id.0 as i64).collect(),
-        timestamp: DateTime {
-            0: chrono::Utc::now(),
-        },
+        timestamp: DateTime::from(chrono::Utc::now()),
         notes,
     };
 
@@ -170,13 +153,8 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Event Addition Successful")
-        .unwrap()
-        .field(
-            EmbedFieldBuilder::new(format!("Event Id: {}", guild.event_counter + 1), value)
-                .unwrap(),
-        )
+        .field(EmbedFieldBuilder::new(format!("Event Id: {}", guild.event_counter + 1), value))
         .build()
         .unwrap();
     ctx.bot
