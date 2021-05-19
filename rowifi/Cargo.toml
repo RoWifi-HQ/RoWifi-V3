@@ -27,8 +27,8 @@ tracing-subscriber = "0"
 # Command Utilities
 base64 = "0.13"
 chacha20poly1305 = "0"
-chrono = "0"
-image = "0.23"
+chrono = { version = "0", default-features = false, features = ["std"] }
+image = { version = "0.23", default-features = false, features = ["png"] }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 rand = "0.8"
 regex = "1"
