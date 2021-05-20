@@ -154,7 +154,10 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Event Addition Successful")
-        .field(EmbedFieldBuilder::new(format!("Event Id: {}", guild.event_counter + 1), value))
+        .field(EmbedFieldBuilder::new(
+            format!("Event Id: {}", guild.event_counter + 1),
+            value,
+        ))
         .build()
         .unwrap();
     ctx.bot

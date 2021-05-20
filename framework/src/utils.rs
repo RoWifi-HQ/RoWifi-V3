@@ -232,9 +232,7 @@ impl EmbedExtensions for EmbedBuilder {
     fn default_data(self) -> Self {
         self.timestamp(&chrono::Utc::now().to_rfc3339())
             .color(Color::Blue as u32)
-            .footer(
-                EmbedFooterBuilder::new("RoWifi"),
-            )
+            .footer(EmbedFooterBuilder::new("RoWifi"))
     }
 
     fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self {

@@ -1,9 +1,9 @@
 use chacha20poly1305::{aead::Aead, Nonce};
+use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
-use chrono::{DateTime, Utc};
 
 #[derive(FromArgs)]
 pub struct EventAttendeeArguments {
@@ -265,25 +265,28 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Event Id: {}", event.guild_event_id))
-        .field(EmbedFieldBuilder::new("Event Type", event_type.name.clone()))
+        .field(EmbedFieldBuilder::new(
+            "Event Type",
+            event_type.name.clone(),
+        ))
         .field(EmbedFieldBuilder::new("Host", host.name))
         .timestamp(DateTime::<Utc>::from(event.timestamp).to_rfc3339());
 
     if !event.attendees.is_empty() {
-        embed = embed.field(
-            EmbedFieldBuilder::new(
-                "Attendees",
-                attendees.iter().map(|a| format!("- {}", a.name)).join("\n"),
-            ),
-        );
+        embed = embed.field(EmbedFieldBuilder::new(
+            "Attendees",
+            attendees.iter().map(|a| format!("- {}", a.name)).join("\n"),
+        ));
     }
 
     if let Some((nonce, notes)) = &event.notes {
         let notes = base64::decode(notes).unwrap();
         let nonce = Nonce::from_slice(nonce.as_bytes());
         let plaintext = ctx.bot.cipher.decrypt(nonce, notes.as_slice()).unwrap();
-        embed = embed
-            .field(EmbedFieldBuilder::new("Notes", String::from_utf8(plaintext).unwrap()));
+        embed = embed.field(EmbedFieldBuilder::new(
+            "Notes",
+            String::from_utf8(plaintext).unwrap(),
+        ));
     }
 
     ctx.respond().embed(embed.build().unwrap()).await?;

@@ -15,9 +15,7 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
 
     let embed = EmbedBuilder::new()
         .default_data()
-        .field(
-            EmbedFieldBuilder::new("Guild Id", guild_id.0.to_string()).inline(),
-        )
+        .field(EmbedFieldBuilder::new("Guild Id", guild_id.0.to_string()).inline())
         .field(
             EmbedFieldBuilder::new(
                 "Member Count",
@@ -25,12 +23,8 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
             )
             .inline(),
         )
-        .field(
-            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string()).inline(),
-        )
+        .field(EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline())
+        .field(EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string()).inline())
         .field(
             EmbedFieldBuilder::new(
                 "Prefix",
@@ -46,20 +40,13 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role)).inline(),
+            EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role))
+                .inline(),
         )
-        .field(
-            EmbedFieldBuilder::new("Rankbinds", guild.rankbinds.len().to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Groupbinds", guild.groupbinds.len().to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Custombinds", guild.custombinds.len().to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Assetbinds", guild.assetbinds.len().to_string()).inline(),
-        )
+        .field(EmbedFieldBuilder::new("Rankbinds", guild.rankbinds.len().to_string()).inline())
+        .field(EmbedFieldBuilder::new("Groupbinds", guild.groupbinds.len().to_string()).inline())
+        .field(EmbedFieldBuilder::new("Custombinds", guild.custombinds.len().to_string()).inline())
+        .field(EmbedFieldBuilder::new("Assetbinds", guild.assetbinds.len().to_string()).inline())
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

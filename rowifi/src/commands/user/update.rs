@@ -95,7 +95,12 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         Ok(a) => a,
         Err(e) => {
             if let RoError::Discord(d) = &e {
-                if let DiscordErrorType::Response { body: _, error: _, status} = d.kind() {
+                if let DiscordErrorType::Response {
+                    body: _,
+                    error: _,
+                    status,
+                } = d.kind()
+                {
                     if *status == StatusCode::FORBIDDEN {
                         let embed = EmbedBuilder::new()
                             .default_data()
@@ -145,9 +150,10 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         .title("Update")
         .update_log(&added_roles, &removed_roles, &disc_nick)
         .color(Color::DarkGreen as u32)
-        .footer(
-            EmbedFooterBuilder::new(format!("RoWifi | Executed in {} ms", (end - start))),
-        )
+        .footer(EmbedFooterBuilder::new(format!(
+            "RoWifi | Executed in {} ms",
+            (end - start)
+        )))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

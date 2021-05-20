@@ -44,8 +44,14 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         .title(author.1.clone())
         .description("Profile Information")
         .field(EmbedFieldBuilder::new("Username", roblox_user.name.clone()))
-        .field(EmbedFieldBuilder::new("Roblox Id", user.roblox_id.to_string()))
-        .field(EmbedFieldBuilder::new("Discord Id", user.discord_id.to_string()))
+        .field(EmbedFieldBuilder::new(
+            "Roblox Id",
+            user.roblox_id.to_string(),
+        ))
+        .field(EmbedFieldBuilder::new(
+            "Discord Id",
+            user.discord_id.to_string(),
+        ))
         .thumbnail(
             ImageSource::url(format!(
                 "http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}",
@@ -79,22 +85,12 @@ pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandRes
             )
             .inline(),
         )
-        .field(
-            EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION")).inline(),
-        )
+        .field(EmbedFieldBuilder::new("Version", env!("CARGO_PKG_VERSION")).inline())
         .field(EmbedFieldBuilder::new("Language", "Rust").inline())
-        .field(
-            EmbedFieldBuilder::new("Shards", ctx.bot.total_shards.to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Servers", guilds.len().to_string()).inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Members", member_count.to_string()).inline(),
-        )
+        .field(EmbedFieldBuilder::new("Shards", ctx.bot.total_shards.to_string()).inline())
+        .field(EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline())
+        .field(EmbedFieldBuilder::new("Servers", guilds.len().to_string()).inline())
+        .field(EmbedFieldBuilder::new("Members", member_count.to_string()).inline())
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -110,30 +106,24 @@ pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandRes
     let website = "https://rowifi.link";
     let embed = EmbedBuilder::new()
         .default_data()
-        .field(
-            EmbedFieldBuilder::new(
-                "Support Server",
-                format!(
-                    "To know more about announcements, updates and other stuff: [Click Here]({})",
-                    disc_link
-                ),
+        .field(EmbedFieldBuilder::new(
+            "Support Server",
+            format!(
+                "To know more about announcements, updates and other stuff: [Click Here]({})",
+                disc_link
             ),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Invite Link",
-                format!(
-                    "To invite the bot into your server: [Click Here]({})",
-                    invite_link
-                ),
+        ))
+        .field(EmbedFieldBuilder::new(
+            "Invite Link",
+            format!(
+                "To invite the bot into your server: [Click Here]({})",
+                invite_link
             ),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Website",
-                format!("To check out our website: [Click Here]({})", website),
-            ),
-        )
+        ))
+        .field(EmbedFieldBuilder::new(
+            "Website",
+            format!("To check out our website: [Click Here]({})", website),
+        ))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

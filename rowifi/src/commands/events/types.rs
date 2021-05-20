@@ -25,9 +25,7 @@ pub async fn event_type(ctx: CommandContext, _args: EventArguments) -> CommandRe
         return Ok(());
     }
 
-    let mut embed = EmbedBuilder::new()
-        .default_data()
-        .title("Event Types");
+    let mut embed = EmbedBuilder::new().default_data().title("Event Types");
     for event_type in &guild.event_types {
         let name = format!("Id: {}", event_type.id);
         let value = format!("Name: {}", event_type.name);
@@ -93,12 +91,10 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Event Type Addition Successful")
-        .field(
-            EmbedFieldBuilder::new(
-                format!("Id: {}", event_type.id),
-                format!("Name: {}", event_type.name),
-            ),
-        )
+        .field(EmbedFieldBuilder::new(
+            format!("Id: {}", event_type.id),
+            format!("Name: {}", event_type.name),
+        ))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

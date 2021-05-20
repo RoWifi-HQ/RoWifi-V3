@@ -133,8 +133,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         to: cluster_id * shards_per_cluster + shards_per_cluster - 1,
         total: total_shards,
     };
-    let mut config = HttpClient::builder()
-        .token(token.clone());
+    let mut config = HttpClient::builder().token(token.clone());
     if let Some(proxy) = proxy {
         config = config.proxy(proxy, true).ratelimiter(None);
     }
@@ -227,7 +226,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut events = rowifi.bot.cluster.events();
     while let Some(event) = events.next().await {
         let _ = rowifi.call(event).await;
-    } 
+    }
     Ok(())
 }
 
