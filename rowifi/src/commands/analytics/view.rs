@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use image::{png::PngEncoder, ColorType};
 use mongodb::bson::doc;
 use plotters::prelude::*;
@@ -12,6 +12,8 @@ pub struct ViewArguments {
     pub group_id: i64,
     #[arg(help = "The Duration of the graph")]
     pub duration: Option<ViewDuration>,
+    #[arg(help = "The rank id in the group")]
+    pub rank_id: Option<i64>,
 }
 
 pub struct ViewDuration(pub Duration);
@@ -64,7 +66,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     let view_duration = args
         .duration
         .unwrap_or_else(|| ViewDuration(Duration::days(7)));
-    let start_time = Utc::now() - view_duration.0;
+    let start_time = Utc.timestamp_millis(Utc::now().timestamp_millis()) - view_duration.0;
     let filter = doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
     let group_data = ctx.bot.database.get_analytics_membercount(filter).await?;
 
@@ -85,14 +87,64 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         return Ok(());
     }
 
-    let min_timestamp = DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).min().unwrap());
-    let max_timestamp = DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).max().unwrap());
-    let mut min_members = group_data.iter().map(|g| g.member_count).min().unwrap();
-    let mut max_members = group_data.iter().map(|g| g.member_count).max().unwrap();
-    let diff = max_members - min_members;
-    min_members -= diff / 10;
-    max_members += diff / 10;
-    let iterator = group_data.iter().map(|g| (DateTime::<Utc>::from(g.timestamp), g.member_count));
+    let min_timestamp =
+        DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).min().unwrap());
+    let max_timestamp =
+        DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).max().unwrap());
+
+    #[allow(clippy::option_if_let_else)]
+    let (min_members, max_members, iterator) = if let Some(rank_id) = args.rank_id {
+        let mut min_members = group_data
+            .iter()
+            .map(|g| {
+                g.roles
+                    .iter()
+                    .find(|r| r.rank == rank_id)
+                    .map(|r| r.member_count)
+                    .unwrap_or_default()
+            })
+            .min()
+            .unwrap_or_default();
+        let mut max_members = group_data
+            .iter()
+            .map(|g| {
+                g.roles
+                    .iter()
+                    .find(|r| r.rank == rank_id)
+                    .map(|r| r.member_count)
+                    .unwrap_or_default()
+            })
+            .max()
+            .unwrap_or_default();
+        let diff = max_members - min_members;
+        min_members -= diff / 10;
+        max_members += diff / 10;
+        let iterator = group_data
+            .iter()
+            .map(|g| {
+                (
+                    DateTime::<Utc>::from(g.timestamp),
+                    g.roles
+                        .iter()
+                        .find(|r| r.rank == rank_id)
+                        .map(|r| r.member_count)
+                        .unwrap_or_default(),
+                )
+            })
+            .collect::<Vec<_>>();
+        (min_members, max_members, iterator)
+    } else {
+        let mut min_members = group_data.iter().map(|g| g.member_count).min().unwrap();
+        let mut max_members = group_data.iter().map(|g| g.member_count).max().unwrap();
+        let diff = max_members - min_members;
+        min_members -= diff / 10;
+        max_members += diff / 10;
+        let iterator = group_data
+            .iter()
+            .map(|g| (DateTime::<Utc>::from(g.timestamp), g.member_count))
+            .collect::<Vec<_>>();
+        (min_members, max_members, iterator)
+    };
 
     let mut buffer = vec![0_u8; 1024 * 768 * 3];
     {
