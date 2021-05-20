@@ -10,7 +10,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
 WORKDIR /usr/src/rowifi
 COPY . .
-RUN cargo build --release
+RUN bash $HOME/.cargo/env && cargo build --release
 
 FROM debian:buster
 RUN apt-get update -y && rm -rf /var/lib/apt/lists/*
