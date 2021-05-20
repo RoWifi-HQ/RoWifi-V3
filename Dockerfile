@@ -1,5 +1,5 @@
 FROM debian:buster as builder 
-RUN apt-get update -y && apt-get install curl wget lsb-release software-properties-common -y
+RUN apt-get update -y && apt-get install curl wget lsb-release software-properties-common gnupg -y
 RUN curl -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain nightly -y
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2-Linux-aarch64.sh \
       -q -O /tmp/cmake-install.sh \
