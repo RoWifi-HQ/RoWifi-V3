@@ -8,9 +8,10 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2
       && /tmp/cmake-install.sh --skip-license --prefix=/usr/bin/cmake \
       && rm /tmp/cmake-install.sh
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
-RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-RUN add-apt-repository "deb http://apt.llvm.org/buster/ llvm-toolchain-buster-12 main"
-RUN apt-get update -y && apt-get install clang-12 lldb-12 lld-12
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
+      && add-apt-repository "deb http://apt.llvm.org/buster/ llvm-toolchain-buster-12 main" \
+      && apt-get update -y \
+      && apt-get install clang-12 lldb-12 lld-12
 WORKDIR /usr/src/rowifi
 COPY . .
 RUN source $HOME/.cargo/env && cargo build --release
