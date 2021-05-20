@@ -10,7 +10,6 @@ workflows:
           create-repo: true
           docker-login: true
           executor: arm-build
-          setup-remote-docker: true
           tag: $TAG
           repo: rowifi
 
