@@ -43,7 +43,7 @@ use std::{
 };
 use tokio::{task::JoinError, time::sleep};
 use tokio_stream::StreamExt;
-use tower::{Service, ServiceExt};
+use tower::Service;
 use twilight_gateway::{
     cluster::{Cluster, ShardScheme},
     Event,
@@ -68,6 +68,7 @@ impl Service<(u64, Event)> for RoWifi {
     }
 
     fn call(&mut self, event: (u64, Event)) -> Self::Future {
+        tracing::debug!(event = ?event.1.kind());
         self.bot
             .cache
             .update(&event.1)
@@ -218,14 +219,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .configure(premium_config);
 
     let event_handler = EventHandler::new(&bot);
-    let rowifi = RoWifi {
+    let mut rowifi = RoWifi {
         framework,
         event_handler,
         bot,
     };
-    let events = rowifi.bot.cluster.events();
-    let mut event_responses = rowifi.call_all(events);
-    while let Some(_res) = event_responses.next().await {}
+    let mut events = rowifi.bot.cluster.events();
+    while let Some(event) = events.next().await {
+        let _ = rowifi.call(event).await;
+    } 
     Ok(())
 }
 
