@@ -1,4 +1,4 @@
-FROM debian:buster-slim as builder 
+FROM debian:buster as builder 
 RUN apt-get update -y
 RUN curl -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain nightly -y
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2-Linux-aarch64.sh \
@@ -13,7 +13,7 @@ WORKDIR /usr/src/rowifi
 COPY . .
 RUN source $HOME/.cargo/env && cargo build --release
 
-FROM debian:buster-slim
+FROM debian:buster
 RUN apt-get update -y && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/rowifi/target/release/rowifi /usr/local/bin/rowifi
 CMD ["rowifi"]
