@@ -36,9 +36,9 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
-    applications::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
         interaction::Interaction,
-        response::{CommandCallbackData, InteractionResponse},
     },
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
@@ -256,11 +256,11 @@ impl Service<&Event> for Framework {
                         Some(u) => u,
                         None => return Either::Left(ready(Ok(()))),
                     };
-                    let command_options = &top_command.command_data.options;
+                    let command_options = &top_command.data.options;
                     let command = self
                         .cmds
                         .iter_mut()
-                        .find(|c| c.names.contains(&top_command.command_data.name.as_str()));
+                        .find(|c| c.names.contains(&top_command.data.name.as_str()));
                     let command = match command {
                         Some(c) => c,
                         None => return Either::Left(ready(Ok(()))),
@@ -275,15 +275,16 @@ impl Service<&Event> for Framework {
                                 .interaction_callback(
                                     id,
                                     token,
-                                    InteractionResponse::ChannelMessageWithSource(
-                                        CommandCallbackData {
-                                            tts: None,
-                                            embeds: Vec::new(),
-                                            content: "You do not have sufficient perms to run this command"
+                                    InteractionResponse::ChannelMessageWithSource(CallbackData {
+                                        allowed_mentions: None,
+                                        tts: None,
+                                        embeds: Vec::new(),
+                                        content: Some(
+                                            "You do not have sufficient perms to run this command"
                                                 .into(),
-                                            flags: Some(MessageFlags::EPHEMERAL)
-                                        },
-                                    ),
+                                        ),
+                                        flags: Some(MessageFlags::EPHEMERAL),
+                                    }),
                                 )
                                 .await;
                             Ok(())

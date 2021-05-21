@@ -175,7 +175,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     ctx.bot
         .http
         .create_message(ctx.channel_id)
-        .attachment("analytics.png", bytes)
+        .file("analytics.png", bytes)
         .await?;
     Ok(())
 }

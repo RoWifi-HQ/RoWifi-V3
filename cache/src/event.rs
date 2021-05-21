@@ -4,7 +4,7 @@ use std::{
 };
 use tracing::{debug, info};
 use twilight_model::{
-    applications::interaction::Interaction,
+    application::interaction::Interaction,
     channel::Channel,
     gateway::{
         event::Event,

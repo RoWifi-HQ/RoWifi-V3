@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-framework"
-version = "3.0.0"
+version = "3.0.1"
 authors = ["AsianIntel <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -23,10 +23,10 @@ tokio = { version = "1", features = ["time"] }
 tokio-stream = { version = "0" }
 tower = { version = "0", features = ["util"] }
 transient-dashmap = { branch = "main", git = "https://github.com/AsianIntel/transient-dashmap" }
-twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-gateway = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", default-features = false, features= ["stock-zlib", "rustls-webpki-roots"] }
-twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", default-features = false, features = ["rustls-webpki-roots"] }
-twilight-standby = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-util = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight", features = ["link"] }
+twilight-embed-builder = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-model = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-gateway = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features= ["stock-zlib", "rustls-webpki-roots"] }
+twilight-http = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features = ["rustls-webpki-roots"] }
+twilight-standby = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-util = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", features = ["link"] }
 uwl = "0"

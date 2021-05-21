@@ -567,7 +567,7 @@ dependencies = [
 
 [[package]]
 name = "framework-derive"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "itertools",
  "quote",
@@ -1699,7 +1699,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "base64",
  "chacha20poly1305",
@@ -1739,7 +1739,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-cache"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "dashmap",
  "rowifi-models",
@@ -1760,7 +1760,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-framework"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "chacha20poly1305",
  "chrono",
@@ -1789,7 +1789,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-models"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "itertools",
  "lazy_static",
@@ -2479,7 +2479,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "twilight-model",
 ]
@@ -2487,7 +2487,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "bitflags",
  "dashmap",
@@ -2508,7 +2508,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "tokio",
  "tracing",
@@ -2517,8 +2517,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-http"
-version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+version = "0.4.1"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "bytes",
  "futures-util",
@@ -2537,15 +2537,15 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "twilight-model",
 ]
 
 [[package]]
 name = "twilight-model"
-version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+version = "0.4.1"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "bitflags",
  "serde",
@@ -2557,7 +2557,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "dashmap",
  "futures-util",
@@ -2569,7 +2569,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.4.0"
-source = "git+https://github.com/AsianIntel/twilight?branch=feature/slash#1a2601ebb5940cf4b368ea72059c0ef4e8f2aff4"
+source = "git+https://github.com/Erk-/twilight?branch=feature/slash-commands-http#1d424ec4f2f0f56e729b97f95629234e0c8aa3ae"
 dependencies = [
  "twilight-model",
 ]

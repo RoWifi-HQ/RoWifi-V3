@@ -8,9 +8,9 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
-    applications::{
-        interaction::CommandDataOption,
-        response::{CommandCallbackData, InteractionResponse},
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        interaction::application_command::CommandDataOption,
     },
     channel::message::MessageFlags,
 };
@@ -172,10 +172,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .interaction_callback(
                             id,
                             token,
-                            InteractionResponse::ChannelMessageWithSource(CommandCallbackData {
+                            InteractionResponse::ChannelMessageWithSource(CallbackData {
+                                allowed_mentions: None,
                                 tts: None,
                                 embeds: Vec::new(),
-                                content: "Commands are disabled in this channel".into(),
+                                content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
                             }),
                         )
@@ -196,7 +197,13 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     .interaction_callback(
                         id,
                         token,
-                        InteractionResponse::DeferredChannelMessageWithSource,
+                        InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
+                            allowed_mentions: None,
+                            tts: None,
+                            embeds: Vec::new(),
+                            content: None,
+                            flags: None,
+                        }),
                     )
                     .await;
             }
