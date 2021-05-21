@@ -39,11 +39,8 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Asset Modification Failed")
-                .unwrap()
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -54,17 +51,12 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Success!")
-        .unwrap()
-        .description("The bind was successfully modified")
-        .unwrap();
+        .description("The bind was successfully modified");
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
-        .description("Asset Bind Modification")
-        .unwrap();
+        .description("Asset Bind Modification");
     let name = format!("Id: {}", asset_id);
 
     let desc = match field {
@@ -95,11 +87,8 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .title("Asset Bind Modification Failed")
-                    .unwrap()
                     .description("You have entered a blank template")
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -111,13 +100,13 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
     };
 
     let embed = embed
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
 
     let log_embed = log_embed
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

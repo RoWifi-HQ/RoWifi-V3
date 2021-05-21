@@ -65,11 +65,8 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
         let e = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description("No assetbinds were found associated with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -87,9 +84,7 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("AssetBinds")
-            .unwrap()
-            .description(format!("Page {}", page_count + 1))
-            .unwrap();
+            .description(format!("Page {}", page_count + 1));
         let abs = abs.sorted_by_key(|a| a.id);
         for ab in abs {
             let name = format!("Id: {}", ab.id);
@@ -106,7 +101,7 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
                 "Type: {}\n{}Priority: {}\nRoles: {}",
                 ab.asset_type, nick, ab.priority, roles_str
             );
-            embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
         pages.push(embed.build().unwrap());
         page_count += 1;

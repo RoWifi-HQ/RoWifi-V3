@@ -10,11 +10,8 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Backup Failed")
-                .unwrap()
                 .description("This module may only be used by a Beta Tier user")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;

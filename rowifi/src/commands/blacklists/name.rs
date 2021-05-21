@@ -26,14 +26,11 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Blacklist Addition Failed")
-                .unwrap()
                 .description(format!(
                     "There was no user found with username {}",
                     username
                 ))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -62,10 +59,8 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Blacklist Addition Successful")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -73,10 +68,8 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Blacklist Addition")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

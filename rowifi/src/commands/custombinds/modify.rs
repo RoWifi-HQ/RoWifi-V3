@@ -48,11 +48,8 @@ pub async fn custombinds_modify(
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Custom Bind Modification Failed")
-                .unwrap()
                 .description(format!("There was no bind found with id {}", bind_id))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -94,11 +91,8 @@ pub async fn custombinds_modify(
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .title("Custom Bind Modification Failed")
-                    .unwrap()
                     .description("You have entered a blank template")
-                    .unwrap()
                     .build()
                     .unwrap();
                 ctx.respond().embed(embed).await?;
@@ -112,12 +106,9 @@ pub async fn custombinds_modify(
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Success!")
-        .unwrap()
         .description("The bind was successfully modified")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -125,10 +116,8 @@ pub async fn custombinds_modify(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Custom Bind Modification")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
@@ -150,11 +139,8 @@ async fn modify_code<'a>(
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Custom Bind Modification Failed")
-                .unwrap()
                 .description("You must be verified to create a custom blacklist")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;

@@ -18,7 +18,7 @@ use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
 use twilight_model::{
     channel::GuildChannel,
-    guild::{GuildStatus, Permissions},
+    guild::Permissions,
     id::{ChannelId, GuildId},
 };
 
@@ -102,7 +102,6 @@ impl Service<(u64, Event)> for EventHandler {
                         let log_embed = EmbedBuilder::new()
                             .default_data()
                             .title("Guild Join")
-                            .unwrap()
                             .description(format!(
                                 "Name: {}\nServer Id: {}\nOwner Id: {}\nMembercount: {}",
                                 guild.name,
@@ -110,7 +109,6 @@ impl Service<(u64, Event)> for EventHandler {
                                 guild.owner_id.0,
                                 guild.member_count.unwrap_or_default()
                             ))
-                            .unwrap()
                             .build()
                             .unwrap();
                         eh.bot.log_debug(log_embed).await;
@@ -123,9 +121,7 @@ impl Service<(u64, Event)> for EventHandler {
                         let log_embed = EmbedBuilder::new()
                             .default_data()
                             .title("Guild Leave")
-                            .unwrap()
                             .description(format!("Server Id: {}", guild.id.0))
-                            .unwrap()
                             .build()
                             .unwrap();
                         eh.bot.log_debug(log_embed).await;
@@ -133,18 +129,13 @@ impl Service<(u64, Event)> for EventHandler {
                 }
                 Event::Ready(ready) => {
                     tracing::info!("RoWifi ready for service!");
-                    for status in &ready.guilds {
-                        if let GuildStatus::Offline(ug) = status {
-                            eh.unavailable.insert(ug.id);
-                        }
+                    for ug in &ready.guilds {
+                        eh.unavailable.insert(ug.id);
                     }
                     let guild_ids = ready
                         .guilds
                         .iter()
-                        .map(|k| match k {
-                            GuildStatus::Offline(u) => u.id.0,
-                            GuildStatus::Online(g) => g.id.0,
-                        })
+                        .map(|k| k.id.0)
                         .collect::<Vec<u64>>();
                     let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
                     for guild in guilds {
@@ -210,7 +201,6 @@ impl Service<(u64, Event)> for EventHandler {
                     let log_embed = EmbedBuilder::new()
                         .default_data()
                         .title("Update On Join")
-                        .unwrap()
                         .update_log(&added_roles, &removed_roles, &disc_nick)
                         .build()
                         .unwrap();

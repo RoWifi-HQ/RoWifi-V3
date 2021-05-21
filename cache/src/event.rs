@@ -4,7 +4,7 @@ use std::{
 };
 use tracing::{debug, info};
 use twilight_model::{
-    applications::interaction::Interaction,
+    application::interaction::Interaction,
     channel::Channel,
     gateway::{
         event::Event,
@@ -14,7 +14,6 @@ use twilight_model::{
             Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         },
     },
-    guild::GuildStatus,
 };
 
 use super::{Cache, CacheError, CachedMember};
@@ -287,21 +286,8 @@ impl UpdateCache for Ready {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_current_user(self.user.clone());
 
-        for status in &self.guilds {
-            match status {
-                GuildStatus::Offline(u) => c.unavailable_guild(u.id),
-                GuildStatus::Online(g) => {
-                    c.cache_guild(g.clone());
-                    let guild = c.guild(g.id).unwrap();
-                    guild
-                        .member_count
-                        .store(g.member_count.unwrap() as i64, Ordering::SeqCst);
-                    c.cache_guild_permissions(g.id);
-                    for channel in &g.channels {
-                        c.cache_channel_permissions(g.id, channel.id());
-                    }
-                }
-            }
+        for ug in &self.guilds {
+            c.unavailable_guild(ug.id);
         }
 
         Ok(())

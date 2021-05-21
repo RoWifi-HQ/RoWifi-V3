@@ -58,11 +58,8 @@ pub async fn analytics_config_view(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -73,11 +70,8 @@ pub async fn analytics_config_view(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Group Registration Failed")
-            .unwrap()
             .description("There are no groups registered to this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -93,9 +87,7 @@ pub async fn analytics_config_view(
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Registered Groups")
-        .unwrap()
         .description(registered_groups)
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

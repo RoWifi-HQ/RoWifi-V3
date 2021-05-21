@@ -36,9 +36,9 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
-    applications::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
         interaction::Interaction,
-        response::{CommandCallbackData, InteractionResponse},
     },
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
@@ -90,7 +90,7 @@ impl Framework {
         msg: &Message,
         mut args: Arguments,
     ) -> Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>> {
-        let mut embed = EmbedBuilder::new().default_data().title("Help").unwrap();
+        let mut embed = EmbedBuilder::new().default_data().title("Help");
 
         if let Some(arg) = args.next() {
             if let Some(cmd) = self.cmds.iter_mut().find(|c| c.names.contains(&arg)) {
@@ -108,7 +108,7 @@ impl Framework {
             }
         }
 
-        embed = embed.description("Listing all top-level commands").unwrap();
+        embed = embed.description("Listing all top-level commands");
         let groups = self
             .cmds
             .iter()
@@ -120,7 +120,7 @@ impl Framework {
                     .filter(|c| !c.options.hidden)
                     .map(|m| format!("`{}`", m.names[0]))
                     .join(" ");
-                embed = embed.field(EmbedFieldBuilder::new(group, commands).unwrap());
+                embed = embed.field(EmbedFieldBuilder::new(group, commands));
             }
         }
         let embed = embed.build().unwrap();
@@ -256,11 +256,11 @@ impl Service<&Event> for Framework {
                         Some(u) => u,
                         None => return Either::Left(ready(Ok(()))),
                     };
-                    let command_options = &top_command.command_data.options;
+                    let command_options = &top_command.data.options;
                     let command = self
                         .cmds
                         .iter_mut()
-                        .find(|c| c.names.contains(&top_command.command_data.name.as_str()));
+                        .find(|c| c.names.contains(&top_command.data.name.as_str()));
                     let command = match command {
                         Some(c) => c,
                         None => return Either::Left(ready(Ok(()))),
@@ -275,15 +275,16 @@ impl Service<&Event> for Framework {
                                 .interaction_callback(
                                     id,
                                     token,
-                                    InteractionResponse::ChannelMessageWithSource(
-                                        CommandCallbackData {
-                                            tts: None,
-                                            embeds: Vec::new(),
-                                            content: "You do not have sufficient perms to run this command"
+                                    InteractionResponse::ChannelMessageWithSource(CallbackData {
+                                        allowed_mentions: None,
+                                        tts: None,
+                                        embeds: Vec::new(),
+                                        content: Some(
+                                            "You do not have sufficient perms to run this command"
                                                 .into(),
-                                            flags: Some(MessageFlags::EPHEMERAL)
-                                        },
-                                    ),
+                                        ),
+                                        flags: Some(MessageFlags::EPHEMERAL),
+                                    }),
                                 )
                                 .await;
                             Ok(())

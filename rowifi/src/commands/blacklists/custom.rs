@@ -30,11 +30,8 @@ pub async fn blacklist_custom(
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Custom Blacklist Addition Failed")
-            .unwrap()
             .description("No code was found. Please try again")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -46,11 +43,8 @@ pub async fn blacklist_custom(
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Custom Blacklist Addition Failed")
-                .unwrap()
                 .description("You must be verified to create a custom blacklist")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -104,10 +98,8 @@ pub async fn blacklist_custom(
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Blacklist Addition Successful")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -115,10 +107,8 @@ pub async fn blacklist_custom(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Blacklist Addition")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

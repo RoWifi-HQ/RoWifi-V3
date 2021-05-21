@@ -1,7 +1,7 @@
 use rowifi_models::{bind::AssetType, guild::BlacklistActionType};
 use std::{num::ParseIntError, str::FromStr};
 use twilight_model::{
-    applications::interaction::CommandDataOption,
+    application::interaction::application_command::CommandDataOption,
     id::{RoleId, UserId},
 };
 

@@ -67,11 +67,8 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description("No rankbinds were found associated with this server")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -86,9 +83,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
             let mut embed = EmbedBuilder::new()
                 .default_data()
                 .title("Rankbinds")
-                .unwrap()
-                .description(format!("Group {} | Page {}", group.0, page_count + 1))
-                .unwrap();
+                .description(format!("Group {} | Page {}", group.0, page_count + 1));
             let rbs = rbs.sorted_by_key(|r| r.rank_id);
             for rb in rbs {
                 let name = format!("Rank: {}", rb.rank_id);
@@ -108,7 +103,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
                         .map(|r| RoleId(*r as u64).mention().to_string())
                         .collect::<String>()
                 );
-                embed = embed.field(EmbedFieldBuilder::new(name, desc).unwrap().inline().build());
+                embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
             }
             pages.push(embed.build().unwrap());
             page_count += 1;

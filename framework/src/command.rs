@@ -8,9 +8,9 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
-    applications::{
-        interaction::CommandDataOption,
-        response::{CommandCallbackData, InteractionResponse},
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        interaction::application_command::CommandDataOption,
     },
     channel::message::MessageFlags,
 };
@@ -133,11 +133,10 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         self.names[0],
                         self.options.desc.unwrap_or("None")
                     ))
-                    .unwrap()
-                    .field(EmbedFieldBuilder::new("Usage", self.master_name.clone()).unwrap());
+                    .field(EmbedFieldBuilder::new("Usage", self.master_name.clone()));
                 if self.names.len() > 1 {
                     let aliases = self.names[1..].iter().map(|a| format!("`{}`", a)).join(" ");
-                    embed = embed.field(EmbedFieldBuilder::new("Aliases", aliases).unwrap());
+                    embed = embed.field(EmbedFieldBuilder::new("Aliases", aliases));
                 }
                 if !self.options.examples.is_empty() {
                     let examples = self
@@ -146,7 +145,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .iter()
                         .map(|e| format!("`{}`", e))
                         .join("\n");
-                    embed = embed.field(EmbedFieldBuilder::new("Examples", examples).unwrap());
+                    embed = embed.field(EmbedFieldBuilder::new("Examples", examples));
                 }
                 if !self.sub_commands.is_empty() {
                     let subs = self
@@ -155,7 +154,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .filter(|c| !c.options.hidden)
                         .map(|c| format!("`{}`", c.names[0]))
                         .join(", ");
-                    embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs).unwrap());
+                    embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs));
                 }
                 return self
                     .service
@@ -173,10 +172,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .interaction_callback(
                             id,
                             token,
-                            InteractionResponse::ChannelMessageWithSource(CommandCallbackData {
+                            InteractionResponse::ChannelMessageWithSource(CallbackData {
+                                allowed_mentions: None,
                                 tts: None,
                                 embeds: Vec::new(),
-                                content: "Commands are disabled in this channel".into(),
+                                content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
                             }),
                         )
@@ -197,7 +197,13 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     .interaction_callback(
                         id,
                         token,
-                        InteractionResponse::DeferredChannelMessageWithSource,
+                        InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
+                            allowed_mentions: None,
+                            tts: None,
+                            embeds: Vec::new(),
+                            content: None,
+                            flags: None,
+                        }),
                     )
                     .await;
             }
@@ -263,11 +269,8 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Command Failure")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .description(b)
-                    .unwrap()
                     .build()
                     .unwrap();
                 let _ = ctx.respond().embed(embed).await;
@@ -276,11 +279,8 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Command Failure")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .description("Command cancelled. Please try again")
-                    .unwrap()
                     .build()
                     .unwrap();
                 let _ = ctx.respond().embed(embed).await;
@@ -289,14 +289,11 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Command Failure")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .description(format!(
                         "Ratelimit reached. You may retry this command in {} seconds",
                         d.as_secs()
                     ))
-                    .unwrap()
                     .build()
                     .unwrap();
                 let _ = ctx.respond().embed(embed).await;
@@ -307,11 +304,8 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let embed = EmbedBuilder::new()
                         .default_data()
                         .title("Command Failure")
-                        .unwrap()
                         .color(Color::Red as u32)
-                        .unwrap()
                         .description("This server has not been set up. Please ask the server owner to do so using `!setup`")
-                        .unwrap()
                         .build()
                         .unwrap();
                 let _ = ctx.respond().embed(embed).await;
@@ -320,11 +314,8 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let embed = EmbedBuilder::new()
                     .default_data()
                     .title("Command Failure")
-                    .unwrap()
                     .description("User was not verified. Please ask them to verify themselves")
-                    .unwrap()
                     .color(Color::Red as u32)
-                    .unwrap()
                     .build()
                     .unwrap();
                 let _ = ctx.respond().embed(embed).await;

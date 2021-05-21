@@ -32,6 +32,7 @@ async fn execute(ctx: &BotContext, show_members: &mut bool) -> Result<(), Box<dy
     let activity = Activity {
         application_id: None,
         assets: None,
+        buttons: Vec::new(),
         created_at: None,
         details: None,
         emoji: None,

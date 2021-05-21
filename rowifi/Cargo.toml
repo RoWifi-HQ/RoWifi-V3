@@ -1,6 +1,6 @@
 [package]
 name = "rowifi"
-version = "3.0.0"
+version = "3.0.1"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -18,7 +18,6 @@ rowifi-redis = { path = "../redis" }
 # Main Crates
 dashmap = "4"
 hyper = { version = "0", features = ["server", "client"] }
-hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
 tower = "0"
@@ -28,20 +27,20 @@ tracing-subscriber = "0"
 # Command Utilities
 base64 = "0.13"
 chacha20poly1305 = "0"
-chrono = "0"
-image = "0.23"
+chrono = { version = "0", default-features = false, features = ["std"] }
+image = { version = "0.23", default-features = false, features = ["png"] }
 plotters = { version = "0.3", default-features = false, features = ["bitmap_backend", "datetime", "line_series"] }
 rand = "0.8"
 regex = "1"
 sha2 = "0"
 
 # Twilight Modules
-twilight-embed-builder = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-gateway = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-http = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-mention = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" } # TODO: Remove this
-twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
-twilight-standby = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+twilight-embed-builder = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-gateway = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features= ["stock-zlib", "rustls-webpki-roots"] }
+twilight-http = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features = ["rustls-webpki-roots"] }
+twilight-mention = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" } # TODO: Remove this
+twilight-model = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-standby = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
 
 # Utilities Crates
 dotenv = "0"

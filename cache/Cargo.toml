@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-cache"
-version = "3.0.0"
+version = "3.0.1"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -10,4 +10,4 @@ edition = "2018"
 dashmap = "4"
 rowifi-models = { path = "../models" }
 tracing = "0"
-twilight-model = { branch = "feature/slash", git = "https://github.com/AsianIntel/twilight" }
+twilight-model = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }

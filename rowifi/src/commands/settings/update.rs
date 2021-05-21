@@ -31,11 +31,8 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Settings Modification Successful")
-        .unwrap()
         .description(desc)
-        .unwrap()
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -43,12 +40,10 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description(format!(
             "Settings Modification: Update On Join - {} -> {}",
             guild.settings.update_on_join, option
         ))
-        .unwrap()
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

@@ -22,11 +22,8 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Update All Failed")
-            .unwrap()
             .description("This command may only be used in Premium Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -105,7 +102,6 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
                             let log_embed = EmbedBuilder::new()
                                 .default_data()
                                 .title(format!("Mass Update: {}", name))
-                                .unwrap()
                                 .update_log(&added_roles, &removed_roles, &disc_nick)
                                 .build()
                                 .unwrap();
@@ -144,11 +140,8 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Update All Failed")
-            .unwrap()
             .description("This command may only be used in Premium Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.bot
@@ -241,7 +234,6 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                             let log_embed = EmbedBuilder::new()
                                 .default_data()
                                 .title(format!("Mass Update: {}", name))
-                                .unwrap()
                                 .update_log(&added_roles, &removed_roles, &disc_nick)
                                 .build()
                                 .unwrap();

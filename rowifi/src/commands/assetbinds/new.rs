@@ -37,11 +37,8 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Addition Failed")
-            .unwrap()
             .color(Color::Red as u32)
-            .unwrap()
             .description(format!("A bind with asset id {} already exists", asset_id))
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -105,10 +102,8 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Bind Addition Successful")
-        .unwrap()
         .color(Color::DarkGreen as u32)
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name.clone(), value.clone()).unwrap())
+        .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -116,10 +111,8 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .unwrap()
         .description("Asset Bind Addition")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, value).unwrap())
+        .field(EmbedFieldBuilder::new(name, value))
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

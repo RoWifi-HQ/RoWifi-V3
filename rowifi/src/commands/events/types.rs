@@ -17,25 +17,19 @@ pub async fn event_type(ctx: CommandContext, _args: EventArguments) -> CommandRe
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
-    let mut embed = EmbedBuilder::new()
-        .default_data()
-        .title("Event Types")
-        .unwrap();
+    let mut embed = EmbedBuilder::new().default_data().title("Event Types");
     for event_type in &guild.event_types {
         let name = format!("Id: {}", event_type.id);
         let value = format!("Name: {}", event_type.name);
-        embed = embed.field(EmbedFieldBuilder::new(name, value).unwrap().inline());
+        embed = embed.field(EmbedFieldBuilder::new(name, value).inline());
     }
     ctx.respond().embed(embed.build().unwrap()).await?;
     Ok(())
@@ -62,11 +56,8 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -77,9 +68,9 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     let event_name = args.event_name;
 
     if guild.event_types.iter().any(|e| e.id == event_id) {
-        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32).unwrap()
-            .title("Event Type Addition Failed").unwrap()
-            .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id)).unwrap()
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+            .title("Event Type Addition Failed")
+            .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id))
             .build().unwrap();
         ctx.respond().embed(embed).await?;
         return Ok(());
@@ -99,16 +90,11 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Event Type Addition Successful")
-        .unwrap()
-        .field(
-            EmbedFieldBuilder::new(
-                format!("Id: {}", event_type.id),
-                format!("Name: {}", event_type.name),
-            )
-            .unwrap(),
-        )
+        .field(EmbedFieldBuilder::new(
+            format!("Id: {}", event_type.id),
+            format!("Name: {}", event_type.name),
+        ))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -128,11 +114,8 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
-            .unwrap()
             .title("Command Failed")
-            .unwrap()
             .description("This module may only be used in Beta Tier Servers")
-            .unwrap()
             .build()
             .unwrap();
         ctx.respond().embed(embed).await?;
@@ -147,11 +130,8 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Event Type Modification Failed")
-                .unwrap()
                 .description(format!("An event type with id {} does not exist", event_id))
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -170,10 +150,8 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
-        .unwrap()
         .title("Event Type Modification Successful")
-        .unwrap()
-        .field(EmbedFieldBuilder::new(name, desc).unwrap())
+        .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

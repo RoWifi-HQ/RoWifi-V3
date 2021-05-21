@@ -45,11 +45,8 @@ pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResul
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
-                .unwrap()
                 .title("Backup Failed")
-                .unwrap()
                 .description("This module may only be used by a Beta Tier user")
-                .unwrap()
                 .build()
                 .unwrap();
             ctx.respond().embed(embed).await?;
@@ -58,14 +55,14 @@ pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResul
     };
 
     let backups = ctx.bot.database.get_backups(ctx.author.id.0).await?;
-    let mut embed = EmbedBuilder::new().default_data().title("Backups").unwrap();
+    let mut embed = EmbedBuilder::new().default_data().title("Backups");
 
     for backup in backups {
         let val = format!("Prefix: {}\nVerification: {}\nVerified: {}\nRankbinds: {}\nGroupbinds: {}\nCustombinds: {}\nAssetbinds: {}",
             backup.command_prefix.unwrap_or_else(|| "!".into()), backup.verification_role.unwrap_or_default(), backup.verified_role.unwrap_or_default(),
             backup.rankbinds.len(), backup.groupbinds.len(), backup.custombinds.len(), backup.assetbinds.len()
         );
-        embed = embed.field(EmbedFieldBuilder::new(backup.name, val).unwrap());
+        embed = embed.field(EmbedFieldBuilder::new(backup.name, val));
     }
 
     ctx.respond().embed(embed.build().unwrap()).await?;

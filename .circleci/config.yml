@@ -1,0 +1,25 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@7.0.0
+
+workflows:
+  build-and-push-image:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          filters:
+            branches:
+              only:
+                - master
+          create-repo: true
+          docker-login: true
+          executor: arm-build
+          tag: $TAG
+          repo: rowifi
+
+executors:
+  arm-build:
+    machine:
+      image: ubuntu-2004:202101-01
+      docker_layer_caching: false
+    resource_class: arm.medium

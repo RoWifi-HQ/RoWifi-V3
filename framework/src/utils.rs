@@ -232,10 +232,7 @@ impl EmbedExtensions for EmbedBuilder {
     fn default_data(self) -> Self {
         self.timestamp(&chrono::Utc::now().to_rfc3339())
             .color(Color::Blue as u32)
-            .expect("Some shit occurred with the embed color")
-            .footer(
-                EmbedFooterBuilder::new("RoWifi").expect("Looks like the footer text screwed up"),
-            )
+            .footer(EmbedFooterBuilder::new("RoWifi"))
     }
 
     fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self {
@@ -254,8 +251,8 @@ impl EmbedExtensions for EmbedBuilder {
             removed_str = "None".into();
         }
 
-        self.field(EmbedFieldBuilder::new("Nickname", disc_nick).unwrap())
-            .field(EmbedFieldBuilder::new("Added Roles", added_str).unwrap())
-            .field(EmbedFieldBuilder::new("Removed Roles", removed_str).unwrap())
+        self.field(EmbedFieldBuilder::new("Nickname", disc_nick))
+            .field(EmbedFieldBuilder::new("Added Roles", added_str))
+            .field(EmbedFieldBuilder::new("Removed Roles", removed_str))
     }
 }
