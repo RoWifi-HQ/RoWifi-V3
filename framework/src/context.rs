@@ -23,10 +23,7 @@ use std::{
     task::{Context, Poll},
 };
 use twilight_gateway::Cluster;
-use twilight_http::{
-    request::prelude::{CreateMessage, UpdateWebhookMessage},
-    Client as Http, Error as DiscordHttpError,
-};
+use twilight_http::{Client as Http, Error as DiscordHttpError, request::{application::UpdateOriginalResponse, prelude::CreateMessage}};
 use twilight_model::{
     channel::embed::Embed,
     id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
@@ -477,7 +474,7 @@ impl BotContext {
 
 pub struct Responder<'a> {
     message: Option<CreateMessage<'a>>,
-    interaction: Option<UpdateWebhookMessage<'a>>,
+    interaction: Option<UpdateOriginalResponse<'a>>,
 }
 
 impl<'a> Responder<'a> {
