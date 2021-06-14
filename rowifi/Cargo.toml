@@ -35,14 +35,15 @@ regex = "1"
 sha2 = "0"
 
 # Twilight Modules
-twilight-embed-builder = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
-twilight-gateway = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features= ["stock-zlib", "rustls-webpki-roots"] }
-twilight-http = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features = ["rustls-webpki-roots"] }
-twilight-mention = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" } # TODO: Remove this
-twilight-model = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
-twilight-standby = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-embed-builder = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-gateway = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features= ["zlib-stock", "rustls-webpki-roots"] }
+twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
+twilight-mention = { branch = "main", git = "https://github.com/twilight-rs/twilight" } # TODO: Remove this
+twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
 
 # Utilities Crates
+bson = { version = "2.0.0-beta.1", features = ["chrono-0_4"] }
 dotenv = "0"
 futures-util = "0"
 itertools = "0"

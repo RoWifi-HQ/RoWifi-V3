@@ -146,7 +146,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     http.set_application_id(current_user.id);
     owners.push(owner);
 
-    let cluster = Cluster::builder(
+    let (cluster, mut events) = Cluster::builder(
         &token,
         Intents::GUILD_MESSAGES
             | Intents::GUILDS
@@ -223,7 +223,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         event_handler,
         bot,
     };
-    let mut events = rowifi.bot.cluster.events();
+
     while let Some(event) = events.next().await {
         let _ = rowifi.call(event).await;
     }
