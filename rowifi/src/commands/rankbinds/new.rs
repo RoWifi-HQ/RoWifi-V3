@@ -171,7 +171,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         {
             Some((pos, _)) => {
                 guild.rankbinds[pos] = bind.clone();
-                modified.push(bind)
+                modified.push(bind);
             }
             None => {
                 guild.rankbinds.push(bind.clone());

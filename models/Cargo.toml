@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-models"
-version = "3.0.1"
+version = "3.0.2"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -16,5 +16,5 @@ regex = "1"
 serde = "1"
 serde_cbor = "0"
 serde_repr = "0"
-twilight-http = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight", default-features = false, features = ["rustls-webpki-roots"] }
-twilight-model = { branch = "feature/slash-commands-http", git = "https://github.com/Erk-/twilight" }
+twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
+twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }

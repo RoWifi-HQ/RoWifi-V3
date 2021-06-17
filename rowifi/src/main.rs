@@ -68,7 +68,6 @@ impl Service<(u64, Event)> for RoWifi {
     }
 
     fn call(&mut self, event: (u64, Event)) -> Self::Future {
-        tracing::debug!(event = ?event.1.kind());
         self.bot
             .cache
             .update(&event.1)
@@ -146,7 +145,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     http.set_application_id(current_user.id);
     owners.push(owner);
 
-    let cluster = Cluster::builder(
+    let (cluster, mut events) = Cluster::builder(
         &token,
         Intents::GUILD_MESSAGES
             | Intents::GUILDS
@@ -223,7 +222,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         event_handler,
         bot,
     };
-    let mut events = rowifi.bot.cluster.events();
+
     while let Some(event) = events.next().await {
         let _ = rowifi.call(event).await;
     }

@@ -91,7 +91,7 @@ pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandRe
     let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
     let mut attendees = Vec::new();
     for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
-        if let Ok(Some(roblox_id)) = ctx.bot.roblox.get_user_from_username(&attendee).await {
+        if let Ok(Some(roblox_id)) = ctx.bot.roblox.get_user_from_username(attendee).await {
             attendees.push(roblox_id);
         }
     }

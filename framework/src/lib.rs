@@ -193,7 +193,7 @@ impl Service<&Event> for Framework {
                     if arg.eq_ignore_ascii_case("help")
                         && !self.bot.disabled_channels.contains(&msg.channel_id)
                     {
-                        return Either::Right(self.help(&msg, cmd_str));
+                        return Either::Right(self.help(msg, cmd_str));
                     }
                     self.cmds
                         .iter_mut()

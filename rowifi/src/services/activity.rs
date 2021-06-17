@@ -2,7 +2,7 @@ use rowifi_framework::context::BotContext;
 use std::error::Error;
 use tokio::time::{interval, Duration};
 use twilight_model::gateway::{
-    payload::UpdateStatus,
+    payload::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
 
@@ -12,7 +12,7 @@ pub async fn activity(ctx: BotContext) {
     loop {
         interval.tick().await;
         if let Err(err) = execute(&ctx, &mut show_members).await {
-            tracing::error!(err = ?err, "Error in activity module: ")
+            tracing::error!(err = ?err, "Error in activity module: ");
         }
     }
 }
@@ -47,7 +47,7 @@ async fn execute(ctx: &BotContext, show_members: &mut bool) -> Result<(), Box<dy
         timestamps: None,
         url: None,
     };
-    let update = UpdateStatus::new(Some(vec![activity]), false, None, Status::Online);
+    let update = UpdatePresence::new(vec![activity], false, None, Status::Online)?;
     for shard in shards {
         shard.command(&update).await?;
     }

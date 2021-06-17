@@ -92,7 +92,7 @@ where
             ServiceRequest::Help(_args, mut embed) => {
                 let (usage, fields_help) = K::generate_help();
                 if !fields_help.is_empty() {
-                    embed = embed.field(EmbedFieldBuilder::new("Fields", fields_help))
+                    embed = embed.field(EmbedFieldBuilder::new("Fields", fields_help));
                 }
                 let mut embed = embed.build().unwrap();
                 if let Some(field) = embed.fields.iter_mut().find(|f| f.name.eq("Usage")) {

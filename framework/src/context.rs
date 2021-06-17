@@ -23,7 +23,10 @@ use std::{
     task::{Context, Poll},
 };
 use twilight_gateway::Cluster;
-use twilight_http::{Client as Http, Error as DiscordHttpError, request::{application::UpdateOriginalResponse, prelude::CreateMessage}};
+use twilight_http::{
+    request::{application::UpdateOriginalResponse, prelude::CreateMessage},
+    Client as Http, Error as DiscordHttpError,
+};
 use twilight_model::{
     channel::embed::Embed,
     id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
@@ -208,19 +211,19 @@ impl CommandContext {
     }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
-        self.bot.log_guild(guild_id, embed).await
+        self.bot.log_guild(guild_id, embed).await;
     }
 
     pub async fn log_debug(&self, embed: Embed) {
-        self.bot.log_debug(embed).await
+        self.bot.log_debug(embed).await;
     }
 
     pub async fn log_error(&self, text: &str) {
-        self.bot.log_error(text).await
+        self.bot.log_error(text).await;
     }
 
     pub async fn log_premium(&self, text: &str) {
-        self.bot.log_premium(text).await
+        self.bot.log_premium(text).await;
     }
 }
 
@@ -259,7 +262,7 @@ impl BotContext {
             .collect::<HashMap<_, _>>();
         let roblox_user = self.roblox.get_user(user_id).await?;
         let command_user = RoCommandUser {
-            user: &user,
+            user,
             roles: &member.roles,
             ranks: &user_roles,
             username: &roblox_user.name,
@@ -360,7 +363,7 @@ impl BotContext {
         for bind_role in &guild.all_roles {
             let r = RoleId(*bind_role as u64);
             if guild_roles.get(&r).is_some() {
-                if roles_to_add.contains(&bind_role) {
+                if roles_to_add.contains(bind_role) {
                     if !member.roles.contains(&r) {
                         added_roles.push(r);
                     }
@@ -384,7 +387,7 @@ impl BotContext {
             nick_bind.map_or_else(
                 || roblox_user.name.to_string(),
                 |nick_bind| {
-                    nick_bind.nickname(&roblox_user, &user, &member.user.name, &member.nick)
+                    nick_bind.nickname(&roblox_user, user, &member.user.name, &member.nick)
                 },
             )
         };

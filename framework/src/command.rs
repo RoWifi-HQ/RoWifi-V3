@@ -214,7 +214,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .bot
                         .stats
                         .command_counts
-                        .get_metric_with_label_values(&[&name])
+                        .get_metric_with_label_values(&[name])
                     {
                         metric.inc();
                     }
