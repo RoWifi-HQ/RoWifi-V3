@@ -35,30 +35,30 @@ impl Scanner {
 
             '!' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::BangEqual, None)
+                    self.add_token(TokenType::BangEqual, None);
                 } else {
-                    self.add_token(TokenType::Bang, None)
+                    self.add_token(TokenType::Bang, None);
                 }
             }
             '=' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::EqualEqual, None)
+                    self.add_token(TokenType::EqualEqual, None);
                 } else {
-                    self.add_token(TokenType::Equal, None)
+                    self.add_token(TokenType::Equal, None);
                 }
             }
             '<' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::LessEqual, None)
+                    self.add_token(TokenType::LessEqual, None);
                 } else {
-                    self.add_token(TokenType::Less, None)
+                    self.add_token(TokenType::Less, None);
                 }
             }
             '>' => {
                 if self.match_char('=') {
-                    self.add_token(TokenType::GreaterEqual, None)
+                    self.add_token(TokenType::GreaterEqual, None);
                 } else {
-                    self.add_token(TokenType::Greater, None)
+                    self.add_token(TokenType::Greater, None);
                 }
             }
 
@@ -156,6 +156,6 @@ impl Scanner {
         let text = self.source[self.start..self.current]
             .iter()
             .collect::<String>();
-        self.tokens.push(Token::new(token_type, &text, literal))
+        self.tokens.push(Token::new(token_type, &text, literal));
     }
 }

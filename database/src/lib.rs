@@ -113,7 +113,7 @@ impl Database {
                 Ok(document) => match bson::from_document::<RoGuild>(document.clone()) {
                     Ok(guild) => result.push(guild),
                     Err(e) => {
-                        tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                        tracing::error!(error = ?e, doc = ?document, "Error in deserializing");
                     }
                 },
                 Err(e) => tracing::error!(error = ?e, "Error in the cursor"),
@@ -474,7 +474,7 @@ impl Database {
                 Ok(document) => match bson::from_document::<Group>(document.clone()) {
                     Ok(group) => result.push(group),
                     Err(e) => {
-                        tracing::error!(error = ?e, doc = ?document, "Error in deserializing")
+                        tracing::error!(error = ?e, doc = ?document, "Error in deserializing");
                     }
                 },
                 Err(e) => tracing::error!(error = ?e, "Error in the cursor"),
@@ -511,7 +511,7 @@ impl Database {
                 Ok(document) => match bson::from_document::<EventLog>(document) {
                     Ok(event) => result.push(event),
                     Err(e) => {
-                        tracing::error!(error = ?e, "Error in deserializing")
+                        tracing::error!(error = ?e, "Error in deserializing");
                     }
                 },
                 Err(err) => tracing::error!(err = ?err, "Error in cursor"),

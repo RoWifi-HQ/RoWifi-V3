@@ -525,7 +525,7 @@ pub fn guild_wide_permissions(
     };
 
     for role in member_roles {
-        let role_permissions = match roles.get(&role) {
+        let role_permissions = match roles.get(role) {
             Some(r) => r.permissions,
             None => return Err("Found a role on the member that doesn't exist on the cache".into()),
         };
@@ -543,7 +543,7 @@ pub fn channel_permissions(
     channel: &Arc<GuildChannel>,
 ) -> Result<Permissions, String> {
     let guild_id = guild.id;
-    let mut permissions = guild_wide_permissions(&guild, roles, member_id, &member_roles)?;
+    let mut permissions = guild_wide_permissions(guild, roles, member_id, member_roles)?;
     let mut member_allow = Permissions::empty();
     let mut member_deny = Permissions::empty();
     let mut roles_allow = Permissions::empty();

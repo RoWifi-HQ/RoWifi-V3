@@ -68,7 +68,6 @@ impl Service<(u64, Event)> for RoWifi {
     }
 
     fn call(&mut self, event: (u64, Event)) -> Self::Future {
-        tracing::debug!(event = ?event.1.kind());
         self.bot
             .cache
             .update(&event.1)

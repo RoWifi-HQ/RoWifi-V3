@@ -4,7 +4,6 @@
     clippy::similar_names,
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
-    clippy::pub_enum_variant_names,
     clippy::let_unit_value
 )]
 

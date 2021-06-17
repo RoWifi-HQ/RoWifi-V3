@@ -12,7 +12,7 @@ pub async fn activity(ctx: BotContext) {
     loop {
         interval.tick().await;
         if let Err(err) = execute(&ctx, &mut show_members).await {
-            tracing::error!(err = ?err, "Error in activity module: ")
+            tracing::error!(err = ?err, "Error in activity module: ");
         }
     }
 }

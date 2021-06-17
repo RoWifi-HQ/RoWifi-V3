@@ -95,7 +95,7 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
                     if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .update_user(member, user, &server, &guild, &guild_roles)
                         .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -227,7 +227,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
                     if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .update_user(member, user, &server, &guild, &guild_roles)
                         .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {

@@ -31,7 +31,7 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .handler(event_type);
 
     let events_new_cmd = Command::builder()
-        .level(RoLevel::Admin)
+        .level(RoLevel::Trainer)
         .names(&["new"])
         .description("Command for users with `RoWifi Trainer` to log an event")
         .handler(events_new);
