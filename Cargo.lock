@@ -2507,7 +2507,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.5.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#d0d69a4e0d54ce06d1c00feae30a875805154075"
+source = "git+https://github.com/AsianIntel/twilight?branch=buttons#a03b541189422d26b5d9ba11ff344310ad90d3da"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -2531,7 +2531,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.5.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#d0d69a4e0d54ce06d1c00feae30a875805154075"
+source = "git+https://github.com/AsianIntel/twilight?branch=buttons#a03b541189422d26b5d9ba11ff344310ad90d3da"
 dependencies = [
  "bitflags",
  "serde",

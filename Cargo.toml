@@ -12,3 +12,7 @@ members = [
 
 [profile.release]
 lto = true
+
+[patch.'https://github.com/twilight-rs/twilight']
+twilight-model = { branch = "buttons", git = "https://github.com/AsianIntel/twilight" }
+twilight-http = { branch = "buttons", git = "https://github.com/AsianIntel/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }

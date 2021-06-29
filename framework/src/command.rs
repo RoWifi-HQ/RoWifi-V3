@@ -178,6 +178,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                                 embeds: Vec::new(),
                                 content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
+                                components: Vec::new()
                             }),
                         )
                         .await;
@@ -203,6 +204,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             embeds: Vec::new(),
                             content: None,
                             flags: None,
+                            components: Vec::new()
                         }),
                     )
                     .await;

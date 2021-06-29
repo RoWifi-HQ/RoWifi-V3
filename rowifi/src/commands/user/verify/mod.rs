@@ -2,6 +2,7 @@ mod manage;
 
 use rowifi_framework::prelude::*;
 use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
+use twilight_model::application::component::{Component, ComponentType, action_row::ActionRow, button::{Button, ButtonStyle}};
 
 use manage::{verify_default, verify_delete, verify_switch};
 
@@ -134,10 +135,7 @@ pub async fn verify_common(
         .field(
             EmbedFieldBuilder::new(
                 "Further Steps",
-                format!(
-                    "Please join the following game to verify yourself: [Click Here]({})",
-                    game_url
-                ),
+                "Join the game below to continue the verification process"
             ),
         )
         .field(
@@ -152,6 +150,20 @@ pub async fn verify_common(
         .http
         .create_message(ctx.channel_id)
         .embed(e)
+        .unwrap()
+        .component(Component::ActionRow(ActionRow {
+            kind: ComponentType::ActionRow,
+            components: vec! [
+                Component::Button(Button {
+                    style: ButtonStyle::Link,
+                    emoji: None,
+                    label: Some("Join the Game".into()),
+                    custom_id: None,
+                    url: Some(game_url.into()),
+                    disabled: false
+                })
+            ]
+        }))
         .unwrap()
         .await?;
     let q_user = QueueUser {

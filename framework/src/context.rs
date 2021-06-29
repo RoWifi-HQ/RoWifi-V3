@@ -27,11 +27,7 @@ use twilight_http::{
     request::{application::UpdateOriginalResponse, prelude::CreateMessage},
     Client as Http, Error as DiscordHttpError,
 };
-use twilight_model::{
-    channel::embed::Embed,
-    id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
-    user::User,
-};
+use twilight_model::{application::component::Component, channel::embed::Embed, id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId}, user::User};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -505,6 +501,24 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.content(Some(content)).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.content(content).unwrap());
+        }
+        self
+    }
+
+    pub fn component(mut self, component: Component) -> Self {
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.component(component).unwrap());
+        } else if let Some(message) = self.message {
+            self.message = Some(message.component(component).unwrap());
+        }
+        self
+    }
+
+    pub fn components(mut self, components: Vec<Component>) -> Self {
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.components(components).unwrap());
+        } else if let Some(message) = self.message {
+            self.message = Some(message.components(components).unwrap());
         }
         self
     }

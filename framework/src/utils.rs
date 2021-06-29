@@ -10,12 +10,7 @@ use std::{
 use tokio::time::timeout;
 use tokio_stream::StreamExt;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
-use twilight_http::request::prelude::RequestReactionType;
-use twilight_model::{
-    channel::{embed::Embed, ReactionType},
-    gateway::payload::{MessageCreate, ReactionAdd},
-    id::RoleId,
-};
+use twilight_model::{application::{callback::{CallbackData, InteractionResponse}, component::{Component, ComponentEmoji, ComponentType, action_row::ActionRow, button::{Button, ButtonStyle}}, interaction::Interaction}, channel::embed::Embed, gateway::{payload::MessageCreate, event::Event}, id::RoleId};
 
 pub enum Color {
     Red = 0x00E7_4C3C,
@@ -80,105 +75,105 @@ pub async fn paginate_embed(
             .create_message(ctx.channel_id)
             .embed(pages[0].clone())
             .unwrap()
+            .component(Component::ActionRow(ActionRow {
+                kind: ComponentType::ActionRow,
+                components: vec![
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ComponentEmoji {
+                            id: None,
+                            name: "⏮️".into(),
+                            animated: false
+                        }),
+                        label: Some("First Page".into()),
+                        custom_id: Some("first-page".into()),
+                        url: None,
+                        disabled: false
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ComponentEmoji {
+                            id: None,
+                            name: "◀️".into(),
+                            animated: false
+                        }),
+                        label: Some("Previous Page".into()),
+                        custom_id: Some("previous-page".into()),
+                        url: None,
+                        disabled: false
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ComponentEmoji {
+                            id: None,
+                            name: "▶️".into(),
+                            animated: false
+                        }),
+                        label: Some("Next Page".into()),
+                        custom_id: Some("next-page".into()),
+                        url: None,
+                        disabled: false
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ComponentEmoji {
+                            id: None,
+                            name: "⏭️".into(),
+                            animated: false
+                        }),
+                        label: Some("Last Page".into()),
+                        custom_id: Some("last-page".into()),
+                        url: None,
+                        disabled: false
+                    })
+                ]
+            }))
+            .unwrap()
             .await?;
 
         //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
-        let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
-        //Don't wait up for the reactions to show
-        tokio::spawn(async move {
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏮️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("◀️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("▶️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏭️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏹️"),
-                    },
-                )
-                .await;
-        });
-
-        let reactions = ctx
-            .bot
-            .standby
-            .wait_for_reaction_stream(message_id, move |event: &ReactionAdd| {
-                if event.user_id != author_id {
-                    return false;
+        let component_interaction = ctx.bot.standby.wait_for_event_stream(move |event: &Event| {
+            if let Event::InteractionCreate(interaction) = event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if message_component.message.id == m.id {
+                        return true;
+                    }
                 }
-                if let ReactionType::Unicode { name } = &event.emoji {
-                    return matches!(&name[..], "⏮️" | "◀️" | "▶️" | "⏭️" | "⏹️");
-                }
-                false
-            })
-            .timeout(Duration::from_secs(300));
-        tokio::pin!(reactions);
+            }
+            false
+        })
+        .timeout(Duration::from_secs(300));
+        tokio::pin!(component_interaction);
 
         let mut page_pointer: usize = 0;
-        while let Some(Ok(reaction)) = reactions.next().await {
-            if let ReactionType::Unicode { name } = &reaction.emoji {
-                if name == "⏮️" {
-                    page_pointer = 0;
-                } else if name == "◀️" {
-                    page_pointer = max(page_pointer - 1, 0);
-                } else if name == "▶️" {
-                    page_pointer = min(page_pointer + 1, page_count - 1);
-                } else if name == "⏭️" {
-                    page_pointer = page_count - 1;
-                } else if name == "⏹️" {
-                    break;
+        while let Some(Ok(event)) = component_interaction.next().await {
+            if let Event::InteractionCreate(interaction) = event {
+                if let Interaction::MessageComponent(message_component) = interaction.0 {
+                    match message_component.data.custom_id.as_str() {
+                        "first-page" => { page_pointer = 0; }
+                        "previous-page" => { page_pointer = max(page_pointer - 1, 0); }
+                        "next-page" => { page_pointer = min(page_pointer + 1, page_count - 1); }
+                        "last-page" => { page_pointer = page_count - 1; },
+                        _ => {}
+                    }
+        
+                    let _ = http.interaction_callback(
+                        message_component.id, 
+                        message_component.token, 
+                        InteractionResponse::UpdateMessage(CallbackData {
+                            allowed_mentions: None,
+                            content: None,
+                            components: Vec::new(),
+                            embeds: vec![pages[page_pointer].clone()],
+                            flags: None,
+                            tts: None
+                        }))
+                        .await;
                 }
-                let react = RequestReactionType::Unicode { name: name.clone() };
-                let _ = ctx
-                    .bot
-                    .http
-                    .update_message(channel_id, message_id)
-                    .embed(pages[page_pointer as usize].clone())
-                    .unwrap()
-                    .await;
-                let _ = ctx
-                    .bot
-                    .http
-                    .delete_reaction(channel_id, message_id, react, author_id)
-                    .await;
             }
         }
         let _ = ctx.bot.http.delete_message(channel_id, message_id).await;
