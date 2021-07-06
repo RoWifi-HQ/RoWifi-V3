@@ -4,7 +4,7 @@ use twilight_embed_builder::EmbedFieldBuilder;
 #[derive(FromArgs)]
 pub struct ServerInfoArguments {}
 
-pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> CommandResult {
+pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

@@ -27,7 +27,12 @@ use twilight_http::{
     request::{application::UpdateOriginalResponse, prelude::CreateMessage},
     Client as Http, Error as DiscordHttpError,
 };
-use twilight_model::{application::component::Component, channel::embed::Embed, id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId}, user::User};
+use twilight_model::{
+    application::component::Component,
+    channel::embed::Embed,
+    id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+    user::User,
+};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -382,9 +387,7 @@ impl BotContext {
         } else {
             nick_bind.map_or_else(
                 || roblox_user.name.to_string(),
-                |nick_bind| {
-                    nick_bind.nickname(&roblox_user, user, &member.user.name, &member.nick)
-                },
+                |nick_bind| nick_bind.nickname(&roblox_user, user, &member.user.name, &member.nick),
             )
         };
 

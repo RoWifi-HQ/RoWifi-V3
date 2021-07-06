@@ -112,6 +112,41 @@ impl Arguments {
     }
 }
 
+impl FromArgs for () {
+    fn from_args(_: &mut Arguments) -> Result<Self, ArgumentError> {
+        Ok(())
+    }
+
+    fn from_interaction(_: &[CommandDataOption]) -> Result<Self, ArgumentError> {
+        Ok(())
+    }
+
+    fn generate_help() -> (&'static str, &'static str) {
+        ("", "")
+    }
+}
+
+impl<T: FromArgs> FromArgs for (T,)
+{
+    fn from_args(args: &mut Arguments) -> Result<Self, ArgumentError> {
+        match T::from_args(args) {
+            Ok(a) => Ok((a,)),
+            Err(err) => Err(err)
+        }
+    }
+
+    fn from_interaction(options: &[CommandDataOption]) -> Result<Self, ArgumentError> {
+        match T::from_interaction(options) {
+            Ok(a) => Ok((a,)),
+            Err(err) => Err(err)
+        }
+    }
+
+    fn generate_help() -> (&'static str, &'static str) {
+        T::generate_help()
+    }
+}
+
 impl<T> FromArg for Option<T>
 where
     T: FromArg,

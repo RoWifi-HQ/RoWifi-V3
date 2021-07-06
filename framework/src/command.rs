@@ -178,7 +178,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                                 embeds: Vec::new(),
                                 content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
-                                components: Vec::new()
+                                components: None,
                             }),
                         )
                         .await;
@@ -204,7 +204,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             embeds: Vec::new(),
                             content: None,
                             flags: None,
-                            components: Vec::new()
+                            components: None,
                         }),
                     )
                     .await;
@@ -392,7 +392,7 @@ impl CommandBuilder {
 
     pub fn handler<F, R, K>(self, handler: F) -> Command
     where
-        F: Handler<(CommandContext, K), R> + Send + 'static,
+        F: Handler<K, R> + Send + 'static,
         R: Future<Output = CommandResult> + Send + 'static,
         K: FromArgs + Send + 'static,
     {
