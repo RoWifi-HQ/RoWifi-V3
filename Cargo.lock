@@ -1777,7 +1777,7 @@ dependencies = [
  "chrono",
  "dashmap",
  "framework-derive",
- "futures",
+ "futures-util",
  "itertools",
  "patreon",
  "roblox",

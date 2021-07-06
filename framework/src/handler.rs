@@ -1,8 +1,15 @@
-use std::{future::Future, marker::PhantomData, pin::Pin, task::{Context, Poll}};
+use std::{
+    future::Future,
+    marker::PhantomData,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use tower::Service;
 use twilight_embed_builder::EmbedFieldBuilder;
 
-use crate::{CommandResult, arguments::FromArgs, context::CommandContext, ServiceRequest, error::RoError};
+use crate::{
+    arguments::FromArgs, context::CommandContext, error::RoError, CommandResult, ServiceRequest,
+};
 
 pub trait Handler<T, R>: Clone + 'static
 where
@@ -50,8 +57,7 @@ where
 }
 
 #[allow(clippy::type_complexity)]
-impl<F, R, K> Service<(CommandContext, ServiceRequest)>
-    for CommandHandler<F, K, R>
+impl<F, R, K> Service<(CommandContext, ServiceRequest)> for CommandHandler<F, K, R>
 where
     F: Handler<K, R>,
     R: Future<Output = CommandResult> + Send + 'static,
@@ -116,7 +122,7 @@ where
 impl<F, R> Handler<(), R> for F
 where
     F: Fn(CommandContext) -> R + Clone + 'static,
-    R: Future<Output = CommandResult>
+    R: Future<Output = CommandResult>,
 {
     fn call(&self, ctx: CommandContext, (): ()) -> R {
         (self)(ctx)
@@ -126,7 +132,7 @@ where
 impl<F, K, R> Handler<(K,), R> for F
 where
     F: Fn(CommandContext, K) -> R + Clone + 'static,
-    R: Future<Output = CommandResult>
+    R: Future<Output = CommandResult>,
 {
     fn call(&self, ctx: CommandContext, (param,): (K,)) -> R {
         (self)(ctx, param)

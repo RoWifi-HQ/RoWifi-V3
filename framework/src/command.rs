@@ -16,16 +16,16 @@ use twilight_model::{
 };
 
 use crate::{
-    arguments::{ArgumentError, Arguments, FromArgs},
+    arguments::{ArgumentError, FromArgs},
     context::CommandContext,
     error::{CommandError, CommonError, RoError},
+    extensions::EmbedExtensions,
     handler::{CommandHandler, Handler},
-    prelude::{Color, EmbedExtensions},
-    utils::RoLevel,
-    CommandResult,
+    utils::{Color, RoLevel},
+    ServiceRequest,
 };
 
-pub type BoxedService = Box<
+type BoxedService = Box<
     dyn Service<
             (CommandContext, ServiceRequest),
             Response = (),
@@ -34,12 +34,7 @@ pub type BoxedService = Box<
         > + Send,
 >;
 
-#[allow(clippy::large_enum_variant)]
-pub enum ServiceRequest {
-    Message(Arguments),
-    Interaction(Vec<CommandDataOption>),
-    Help(Arguments, EmbedBuilder),
-}
+pub type CommandResult = Result<(), RoError>;
 
 #[derive(Default)]
 pub struct CommandOptions {

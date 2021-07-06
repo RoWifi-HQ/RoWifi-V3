@@ -18,14 +18,15 @@ pub mod bucket;
 pub mod command;
 pub mod context;
 pub mod error;
+pub mod extensions;
 pub mod handler;
 mod parser;
 pub mod prelude;
+pub mod respond;
 pub mod utils;
 
-use futures::future::{ready, Either, Ready};
+use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
-use prelude::EmbedExtensions;
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -38,7 +39,7 @@ use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
     application::{
         callback::{CallbackData, InteractionResponse},
-        interaction::Interaction,
+        interaction::{application_command::CommandDataOption, Interaction},
     },
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
@@ -48,14 +49,21 @@ use twilight_model::{
 use uwl::Stream;
 
 use arguments::Arguments;
-use command::{Command, ServiceRequest};
+use command::{Command, CommandResult};
 use context::{BotContext, CommandContext};
 use error::RoError;
+use extensions::EmbedExtensions;
 use parser::PrefixType;
 use utils::RoLevel;
 
-pub type CommandResult = Result<(), RoError>;
 pub use framework_derive::FromArgs;
+
+#[allow(clippy::large_enum_variant)]
+pub enum ServiceRequest {
+    Message(Arguments),
+    Interaction(Vec<CommandDataOption>),
+    Help(Arguments, EmbedBuilder),
+}
 
 pub struct Framework {
     bot: BotContext,

@@ -126,19 +126,18 @@ impl FromArgs for () {
     }
 }
 
-impl<T: FromArgs> FromArgs for (T,)
-{
+impl<T: FromArgs> FromArgs for (T,) {
     fn from_args(args: &mut Arguments) -> Result<Self, ArgumentError> {
         match T::from_args(args) {
             Ok(a) => Ok((a,)),
-            Err(err) => Err(err)
+            Err(err) => Err(err),
         }
     }
 
     fn from_interaction(options: &[CommandDataOption]) -> Result<Self, ArgumentError> {
         match T::from_interaction(options) {
             Ok(a) => Ok((a,)),
-            Err(err) => Err(err)
+            Err(err) => Err(err),
         }
     }
 
