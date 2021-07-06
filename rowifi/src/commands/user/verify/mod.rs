@@ -2,7 +2,11 @@ mod manage;
 
 use rowifi_framework::prelude::*;
 use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
-use twilight_model::application::component::{Component, ComponentType, action_row::ActionRow, button::{Button, ButtonStyle}};
+use twilight_model::application::component::{
+    action_row::ActionRow,
+    button::{Button, ButtonStyle},
+    Component,
+};
 
 use manage::{verify_default, verify_delete, verify_switch};
 
@@ -152,17 +156,14 @@ pub async fn verify_common(
         .embed(e)
         .unwrap()
         .component(Component::ActionRow(ActionRow {
-            kind: ComponentType::ActionRow,
-            components: vec! [
-                Component::Button(Button {
-                    style: ButtonStyle::Link,
-                    emoji: None,
-                    label: Some("Join the Game".into()),
-                    custom_id: None,
-                    url: Some(game_url.into()),
-                    disabled: false
-                })
-            ]
+            components: vec![Component::Button(Button {
+                style: ButtonStyle::Link,
+                emoji: None,
+                label: Some("Join the Game".into()),
+                custom_id: None,
+                url: Some(game_url.into()),
+                disabled: false,
+            })],
         }))
         .unwrap()
         .await?;

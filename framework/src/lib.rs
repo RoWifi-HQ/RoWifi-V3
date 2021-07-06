@@ -284,7 +284,7 @@ impl Service<&Event> for Framework {
                                                 .into(),
                                         ),
                                         flags: Some(MessageFlags::EPHEMERAL),
-                                        components: Vec::new()
+                                        components: None,
                                     }),
                                 )
                                 .await;

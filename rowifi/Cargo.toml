@@ -43,11 +43,10 @@ twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilig
 twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
 
 # Utilities Crates
-bson = { version = "2.0.0-beta.1", features = ["chrono-0_4"] }
 dotenv = "0"
 futures-util = "0"
 itertools = "0"
 lazy_static = "1"
-mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
+mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver", features = ["bson-chrono-0_4"] }
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 prometheus = "0"

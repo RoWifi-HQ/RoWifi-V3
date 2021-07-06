@@ -10,7 +10,20 @@ use std::{
 use tokio::time::timeout;
 use tokio_stream::StreamExt;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
-use twilight_model::{application::{callback::{CallbackData, InteractionResponse}, component::{Component, ComponentEmoji, ComponentType, action_row::ActionRow, button::{Button, ButtonStyle}}, interaction::Interaction}, channel::embed::Embed, gateway::{payload::MessageCreate, event::Event}, id::RoleId};
+use twilight_model::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        component::{
+            action_row::ActionRow,
+            button::{Button, ButtonStyle},
+            Component, ComponentEmoji,
+        },
+        interaction::Interaction,
+    },
+    channel::embed::Embed,
+    gateway::{event::Event, payload::MessageCreate},
+    id::RoleId,
+};
 
 pub enum Color {
     Red = 0x00E7_4C3C,
@@ -76,57 +89,56 @@ pub async fn paginate_embed(
             .embed(pages[0].clone())
             .unwrap()
             .component(Component::ActionRow(ActionRow {
-                kind: ComponentType::ActionRow,
                 components: vec![
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
                         emoji: Some(ComponentEmoji {
                             id: None,
                             name: "⏮️".into(),
-                            animated: false
+                            animated: false,
                         }),
                         label: Some("First Page".into()),
                         custom_id: Some("first-page".into()),
                         url: None,
-                        disabled: false
+                        disabled: false,
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
                         emoji: Some(ComponentEmoji {
                             id: None,
                             name: "◀️".into(),
-                            animated: false
+                            animated: false,
                         }),
                         label: Some("Previous Page".into()),
                         custom_id: Some("previous-page".into()),
                         url: None,
-                        disabled: false
+                        disabled: false,
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
                         emoji: Some(ComponentEmoji {
                             id: None,
                             name: "▶️".into(),
-                            animated: false
+                            animated: false,
                         }),
                         label: Some("Next Page".into()),
                         custom_id: Some("next-page".into()),
                         url: None,
-                        disabled: false
+                        disabled: false,
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
                         emoji: Some(ComponentEmoji {
                             id: None,
                             name: "⏭️".into(),
-                            animated: false
+                            animated: false,
                         }),
                         label: Some("Last Page".into()),
                         custom_id: Some("last-page".into()),
                         url: None,
-                        disabled: false
-                    })
-                ]
+                        disabled: false,
+                    }),
+                ],
             }))
             .unwrap()
             .await?;
@@ -136,17 +148,20 @@ pub async fn paginate_embed(
         let message_id = m.id;
         let http = ctx.bot.http.clone();
 
-        let component_interaction = ctx.bot.standby.wait_for_event_stream(move |event: &Event| {
-            if let Event::InteractionCreate(interaction) = event {
-                if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                    if message_component.message.id == m.id {
-                        return true;
+        let component_interaction = ctx
+            .bot
+            .standby
+            .wait_for_event_stream(move |event: &Event| {
+                if let Event::InteractionCreate(interaction) = event {
+                    if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                        if message_component.message.id == m.id {
+                            return true;
+                        }
                     }
                 }
-            }
-            false
-        })
-        .timeout(Duration::from_secs(300));
+                false
+            })
+            .timeout(Duration::from_secs(300));
         tokio::pin!(component_interaction);
 
         let mut page_pointer: usize = 0;
@@ -154,24 +169,34 @@ pub async fn paginate_embed(
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
                     match message_component.data.custom_id.as_str() {
-                        "first-page" => { page_pointer = 0; }
-                        "previous-page" => { page_pointer = max(page_pointer - 1, 0); }
-                        "next-page" => { page_pointer = min(page_pointer + 1, page_count - 1); }
-                        "last-page" => { page_pointer = page_count - 1; },
+                        "first-page" => {
+                            page_pointer = 0;
+                        }
+                        "previous-page" => {
+                            page_pointer = max(page_pointer - 1, 0);
+                        }
+                        "next-page" => {
+                            page_pointer = min(page_pointer + 1, page_count - 1);
+                        }
+                        "last-page" => {
+                            page_pointer = page_count - 1;
+                        }
                         _ => {}
                     }
-        
-                    let _ = http.interaction_callback(
-                        message_component.id, 
-                        message_component.token, 
-                        InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            content: None,
-                            components: Vec::new(),
-                            embeds: vec![pages[page_pointer].clone()],
-                            flags: None,
-                            tts: None
-                        }))
+
+                    let _ = http
+                        .interaction_callback(
+                            message_component.id,
+                            message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: None,
+                                embeds: vec![pages[page_pointer].clone()],
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
                         .await;
                 }
             }
