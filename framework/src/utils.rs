@@ -144,6 +144,7 @@ pub async fn paginate_embed(
         //Get some easy named vars
         let channel_id = m.channel_id;
         let message_id = m.id;
+        let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
         let component_interaction = ctx
@@ -166,36 +167,51 @@ pub async fn paginate_embed(
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
-                    match message_component.data.custom_id.as_str() {
-                        "first-page" => {
-                            page_pointer = 0;
+                    let component_interaction_author = message_component.as_ref().member.as_ref().unwrap().user.as_ref().unwrap().id;
+                    if component_interaction_author == author_id {
+                        match message_component.data.custom_id.as_str() {
+                            "first-page" => {
+                                page_pointer = 0;
+                            }
+                            "previous-page" => {
+                                page_pointer = max(page_pointer - 1, 0);
+                            }
+                            "next-page" => {
+                                page_pointer = min(page_pointer + 1, page_count - 1);
+                            }
+                            "last-page" => {
+                                page_pointer = page_count - 1;
+                            }
+                            _ => {}
                         }
-                        "previous-page" => {
-                            page_pointer = max(page_pointer - 1, 0);
-                        }
-                        "next-page" => {
-                            page_pointer = min(page_pointer + 1, page_count - 1);
-                        }
-                        "last-page" => {
-                            page_pointer = page_count - 1;
-                        }
-                        _ => {}
-                    }
 
-                    let _ = http
-                        .interaction_callback(
-                            message_component.id,
-                            message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: None,
-                                embeds: vec![pages[page_pointer].clone()],
-                                flags: None,
-                                tts: None,
-                            }),
-                        )
-                        .await;
+                        let _ = http
+                            .interaction_callback(
+                                message_component.id,
+                                message_component.token,
+                                InteractionResponse::UpdateMessage(CallbackData {
+                                    allowed_mentions: None,
+                                    content: None,
+                                    components: None,
+                                    embeds: vec![pages[page_pointer].clone()],
+                                    flags: None,
+                                    tts: None,
+                                }),
+                            )
+                            .await;
+                    } else {
+                        let _ = http
+                            .interaction_callback(
+                                message_component.id,
+                                message_component.token.clone(),
+                                InteractionResponse::DeferredUpdateMessage,
+                            )
+                            .await;
+                        let _ = http.create_followup_message(message_component.token).unwrap()
+                            .ephemeral(true)
+                            .content("This view menu is only navigable by the original command invoker")
+                            .await;
+                    }
                 }
             }
         }

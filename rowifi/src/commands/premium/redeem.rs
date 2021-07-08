@@ -4,10 +4,7 @@ use rowifi_models::guild::GuildType;
 use std::env;
 use twilight_model::gateway::payload::RequestGuildMembers;
 
-#[derive(FromArgs)]
-pub struct PremiumArguments {}
-
-pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> CommandResult {
+pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,
@@ -82,7 +79,7 @@ pub async fn premium_redeem(ctx: CommandContext, _args: PremiumArguments) -> Com
     Ok(())
 }
 
-pub async fn premium_remove(ctx: CommandContext, _args: PremiumArguments) -> CommandResult {
+pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) => p,

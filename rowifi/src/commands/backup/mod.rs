@@ -35,10 +35,7 @@ pub struct BackupArguments {
     pub name: String,
 }
 
-#[derive(FromArgs)]
-pub struct BackupViewArguments {}
-
-pub async fn backup(ctx: CommandContext, _args: BackupArguments) -> CommandResult {
+pub async fn backup(ctx: CommandContext) -> CommandResult {
     match ctx.bot.database.get_premium(ctx.author.id.0).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {

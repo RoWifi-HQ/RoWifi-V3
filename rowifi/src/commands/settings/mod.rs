@@ -67,10 +67,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
     cmds.push(settings_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct SettingsViewArguments {}
-
-pub async fn settings_view(ctx: CommandContext, _args: SettingsViewArguments) -> CommandResult {
+pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

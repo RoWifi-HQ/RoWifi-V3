@@ -68,10 +68,7 @@ pub fn events_config(cmds: &mut Vec<Command>) {
     cmds.push(events_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct EventArguments {}
-
-pub async fn events(ctx: CommandContext, _args: EventArguments) -> CommandResult {
+pub async fn events(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

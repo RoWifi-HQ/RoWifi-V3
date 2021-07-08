@@ -148,7 +148,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"CustomBinds": bind_bson}};
+    let update = doc! {"$push": {"CustomBinds": &bind_bson}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Id: {}", bind.id);
@@ -171,7 +171,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.bot
+    let message = ctx.bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)
@@ -186,5 +186,64 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
+
+    let author_id = ctx.author.id;
+    let message_id = message.id;
+
+    let stream = ctx.bot.standby.wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.as_ref().member.as_ref().unwrap().user.as_ref().unwrap().id;
+                if component_interaction_author == author_id {
+                    let filter = doc! {"_id": guild.id};
+                    let update = doc! {"$pull": {"CustomBinds": bind_bson}};
+                    ctx.bot.database.modify_guild(filter, update).await?;
+                    ctx.bot.http.interaction_callback(
+                        message_component.id, 
+                        &message_component.token, 
+                        InteractionResponse::UpdateMessage(CallbackData {
+                            allowed_mentions: None,
+                            content: None,
+                            components: Some(Vec::new()),
+                            embeds: Vec::new(),
+                            flags: None,
+                            tts: None
+                        })
+                    ).await?;
+
+                    let embed = EmbedBuilder::new()
+                        .default_data()
+                        .color(Color::DarkGreen as u32)
+                        .title("Successful!")
+                        .description("The newly created bind was deleted")
+                        .build()
+                        .unwrap();
+                    ctx.bot.http.create_followup_message(&message_component.token).unwrap()
+                        .embeds(vec![embed])
+                        .await?;
+
+                    return Ok(());
+                } else {
+                    let _ = ctx.bot.http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::DeferredUpdateMessage,
+                        )
+                        .await;
+                    let _ = ctx.bot.http.create_followup_message(&message_component.token).unwrap()
+                        .ephemeral(true)
+                        .content("This button is only interactable by the original command invoker")
+                        .await;
+                }
+            }
+        }
+    }
+
+    ctx.bot.http.update_message(ctx.channel_id, message_id).components([]).unwrap().await?;
     Ok(())
 }

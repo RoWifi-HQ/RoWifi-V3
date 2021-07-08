@@ -2,10 +2,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::guild::RoGuild;
 use twilight_model::id::RoleId;
 
-#[derive(FromArgs)]
-pub struct SetupArguments {}
-
-pub async fn setup(ctx: CommandContext, _args: SetupArguments) -> CommandResult {
+pub async fn setup(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let existing_guild = ctx.bot.database.get_guild(guild_id.0).await?;
     let server_roles = ctx.bot.cache.roles(guild_id);

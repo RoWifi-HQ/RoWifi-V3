@@ -8,7 +8,7 @@ use twilight_http::{
     request::{application::UpdateOriginalResponse, prelude::CreateMessage},
     Error as DiscordHttpError,
 };
-use twilight_model::{application::component::Component, channel::embed::Embed};
+use twilight_model::{application::component::Component, channel::embed::Embed, id::MessageId};
 
 use crate::context::CommandContext;
 
@@ -72,19 +72,28 @@ impl<'a> Responder<'a> {
         }
         self
     }
+
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.file(name, file));
+        } else if let Some(message) = self.message {
+            self.message = Some(message.file(name, file));
+        }
+        self
+    }
 }
 
 #[allow(clippy::option_if_let_else)]
 impl Future for Responder<'_> {
-    type Output = Result<(), DiscordHttpError>;
+    type Output = Result<Option<MessageId>, DiscordHttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(interaction) = self.interaction.as_mut() {
-            interaction.poll_unpin(cx)
+            interaction.poll_unpin(cx).map(|i| i.map(|_| None))
         } else if let Some(message) = self.message.as_mut() {
-            message.poll_unpin(cx).map(|p| p.map(|_| ()))
+            message.poll_unpin(cx).map(|p| p.map(|m| Some(m.id)))
         } else {
-            Poll::Ready(Ok(()))
+            Poll::Ready(Ok(None))
         }
     }
 }

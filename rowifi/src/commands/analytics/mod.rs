@@ -40,13 +40,7 @@ pub fn analytics_config(cmds: &mut Vec<Command>) {
     cmds.push(analytics);
 }
 
-#[derive(FromArgs)]
-pub struct AnalyticsViewArguments {}
-
-pub async fn analytics_config_view(
-    ctx: CommandContext,
-    _args: AnalyticsViewArguments,
-) -> CommandResult {
+pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
     let guild = ctx
         .bot
         .database

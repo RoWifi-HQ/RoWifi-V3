@@ -25,12 +25,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -42,12 +37,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -61,12 +51,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         .title("Group Registration Successful")
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed)
-        .unwrap()
-        .await?;
+    ctx.respond().embed(embed).await?;
     Ok(())
 }
 

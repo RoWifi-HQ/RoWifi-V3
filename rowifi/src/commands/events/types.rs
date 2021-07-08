@@ -2,9 +2,7 @@ use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventType, guild::GuildType};
 
-use super::EventArguments;
-
-pub async fn event_type(ctx: CommandContext, _args: EventArguments) -> CommandResult {
+pub async fn event_type(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

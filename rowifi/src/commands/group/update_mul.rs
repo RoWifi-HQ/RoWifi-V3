@@ -7,10 +7,7 @@ use twilight_model::{
     id::{RoleId, UserId},
 };
 
-#[derive(FromArgs)]
-pub struct UpdateAllArguments {}
-
-pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> CommandResult {
+pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

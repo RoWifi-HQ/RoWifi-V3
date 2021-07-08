@@ -49,13 +49,7 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
     cmds.push(custombinds_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct CustombindsViewArguments {}
-
-pub async fn custombinds_view(
-    ctx: CommandContext,
-    _args: CustombindsViewArguments,
-) -> CommandResult {
+pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

@@ -55,14 +55,19 @@ pub struct PremiumViewArguments {
 }
 
 pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> CommandResult {
-    let author = match args.user_id.and_then(|u| ctx.bot.cache.user(u)) {
-        Some(a) => (a.id, a.name.clone(), a.discriminator.clone()),
-        None => (
-            ctx.author.id,
-            ctx.author.name.clone(),
-            ctx.author.discriminator.clone(),
-        ),
+    let guild_id = ctx.guild_id.unwrap();
+    let author = {
+        if let Some(user_id) = args.user_id {
+            if let Some(member) = ctx.member(guild_id, user_id).await? {
+                (member.user.id, member.user.name.clone(), member.user.discriminator.clone())
+            } else {
+                (ctx.author.id, ctx.author.name.clone(), ctx.author.discriminator.clone())
+            }
+        } else {
+            (ctx.author.id, ctx.author.name.clone(), ctx.author.discriminator.clone())
+        }
     };
+
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("{}#{}", author.1, author.2));

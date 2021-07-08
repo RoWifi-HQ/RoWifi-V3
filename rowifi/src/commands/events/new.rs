@@ -5,9 +5,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use twilight_mention::Mention;
 
-use super::EventArguments;
-
-pub async fn events_new(ctx: CommandContext, _args: EventArguments) -> CommandResult {
+pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot

@@ -176,10 +176,7 @@ pub async fn verify_common(
     Ok(())
 }
 
-#[derive(FromArgs)]
-pub struct VerifyViewArguments {}
-
-pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> CommandResult {
+pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
         Some(u) => u,

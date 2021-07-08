@@ -56,10 +56,7 @@ pub fn blacklists_config(cmds: &mut Vec<Command>) {
     cmds.push(blacklist_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct BlacklistViewArguments {}
-
-pub async fn blacklist(ctx: CommandContext, _args: BlacklistViewArguments) -> CommandResult {
+pub async fn blacklist(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot
