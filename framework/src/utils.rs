@@ -167,7 +167,15 @@ pub async fn paginate_embed(
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
-                    let component_interaction_author = message_component.as_ref().member.as_ref().unwrap().user.as_ref().unwrap().id;
+                    let component_interaction_author = message_component
+                        .as_ref()
+                        .member
+                        .as_ref()
+                        .unwrap()
+                        .user
+                        .as_ref()
+                        .unwrap()
+                        .id;
                     if component_interaction_author == author_id {
                         match message_component.data.custom_id.as_str() {
                             "first-page" => {
@@ -207,9 +215,13 @@ pub async fn paginate_embed(
                                 InteractionResponse::DeferredUpdateMessage,
                             )
                             .await;
-                        let _ = http.create_followup_message(message_component.token).unwrap()
+                        let _ = http
+                            .create_followup_message(message_component.token)
+                            .unwrap()
                             .ephemeral(true)
-                            .content("This view menu is only navigable by the original command invoker")
+                            .content(
+                                "This view menu is only navigable by the original command invoker",
+                            )
                             .await;
                     }
                 }

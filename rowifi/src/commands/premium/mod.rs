@@ -56,15 +56,29 @@ pub struct PremiumViewArguments {
 
 pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
+
+    #[allow(clippy::option_if_let_else)]
     let author = {
         if let Some(user_id) = args.user_id {
             if let Some(member) = ctx.member(guild_id, user_id).await? {
-                (member.user.id, member.user.name.clone(), member.user.discriminator.clone())
+                (
+                    member.user.id,
+                    member.user.name.clone(),
+                    member.user.discriminator.clone(),
+                )
             } else {
-                (ctx.author.id, ctx.author.name.clone(), ctx.author.discriminator.clone())
+                (
+                    ctx.author.id,
+                    ctx.author.name.clone(),
+                    ctx.author.discriminator.clone(),
+                )
             }
         } else {
-            (ctx.author.id, ctx.author.name.clone(), ctx.author.discriminator.clone())
+            (
+                ctx.author.id,
+                ctx.author.name.clone(),
+                ctx.author.discriminator.clone(),
+            )
         }
     };
 
