@@ -18,12 +18,7 @@ pub async fn blacklist_custom(
     args: BlacklistCustomArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let code = args.code;
     if code.is_empty() {

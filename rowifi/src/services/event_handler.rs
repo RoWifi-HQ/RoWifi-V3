@@ -161,10 +161,7 @@ impl Service<(u64, Event)> for EventHandler {
                         Some(m) => m,
                         None => return Ok(()),
                     };
-                    let guild = match eh.bot.database.get_guild(m.guild_id.0).await? {
-                        Some(g) => g,
-                        None => return Ok(()),
-                    };
+                    let guild = eh.bot.database.get_guild(m.guild_id.0).await?;
                     if !guild.settings.update_on_join {
                         return Ok(());
                     }

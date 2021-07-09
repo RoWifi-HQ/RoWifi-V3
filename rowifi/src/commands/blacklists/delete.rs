@@ -12,12 +12,7 @@ pub async fn blacklist_delete(
     args: BlacklistDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let id = args.id;
     let blacklist = guild.blacklists.iter().find(|b| b.id == id);

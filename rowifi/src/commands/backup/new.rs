@@ -20,12 +20,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     };
 
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let name = args.name;
     let server_roles = ctx.bot.cache.roles(guild_id);

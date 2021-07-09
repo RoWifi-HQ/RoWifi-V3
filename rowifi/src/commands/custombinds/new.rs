@@ -17,12 +17,7 @@ pub struct CustombindsNewArguments {
 
 pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let code = args.code;
 

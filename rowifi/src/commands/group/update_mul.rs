@@ -9,12 +9,7 @@ use twilight_model::{
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -127,12 +122,7 @@ pub struct UpdateMultipleArguments {
 
 pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()

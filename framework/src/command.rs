@@ -297,16 +297,6 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             }
         },
         RoError::Common(err) => match err {
-            CommonError::UnknownGuild => {
-                let embed = EmbedBuilder::new()
-                        .default_data()
-                        .title("Command Failure")
-                        .color(Color::Red as u32)
-                        .description("This server has not been set up. Please ask the server owner to do so using `!setup`")
-                        .build()
-                        .unwrap();
-                let _ = ctx.respond().embed(embed).await;
-            }
             CommonError::UnknownMember => {
                 let embed = EmbedBuilder::new()
                     .default_data()

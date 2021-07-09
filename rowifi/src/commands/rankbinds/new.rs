@@ -45,12 +45,7 @@ lazy_static! {
 
 pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let mut guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let mut guild = ctx.bot.database.get_guild(guild_id.0).await?;
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
 
     let group_id = args.group_id;

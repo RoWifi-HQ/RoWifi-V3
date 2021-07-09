@@ -1,5 +1,4 @@
 mod serverinfo;
-mod setup;
 mod update_mul;
 
 use std::time::Duration;
@@ -8,7 +7,6 @@ use rowifi_framework::{bucket::BucketLayer, handler::CommandHandler, prelude::*}
 use tower::ServiceBuilder;
 
 pub use serverinfo::serverinfo;
-pub use setup::setup;
 pub use update_mul::{update_all, update_role};
 
 pub fn group_config(cmds: &mut Vec<Command>) {
@@ -18,13 +16,6 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .description("Command to view information about the server")
         .group("Miscellanous")
         .handler(serverinfo);
-
-    let setup_cmd = Command::builder()
-        .level(RoLevel::Admin)
-        .names(&["setup"])
-        .description("Command to setup or reset your server settings in the database")
-        .group("Administration")
-        .handler(setup);
 
     let bucket = BucketLayer::new(Duration::from_secs(12 * 60 * 60), 3);
 
@@ -49,7 +40,6 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .service(Box::new(update_role_srv));
 
     cmds.push(serverinfo_cmd);
-    cmds.push(setup_cmd);
     cmds.push(update_all_cmd);
     cmds.push(update_role_cmd);
 }

@@ -12,12 +12,7 @@ pub async fn custombinds_delete(
     args: CustombindsDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let mut ids_to_delete = Vec::new();
     for arg in args.id.split_ascii_whitespace() {

@@ -237,16 +237,20 @@ impl BotContext {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
 
-        let verification_role = RoleId(guild.verification_role as u64);
-        if guild_roles.get(&verification_role).is_some()
-            && member.roles.contains(&verification_role)
-        {
-            removed_roles.push(verification_role);
+        if let Some(verification_role) = guild.verification_role {
+            let verification_role = RoleId(verification_role as u64);
+            if guild_roles.get(&verification_role).is_some()
+                && member.roles.contains(&verification_role)
+            {
+                removed_roles.push(verification_role);
+            }
         }
 
-        let verified_role = RoleId(guild.verified_role as u64);
-        if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
-            added_roles.push(verified_role);
+        if let Some(verified_role) = guild.verified_role {
+            let verified_role = RoleId(verified_role as u64);
+            if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
+                added_roles.push(verified_role);
+            }
         }
 
         let user_id = RobloxUserId(user.roblox_id as u64);

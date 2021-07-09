@@ -76,21 +76,28 @@ impl Database {
     }
 
     /// Get the guild from its id. If it's not present in the cache, it will be brought from the database and stored in the cache.
-    pub async fn get_guild(&self, guild_id: u64) -> Result<Option<RoGuild>> {
+    pub async fn get_guild(&self, guild_id: u64) -> Result<RoGuild> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:g:{}", guild_id);
         let guild: Option<RoGuild> = conn.get(&key).await?;
         match guild {
-            Some(g) => Ok(Some(g)),
+            Some(g) => Ok(g),
             None => {
                 let guilds = self.client.database(DATABASE).collection(GUILDS);
                 let result = guilds.find_one(doc! {"_id": guild_id}, None).await?;
                 let guild = match result {
-                    None => return Ok(None),
                     Some(res) => bson::from_document::<RoGuild>(res)?,
+                    None => {
+                        let guild = RoGuild {
+                            id: guild_id as i64,
+                            ..RoGuild::default()
+                        };
+                        self.add_guild(guild.clone(), false).await?;
+                        guild
+                    }
                 };
                 let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await?;
-                Ok(Some(guild))
+                Ok(guild)
             }
         }
     }

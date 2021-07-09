@@ -20,12 +20,7 @@ pub struct NewArguments {
 
 pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let asset_type = args.option;
     let asset_id = args.asset_id;

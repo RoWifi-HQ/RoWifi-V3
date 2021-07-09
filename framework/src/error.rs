@@ -20,7 +20,6 @@ pub enum CommandError {
 
 #[derive(Debug)]
 pub enum CommonError {
-    UnknownGuild,
     UnknownMember,
 }
 

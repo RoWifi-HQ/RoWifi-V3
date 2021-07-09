@@ -80,12 +80,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         }
     };
 
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
     let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx

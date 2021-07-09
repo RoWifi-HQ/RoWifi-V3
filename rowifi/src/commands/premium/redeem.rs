@@ -46,11 +46,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         }
     }
 
-    ctx.bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    ctx.bot.database.get_guild(guild_id.0).await?;
 
     let filter = doc! {"_id": guild_id.0};
     let update =
@@ -102,11 +98,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    ctx.bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    ctx.bot.database.get_guild(guild_id.0).await?;
 
     let filter = doc! {"_id": guild_id.0};
     let update =

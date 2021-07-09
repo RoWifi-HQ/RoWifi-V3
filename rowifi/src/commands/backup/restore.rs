@@ -21,7 +21,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     let guild_id = ctx.guild_id.unwrap();
     let name = args.name;
-    let existing = ctx.bot.database.get_guild(guild_id.0).await?.is_some();
+    ctx.bot.database.get_guild(guild_id.0).await?;
 
     let backup = match ctx.bot.database.get_backup(ctx.author.id.0, &name).await? {
         Some(b) => b,
@@ -51,7 +51,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     }
 
     let guild = RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles).await;
-    ctx.bot.database.add_guild(guild, existing).await?;
+    ctx.bot.database.add_guild(guild, true).await?;
     ctx.respond()
         .content("Backup successfully restored")
         .await?;

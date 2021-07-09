@@ -23,12 +23,7 @@ pub enum ModifyOption {
 
 pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let field = args.option;
     let asset_id = args.asset_id;

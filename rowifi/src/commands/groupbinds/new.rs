@@ -18,12 +18,7 @@ pub struct GroupbindsNewArguments {
 
 pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let group_id = args.group_id;
     if guild.groupbinds.iter().any(|g| g.group_id == group_id) {
