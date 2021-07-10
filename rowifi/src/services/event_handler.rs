@@ -19,7 +19,7 @@ use twilight_gateway::Event;
 use twilight_model::{
     channel::GuildChannel,
     guild::Permissions,
-    id::{ChannelId, GuildId},
+    id::{ChannelId, GuildId, RoleId},
 };
 
 pub struct EventHandlerRef {
@@ -167,11 +167,14 @@ impl Service<(u64, Event)> for EventHandler {
                     }
                     let user = match eh.bot.get_linked_user(m.user.id, m.guild_id).await? {
                         Some(u) => u,
-                        None => return Ok(()),
+                        None => {
+                            if let Some(verification_role) = guild.verification_role {
+                                eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, RoleId(verification_role as u64)).await?;
+                            }
+                            return Ok(());
+                        },
                     };
-                    if server.owner_id == m.user.id {
-                        return Ok(());
-                    }
+
                     let guild_roles = eh.bot.cache.roles(m.guild_id);
                     let (added_roles, removed_roles, disc_nick) = match eh.bot
                         .update_user(member, &user, &server, &guild, &guild_roles)
