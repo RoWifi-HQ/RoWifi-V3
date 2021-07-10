@@ -47,6 +47,16 @@ pub struct BotContextRef {
     pub disabled_channels: DashSet<ChannelId>,
     /// The set containing all owners of the bot
     pub owners: DashSet<UserId>,
+    /// The map containing the set of admin roles for all servers
+    pub admin_roles: DashMap<GuildId, HashSet<RoleId>>,
+    /// The map containing the set of trainer roles for all servers
+    pub trainer_roles: DashMap<GuildId, HashSet<RoleId>>,
+    /// The map containing the set of bypass roles for all servers
+    pub bypass_roles: DashMap<GuildId, HashSet<RoleId>>,
+    /// The map containing the set of nickname roles for all servers
+    pub nickname_bypass_roles: DashMap<GuildId, HashSet<RoleId>>,
+    /// The map containing log channels of all servers
+    pub log_channels: DashMap<GuildId, ChannelId>,
 
     // Twilight Components
     /// The module used to make requests to discord
@@ -136,6 +146,11 @@ impl BotContext {
                 default_prefix,
                 disabled_channels: DashSet::new(),
                 owners: owners_set,
+                admin_roles: DashMap::new(),
+                trainer_roles: DashMap::new(),
+                bypass_roles: DashMap::new(),
+                nickname_bypass_roles: DashMap::new(),
+                log_channels: DashMap::new(),
                 http,
                 cache,
                 cluster,

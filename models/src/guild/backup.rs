@@ -1,4 +1,4 @@
-use super::GuildSettings;
+use super::{BlacklistActionType, GuildType};
 use crate::{
     bind::{BackupAssetBind, BackupCustomBind, BackupGroupBind, BackupRankBind},
     blacklist::Blacklist,
@@ -23,7 +23,7 @@ pub struct BackupGuild {
     pub command_prefix: Option<String>,
 
     #[serde(rename = "Settings")]
-    pub settings: GuildSettings,
+    pub settings: BackupGuildSettings,
 
     #[serde(rename = "VerificationRole")]
     pub verification_role: Option<String>,
@@ -51,4 +51,34 @@ pub struct BackupGuild {
 
     #[serde(rename = "EventTypes", default)]
     pub event_types: Vec<EventType>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct BackupGuildSettings {
+    #[serde(rename = "AutoDetection")]
+    pub auto_detection: bool,
+
+    #[serde(rename = "Type")]
+    pub guild_type: GuildType,
+
+    #[serde(rename = "BlacklistAction", default)]
+    pub blacklist_action: BlacklistActionType,
+
+    #[serde(rename = "UpdateOnJoin", default)]
+    pub update_on_join: bool,
+
+    #[serde(rename = "AdminRoles", default)]
+    pub admin_roles: Vec<String>,
+
+    #[serde(rename = "TrainerRoles", default)]
+    pub trainer_roles: Vec<String>,
+
+    #[serde(rename = "BypassRoles", default)]
+    pub bypass_roles: Vec<String>,
+
+    #[serde(rename = "NicknameBypassRoles", default)]
+    pub nickname_bypass_roles: Vec<String>,
+
+    #[serde(rename = "LogChannel", default)]
+    pub log_channel: Option<String>,
 }

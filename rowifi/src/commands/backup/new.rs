@@ -32,7 +32,16 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
         }
     }
 
-    let backup = guild.to_backup(ctx.author.id.0 as i64, &name, &roles);
+    let server_channels = ctx.bot.cache.guild_channels(guild_id);
+    let mut channels = HashMap::new();
+    for channel in server_channels {
+        let cached = ctx.bot.cache.channel(channel);
+        if let Some(cached) = cached {
+            channels.insert(channel, cached.name().to_string());
+        }
+    }
+
+    let backup = guild.to_backup(ctx.author.id.0 as i64, &name, &roles, &channels);
     ctx.bot.database.add_backup(backup, &name).await?;
     ctx.respond()
         .content(format!("New backup with {} was created", name))

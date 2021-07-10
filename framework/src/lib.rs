@@ -255,8 +255,7 @@ impl Service<&Event> for Framework {
 
                 let request = ServiceRequest::Message(cmd_str);
                 let cmd_fut = command.call((ctx, request));
-                let fut = async move { cmd_fut.await };
-                return Either::Right(Box::pin(fut));
+                return Either::Right(cmd_fut);
             }
             Event::InteractionCreate(interaction) => {
                 if let Interaction::ApplicationCommand(top_command) = &interaction.0 {

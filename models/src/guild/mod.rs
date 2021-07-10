@@ -10,7 +10,7 @@ use serde::{
 };
 use std::{collections::HashMap, default::Default, fmt};
 use twilight_http::Client as DiscordClient;
-use twilight_model::id::{GuildId, RoleId};
+use twilight_model::id::{ChannelId, GuildId, RoleId};
 
 use super::{
     bind::{AssetBind, Backup, CustomBind, GroupBind, RankBind},
@@ -77,6 +77,7 @@ impl RoGuild {
         user_id: i64,
         name: &str,
         roles: &HashMap<RoleId, String>,
+        channels: &HashMap<ChannelId, String>,
     ) -> BackupGuild {
         let rankbinds = self
             .rankbinds
@@ -106,13 +107,14 @@ impl RoGuild {
             Some(verified_role) => roles.get(&RoleId(verified_role as u64)).cloned(),
             None => None,
         };
+        let backup_settings = self.settings.to_backup(roles, channels);
 
         BackupGuild {
             id: ObjectId::new(),
             user_id,
             name: name.to_string(),
             command_prefix: self.command_prefix.clone(),
-            settings: self.settings.clone(),
+            settings: backup_settings,
             verification_role,
             verified_role,
             rankbinds,
@@ -131,6 +133,7 @@ impl RoGuild {
         http: DiscordClient,
         guild_id: GuildId,
         existing_roles: &[(RoleId, String)],
+        existing_channels: &HashMap<String, ChannelId>,
     ) -> Self {
         let mut names_to_ids = HashMap::<String, RoleId>::new();
 
@@ -249,11 +252,20 @@ impl RoGuild {
             )
             .unique()
             .collect_vec();
+        let settings = GuildSettings::from_backup(
+            http,
+            backup.settings,
+            guild_id,
+            &names_to_ids,
+            existing_roles,
+            existing_channels,
+        )
+        .await;
 
         Self {
             id: guild_id.0 as i64,
             command_prefix: backup.command_prefix,
-            settings: backup.settings,
+            settings,
             verification_role: Some(verification_role),
             verified_role: Some(verified_role),
             rankbinds,

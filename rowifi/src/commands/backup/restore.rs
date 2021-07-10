@@ -1,5 +1,6 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::RoGuild;
+use std::collections::HashMap;
 
 use super::BackupArguments;
 
@@ -50,7 +51,17 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
         }
     }
 
-    let guild = RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles).await;
+    let server_channels = ctx.bot.cache.guild_channels(guild_id);
+    let mut channels = HashMap::new();
+    for channel in server_channels {
+        let cached = ctx.bot.cache.channel(channel);
+        if let Some(cached) = cached {
+            channels.insert(cached.name().to_string(), channel);
+        }
+    }
+
+    let guild =
+        RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles, &channels).await;
     ctx.bot.database.add_guild(guild, true).await?;
     ctx.respond()
         .content("Backup successfully restored")
