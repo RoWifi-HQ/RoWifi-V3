@@ -3,12 +3,12 @@ use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 #[derive(FromArgs)]
-pub struct AdminRemoveArguments {
-    #[arg(rest, help = "List of all roles to be removed from `RoWifi Admin`")]
+pub struct TrainerRemoveArguments {
+    #[arg(rest, help = "List of all roles to be removed from `RoWifi Trainer`")]
     pub roles: String,
 }
 
-pub async fn admin_remove(ctx: CommandContext, args: AdminRemoveArguments) -> CommandResult {
+pub async fn trainer_remove(ctx: CommandContext, args: TrainerRemoveArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
@@ -32,16 +32,16 @@ pub async fn admin_remove(ctx: CommandContext, args: AdminRemoveArguments) -> Co
     }
 
     let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pullAll": {"Settings.AdminRoles": role_ids.clone()}};
+    let update = doc! {"$pullAll": {"Settings.TrainerRoles": role_ids.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     ctx.bot
-        .admin_roles
+        .trainer_roles
         .entry(guild_id)
         .or_default()
         .retain(|r| role_ids.contains(&r.0));
 
-    let mut description = "Removed Admin Roles:\n".to_string();
+    let mut description = "Removed Trainer Roles:\n".to_string();
     for role in role_ids {
         description.push_str(&format!("- <@&{}>\n", role));
     }

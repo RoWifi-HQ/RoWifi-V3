@@ -1,14 +1,20 @@
 mod admin;
+mod bypass;
+mod log;
 mod misc;
+mod trainer;
 mod update;
 mod verify;
 
 use rowifi_framework::prelude::*;
 
 use admin::settings_admin_config;
+use bypass::settings_bypass_config;
+use log::log_channel;
 pub use misc::{blacklist_action, settings_prefix, toggle_commands};
+use trainer::settings_trainer_config;
 pub use update::update_on_join;
-pub use verify::*;
+pub use verify::{settings_verification, settings_verified};
 
 pub fn settings_config(cmds: &mut Vec<Command>) {
     let settings_view_cmd = Command::builder()
@@ -54,6 +60,14 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .handler(settings_verified);
 
     let settings_admin_cmd = settings_admin_config();
+    let settings_trainer_cmd = settings_trainer_config();
+    let (settings_bypass_cmd, settings_nickname_bypass_cmd) = settings_bypass_config();
+
+    let log_channel_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["log-channel", "logchannel", "lc"])
+        .description("Command to interact with the channel where RoWifi sends logs")
+        .handler(log_channel);
 
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -68,6 +82,10 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(settings_verification_cmd)
         .sub_command(settings_verified_cmd)
         .sub_command(settings_admin_cmd)
+        .sub_command(settings_trainer_cmd)
+        .sub_command(settings_bypass_cmd)
+        .sub_command(settings_nickname_bypass_cmd)
+        .sub_command(log_channel_cmd)
         .handler(settings_view);
     cmds.push(settings_cmd);
 }

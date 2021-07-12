@@ -31,7 +31,7 @@ pub struct GuildSettings {
     pub nickname_bypass_roles: Vec<i64>,
 
     #[serde(rename = "LogChannel", default)]
-    pub log_channel: Option<ChannelId>,
+    pub log_channel: Option<i64>,
 }
 
 impl GuildSettings {
@@ -69,7 +69,7 @@ impl GuildSettings {
         }
 
         let log_channel = match self.log_channel {
-            Some(log_channel) => channels.get(&log_channel).cloned(),
+            Some(log_channel) => channels.get(&ChannelId(log_channel as u64)).cloned(),
             None => None,
         };
 
@@ -149,7 +149,7 @@ impl GuildSettings {
         let mut log_channel = None;
         if let Some(backup_channel) = &backup_settings.log_channel {
             if let Some(channel) = existing_channels.get(backup_channel) {
-                log_channel = Some(*channel);
+                log_channel = Some(channel.0 as i64);
             }
         }
 
