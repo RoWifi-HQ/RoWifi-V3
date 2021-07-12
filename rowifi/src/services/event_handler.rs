@@ -139,13 +139,22 @@ impl Service<(u64, Event)> for EventHandler {
                         .collect::<Vec<u64>>();
                     let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
                     for guild in guilds {
+                        let guild_id = GuildId(guild.id as u64);
                         if let Some(command_prefix) = guild.command_prefix {
                             eh.bot.prefixes
-                                .insert(GuildId(guild.id as u64), command_prefix);
+                                .insert(guild_id, command_prefix);
                         }
                         for channel in guild.disabled_channels {
                             eh.bot.disabled_channels
                                 .insert(ChannelId(channel as u64));
+                        }
+
+                        eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId(a as u64)).collect());
+                        eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId(t as u64)).collect());
+                        eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId(b as u64)).collect());
+                        eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId(nb as u64)).collect());
+                        if let Some(log_channel) = guild.settings.log_channel {
+                            eh.bot.log_channels.insert(guild_id, log_channel);
                         }
                     }
                 }

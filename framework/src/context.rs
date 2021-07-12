@@ -48,13 +48,13 @@ pub struct BotContextRef {
     /// The set containing all owners of the bot
     pub owners: DashSet<UserId>,
     /// The map containing the set of admin roles for all servers
-    pub admin_roles: DashMap<GuildId, HashSet<RoleId>>,
+    pub admin_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing the set of trainer roles for all servers
-    pub trainer_roles: DashMap<GuildId, HashSet<RoleId>>,
+    pub trainer_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing the set of bypass roles for all servers
-    pub bypass_roles: DashMap<GuildId, HashSet<RoleId>>,
+    pub bypass_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing the set of nickname roles for all servers
-    pub nickname_bypass_roles: DashMap<GuildId, HashSet<RoleId>>,
+    pub nickname_bypass_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing log channels of all servers
     pub log_channels: DashMap<GuildId, ChannelId>,
 

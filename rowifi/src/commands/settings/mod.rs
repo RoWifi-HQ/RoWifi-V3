@@ -1,9 +1,11 @@
+mod admin;
 mod misc;
 mod update;
 mod verify;
 
 use rowifi_framework::prelude::*;
 
+use admin::settings_admin_config;
 pub use misc::{blacklist_action, settings_prefix, toggle_commands};
 pub use update::update_on_join;
 pub use verify::*;
@@ -51,6 +53,8 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to change the verified role")
         .handler(settings_verified);
 
+    let settings_admin_cmd = settings_admin_config();
+
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["settings"])
@@ -63,6 +67,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(update_on_join_cmd)
         .sub_command(settings_verification_cmd)
         .sub_command(settings_verified_cmd)
+        .sub_command(settings_admin_cmd)
         .handler(settings_view);
     cmds.push(settings_cmd);
 }
