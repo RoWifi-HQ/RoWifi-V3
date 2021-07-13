@@ -2,7 +2,7 @@ use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 use std::env;
-use twilight_model::gateway::payload::RequestGuildMembers;
+use twilight_model::{gateway::payload::RequestGuildMembers, id::RoleId};
 
 pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -46,7 +46,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         }
     }
 
-    ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let filter = doc! {"_id": guild_id.0};
     let update =
@@ -58,6 +58,43 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         let update2 = doc! {"$push": { "Servers": guild_id.0 }};
         ctx.bot.database.modify_premium(filter2, update2).await?;
     }
+
+    ctx.bot.admin_roles.insert(
+        guild_id,
+        guild
+            .settings
+            .admin_roles
+            .iter()
+            .map(|r| RoleId(*r as u64))
+            .collect(),
+    );
+    ctx.bot.trainer_roles.insert(
+        guild_id,
+        guild
+            .settings
+            .trainer_roles
+            .iter()
+            .map(|r| RoleId(*r as u64))
+            .collect(),
+    );
+    ctx.bot.bypass_roles.insert(
+        guild_id,
+        guild
+            .settings
+            .bypass_roles
+            .iter()
+            .map(|r| RoleId(*r as u64))
+            .collect(),
+    );
+    ctx.bot.nickname_bypass_roles.insert(
+        guild_id,
+        guild
+            .settings
+            .nickname_bypass_roles
+            .iter()
+            .map(|r| RoleId(*r as u64))
+            .collect(),
+    );
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -108,6 +145,11 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let filter2 = doc! {"_id": ctx.author.id.0};
     let update2 = doc! {"$pull": { "Servers": guild_id.0 }};
     ctx.bot.database.modify_premium(filter2, update2).await?;
+
+    ctx.bot.admin_roles.remove(&guild_id);
+    ctx.bot.trainer_roles.remove(&guild_id);
+    ctx.bot.bypass_roles.remove(&guild_id);
+    ctx.bot.nickname_bypass_roles.remove(&guild_id);
 
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let embed = EmbedBuilder::new()

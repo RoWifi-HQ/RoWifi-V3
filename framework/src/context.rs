@@ -477,14 +477,23 @@ impl BotContext {
     }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
-        let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
-        if let Some(channel_id) = log_channel {
+        if let Some(log_channel) = self.log_channels.get(&guild_id) {
             let _ = self
                 .http
-                .create_message(channel_id)
+                .create_message(*log_channel)
                 .embed(embed)
                 .unwrap()
                 .await;
+        } else {
+            let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
+            if let Some(channel_id) = log_channel {
+                let _ = self
+                    .http
+                    .create_message(channel_id)
+                    .embed(embed)
+                    .unwrap()
+                    .await;
+            }
         }
     }
 }

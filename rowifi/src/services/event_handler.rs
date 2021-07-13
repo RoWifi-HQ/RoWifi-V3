@@ -5,6 +5,7 @@ use rowifi_framework::{
     context::BotContext,
     prelude::{CommandError, EmbedExtensions, RoError},
 };
+use rowifi_models::guild::GuildType;
 use std::{
     pin::Pin,
     sync::{
@@ -149,10 +150,13 @@ impl Service<(u64, Event)> for EventHandler {
                                 .insert(ChannelId(channel as u64));
                         }
 
-                        eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId(a as u64)).collect());
-                        eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId(t as u64)).collect());
-                        eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId(b as u64)).collect());
-                        eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId(nb as u64)).collect());
+                        if guild.settings.guild_type != GuildType::Normal {
+                            eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId(a as u64)).collect());
+                            eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId(t as u64)).collect());
+                            eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId(b as u64)).collect());
+                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId(nb as u64)).collect());
+                        }
+
                         if let Some(log_channel) = guild.settings.log_channel {
                             eh.bot.log_channels.insert(guild_id, ChannelId(log_channel as u64));
                         }
