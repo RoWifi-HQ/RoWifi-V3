@@ -17,9 +17,10 @@ pub use twilight_model::{
             action_row::ActionRow,
             button::{Button, ButtonStyle},
             select_menu::{SelectMenu, SelectMenuOption},
-            Component, ComponentEmoji, ComponentType,
+            Component, ComponentType,
         },
         interaction::{application_command::CommandDataOption, Interaction},
     },
+    channel::ReactionType,
     gateway::event::Event,
 };

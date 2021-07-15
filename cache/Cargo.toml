@@ -10,4 +10,4 @@ edition = "2018"
 dashmap = "4"
 rowifi-models = { path = "../models" }
 tracing = "0"
-twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-model = { branch = "feature/message-components", git = "https://github.com/twilight-rs/twilight" }

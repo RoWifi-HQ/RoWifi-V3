@@ -48,16 +48,16 @@ impl<'a> Responder<'a> {
 
     pub fn component(mut self, component: Component) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.component(component).unwrap());
+            self.interaction = Some(interaction.components(Some(vec![component])).unwrap());
         } else if let Some(message) = self.message {
-            self.message = Some(message.component(component).unwrap());
+            self.message = Some(message.components(vec![component]).unwrap());
         }
         self
     }
 
     pub fn components(mut self, components: Vec<Component>) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.components(components).unwrap());
+            self.interaction = Some(interaction.components(Some(components)).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.components(components).unwrap());
         }

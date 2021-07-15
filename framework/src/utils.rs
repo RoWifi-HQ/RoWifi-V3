@@ -15,11 +15,11 @@ use twilight_model::{
         component::{
             action_row::ActionRow,
             button::{Button, ButtonStyle},
-            Component, ComponentEmoji,
+            Component,
         },
         interaction::Interaction,
     },
-    channel::embed::Embed,
+    channel::{embed::Embed, ReactionType},
     gateway::{event::Event, payload::MessageCreate},
 };
 
@@ -86,14 +86,12 @@ pub async fn paginate_embed(
             .create_message(ctx.channel_id)
             .embed(pages[0].clone())
             .unwrap()
-            .component(Component::ActionRow(ActionRow {
+            .components(vec![Component::ActionRow(ActionRow {
                 components: vec![
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
-                        emoji: Some(ComponentEmoji {
-                            id: None,
-                            name: "⏮️".into(),
-                            animated: false,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "⏮️".into()
                         }),
                         label: Some("First Page".into()),
                         custom_id: Some("first-page".into()),
@@ -102,10 +100,8 @@ pub async fn paginate_embed(
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
-                        emoji: Some(ComponentEmoji {
-                            id: None,
-                            name: "◀️".into(),
-                            animated: false,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "◀️".into()
                         }),
                         label: Some("Previous Page".into()),
                         custom_id: Some("previous-page".into()),
@@ -114,10 +110,8 @@ pub async fn paginate_embed(
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
-                        emoji: Some(ComponentEmoji {
-                            id: None,
-                            name: "▶️".into(),
-                            animated: false,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "▶️".into()
                         }),
                         label: Some("Next Page".into()),
                         custom_id: Some("next-page".into()),
@@ -126,10 +120,8 @@ pub async fn paginate_embed(
                     }),
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
-                        emoji: Some(ComponentEmoji {
-                            id: None,
-                            name: "⏭️".into(),
-                            animated: false,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "⏭️".into()
                         }),
                         label: Some("Last Page".into()),
                         custom_id: Some("last-page".into()),
@@ -137,7 +129,7 @@ pub async fn paginate_embed(
                         disabled: false,
                     }),
                 ],
-            }))
+            })])
             .unwrap()
             .await?;
 

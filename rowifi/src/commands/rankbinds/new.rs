@@ -247,7 +247,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         .create_message(ctx.channel_id)
         .embed(embed.build().unwrap())
         .unwrap()
-        .component(Component::ActionRow(ActionRow {
+        .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
                 emoji: None,
@@ -256,7 +256,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 url: None,
                 disabled: false,
             })],
-        }))
+        })])
         .unwrap()
         .await?;
 

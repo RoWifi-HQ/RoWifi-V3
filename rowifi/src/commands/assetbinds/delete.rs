@@ -58,10 +58,8 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
         .component(Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
-                emoji: Some(ComponentEmoji {
-                    id: None,
-                    name: "↩️".into(),
-                    animated: false,
+                emoji: Some(ReactionType::Unicode {
+                    name: "↩️".into()
                 }),
                 label: Some("Uh oh? Revert".into()),
                 custom_id: Some("ab-delete-revert".into()),
@@ -183,14 +181,14 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
             .http
             .update_interaction_original(interaction_token)
             .unwrap()
-            .components([])
+            .components(None)
             .unwrap()
             .await?;
     } else {
         ctx.bot
             .http
             .update_message(ctx.channel_id, message_id)
-            .components([])
+            .components(None)
             .unwrap()
             .await?;
     }

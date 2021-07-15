@@ -155,7 +155,7 @@ pub async fn verify_common(
         .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
-        .component(Component::ActionRow(ActionRow {
+        .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Link,
                 emoji: None,
@@ -164,7 +164,7 @@ pub async fn verify_common(
                 url: Some(game_url.into()),
                 disabled: false,
             })],
-        }))
+        })])
         .unwrap()
         .await?;
     let q_user = QueueUser {

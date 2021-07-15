@@ -265,7 +265,7 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
     ctx.bot
         .http
         .update_message(ctx.channel_id, message_id)
-        .components([])
+        .components(None)
         .unwrap()
         .await?;
     Ok(())

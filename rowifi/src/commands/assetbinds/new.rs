@@ -107,10 +107,8 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         .component(Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
-                emoji: Some(ComponentEmoji {
-                    id: None,
-                    name: "🗑️".into(),
-                    animated: false,
+                emoji: Some(ReactionType::Unicode {
+                    name: "🗑️".into()
                 }),
                 label: Some("Oh no! Delete?".into()),
                 custom_id: Some("ab-new-delete".into()),
@@ -227,14 +225,14 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
             .http
             .update_interaction_original(interaction_token)
             .unwrap()
-            .components([])
+            .components(None)
             .unwrap()
             .await?;
     } else {
         ctx.bot
             .http
             .update_message(ctx.channel_id, message_id)
-            .components([])
+            .components(None)
             .unwrap()
             .await?;
     }
