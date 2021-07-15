@@ -89,7 +89,7 @@ impl Future for Responder<'_> {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Some(interaction) = self.interaction.as_mut() {
-            interaction.poll_unpin(cx).map(|i| i.map(|_| None))
+            interaction.poll_unpin(cx).map(|i| i.map(|m| Some(m.id)))
         } else if let Some(message) = self.message.as_mut() {
             message.poll_unpin(cx).map(|p| p.map(|m| Some(m.id)))
         } else {

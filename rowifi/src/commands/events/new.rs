@@ -4,6 +4,8 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use twilight_mention::Mention;
+use tokio::time::timeout;
+use std::time::Duration;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -36,50 +38,102 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    let event_type_id = match await_reply("Enter the id of the type of event", &ctx)
-        .await?
-        .parse::<i64>()
-    {
-        Ok(i) => i,
-        Err(_) => {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .color(Color::Red as u32)
-                .title("Event Addition Failed")
-                .description("The event id has to be a number")
-                .build()
-                .unwrap();
+    let mut options = Vec::new();
+    for event_type in &guild.event_types {
+        options.push(SelectMenuOption {
+            default: false,
+            description: None,
+            emoji: None,
+            label: event_type.name.clone(),
+            value: event_type.id.to_string()
+        })
+    }
+
+    let message = ctx.bot.http.create_message(ctx.channel_id)
+        .content("Select an event type")
+        .unwrap()
+        .components(vec! [
+            Component::ActionRow(ActionRow {
+                components: vec![Component::SelectMenu(SelectMenu {
+                    custom_id: "event-new-select".into(),
+                    max_values: Some(1),
+                    min_values: Some(1),
+                    options,
+                    placeholder: None
+                })]
+            }),
+            Component::ActionRow(ActionRow {
+                components: vec![Component::Button(Button {
+                    custom_id: Some("event-new-cancel".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Cancel".into()),
+                    style: ButtonStyle::Danger,
+                    url: None
+                })]
+            })
+        ])
+        .unwrap()
+        .await?;
+    
+    let message_id = message.id;
+    let fut = ctx.bot.standby.wait_for_event(move |event: &Event| {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                if message_component.message.id == message_id {
+                    return true;
+                }
+            }
+        }
+        false
+    });
+
+    let mut event_type_id = None;
+    match timeout(Duration::from_secs(300), fut).await {
+        Ok(Ok(event)) => {
+            if let Event::InteractionCreate(interaction) = &event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(Vec::new()),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "event-new-cancel" {
+                        ctx.bot.http.create_followup_message(&message_component.token).unwrap().content("Command has been cancelled").await?;
+                        return Ok(());
+                    } else if message_component.data.custom_id == "event-new-select" {
+                        event_type_id = Some(message_component.data.values[0].clone());
+                    }
+                }
+            }
+        },
+        _ => {
             ctx.bot
                 .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
+                .update_message(message.channel_id, message_id)
+                .components(None)
                 .unwrap()
                 .await?;
             return Ok(());
-        }
+        },
+    }
+
+    let event_type_id = match event_type_id {
+        Some(e) => e.parse().unwrap(),
+        None => return Ok(())
     };
-    let event_type = match guild.event_types.iter().find(|e| e.id == event_type_id) {
-        Some(e) => e,
-        None => {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .color(Color::Red as u32)
-                .title("Event Addition Failed")
-                .description(format!(
-                    "An event type with id {} does not exist",
-                    event_type_id
-                ))
-                .build()
-                .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embed(embed)
-                .unwrap()
-                .await?;
-            return Ok(());
-        }
-    };
+
+    let event_type = guild.event_types.iter().find(|e| e.id == event_type_id).unwrap();
 
     let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
     let mut attendees = Vec::new();

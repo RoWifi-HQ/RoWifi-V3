@@ -82,21 +82,7 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
 
-    let message_id = if let Some(interaction_token) = &ctx.interaction_token {
-        let msg = ctx
-            .bot
-            .http
-            .get_interaction_original(interaction_token)
-            .unwrap()
-            .await?;
-        if let Some(msg) = msg {
-            msg.id
-        } else {
-            return Ok(());
-        }
-    } else {
-        message_id.unwrap()
-    };
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     let stream = ctx
