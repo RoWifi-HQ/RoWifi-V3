@@ -7,16 +7,8 @@ use rowifi_models::{
     bind::{RankBind, Template},
     roblox::id::GroupId,
 };
-use std::time::Duration;
 use twilight_embed_builder::EmbedFieldBuilder;
-use twilight_model::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        interaction::Interaction,
-    },
-    gateway::event::Event,
-    id::RoleId,
-};
+use twilight_model::id::RoleId;
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {
@@ -183,7 +175,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         }
     }
 
-    ctx.bot.database.add_guild(guild, true).await?;
+    ctx.bot.database.add_guild(&guild, true).await?;
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
@@ -241,59 +233,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         count += 1;
     }
 
-    let msg = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
-        .embed(embed.build().unwrap())
-        .unwrap()
-        .components(vec![Component::ActionRow(ActionRow {
-            components: vec![Component::Button(Button {
-                style: ButtonStyle::Danger,
-                emoji: None,
-                label: Some("Not what you want? Delete".into()),
-                custom_id: Some("revert-rb".into()),
-                url: None,
-                disabled: false,
-            })],
-        })])
-        .unwrap()
-        .await?;
-
-    let stream = ctx
-        .bot
-        .standby
-        .wait_for_component_interaction(msg.id)
-        .timeout(Duration::from_secs(300));
-    tokio::pin!(stream);
-
-    if let Some(Ok(Event::InteractionCreate(interaction))) = stream.next().await {
-        if let Interaction::MessageComponent(message_component) = &interaction.0 {
-            if message_component.data.custom_id.eq("revert-rb") {
-                ctx.bot
-                    .http
-                    .interaction_callback(
-                        message_component.id,
-                        message_component.token.clone(),
-                        InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            content: None,
-                            components: Some(Vec::new()),
-                            embeds: Vec::new(),
-                            flags: None,
-                            tts: Some(false),
-                        }),
-                    )
-                    .await?;
-                ctx.bot
-                    .http
-                    .create_followup_message(message_component.token.clone())
-                    .unwrap()
-                    .content("Reverting the added & modified rankbinds")
-                    .await?;
-            }
-        }
-    }
+    ctx.respond().embed(embed.build().unwrap()).await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;

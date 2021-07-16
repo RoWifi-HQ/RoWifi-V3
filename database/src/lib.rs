@@ -53,7 +53,7 @@ impl Database {
     }
 
     /// Add or replace a guild in the database
-    pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<()> {
+    pub async fn add_guild(&self, guild: &RoGuild, replace: bool) -> Result<()> {
         let guilds = self.client.database(DATABASE).collection(GUILDS);
         let guild_doc = bson::to_document(&guild)?;
         let key = format!("database:g:{}", guild.id);
@@ -92,7 +92,7 @@ impl Database {
                             id: guild_id as i64,
                             ..RoGuild::default()
                         };
-                        self.add_guild(guild.clone(), false).await?;
+                        self.add_guild(&guild, false).await?;
                         guild
                     }
                 };

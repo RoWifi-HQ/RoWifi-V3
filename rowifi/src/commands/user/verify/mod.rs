@@ -8,6 +8,8 @@ use twilight_model::application::component::{
     Component,
 };
 
+use crate::commands::handle_update_button;
+
 use manage::{verify_default, verify_delete, verify_switch};
 
 pub fn verify_config(cmds: &mut Vec<Command>) {
@@ -150,20 +152,33 @@ pub async fn verify_common(
         )
         .build()
         .unwrap();
-    ctx.bot
+
+    let game_url_button = Component::Button(Button {
+        style: ButtonStyle::Link,
+        emoji: None,
+        label: Some("Join the Game".into()),
+        custom_id: None,
+        url: Some(game_url.into()),
+        disabled: false,
+    });
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .embed(e)
         .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
-            components: vec![Component::Button(Button {
-                style: ButtonStyle::Link,
-                emoji: None,
-                label: Some("Join the Game".into()),
-                custom_id: None,
-                url: Some(game_url.into()),
-                disabled: false,
-            })],
+            components: vec![
+                game_url_button.clone(),
+                Component::Button(Button {
+                    custom_id: Some("handle-update".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Update your Roles".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                }),
+            ],
         })])
         .unwrap()
         .await?;
@@ -173,6 +188,8 @@ pub async fn verify_common(
         verified,
     };
     ctx.bot.database.add_queue_user(q_user).await?;
+
+    handle_update_button(&ctx, message.id, vec![game_url_button]).await?;
     Ok(())
 }
 

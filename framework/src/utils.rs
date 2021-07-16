@@ -44,43 +44,45 @@ impl Default for RoLevel {
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
-    let message = ctx.bot
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .content(question)
         .unwrap()
-        .components(vec! [
-            Component::ActionRow(ActionRow {
-                components: vec! [Component::Button(Button {
-                    custom_id: Some("reply-cancel".into()),
-                    disabled: false,
-                    emoji: None,
-                    label: Some("Cancel".into()),
-                    style: ButtonStyle::Danger,
-                    url: None
-                })]
-            })
-        ])
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("reply-cancel".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Cancel".into()),
+                style: ButtonStyle::Danger,
+                url: None,
+            })],
+        })])
         .unwrap()
         .await?;
     let message_id = message.id;
     let author_id = ctx.author.id;
 
-    let stream = ctx.bot.standby.wait_for_event_stream(move |event: &Event| {
-        if let Event::InteractionCreate(interaction) = &event {
-            if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                if message_component.message.id == message_id {
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_event_stream(move |event: &Event| {
+            if let Event::InteractionCreate(interaction) = &event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if message_component.message.id == message_id {
+                        return true;
+                    }
+                }
+            } else if let Event::MessageCreate(msg) = &event {
+                if msg.author.id == author_id && !msg.content.is_empty() {
                     return true;
                 }
             }
-        } else if let Event::MessageCreate(msg) = &event {
-            if msg.author.id == author_id && !msg.content.is_empty() {
-                return true;
-            }
-        }
-        false
-    })
-    .timeout(Duration::from_secs(300));
+            false
+        })
+        .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
     while let Some(Ok(event)) = stream.next().await {
@@ -95,7 +97,9 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .as_ref()
                     .unwrap()
                     .id;
-                if component_interaction_author == author_id && message_component.data.custom_id == "reply-cancel" {
+                if component_interaction_author == author_id
+                    && message_component.data.custom_id == "reply-cancel"
+                {
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -111,10 +115,15 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                             }),
                         )
                         .await?;
-                    ctx.bot.http.create_followup_message(&message_component.token).unwrap().content("Command has been cancelled").await?;
+                    ctx.bot
+                        .http
+                        .create_followup_message(&message_component.token)
+                        .unwrap()
+                        .content("Command has been cancelled")
+                        .await?;
                     return Err(RoError::NoOp);
-                } else {
-                    let _ = ctx
+                } 
+                let _ = ctx
                     .bot
                     .http
                     .interaction_callback(
@@ -123,15 +132,16 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         InteractionResponse::DeferredUpdateMessage,
                     )
                     .await;
-                    let _ = ctx
-                        .bot
-                        .http
-                        .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .ephemeral(true)
-                        .content("This component is only interactable by the original command invoker")
-                        .await;
-                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content(
+                        "This component is only interactable by the original command invoker",
+                    )
+                    .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
             ctx.bot

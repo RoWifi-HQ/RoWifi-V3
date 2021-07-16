@@ -39,7 +39,8 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
         .color(Color::DarkGreen as u32)
         .build()
         .unwrap();
-    let message_id = ctx.respond()
+    let message_id = ctx
+        .respond()
         .embed(embed)
         .component(Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {

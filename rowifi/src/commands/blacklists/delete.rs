@@ -1,4 +1,4 @@
-use mongodb::bson::{doc, self};
+use mongodb::bson::{self, doc};
 use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
@@ -19,12 +19,12 @@ pub async fn blacklist_delete(
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
-            .default_data()
-            .color(Color::Red as u32)
-            .title("Blacklist Deletion Failed")
-            .description("A blacklist with the given id was not found")
-            .build()
-            .unwrap();
+                .default_data()
+                .color(Color::Red as u32)
+                .title("Blacklist Deletion Failed")
+                .description("A blacklist with the given id was not found")
+                .build()
+                .unwrap();
             ctx.respond().embed(embed).await?;
             return Ok(());
         }
@@ -41,7 +41,8 @@ pub async fn blacklist_delete(
         .description("The given blacklist was successfully deleted")
         .build()
         .unwrap();
-    let message_id = ctx.respond()
+    let message_id = ctx
+        .respond()
         .embed(embed)
         .component(Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {

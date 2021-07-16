@@ -2,7 +2,10 @@ use hyper::StatusCode;
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::error::ErrorType as DiscordErrorType;
-use twilight_model::id::{RoleId, UserId};
+use twilight_model::{
+    channel::embed::Embed,
+    id::{RoleId, UserId},
+};
 
 #[derive(Debug, FromArgs)]
 pub struct UpdateArguments {
@@ -11,6 +14,12 @@ pub struct UpdateArguments {
 }
 
 pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
+    let embed = update_func(&ctx, args).await?;
+    ctx.respond().embed(embed).await?;
+    Ok(())
+}
+
+pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<Embed, RoError> {
     let start = chrono::Utc::now().timestamp_millis();
     let guild_id = ctx.guild_id.unwrap();
     let server = ctx.bot.cache.guild(guild_id).unwrap();
@@ -30,8 +39,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
+            return Ok(embed);
         }
     };
 
@@ -44,8 +52,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
-        return Ok(());
+        return Ok(embed);
     }
 
     //Handle role position check
@@ -60,8 +67,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
+            return Ok(embed);
         }
     }
 
@@ -75,8 +81,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
+            return Ok(embed);
         }
     };
 
@@ -109,8 +114,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                             )
                             .build()
                             .unwrap();
-                        ctx.respond().embed(embed).await?;
-                        return Ok(());
+                        return Ok(embed);
                     }
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
@@ -123,7 +127,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     ))
                     .build()
                     .unwrap();
-                ctx.respond().embed(embed).await?;
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
                     ctx.bot
                         .http
@@ -135,6 +138,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .await?;
                 }
+                return Ok(embed);
             }
             return Err(e);
         }
@@ -151,7 +155,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -160,5 +163,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
-    Ok(())
+
+    Ok(embed)
 }

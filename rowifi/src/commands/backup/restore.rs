@@ -62,7 +62,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     let guild =
         RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles, &channels).await;
-    ctx.bot.database.add_guild(guild, true).await?;
+    ctx.bot.database.add_guild(&guild, true).await?;
     ctx.respond()
         .content("Backup successfully restored")
         .await?;

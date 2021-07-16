@@ -1,6 +1,8 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::user::RoGuildUser;
 
+use crate::commands::handle_update_button;
+
 use super::VerifyArguments;
 
 pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
@@ -81,12 +83,26 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Switching Successful")
         .build()
         .unwrap();
-    ctx.bot
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("handle-update".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Update your Roles".into()),
+                style: ButtonStyle::Primary,
+                url: None,
+            })],
+        })])
+        .unwrap()
         .await?;
+
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }
@@ -168,12 +184,26 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
         .title("Default Account Set Successfully")
         .build()
         .unwrap();
-    ctx.bot
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("handle-update".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Update your Roles".into()),
+                style: ButtonStyle::Primary,
+                url: None,
+            })],
+        })])
+        .unwrap()
         .await?;
+
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }
@@ -256,12 +286,26 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Unlinking Successful")
         .build()
         .unwrap();
-    ctx.bot
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .embed(embed)
         .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("handle-update".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Update your Roles".into()),
+                style: ButtonStyle::Primary,
+                url: None,
+            })],
+        })])
+        .unwrap()
         .await?;
+
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }

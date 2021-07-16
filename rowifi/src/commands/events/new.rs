@@ -3,9 +3,9 @@ use mongodb::bson::{oid::ObjectId, DateTime};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
-use twilight_mention::Mention;
-use tokio::time::timeout;
 use std::time::Duration;
+use tokio::time::timeout;
+use twilight_mention::Mention;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -45,22 +45,25 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             description: None,
             emoji: None,
             label: event_type.name.clone(),
-            value: event_type.id.to_string()
-        })
+            value: event_type.id.to_string(),
+        });
     }
 
-    let message = ctx.bot.http.create_message(ctx.channel_id)
+    let message = ctx
+        .bot
+        .http
+        .create_message(ctx.channel_id)
         .content("Select an event type")
         .unwrap()
-        .components(vec! [
+        .components(vec![
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(SelectMenu {
                     custom_id: "event-new-select".into(),
                     max_values: Some(1),
                     min_values: Some(1),
                     options,
-                    placeholder: None
-                })]
+                    placeholder: None,
+                })],
             }),
             Component::ActionRow(ActionRow {
                 components: vec![Component::Button(Button {
@@ -69,13 +72,13 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     emoji: None,
                     label: Some("Cancel".into()),
                     style: ButtonStyle::Danger,
-                    url: None
-                })]
-            })
+                    url: None,
+                })],
+            }),
         ])
         .unwrap()
         .await?;
-    
+
     let message_id = message.id;
     let fut = ctx.bot.standby.wait_for_event(move |event: &Event| {
         if let Event::InteractionCreate(interaction) = &event {
@@ -109,14 +112,19 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                         )
                         .await?;
                     if message_component.data.custom_id == "event-new-cancel" {
-                        ctx.bot.http.create_followup_message(&message_component.token).unwrap().content("Command has been cancelled").await?;
+                        ctx.bot
+                            .http
+                            .create_followup_message(&message_component.token)
+                            .unwrap()
+                            .content("Command has been cancelled")
+                            .await?;
                         return Ok(());
                     } else if message_component.data.custom_id == "event-new-select" {
                         event_type_id = Some(message_component.data.values[0].clone());
                     }
                 }
             }
-        },
+        }
         _ => {
             ctx.bot
                 .http
@@ -125,15 +133,19 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 .unwrap()
                 .await?;
             return Ok(());
-        },
+        }
     }
 
     let event_type_id = match event_type_id {
         Some(e) => e.parse().unwrap(),
-        None => return Ok(())
+        None => return Ok(()),
     };
 
-    let event_type = guild.event_types.iter().find(|e| e.id == event_type_id).unwrap();
+    let event_type = guild
+        .event_types
+        .iter()
+        .find(|e| e.id == event_type_id)
+        .unwrap();
 
     let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
     let mut attendees = Vec::new();
