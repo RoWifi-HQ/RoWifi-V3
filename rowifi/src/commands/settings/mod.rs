@@ -2,17 +2,19 @@ mod admin;
 mod bypass;
 mod log;
 mod misc;
+mod nickname_bypass;
 mod trainer;
 mod update;
 mod verify;
 
 use rowifi_framework::prelude::*;
 
-use admin::settings_admin_config;
-use bypass::settings_bypass_config;
+use admin::admin;
+use bypass::bypass;
 use log::log_channel;
 pub use misc::{blacklist_action, settings_prefix, toggle_commands};
-use trainer::settings_trainer_config;
+use nickname_bypass::nickname_bypass;
+use trainer::trainer;
 pub use update::update_on_join;
 pub use verify::{settings_verification, settings_verified};
 
@@ -59,9 +61,29 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to change the verified role")
         .handler(settings_verified);
 
-    let settings_admin_cmd = settings_admin_config();
-    let settings_trainer_cmd = settings_trainer_config();
-    let (settings_bypass_cmd, settings_nickname_bypass_cmd) = settings_bypass_config();
+    let settings_admin_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["admin"])
+        .description("Command to interact with the custom admin roles")
+        .handler(admin);
+
+    let settings_trainer_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["trainer"])
+        .description("Command to interact with the custom trainer roles")
+        .handler(trainer);
+
+    let settings_bypass_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["bypass"])
+        .description("Command to interact with the custom bypass roles")
+        .handler(bypass);
+
+    let settings_nickname_bypass_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["nickname-bypass", "nb"])
+        .description("Command to interact with the custom nickname bypass roles")
+        .handler(nickname_bypass);
 
     let log_channel_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -169,6 +191,36 @@ impl FromArg for ToggleOption {
             CommandDataOption::String { value, .. } => value.to_string(),
             CommandDataOption::Integer { value, .. } => value.to_string(),
             _ => unreachable!("ToggleOption unreached"),
+        };
+
+        Self::from_arg(&arg)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionOption {
+    Add,
+    Remove,
+    Set,
+}
+
+impl FromArg for FunctionOption {
+    type Error = ParseError;
+
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match arg.to_ascii_lowercase().as_str() {
+            "add" => Ok(Self::Add),
+            "remove" => Ok(Self::Remove),
+            "set" => Ok(Self::Set),
+            _ => Err(ParseError("one of `add` `remove` `set`")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        let arg = match option {
+            CommandDataOption::String { value, .. } => value.to_string(),
+            CommandDataOption::Integer { value, .. } => value.to_string(),
+            _ => unreachable!("AdminOption unreached"),
         };
 
         Self::from_arg(&arg)

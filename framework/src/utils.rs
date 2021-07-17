@@ -122,7 +122,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .content("Command has been cancelled")
                         .await?;
                     return Err(RoError::NoOp);
-                } 
+                }
                 let _ = ctx
                     .bot
                     .http
@@ -138,9 +138,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .create_followup_message(&message_component.token)
                     .unwrap()
                     .ephemeral(true)
-                    .content(
-                        "This component is only interactable by the original command invoker",
-                    )
+                    .content("This component is only interactable by the original command invoker")
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
