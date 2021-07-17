@@ -15,7 +15,10 @@ pub mod error;
 use futures_util::stream::StreamExt;
 use mongodb::{
     bson::{self, doc, document::Document},
-    options::{ClientOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions, ReturnDocument},
+    options::{
+        ClientOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions, ReturnDocument,
+        UpdateModifications,
+    },
     Client,
 };
 use rowifi_models::{
@@ -130,7 +133,11 @@ impl Database {
     }
 
     /// Modify the guild in the database and store the updated result in the cache
-    pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<()> {
+    pub async fn modify_guild(
+        &self,
+        filter: Document,
+        update: impl Into<UpdateModifications>,
+    ) -> Result<()> {
         let guilds = self.client.database(DATABASE).collection(GUILDS);
         let mut conn = self.redis_pool.get().await?;
 

@@ -1,5 +1,6 @@
 mod admin;
 mod bypass;
+mod functional;
 mod log;
 mod misc;
 mod nickname_bypass;
@@ -11,10 +12,12 @@ use rowifi_framework::prelude::*;
 
 use admin::admin;
 use bypass::bypass;
+use functional::functional;
 use log::log_channel;
-pub use misc::{blacklist_action, settings_prefix, toggle_commands};
+use misc::{blacklist_action, settings_prefix, toggle_commands};
 use nickname_bypass::nickname_bypass;
 use trainer::trainer;
+
 pub use update::update_on_join;
 pub use verify::{settings_verification, settings_verified};
 
@@ -91,6 +94,12 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to interact with the channel where RoWifi sends logs")
         .handler(log_channel);
 
+    let functional_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["functional"])
+        .description("Command to change the RoWifi permissions of a discord role")
+        .handler(functional);
+
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["settings"])
@@ -108,6 +117,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(settings_bypass_cmd)
         .sub_command(settings_nickname_bypass_cmd)
         .sub_command(log_channel_cmd)
+        .sub_command(functional_cmd)
         .handler(settings_view);
     cmds.push(settings_cmd);
 }
