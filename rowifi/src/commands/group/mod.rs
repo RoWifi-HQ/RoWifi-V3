@@ -1,3 +1,5 @@
+mod bind;
+mod reset;
 mod serverinfo;
 mod update_mul;
 
@@ -6,6 +8,7 @@ use std::time::Duration;
 use rowifi_framework::{bucket::BucketLayer, handler::CommandHandler, prelude::*};
 use tower::ServiceBuilder;
 
+use reset::reset;
 pub use serverinfo::serverinfo;
 pub use update_mul::{update_all, update_role};
 
@@ -39,7 +42,14 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .group("Premium")
         .service(Box::new(update_role_srv));
 
+    let reset_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["reset"])
+        .description("Command to reset the bot settings for this server")
+        .handler(reset);
+
     cmds.push(serverinfo_cmd);
     cmds.push(update_all_cmd);
     cmds.push(update_role_cmd);
+    cmds.push(reset_cmd);
 }
