@@ -1,3 +1,6 @@
+use std::{num::ParseIntError, str::FromStr};
+
+use itertools::Itertools;
 use mongodb::bson::{self, doc};
 use rowifi_framework::prelude::*;
 
@@ -17,24 +20,34 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
 
     let mut rank_ids_to_delete = Vec::new();
     for arg in args.rank_id.split_ascii_whitespace() {
-        if let Ok(r) = arg.parse::<i64>() {
+        if let Ok(r) = RankId::from_str(arg) {
             rank_ids_to_delete.push(r);
         }
     }
 
     let mut binds_to_delete = Vec::new();
     for rank in rank_ids_to_delete {
-        if let Some(b) = guild
-            .rankbinds
-            .iter()
-            .find(|r| r.group_id == group_id && r.rank_id == rank)
-        {
-            binds_to_delete.push(b);
-        }
+        match rank {
+            RankId::Range(r1, r2) => {
+                let binds = guild.rankbinds.iter()
+                    .filter(|r| r.group_id == group_id && r.rank_id >= r1 && r.rank_id <= r2);
+                binds_to_delete.extend(binds);
+            },
+            RankId::Single(rank) => {
+                if let Some(b) = guild
+                    .rankbinds
+                    .iter()
+                    .find(|r| r.group_id == group_id && r.rank_id == rank)
+                {
+                    binds_to_delete.push(b);
+                }
+            }
+        }  
     }
     let bind_ids = binds_to_delete
         .iter()
         .map(|r| r.rbx_rank_id)
+        .unique()
         .collect::<Vec<_>>();
 
     if binds_to_delete.is_empty() {
@@ -188,4 +201,26 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     }
 
     Ok(())
+}
+
+enum RankId {
+    Range(i64, i64),
+    Single(i64)
+}
+
+impl FromStr for RankId {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let splits = s.split('-').collect::<Vec<_>>();
+        if splits.len() == 2 {
+            if let Ok(r1) = splits[0].parse::<i64>() {
+                if let Ok(r2) = splits[1].parse::<i64>() {
+                    return Ok(Self::Range(r1, r2));
+                }
+            }
+        }
+        let r = s.parse::<i64>()?;
+        Ok(Self::Single(r)) 
+    }
 }
