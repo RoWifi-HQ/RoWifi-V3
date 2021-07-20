@@ -59,6 +59,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(SelectMenu {
                     custom_id: "event-new-select".into(),
+                    disabled: false,
                     max_values: Some(1),
                     min_values: Some(1),
                     options,

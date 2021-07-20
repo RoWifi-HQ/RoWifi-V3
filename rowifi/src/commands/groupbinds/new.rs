@@ -111,7 +111,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .description("Asset Bind Addition")
+        .description("Group Bind Addition")
         .field(EmbedFieldBuilder::new(name, value))
         .build()
         .unwrap();

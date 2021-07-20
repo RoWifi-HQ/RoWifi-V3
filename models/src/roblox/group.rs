@@ -10,7 +10,7 @@ pub struct PartialGroup {
     pub member_count: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct PartialRank {
     pub id: RoleId,
     pub name: String,

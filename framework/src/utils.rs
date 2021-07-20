@@ -3,8 +3,11 @@ use crate::{
     error::{CommandError, RoError},
 };
 
+use rowifi_models::bind::Template;
 use std::{
     cmp::{max, min},
+    num::ParseIntError,
+    str::FromStr,
     time::Duration,
 };
 use tokio_stream::StreamExt;
@@ -14,7 +17,7 @@ use twilight_model::{
         component::{
             action_row::ActionRow,
             button::{Button, ButtonStyle},
-            Component,
+            Component, SelectMenu,
         },
         interaction::Interaction,
     },
@@ -41,6 +44,147 @@ impl Default for RoLevel {
     fn default() -> Self {
         RoLevel::Normal
     }
+}
+
+pub async fn await_template_reply(
+    question: &str,
+    ctx: &CommandContext,
+    mut select_menu: SelectMenu,
+) -> Result<Template, RoError> {
+    let select_custom_id = select_menu.custom_id.clone();
+    let message = ctx
+        .bot
+        .http
+        .create_message(ctx.channel_id)
+        .content(question)
+        .unwrap()
+        .components(vec![
+            Component::ActionRow(ActionRow {
+                components: vec![Component::SelectMenu(select_menu.clone())],
+            }),
+            Component::ActionRow(ActionRow {
+                components: vec![Component::Button(Button {
+                    custom_id: Some("template-reply-cancel".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Cancel".into()),
+                    style: ButtonStyle::Danger,
+                    url: None,
+                })],
+            }),
+        ])
+        .unwrap()
+        .await?;
+
+    let message_id = message.id;
+    let author_id = ctx.author.id;
+
+    select_menu.disabled = true;
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_event_stream(move |event: &Event| {
+            if let Event::InteractionCreate(interaction) = &event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if message_component.message.id == message_id {
+                        return true;
+                    }
+                }
+            } else if let Event::MessageCreate(msg) = &event {
+                if msg.author.id == author_id && !msg.content.is_empty() {
+                    return true;
+                }
+            }
+            false
+        })
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component
+                    .as_ref()
+                    .member
+                    .as_ref()
+                    .unwrap()
+                    .user
+                    .as_ref()
+                    .unwrap()
+                    .id;
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "template-reply-cancel" {
+                        ctx.bot
+                            .http
+                            .create_followup_message(&message_component.token)
+                            .unwrap()
+                            .content("Command has been cancelled")
+                            .await?;
+                        return Err(RoError::NoOp);
+                    } else if message_component.data.custom_id == select_custom_id {
+                        let template_str = message_component.data.values[0].clone();
+                        return Ok(Template(template_str));
+                    }
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
+            }
+        } else if let Event::MessageCreate(msg) = &event {
+            ctx.bot
+                .http
+                .update_message(message.channel_id, message_id)
+                .components(Some(vec![Component::ActionRow(ActionRow {
+                    components: vec![Component::SelectMenu(select_menu.clone())],
+                })]))
+                .unwrap()
+                .await?;
+            return Ok(Template(msg.content.clone()));
+        }
+    }
+
+    ctx.bot
+        .http
+        .update_message(message.channel_id, message_id)
+        .components(Some(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::SelectMenu(select_menu.clone())],
+        })]))
+        .unwrap()
+        .await?;
+
+    Err(RoError::Command(CommandError::Timeout))
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
@@ -355,5 +499,27 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
         Some(r)
     } else {
         None
+    }
+}
+
+pub enum RankId {
+    Range(i64, i64),
+    Single(i64),
+}
+
+impl FromStr for RankId {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let splits = s.split('-').collect::<Vec<_>>();
+        if splits.len() == 2 {
+            if let Ok(r1) = splits[0].parse::<i64>() {
+                if let Ok(r2) = splits[1].parse::<i64>() {
+                    return Ok(Self::Range(r1, r2));
+                }
+            }
+        }
+        let r = s.parse::<i64>()?;
+        Ok(Self::Single(r))
     }
 }

@@ -276,7 +276,7 @@ impl FromArg for CreateType {
     }
 }
 
-async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
+pub async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
     let name = format!("Group Id: {}", bind.group_id);
     let roles_str = bind
         .discord_roles

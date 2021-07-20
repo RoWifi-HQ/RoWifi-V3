@@ -3,11 +3,12 @@ use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{CustomBind, Template},
+    guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
-use twilight_model::id::RoleId;
+use twilight_model::id::{GuildId, RoleId};
 
 #[derive(FromArgs)]
 pub struct CustombindsNewArguments {
@@ -21,6 +22,15 @@ pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments)
 
     let code = args.code;
 
+    custombinds_new_common(ctx, guild_id, guild, code).await
+}
+
+pub async fn custombinds_new_common(
+    ctx: CommandContext,
+    guild_id: GuildId,
+    guild: RoGuild,
+    code: String,
+) -> CommandResult {
     let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
         Some(u) => u,
         None => {

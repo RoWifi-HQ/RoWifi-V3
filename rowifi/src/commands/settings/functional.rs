@@ -55,6 +55,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
         .component(Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(SelectMenu {
                 custom_id: "functional-select".into(),
+                disabled: false,
                 max_values: Some(4),
                 min_values: Some(0),
                 placeholder: Some("No permissions granted".into()),

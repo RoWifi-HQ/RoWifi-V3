@@ -1,8 +1,7 @@
-use std::{num::ParseIntError, str::FromStr};
-
 use itertools::Itertools;
 use mongodb::bson::{self, doc};
 use rowifi_framework::prelude::*;
+use std::str::FromStr;
 
 #[derive(FromArgs)]
 pub struct RankBindsDelete {
@@ -29,10 +28,12 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     for rank in rank_ids_to_delete {
         match rank {
             RankId::Range(r1, r2) => {
-                let binds = guild.rankbinds.iter()
+                let binds = guild
+                    .rankbinds
+                    .iter()
                     .filter(|r| r.group_id == group_id && r.rank_id >= r1 && r.rank_id <= r2);
                 binds_to_delete.extend(binds);
-            },
+            }
             RankId::Single(rank) => {
                 if let Some(b) = guild
                     .rankbinds
@@ -42,7 +43,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                     binds_to_delete.push(b);
                 }
             }
-        }  
+        }
     }
     let bind_ids = binds_to_delete
         .iter()
@@ -201,26 +202,4 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     }
 
     Ok(())
-}
-
-enum RankId {
-    Range(i64, i64),
-    Single(i64)
-}
-
-impl FromStr for RankId {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let splits = s.split('-').collect::<Vec<_>>();
-        if splits.len() == 2 {
-            if let Ok(r1) = splits[0].parse::<i64>() {
-                if let Ok(r2) = splits[1].parse::<i64>() {
-                    return Ok(Self::Range(r1, r2));
-                }
-            }
-        }
-        let r = s.parse::<i64>()?;
-        Ok(Self::Single(r)) 
-    }
 }

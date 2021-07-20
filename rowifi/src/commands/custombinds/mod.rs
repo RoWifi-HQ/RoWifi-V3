@@ -1,6 +1,7 @@
 mod delete;
 mod modify;
-mod new;
+
+pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
