@@ -36,9 +36,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
             },
             SelectMenuOption {
                 default: false,
-                description: Some(
-                    "Use our powerful Lua-like language to create your own bind".into(),
-                ),
+                description: Some("Use our Lua-like language to create your own bind".into()),
                 emoji: None,
                 label: "Custom".into(),
                 value: "custom".into(),
@@ -87,21 +85,25 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     .unwrap()
                     .id;
                 if component_interaction_author == author_id {
-                    let _ = ctx.bot.http.interaction_callback(
-                        message_component.id,
-                        &message_component.token,
-                        InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            components: Some(vec![Component::ActionRow(ActionRow {
-                                components: vec![Component::SelectMenu(select_menu.clone())],
-                            })]),
-                            content: None,
-                            embeds: Vec::new(),
-                            flags: None,
-                            tts: Some(false),
-                        }),
-                    );
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                content: None,
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: Some(false),
+                            }),
+                        )
+                        .await?;
                     bind_type = Some(message_component.data.values[0].clone());
+                    break;
                 } else {
                     let _ = ctx
                         .bot
@@ -282,7 +284,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -356,7 +358,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -408,7 +410,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     ctx.bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .await?;
 
@@ -441,7 +443,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -461,7 +463,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -506,7 +508,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
@@ -521,7 +523,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         min_values: Some(1),
         options: vec![
             SelectMenuOption {
-                default: true,
+                default: false,
                 description: Some("Sets the nickname as just the roblox username".into()),
                 emoji: None,
                 label: "{roblox-username}".into(),
@@ -589,7 +591,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -607,7 +609,9 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         }
     }
 
-    if rank_ids.len() != roblox_group.roles.len() || template.0 == "auto" {
+    let should_groupbind = rank_ids.len() == roblox_group.roles.len() - 1
+        && rank_ids.iter().find(|r| r.rank == 0).is_none();
+    if !should_groupbind || template.0 == "auto" {
         return bind_rank(
             ctx,
             guild,

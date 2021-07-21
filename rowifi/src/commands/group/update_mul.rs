@@ -21,7 +21,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
@@ -79,10 +79,8 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
                 if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                    if let Some(bypass) = server.bypass_role {
-                        if member.roles.contains(&bypass) {
-                            continue;
-                        }
+                    if c.bot.has_bypass_role(&server, &member) {
+                        continue;
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
@@ -134,7 +132,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
@@ -206,10 +204,8 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     if !member.roles.contains(&role_id) {
                         continue;
                     }
-                    if let Some(bypass) = server.bypass_role {
-                        if member.roles.contains(&bypass) {
-                            continue;
-                        }
+                    if c.bot.has_bypass_role(&server, &member) {
+                        continue;
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();

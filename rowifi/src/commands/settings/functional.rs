@@ -190,7 +190,12 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         }
                     }
 
-                    ctx.bot.database.modify_guild(filter, updates).await?;
+                    for update in updates {
+                        ctx.bot
+                            .database
+                            .modify_guild(filter.clone(), update)
+                            .await?;
+                    }
                 } else {
                     let _ = ctx
                         .bot

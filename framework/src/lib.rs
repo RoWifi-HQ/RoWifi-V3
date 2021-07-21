@@ -137,7 +137,7 @@ impl Framework {
         let fut = async move {
             bot.http
                 .create_message(channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             Ok(())
@@ -353,6 +353,15 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
             return RoLevel::Admin;
         }
     }
+
+    if let Some(admin_roles) = bot.admin_roles.get(&guild.id) {
+        for admin_role in admin_roles.value() {
+            if member.roles.contains(admin_role) {
+                return RoLevel::Admin;
+            }
+        }
+    }
+
     for role in &member.roles {
         if let Some(role) = bot.cache.role(*role) {
             if role.permissions.contains(Permissions::ADMINISTRATOR) {
@@ -364,6 +373,14 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
     if let Some(trainer_role) = guild.trainer_role {
         if member.roles.contains(&trainer_role) {
             return RoLevel::Trainer;
+        }
+    }
+
+    if let Some(trainer_roles) = bot.trainer_roles.get(&guild.id) {
+        for trainer_role in trainer_roles.value() {
+            if member.roles.contains(trainer_role) {
+                return RoLevel::Trainer;
+            }
         }
     }
 

@@ -152,9 +152,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chacha20"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fee7ad89dc1128635074c268ee661f90c3f7e83d9fd12910608c36b47d6c3412"
+checksum = "ea8756167ea0aca10e066cdbe7813bd71d2f24e69b0bc7b50509590cef2ce0b9"
 dependencies = [
  "cfg-if",
  "cipher",
@@ -164,9 +164,9 @@ dependencies = [
 
 [[package]]
 name = "chacha20poly1305"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1580317203210c517b6d44794abfbe600698276db18127e37ad3e69bf5e848e5"
+checksum = "175a11316f33592cf2b71416ee65283730b5b7849813c4891d02a12906ed9acc"
 dependencies = [
  "aead",
  "chacha20",
@@ -298,9 +298,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-mac"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4857fd85a0c34b3c3297875b747c1e02e06b6a0ea32dd892d8192b9ce0813ea6"
+checksum = "bff07008ec701e8028e2ceb8f83f0e4274ee62bd2dbdc4fefff2e9a91824081a"
 dependencies = [
  "generic-array",
  "subtle",
@@ -369,7 +369,7 @@ checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 [[package]]
 name = "deadpool"
 version = "0.8.2"
-source = "git+https://github.com/bikeshedder/deadpool?branch=master#2c7a0b7aee915e775f8d751e0a73ec884bae6f71"
+source = "git+https://github.com/bikeshedder/deadpool?branch=master#0771235d53dbfd06111e86d2a2fcc1d9b466af41"
 dependencies = [
  "async-trait",
  "num_cpus",
@@ -1116,7 +1116,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "2.0.0-beta.2"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#377e88ef121d4997013dae4241468a3f5a2e20f2"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#6826e0cae7ce87d166e1a85e8c9480e7dab2b823"
 dependencies = [
  "async-trait",
  "base64",
@@ -1415,9 +1415,9 @@ dependencies = [
 
 [[package]]
 name = "poly1305"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe800695325da85083cd23b56826fccb2e2dc29b218e7811a6f33bc93f414be"
+checksum = "9fcffab1f78ebbdf4b93b68c1ffebc24037eedf271edaca795732b24e5e4e349"
 dependencies = [
  "cpufeatures",
  "opaque-debug",
@@ -2184,9 +2184,9 @@ dependencies = [
 
 [[package]]
 name = "tinyvec"
-version = "1.2.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b5220f05bb7de7f3f53c7c065e1199b3172696fe2db9f9c4d8ad9b4ee74c342"
+checksum = "4ac2e1d4bd0f75279cfd5a076e0d578bbf02c22b7c39e766c437dd49b3ec43e0"
 dependencies = [
  "tinyvec_macros",
 ]
@@ -2199,9 +2199,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.8.1"
+version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98c8b05dc14c75ea83d63dd391100353789f5f24b8b3866542a5e85c8be8e985"
+checksum = "c2602b8af3767c285202012822834005f596c811042315fa7e9f5b12b2a43207"
 dependencies = [
  "autocfg",
  "bytes",
@@ -2470,16 +2470,16 @@ dependencies = [
 
 [[package]]
 name = "twilight-embed-builder"
-version = "0.5.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+version = "0.5.2"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "twilight-model",
 ]
 
 [[package]]
 name = "twilight-gateway"
-version = "0.5.2"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+version = "0.5.3"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "bitflags",
  "flate2",
@@ -2499,7 +2499,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.5.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "tokio",
  "tracing",
@@ -2508,8 +2508,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-http"
-version = "0.5.3"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+version = "0.5.6"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -2525,15 +2525,15 @@ dependencies = [
 [[package]]
 name = "twilight-mention"
 version = "0.5.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "twilight-model",
 ]
 
 [[package]]
 name = "twilight-model"
-version = "0.5.2"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+version = "0.5.3"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "bitflags",
  "serde",
@@ -2545,7 +2545,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.5.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "dashmap",
  "futures-util",
@@ -2556,8 +2556,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-util"
-version = "0.5.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#060552d55141d69fba9ffdbca0d10a9f44d6816c"
+version = "0.5.2"
+source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#3115aad7a8c4a6fbd05f8e26a3de93d1def5bbbd"
 dependencies = [
  "twilight-model",
 ]
@@ -2617,9 +2617,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "universal-hash"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8326b2c654932e3e4f9196e69d08fdf7cfd718e1dc6f66b347e6024a0c961402"
+checksum = "9f214e8f697e925001e66ec2c6e37a4ef93f0f78c2eed7814394e10c62025b05"
 dependencies = [
  "generic-array",
  "subtle",
@@ -2872,6 +2872,6 @@ dependencies = [
 
 [[package]]
 name = "zeroize"
-version = "1.4.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eeafe61337cb2c879d328b74aa6cd9d794592c82da6be559fdf11493f02a2d18"
+checksum = "4756f7db3f7b5574938c3eb1c117038b8e07f95ee6718c0efad4ac21508f1efd"

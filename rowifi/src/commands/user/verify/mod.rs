@@ -126,7 +126,7 @@ pub async fn verify_common(
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -165,7 +165,7 @@ pub async fn verify_common(
         .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(e)
+        .embeds(vec![e])
         .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![
@@ -189,7 +189,14 @@ pub async fn verify_common(
     };
     ctx.bot.database.add_queue_user(q_user).await?;
 
-    handle_update_button(&ctx, message.id, vec![game_url_button]).await?;
+    handle_update_button(
+        &ctx,
+        message.id,
+        vec![Component::ActionRow(ActionRow {
+            components: vec![game_url_button],
+        })],
+    )
+    .await?;
     Ok(())
 }
 
@@ -208,7 +215,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -257,7 +264,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     ctx.bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .await?;
 

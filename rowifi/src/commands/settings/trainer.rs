@@ -132,7 +132,7 @@ pub async fn trainer_remove(
         .trainer_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| role_ids.contains(&r.0));
+        .retain(|r| !role_ids.contains(&r.0));
 
     let mut description = "Removed Trainer Roles:\n".to_string();
     for role in role_ids {

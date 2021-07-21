@@ -71,7 +71,7 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(e)
+            .embeds(vec![e])
             .unwrap()
             .await?;
         return Ok(());

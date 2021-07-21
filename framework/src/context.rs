@@ -393,10 +393,7 @@ impl BotContext {
             .nick
             .as_ref()
             .map_or_else(|| member.user.name.as_str(), |s| s.as_str());
-        let nick_bypass = match server.nickname_bypass {
-            Some(n) => member.roles.contains(&n),
-            None => false,
-        };
+        let nick_bypass = self.has_nickname_bypass(server, &member);
         let nickname = if nick_bypass {
             original_nick.to_string()
         } else {
@@ -481,7 +478,7 @@ impl BotContext {
             let _ = self
                 .http
                 .create_message(*log_channel)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await;
         } else {
@@ -490,10 +487,46 @@ impl BotContext {
                 let _ = self
                     .http
                     .create_message(channel_id)
-                    .embed(embed)
+                    .embeds(vec![embed])
                     .unwrap()
                     .await;
             }
         }
+    }
+
+    pub fn has_bypass_role(&self, server: &CachedGuild, member: &CachedMember) -> bool {
+        if let Some(bypass_role) = server.bypass_role {
+            if member.roles.contains(&bypass_role) {
+                return true;
+            }
+        }
+
+        if let Some(bypass_roles) = self.bypass_roles.get(&server.id) {
+            for bypass_role in bypass_roles.value() {
+                if member.roles.contains(bypass_role) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    pub fn has_nickname_bypass(&self, server: &CachedGuild, member: &CachedMember) -> bool {
+        if let Some(nickname_bypass) = server.nickname_bypass {
+            if member.roles.contains(&nickname_bypass) {
+                return true;
+            }
+        }
+
+        if let Some(nickname_bypass) = self.nickname_bypass_roles.get(&server.id) {
+            for nb in nickname_bypass.value() {
+                if member.roles.contains(nb) {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 }

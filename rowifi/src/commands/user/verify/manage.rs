@@ -45,7 +45,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -64,7 +64,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(e)
+            .embeds(vec![e])
             .unwrap()
             .await?;
         return Ok(());
@@ -87,7 +87,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
@@ -146,7 +146,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -167,7 +167,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -188,7 +188,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
         .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
@@ -247,7 +247,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -268,7 +268,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -290,7 +290,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {

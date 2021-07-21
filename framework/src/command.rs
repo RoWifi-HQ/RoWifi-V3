@@ -308,6 +308,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let _ = ctx.respond().embed(embed).await;
             }
         },
+        RoError::NoOp => {}
         _ => {
             tracing::error!(err = ?err);
             let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").await;

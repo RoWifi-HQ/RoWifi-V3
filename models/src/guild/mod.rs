@@ -431,7 +431,6 @@ impl<'de> Deserialize<'de> for RoGuild {
                 }
 
                 let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
-                let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
                 let settings = settings.ok_or_else(|| DeError::missing_field("Settings"))?;
                 let verification_role = verification_role.unwrap_or_default();
                 let verified_role = verified_role.unwrap_or_default();

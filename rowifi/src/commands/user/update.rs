@@ -58,17 +58,15 @@ pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<
     //Handle role position check
 
     //Check for bypass role
-    if let Some(bypass_role) = &server.bypass_role {
-        if member.roles.contains(bypass_role) {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .title("Update Failed")
-                .description("I cannot update users with the `RoWifi Bypass` role")
-                .color(Color::Red as u32)
-                .build()
-                .unwrap();
-            return Ok(embed);
-        }
+    if ctx.bot.has_bypass_role(&server, &member) {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .title("Update Failed")
+            .description("I cannot update users with the `RoWifi Bypass` role")
+            .color(Color::Red as u32)
+            .build()
+            .unwrap();
+        return Ok(embed);
     }
 
     let user = match ctx.get_linked_user(user_id, guild_id).await? {

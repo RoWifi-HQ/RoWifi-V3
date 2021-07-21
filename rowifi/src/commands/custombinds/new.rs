@@ -121,7 +121,7 @@ pub async fn custombinds_new_common(
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -180,7 +180,20 @@ pub async fn custombinds_new_common(
         .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
+        .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                style: ButtonStyle::Danger,
+                emoji: Some(ReactionType::Unicode {
+                    name: "🗑️".into()
+                }),
+                label: Some("Oh no! Delete?".into()),
+                custom_id: Some("cb-new-delete".into()),
+                url: None,
+                disabled: false,
+            })],
+        })])
         .unwrap()
         .await?;
 
@@ -200,7 +213,7 @@ pub async fn custombinds_new_common(
         .bot
         .standby
         .wait_for_component_interaction(message_id)
-        .timeout(Duration::from_secs(300));
+        .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
     while let Some(Ok(event)) = stream.next().await {

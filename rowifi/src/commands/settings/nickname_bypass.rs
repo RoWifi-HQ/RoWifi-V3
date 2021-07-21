@@ -89,7 +89,7 @@ pub async fn nickname_bypass_add(
     ctx.bot.database.modify_guild(filter, update).await?;
 
     ctx.bot
-        .bypass_roles
+        .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
         .extend(roles_to_add.iter().map(|r| RoleId(*r as u64)));
@@ -130,10 +130,10 @@ pub async fn nickname_bypass_remove(
     ctx.bot.database.modify_guild(filter, update).await?;
 
     ctx.bot
-        .bypass_roles
+        .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| role_ids.contains(&r.0));
+        .retain(|r| !role_ids.contains(&r.0));
 
     let mut description = "Removed Nickname Bypass Roles:\n".to_string();
     for role in role_ids {

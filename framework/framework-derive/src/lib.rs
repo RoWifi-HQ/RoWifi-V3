@@ -48,6 +48,23 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                             if i != fields.len() - 1 {
                                 panic!("This attribute may only be used on the last field of a struct")
                             }
+
+                            if let Type::Path(typepath) = ty {
+                                if path_is(&typepath.path, "Option") {
+                                    return quote! {
+                                        let #field_name = match args.rest().map(|s| <#ty>::from_arg(s.as_str())) {
+                                            Some(Ok(s)) => s,
+                                            Some(Err(err)) => return Err(ArgumentError::ParseError{
+                                                expected: err.0,
+                                                usage: <#struct_name>::generate_help(),
+                                                name: #name
+                                            }),
+                                            None => None
+                                        };
+                                    }
+                                }
+                            }
+
                             return quote! {
                                 let #field_name = match args.rest().map(|s| <#ty>::from_arg(s.as_str())) {
                                     Some(Ok(s)) => s,

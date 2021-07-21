@@ -1,6 +1,7 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::RoGuild;
+use rowifi_models::guild::{GuildType, RoGuild};
 use std::collections::HashMap;
+use twilight_model::id::{ChannelId, RoleId};
 
 use super::BackupArguments;
 
@@ -63,6 +64,54 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let guild =
         RoGuild::from_backup(backup, ctx.bot.http.clone(), guild_id, &roles, &channels).await;
     ctx.bot.database.add_guild(&guild, true).await?;
+
+    if guild.settings.guild_type != GuildType::Normal {
+        ctx.bot.admin_roles.insert(
+            guild_id,
+            guild
+                .settings
+                .admin_roles
+                .iter()
+                .map(|r| RoleId(*r as u64))
+                .collect(),
+        );
+        ctx.bot.trainer_roles.insert(
+            guild_id,
+            guild
+                .settings
+                .trainer_roles
+                .iter()
+                .map(|r| RoleId(*r as u64))
+                .collect(),
+        );
+        ctx.bot.bypass_roles.insert(
+            guild_id,
+            guild
+                .settings
+                .bypass_roles
+                .iter()
+                .map(|r| RoleId(*r as u64))
+                .collect(),
+        );
+        ctx.bot.nickname_bypass_roles.insert(
+            guild_id,
+            guild
+                .settings
+                .nickname_bypass_roles
+                .iter()
+                .map(|r| RoleId(*r as u64))
+                .collect(),
+        );
+    }
+    if let Some(log_channel) = guild.settings.log_channel {
+        ctx.bot
+            .log_channels
+            .insert(guild_id, ChannelId(log_channel as u64));
+    }
+    if let Some(prefix) = guild.command_prefix {
+        ctx.bot.prefixes.insert(guild_id, prefix);
+    }
+
     ctx.respond()
         .content("Backup successfully restored")
         .await?;

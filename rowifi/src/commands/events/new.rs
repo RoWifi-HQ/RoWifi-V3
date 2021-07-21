@@ -167,7 +167,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
@@ -223,7 +223,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     ctx.bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .await?;
     Ok(())

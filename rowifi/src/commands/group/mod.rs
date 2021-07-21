@@ -46,6 +46,7 @@ pub fn group_config(cmds: &mut Vec<Command>) {
     let reset_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["reset"])
+        .group("Administration")
         .description("Command to reset the bot settings for this server")
         .handler(reset);
 

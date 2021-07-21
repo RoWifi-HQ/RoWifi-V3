@@ -162,7 +162,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cache = Cache::new(stats.clone());
     let standby = Standby::new();
 
-    let redis = RedisPool::new(RedisManager::new(redis_conn).unwrap(), 4);
+    let redis = RedisPool::builder(RedisManager::new(redis_conn).unwrap())
+        .max_size(4)
+        .build()
+        .unwrap();
     let _res = redis.get().await.expect("Redis Connection failed");
 
     let database = Database::new(&conn_string, redis.clone()).await;

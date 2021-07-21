@@ -1,6 +1,7 @@
 use crate::{
     context::CommandContext,
     error::{CommandError, RoError},
+    extensions::StandbyExtensions,
 };
 
 use rowifi_models::bind::Template;
@@ -317,7 +318,7 @@ pub async fn paginate_embed(
             .bot
             .http
             .create_message(ctx.channel_id)
-            .embed(pages[0].clone())
+            .embeds(vec![pages[0].clone()])
             .unwrap()
             .await?;
     } else {
@@ -325,7 +326,7 @@ pub async fn paginate_embed(
             .bot
             .http
             .create_message(ctx.channel_id)
-            .embed(pages[0].clone())
+            .embeds(vec![pages[0].clone()])
             .unwrap()
             .components(vec![Component::ActionRow(ActionRow {
                 components: vec![
@@ -383,16 +384,7 @@ pub async fn paginate_embed(
         let component_interaction = ctx
             .bot
             .standby
-            .wait_for_event_stream(move |event: &Event| {
-                if let Event::InteractionCreate(interaction) = event {
-                    if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                        if message_component.message.id == m.id {
-                            return true;
-                        }
-                    }
-                }
-                false
-            })
+            .wait_for_component_interaction(message_id)
             .timeout(Duration::from_secs(300));
         tokio::pin!(component_interaction);
 

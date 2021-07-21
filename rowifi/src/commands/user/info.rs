@@ -26,7 +26,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());

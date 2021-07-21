@@ -68,16 +68,16 @@ impl<'a> Responder<'a> {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.embeds(Some(vec![embed])).unwrap());
         } else if let Some(message) = self.message {
-            self.message = Some(message.embed(embed).unwrap());
+            self.message = Some(message.embeds(vec![embed]).unwrap());
         }
         self
     }
 
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.file(name, file));
+            self.interaction = Some(interaction.files(vec![(name, file)]));
         } else if let Some(message) = self.message {
-            self.message = Some(message.file(name, file));
+            self.message = Some(message.files(vec![(name, file)]));
         }
         self
     }
