@@ -590,8 +590,8 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         }
     }
 
-    let should_groupbind = rank_ids.len() == roblox_group.roles.len() - 1
-        && rank_ids.iter().any(|r| r.rank == 0);
+    let should_groupbind =
+        rank_ids.len() == roblox_group.roles.len() - 1 && rank_ids.iter().any(|r| r.rank == 0);
     if !should_groupbind || template.0 == "auto" {
         return bind_rank(
             ctx,

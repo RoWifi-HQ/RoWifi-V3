@@ -62,7 +62,7 @@ pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Update Failed")
-            .description("I cannot update users with the `RoWifi Bypass` role")
+            .description("I cannot update users with roles having the `RoWifi Bypass` permission")
             .color(Color::Red as u32)
             .build()
             .unwrap();

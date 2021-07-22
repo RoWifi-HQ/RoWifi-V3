@@ -70,7 +70,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .default_data()
             .title("User Already Verified")
             .description(
-                "To link another account, use `verify add`. To get your roles, use `update`",
+                "To link another account, use `verify add`. To get your roles, use `update`. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`.",
             )
             .color(Color::Red as u32)
             .build()
