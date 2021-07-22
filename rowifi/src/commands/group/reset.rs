@@ -7,6 +7,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
     let guild = RoGuild {
         id: guild_id.0 as i64,
         command_prefix: guild.command_prefix,
+        event_counter: guild.event_counter,
         ..RoGuild::default()
     };
 

@@ -75,7 +75,22 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        let message_id = ctx
+            .respond()
+            .embed(embed)
+            .components(vec![Component::ActionRow(ActionRow {
+                components: vec![Component::Button(Button {
+                    custom_id: Some("handle-update".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Update your Roles".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                })],
+            })])
+            .await?;
+
+        handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
         return Ok(());
     }
     verify_common(ctx, args, false).await

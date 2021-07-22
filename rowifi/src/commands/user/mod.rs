@@ -66,7 +66,7 @@ pub async fn handle_update_button(
         .bot
         .standby
         .wait_for_component_interaction(message_id)
-        .timeout(Duration::from_secs(300));
+        .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
     while let Some(Ok(event)) = stream.next().await {
