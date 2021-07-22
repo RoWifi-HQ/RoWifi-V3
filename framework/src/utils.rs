@@ -1,7 +1,7 @@
 use crate::{
     context::CommandContext,
     error::{CommandError, RoError},
-    extensions::StandbyExtensions,
+    extensions::{MessageComponentExtensions, StandbyExtensions},
 };
 
 use rowifi_models::bind::Template;
@@ -105,15 +105,7 @@ pub async fn await_template_reply(
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
@@ -233,15 +225,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id
                     && message_component.data.custom_id == "reply-cancel"
                 {
@@ -392,15 +376,7 @@ pub async fn paginate_embed(
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
-                    let component_interaction_author = message_component
-                        .as_ref()
-                        .member
-                        .as_ref()
-                        .unwrap()
-                        .user
-                        .as_ref()
-                        .unwrap()
-                        .id;
+                    let component_interaction_author = message_component.author_id().unwrap();
                     if component_interaction_author == author_id {
                         match message_component.data.custom_id.as_str() {
                             "first-page" => {

@@ -11,7 +11,7 @@ pub struct FunctionalArguments {
 
 pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let mut guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
@@ -110,15 +110,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 let _ = ctx
                     .bot
                     .http
@@ -139,6 +131,11 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .any(|r| r == "rowifi-admin")
                     {
                         updates.push(doc! {"$push": {"Settings.AdminRoles": role_id}});
+                        ctx.bot
+                            .admin_roles
+                            .entry(guild_id)
+                            .or_default()
+                            .push(RoleId(role_id as u64));
                     } else if guild.settings.admin_roles.contains(&role_id) {
                         updates.push(doc! {"$pull": {"Settings.AdminRoles": role_id}});
                         if let Some(mut admin_roles) = ctx.bot.admin_roles.get_mut(&guild_id) {
@@ -153,6 +150,11 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .any(|r| r == "rowifi-trainer")
                     {
                         updates.push(doc! {"$push": {"Settings.TrainerRoles": role_id}});
+                        ctx.bot
+                            .trainer_roles
+                            .entry(guild_id)
+                            .or_default()
+                            .push(RoleId(role_id as u64));
                     } else if guild.settings.trainer_roles.contains(&role_id) {
                         updates.push(doc! {"$pull": {"Settings.TrainerRoles": role_id}});
                         if let Some(mut trainer_roles) = ctx.bot.trainer_roles.get_mut(&guild_id) {
@@ -167,6 +169,11 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .any(|r| r == "rowifi-bypass")
                     {
                         updates.push(doc! {"$push": {"Settings.BypassRoles": role_id}});
+                        ctx.bot
+                            .bypass_roles
+                            .entry(guild_id)
+                            .or_default()
+                            .push(RoleId(role_id as u64));
                     } else if guild.settings.bypass_roles.contains(&role_id) {
                         updates.push(doc! {"$pull": {"Settings.BypassRoles": role_id}});
                         if let Some(mut bypass_roles) = ctx.bot.bypass_roles.get_mut(&guild_id) {
@@ -181,6 +188,11 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .any(|r| r == "rowifi-nickname-bypass")
                     {
                         updates.push(doc! {"$push": {"Settings.NicknameBypassRoles": role_id}});
+                        ctx.bot
+                            .nickname_bypass_roles
+                            .entry(guild_id)
+                            .or_default()
+                            .push(RoleId(role_id as u64));
                     } else if guild.settings.nickname_bypass_roles.contains(&role_id) {
                         updates.push(doc! {"$pull": {"Settings.NicknameBypassRoles": role_id}});
                         if let Some(mut nickname_bypass_roles) =
@@ -191,7 +203,8 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     }
 
                     for update in updates {
-                        ctx.bot
+                        guild = ctx
+                            .bot
                             .database
                             .modify_guild(filter.clone(), update)
                             .await?;

@@ -75,15 +75,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
@@ -104,27 +96,24 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                         .await?;
                     bind_type = Some(message_component.data.values[0].clone());
                     break;
-                } else {
-                    let _ = ctx
-                        .bot
-                        .http
-                        .interaction_callback(
-                            message_component.id,
-                            &message_component.token,
-                            InteractionResponse::DeferredUpdateMessage,
-                        )
-                        .await;
-                    let _ = ctx
-                        .bot
-                        .http
-                        .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .ephemeral(true)
-                        .content(
-                            "This component is only interactable by the original command invoker",
-                        )
-                        .await;
                 }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
             }
         }
     }
@@ -210,15 +199,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
                     let _ = ctx.bot.http.interaction_callback(
                         message_component.id,
@@ -610,7 +591,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     }
 
     let should_groupbind = rank_ids.len() == roblox_group.roles.len() - 1
-        && rank_ids.iter().find(|r| r.rank == 0).is_none();
+        && rank_ids.iter().any(|r| r.rank == 0);
     if !should_groupbind || template.0 == "auto" {
         return bind_rank(
             ctx,

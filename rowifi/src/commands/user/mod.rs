@@ -72,12 +72,7 @@ pub async fn handle_update_button(
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .member
-                    .as_ref()
-                    .and_then(|m| m.user.as_ref())
-                    .map(|u| u.id)
-                    .unwrap();
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id
                     && message_component.data.custom_id == "handle-update"
                 {

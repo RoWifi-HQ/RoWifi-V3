@@ -130,15 +130,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                let component_interaction_author = message_component
-                    .as_ref()
-                    .member
-                    .as_ref()
-                    .unwrap()
-                    .user
-                    .as_ref()
-                    .unwrap()
-                    .id;
+                let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
                     let filter = doc! {"_id": guild.id};
                     let update = doc! {"$pull": {"GroupBinds": bind_bson}};

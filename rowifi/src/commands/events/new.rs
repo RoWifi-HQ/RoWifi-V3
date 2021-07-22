@@ -4,7 +4,6 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use std::time::Duration;
-use tokio::time::timeout;
 use twilight_mention::Mention;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
@@ -48,6 +47,14 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             value: event_type.id.to_string(),
         });
     }
+    let mut select_menu = SelectMenu {
+        custom_id: "event-new-select".into(),
+        disabled: false,
+        max_values: Some(1),
+        min_values: Some(1),
+        options,
+        placeholder: None,
+    };
 
     let message = ctx
         .bot
@@ -57,14 +64,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .unwrap()
         .components(vec![
             Component::ActionRow(ActionRow {
-                components: vec![Component::SelectMenu(SelectMenu {
-                    custom_id: "event-new-select".into(),
-                    disabled: false,
-                    max_values: Some(1),
-                    min_values: Some(1),
-                    options,
-                    placeholder: None,
-                })],
+                components: vec![Component::SelectMenu(select_menu.clone())],
             }),
             Component::ActionRow(ActionRow {
                 components: vec![Component::Button(Button {
@@ -80,53 +80,55 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .unwrap()
         .await?;
 
+    select_menu.disabled = true;
+
     let message_id = message.id;
-    let fut = ctx.bot.standby.wait_for_event(move |event: &Event| {
-        if let Event::InteractionCreate(interaction) = &event {
-            if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                if message_component.message.id == message_id {
-                    return true;
-                }
-            }
-        }
-        false
-    });
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
 
     let mut event_type_id = None;
-    match timeout(Duration::from_secs(300), fut).await {
-        Ok(Ok(event)) => {
-            if let Event::InteractionCreate(interaction) = &event {
-                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                ctx.bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::UpdateMessage(CallbackData {
+                            allowed_mentions: None,
+                            content: None,
+                            components: Some(vec![Component::ActionRow(ActionRow {
+                                components: vec![Component::SelectMenu(select_menu.clone())],
+                            })]),
+                            embeds: Vec::new(),
+                            flags: None,
+                            tts: None,
+                        }),
+                    )
+                    .await?;
+                if message_component.data.custom_id == "event-new-cancel" {
                     ctx.bot
                         .http
-                        .interaction_callback(
-                            message_component.id,
-                            &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: Vec::new(),
-                                flags: None,
-                                tts: None,
-                            }),
-                        )
+                        .create_followup_message(&message_component.token)
+                        .unwrap()
+                        .content("Command has been cancelled")
                         .await?;
-                    if message_component.data.custom_id == "event-new-cancel" {
-                        ctx.bot
-                            .http
-                            .create_followup_message(&message_component.token)
-                            .unwrap()
-                            .content("Command has been cancelled")
-                            .await?;
-                        return Ok(());
-                    } else if message_component.data.custom_id == "event-new-select" {
-                        event_type_id = Some(message_component.data.values[0].clone());
-                    }
+                    return Ok(());
+                } else if message_component.data.custom_id == "event-new-select" {
+                    event_type_id = Some(message_component.data.values[0].clone());
                 }
             }
         }
-        _ => {
+    }
+
+    let event_type_id = match event_type_id {
+        Some(e) => e.parse().unwrap(),
+        None => {
             ctx.bot
                 .http
                 .update_message(message.channel_id, message_id)
@@ -135,11 +137,6 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 .await?;
             return Ok(());
         }
-    }
-
-    let event_type_id = match event_type_id {
-        Some(e) => e.parse().unwrap(),
-        None => return Ok(()),
     };
 
     let event_type = guild

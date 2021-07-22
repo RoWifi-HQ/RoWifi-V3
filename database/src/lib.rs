@@ -137,7 +137,7 @@ impl Database {
         &self,
         filter: Document,
         update: impl Into<UpdateModifications>,
-    ) -> Result<()> {
+    ) -> Result<RoGuild> {
         let guilds = self.client.database(DATABASE).collection(GUILDS);
         let mut conn = self.redis_pool.get().await?;
 
@@ -151,8 +151,8 @@ impl Database {
         let guild = bson::from_document::<RoGuild>(res)?;
 
         let key = format!("database:g:{}", guild.id);
-        let _: () = conn.set_ex(key, guild, 6 * 3600).await?;
-        Ok(())
+        let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await?;
+        Ok(guild)
     }
 
     /// Add an user who's currently initiated a verification prompt
