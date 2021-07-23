@@ -2,10 +2,10 @@ use rowifi_models::{bind::AssetType, guild::BlacklistActionType};
 use std::{num::ParseIntError, str::FromStr};
 use twilight_model::{
     application::interaction::application_command::CommandDataOption,
-    id::{RoleId, UserId},
+    id::{ChannelId, RoleId, UserId},
 };
 
-use crate::utils::{parse_role, parse_username};
+use crate::utils::{parse_channel, parse_role, parse_username};
 
 #[derive(Debug, Clone)]
 pub struct Arguments {
@@ -199,6 +199,24 @@ impl FromArg for RoleId {
             CommandDataOption::Integer { value, .. } => Ok(RoleId(*value as u64)),
             CommandDataOption::String { value, .. } => Self::from_arg(value),
             _ => unreachable!("RoleId unreached"),
+        }
+    }
+}
+
+impl FromArg for ChannelId {
+    type Error = ParseError;
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        match parse_channel(arg) {
+            Some(id) => Ok(ChannelId(id)),
+            None => Err(ParseError("a Channel")),
+        }
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        match option {
+            CommandDataOption::Integer { value, .. } => Ok(ChannelId(*value as u64)),
+            CommandDataOption::String { value, .. } => Self::from_arg(value),
+            _ => unreachable!("ChannelId unreached"),
         }
     }
 }

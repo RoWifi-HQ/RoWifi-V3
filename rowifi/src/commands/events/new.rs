@@ -121,6 +121,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     return Ok(());
                 } else if message_component.data.custom_id == "event-new-select" {
                     event_type_id = Some(message_component.data.values[0].clone());
+                    break;
                 }
             }
         }

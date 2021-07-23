@@ -7,9 +7,9 @@ use super::FunctionOption;
 
 #[derive(FromArgs)]
 pub struct AdminArguments {
-    #[arg(help = "Option to interact with the custom admin roles")]
+    #[arg(help = "Option to interact with the custom admin roles- `add` `remove` `set`")]
     pub option: Option<FunctionOption>,
-    #[arg(rest, "The discord roles to add, remove or set")]
+    #[arg(rest, help = "The discord roles to add, remove or set")]
     pub discord_roles: Option<String>,
 }
 
@@ -58,8 +58,8 @@ pub async fn admin_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
 
     let embed = EmbedBuilder::new()
         .default_data()
-        .title("Admin Roles")
-        .description(description)
+        .title("RoWifi Admin Roles")
+        .description(format!("{}\n\n{}", "These are the roles that can manage RoWifi. They are **not** roles with administrator perms on discord.", description))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -78,7 +78,14 @@ pub async fn admin_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
+            if server_roles.iter().any(|r| r.id == RoleId(role_id))
+                && !ctx
+                    .bot
+                    .admin_roles
+                    .entry(guild_id)
+                    .or_default()
+                    .contains(&RoleId(role_id))
+            {
                 roles_to_add.push(role_id as i64);
             }
         }

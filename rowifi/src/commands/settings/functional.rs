@@ -129,6 +129,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .values
                         .iter()
                         .any(|r| r == "rowifi-admin")
+                        && !guild.settings.admin_roles.contains(&role_id)
                     {
                         updates.push(doc! {"$push": {"Settings.AdminRoles": role_id}});
                         ctx.bot
@@ -148,6 +149,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .values
                         .iter()
                         .any(|r| r == "rowifi-trainer")
+                        && !guild.settings.trainer_roles.contains(&role_id)
                     {
                         updates.push(doc! {"$push": {"Settings.TrainerRoles": role_id}});
                         ctx.bot
@@ -167,6 +169,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .values
                         .iter()
                         .any(|r| r == "rowifi-bypass")
+                        && !guild.settings.bypass_roles.contains(&role_id)
                     {
                         updates.push(doc! {"$push": {"Settings.BypassRoles": role_id}});
                         ctx.bot
@@ -186,6 +189,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .values
                         .iter()
                         .any(|r| r == "rowifi-nickname-bypass")
+                        && !guild.settings.nickname_bypass_roles.contains(&role_id)
                     {
                         updates.push(doc! {"$push": {"Settings.NicknameBypassRoles": role_id}});
                         ctx.bot

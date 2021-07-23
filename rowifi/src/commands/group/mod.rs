@@ -47,12 +47,13 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .level(RoLevel::Admin)
         .names(&["reset"])
         .group("Administration")
-        .description("Command to reset the bot settings for this server")
+        .description("Command to reset the bot for this server")
         .handler(reset);
 
     let bind_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["bind"])
+        .group("Administration")
         .description("Command to create a bind for the server")
         .handler(bind);
 

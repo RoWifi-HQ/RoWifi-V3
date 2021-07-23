@@ -470,6 +470,23 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
     }
 }
 
+pub fn parse_channel(mention: impl AsRef<str>) -> Option<u64> {
+    let mention = mention.as_ref();
+
+    if mention.len() < 3 {
+        return None;
+    }
+
+    if mention.starts_with("<#") && mention.ends_with('>') {
+        let len = mention.len() - 1;
+        mention[2..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
+    } else {
+        None
+    }
+}
+
 pub enum RankId {
     Range(i64, i64),
     Single(i64),

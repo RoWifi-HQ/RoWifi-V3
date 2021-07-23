@@ -102,7 +102,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
 
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["settings"])
+        .names(&["settings", "setting"])
         .description("Module to interact with the settings of the server")
         .group("Administration")
         .sub_command(settings_view_cmd)

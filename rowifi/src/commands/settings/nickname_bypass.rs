@@ -7,9 +7,11 @@ use super::FunctionOption;
 
 #[derive(FromArgs)]
 pub struct NicknameBypassArguments {
-    #[arg(help = "Option to interact with the custom nickname bypass roles")]
+    #[arg(
+        help = "Option to interact with the custom nickname bypass roles - `add` `remove` `set`"
+    )]
     pub option: Option<FunctionOption>,
-    #[arg(rest, "The discord roles to add, remove or set")]
+    #[arg(rest, help = "The discord roles to add, remove or set")]
     pub discord_roles: Option<String>,
 }
 
@@ -58,8 +60,12 @@ pub async fn nickname_bypass_view(ctx: CommandContext, guild: RoGuild) -> Comman
 
     let embed = EmbedBuilder::new()
         .default_data()
-        .title("Nickname Bypass Roles")
-        .description(description)
+        .title("RoWifi Nickname Bypass Roles")
+        .description(format!(
+            "{}\n\n{}",
+            "These are the roles whose nickname remains unchanged when updated by RoWifi.",
+            description
+        ))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;
@@ -78,7 +84,14 @@ pub async fn nickname_bypass_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
+            if server_roles.iter().any(|r| r.id == RoleId(role_id))
+                && !ctx
+                    .bot
+                    .nickname_bypass_roles
+                    .entry(guild_id)
+                    .or_default()
+                    .contains(&RoleId(role_id))
+            {
                 roles_to_add.push(role_id as i64);
             }
         }
@@ -174,7 +187,7 @@ pub async fn nickname_bypass_set(
     let update = doc! {"$set": {"Settings.NicknameBypassRoles": &roles_to_set}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
-    ctx.bot.admin_roles.insert(
+    ctx.bot.nickname_bypass_roles.insert(
         guild_id,
         roles_to_set.iter().map(|r| RoleId(*r as u64)).collect(),
     );
