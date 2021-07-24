@@ -16,6 +16,7 @@ workflows:
           executor: arm-build
           tag: $TAG
           repo: rowifi
+          no-output-timeout: 30m
 
 executors:
   arm-build:
