@@ -18,14 +18,15 @@ pub mod bucket;
 pub mod command;
 pub mod context;
 pub mod error;
+pub mod extensions;
 pub mod handler;
 mod parser;
 pub mod prelude;
+pub mod respond;
 pub mod utils;
 
-use futures::future::{ready, Either, Ready};
+use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
-use prelude::EmbedExtensions;
 use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
@@ -38,7 +39,7 @@ use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use twilight_model::{
     application::{
         callback::{CallbackData, InteractionResponse},
-        interaction::Interaction,
+        interaction::{application_command::CommandDataOption, Interaction},
     },
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
@@ -48,14 +49,21 @@ use twilight_model::{
 use uwl::Stream;
 
 use arguments::Arguments;
-use command::{Command, ServiceRequest};
+use command::{Command, CommandResult};
 use context::{BotContext, CommandContext};
 use error::RoError;
+use extensions::EmbedExtensions;
 use parser::PrefixType;
 use utils::RoLevel;
 
-pub type CommandResult = Result<(), RoError>;
 pub use framework_derive::FromArgs;
+
+#[allow(clippy::large_enum_variant)]
+pub enum ServiceRequest {
+    Message(Arguments),
+    Interaction(Vec<CommandDataOption>),
+    Help(Arguments, EmbedBuilder),
+}
 
 pub struct Framework {
     bot: BotContext,
@@ -129,7 +137,7 @@ impl Framework {
         let fut = async move {
             bot.http
                 .create_message(channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             Ok(())
@@ -247,8 +255,7 @@ impl Service<&Event> for Framework {
 
                 let request = ServiceRequest::Message(cmd_str);
                 let cmd_fut = command.call((ctx, request));
-                let fut = async move { cmd_fut.await };
-                return Either::Right(Box::pin(fut));
+                return Either::Right(cmd_fut);
             }
             Event::InteractionCreate(interaction) => {
                 if let Interaction::ApplicationCommand(top_command) = &interaction.0 {
@@ -284,6 +291,7 @@ impl Service<&Event> for Framework {
                                                 .into(),
                                         ),
                                         flags: Some(MessageFlags::EPHEMERAL),
+                                        components: None,
                                     }),
                                 )
                                 .await;
@@ -345,6 +353,15 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
             return RoLevel::Admin;
         }
     }
+
+    if let Some(admin_roles) = bot.admin_roles.get(&guild.id) {
+        for admin_role in admin_roles.value() {
+            if member.roles.contains(admin_role) {
+                return RoLevel::Admin;
+            }
+        }
+    }
+
     for role in &member.roles {
         if let Some(role) = bot.cache.role(*role) {
             if role.permissions.contains(Permissions::ADMINISTRATOR) {
@@ -356,6 +373,14 @@ fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) 
     if let Some(trainer_role) = guild.trainer_role {
         if member.roles.contains(&trainer_role) {
             return RoLevel::Trainer;
+        }
+    }
+
+    if let Some(trainer_roles) = bot.trainer_roles.get(&guild.id) {
+        for trainer_role in trainer_roles.value() {
+            if member.roles.contains(trainer_role) {
+                return RoLevel::Trainer;
+            }
         }
     }
 

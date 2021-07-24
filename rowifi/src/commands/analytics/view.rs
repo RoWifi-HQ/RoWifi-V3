@@ -19,12 +19,7 @@ pub struct ViewArguments {
 pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(ctx.guild_id.unwrap().0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(ctx.guild_id.unwrap().0).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -34,12 +29,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -52,12 +42,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("You may only view groups that are registered with this server")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -78,12 +63,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data or use another timeframe")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(embed)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(embed).await?;
         return Ok(());
     }
 
@@ -172,11 +152,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     let img = PngEncoder::new(Cursor::new(&mut bytes));
     img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
 
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .file("analytics.png", bytes)
-        .await?;
+    ctx.respond().file("analytics.png", bytes).await?;
     Ok(())
 }
 

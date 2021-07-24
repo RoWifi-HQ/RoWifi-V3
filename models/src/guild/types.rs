@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Clone)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
 #[repr(i8)]
 pub enum GuildType {
     Alpha,

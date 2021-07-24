@@ -1,6 +1,7 @@
 mod delete;
 mod modify;
-mod new;
+
+pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
@@ -49,20 +50,9 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
     cmds.push(custombinds_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct CustombindsViewArguments {}
-
-pub async fn custombinds_view(
-    ctx: CommandContext,
-    _args: CustombindsViewArguments,
-) -> CommandResult {
+pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     if guild.custombinds.is_empty() {
         let e = EmbedBuilder::new()
@@ -75,7 +65,7 @@ pub async fn custombinds_view(
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(e)
+            .embeds(vec![e])
             .unwrap()
             .await?;
         return Ok(());

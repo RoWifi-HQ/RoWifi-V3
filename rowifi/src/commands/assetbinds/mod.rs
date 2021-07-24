@@ -49,17 +49,9 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
     cmds.push(assetbinds_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct AssetbindArguments {}
-
-pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> CommandResult {
+pub async fn assetbind(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     if guild.assetbinds.is_empty() {
         let e = EmbedBuilder::new()
@@ -69,23 +61,20 @@ pub async fn assetbind(ctx: CommandContext, _args: AssetbindArguments) -> Comman
             .description("No assetbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embed(e)
-            .unwrap()
-            .await?;
+        ctx.respond().embed(e).await?;
         return Ok(());
     }
 
     let mut pages = Vec::new();
     let mut page_count = 0;
+
+    let mut assetbinds = guild.assetbinds.clone();
+    assetbinds.sort_unstable_by_key(|a| a.id);
     for abs in &guild.assetbinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("AssetBinds")
             .description(format!("Page {}", page_count + 1));
-        let abs = abs.sorted_by_key(|a| a.id);
         for ab in abs {
             let name = format!("Id: {}", ab.id);
             let roles_str = ab

@@ -1,17 +1,9 @@
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFieldBuilder;
 
-#[derive(FromArgs)]
-pub struct ServerInfoArguments {}
-
-pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> CommandResult {
+pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -35,13 +27,24 @@ pub async fn serverinfo(ctx: CommandContext, _args: ServerInfoArguments) -> Comm
         .field(
             EmbedFieldBuilder::new(
                 "Verification Role",
-                format!("<@&{}>", guild.verification_role),
+                if let Some(verification_role) = guild.verification_role {
+                    format!("<@&{}>", verification_role)
+                } else {
+                    "None".into()
+                },
             )
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Verified Role", format!("<@&{}>", guild.verified_role))
-                .inline(),
+            EmbedFieldBuilder::new(
+                "Verified Role",
+                if let Some(verified_role) = guild.verified_role {
+                    format!("<@&{}>", verified_role)
+                } else {
+                    "None".into()
+                },
+            )
+            .inline(),
         )
         .field(EmbedFieldBuilder::new("Rankbinds", guild.rankbinds.len().to_string()).inline())
         .field(EmbedFieldBuilder::new("Groupbinds", guild.groupbinds.len().to_string()).inline())

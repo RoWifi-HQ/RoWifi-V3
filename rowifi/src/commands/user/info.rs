@@ -26,7 +26,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -54,7 +54,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         ))
         .thumbnail(
             ImageSource::url(format!(
-                "http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}",
+                "https://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username={}",
                 roblox_user.name
             ))
             .unwrap(),
@@ -65,10 +65,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     Ok(())
 }
 
-#[derive(FromArgs)]
-pub struct BotInfoArguments {}
-
-pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandResult {
+pub async fn botinfo(ctx: CommandContext) -> CommandResult {
     let current_user = ctx.bot.cache.current_user().unwrap();
     let guilds = ctx.bot.cache.guilds();
     let member_count: i64 = guilds
@@ -97,10 +94,7 @@ pub async fn botinfo(ctx: CommandContext, _args: BotInfoArguments) -> CommandRes
     Ok(())
 }
 
-#[derive(FromArgs)]
-pub struct SupportArguments {}
-
-pub async fn support(ctx: CommandContext, _args: SupportArguments) -> CommandResult {
+pub async fn support(ctx: CommandContext) -> CommandResult {
     let disc_link = "https://www.discord.gg/h4BGGyR";
     let invite_link = "https://discord.com/oauth2/authorize?client_id=508968886998269962&scope=bot%20applications.commands&permissions=402738240";
     let website = "https://rowifi.link";

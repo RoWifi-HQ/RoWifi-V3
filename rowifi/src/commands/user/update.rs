@@ -2,7 +2,10 @@ use hyper::StatusCode;
 use rowifi_framework::prelude::*;
 use twilight_embed_builder::EmbedFooterBuilder;
 use twilight_http::error::ErrorType as DiscordErrorType;
-use twilight_model::id::{RoleId, UserId};
+use twilight_model::{
+    channel::embed::Embed,
+    id::{RoleId, UserId},
+};
 
 #[derive(Debug, FromArgs)]
 pub struct UpdateArguments {
@@ -11,6 +14,12 @@ pub struct UpdateArguments {
 }
 
 pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
+    let embed = update_func(&ctx, args).await?;
+    ctx.respond().embed(embed).await?;
+    Ok(())
+}
+
+pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<Embed, RoError> {
     let start = chrono::Utc::now().timestamp_millis();
     let guild_id = ctx.guild_id.unwrap();
     let server = ctx.bot.cache.guild(guild_id).unwrap();
@@ -30,8 +39,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
+            return Ok(embed);
         }
     };
 
@@ -44,25 +52,21 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
-        return Ok(());
+        return Ok(embed);
     }
 
     //Handle role position check
 
     //Check for bypass role
-    if let Some(bypass_role) = &server.bypass_role {
-        if member.roles.contains(bypass_role) {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .title("Update Failed")
-                .description("I cannot update users with the `RoWifi Bypass` role")
-                .color(Color::Red as u32)
-                .build()
-                .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
-        }
+    if ctx.bot.has_bypass_role(&server, &member) {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .title("Update Failed")
+            .description("I cannot update users with roles having the `RoWifi Bypass` permission")
+            .color(Color::Red as u32)
+            .build()
+            .unwrap();
+        return Ok(embed);
     }
 
     let user = match ctx.get_linked_user(user_id, guild_id).await? {
@@ -75,17 +79,11 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
-            return Ok(());
+            return Ok(embed);
         }
     };
 
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
     let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx
@@ -114,8 +112,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                             )
                             .build()
                             .unwrap();
-                        ctx.respond().embed(embed).await?;
-                        return Ok(());
+                        return Ok(embed);
                     }
                 }
             } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
@@ -128,7 +125,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     ))
                     .build()
                     .unwrap();
-                ctx.respond().embed(embed).await?;
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
                     ctx.bot
                         .http
@@ -140,6 +136,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .unwrap()
                         .await?;
                 }
+                return Ok(embed);
             }
             return Err(e);
         }
@@ -156,7 +153,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         )))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -165,5 +161,6 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
-    Ok(())
+
+    Ok(embed)
 }

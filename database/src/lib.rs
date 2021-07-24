@@ -15,7 +15,10 @@ pub mod error;
 use futures_util::stream::StreamExt;
 use mongodb::{
     bson::{self, doc, document::Document},
-    options::{ClientOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions, ReturnDocument},
+    options::{
+        ClientOptions, FindOneAndReplaceOptions, FindOneAndUpdateOptions, ReturnDocument,
+        UpdateModifications,
+    },
     Client,
 };
 use rowifi_models::{
@@ -53,7 +56,7 @@ impl Database {
     }
 
     /// Add or replace a guild in the database
-    pub async fn add_guild(&self, guild: RoGuild, replace: bool) -> Result<()> {
+    pub async fn add_guild(&self, guild: &RoGuild, replace: bool) -> Result<()> {
         let guilds = self.client.database(DATABASE).collection(GUILDS);
         let guild_doc = bson::to_document(&guild)?;
         let key = format!("database:g:{}", guild.id);
@@ -76,21 +79,28 @@ impl Database {
     }
 
     /// Get the guild from its id. If it's not present in the cache, it will be brought from the database and stored in the cache.
-    pub async fn get_guild(&self, guild_id: u64) -> Result<Option<RoGuild>> {
+    pub async fn get_guild(&self, guild_id: u64) -> Result<RoGuild> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("database:g:{}", guild_id);
         let guild: Option<RoGuild> = conn.get(&key).await?;
         match guild {
-            Some(g) => Ok(Some(g)),
+            Some(g) => Ok(g),
             None => {
                 let guilds = self.client.database(DATABASE).collection(GUILDS);
                 let result = guilds.find_one(doc! {"_id": guild_id}, None).await?;
                 let guild = match result {
-                    None => return Ok(None),
                     Some(res) => bson::from_document::<RoGuild>(res)?,
+                    None => {
+                        let guild = RoGuild {
+                            id: guild_id as i64,
+                            ..RoGuild::default()
+                        };
+                        self.add_guild(&guild, false).await?;
+                        guild
+                    }
                 };
                 let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await?;
-                Ok(Some(guild))
+                Ok(guild)
             }
         }
     }
@@ -123,7 +133,11 @@ impl Database {
     }
 
     /// Modify the guild in the database and store the updated result in the cache
-    pub async fn modify_guild(&self, filter: Document, update: Document) -> Result<()> {
+    pub async fn modify_guild(
+        &self,
+        filter: Document,
+        update: impl Into<UpdateModifications>,
+    ) -> Result<RoGuild> {
         let guilds = self.client.database(DATABASE).collection(GUILDS);
         let mut conn = self.redis_pool.get().await?;
 
@@ -137,8 +151,8 @@ impl Database {
         let guild = bson::from_document::<RoGuild>(res)?;
 
         let key = format!("database:g:{}", guild.id);
-        let _: () = conn.set_ex(key, guild, 6 * 3600).await?;
-        Ok(())
+        let _: () = conn.set_ex(key, guild.clone(), 6 * 3600).await?;
+        Ok(guild)
     }
 
     /// Add an user who's currently initiated a verification prompt

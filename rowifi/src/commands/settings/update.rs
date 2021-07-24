@@ -11,12 +11,7 @@ pub struct UpdateOnJoinArguments {
 
 pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let option = args.option;
     let (option, desc) = match option {

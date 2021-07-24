@@ -1,20 +1,29 @@
 use crate::{
     context::CommandContext,
     error::{CommandError, RoError},
+    extensions::StandbyExtensions,
 };
 
+use rowifi_models::bind::Template;
 use std::{
     cmp::{max, min},
+    num::ParseIntError,
+    str::FromStr,
     time::Duration,
 };
-use tokio::time::timeout;
 use tokio_stream::StreamExt;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
-use twilight_http::request::prelude::RequestReactionType;
 use twilight_model::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        component::{
+            action_row::ActionRow,
+            button::{Button, ButtonStyle},
+            Component, SelectMenu,
+        },
+        interaction::Interaction,
+    },
     channel::{embed::Embed, ReactionType},
-    gateway::payload::{MessageCreate, ReactionAdd},
-    id::RoleId,
+    gateway::event::Event,
 };
 
 pub enum Color {
@@ -38,25 +47,248 @@ impl Default for RoLevel {
     }
 }
 
-pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
-    let question = format!("{}\nSay `cancel` to cancel this prompt", question);
-    ctx.bot
+pub async fn await_template_reply(
+    question: &str,
+    ctx: &CommandContext,
+    mut select_menu: SelectMenu,
+) -> Result<Template, RoError> {
+    let select_custom_id = select_menu.custom_id.clone();
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
         .content(question)
         .unwrap()
+        .components(vec![
+            Component::ActionRow(ActionRow {
+                components: vec![Component::SelectMenu(select_menu.clone())],
+            }),
+            Component::ActionRow(ActionRow {
+                components: vec![Component::Button(Button {
+                    custom_id: Some("template-reply-cancel".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Cancel".into()),
+                    style: ButtonStyle::Danger,
+                    url: None,
+                })],
+            }),
+        ])
+        .unwrap()
         .await?;
-    let id = ctx.author.id;
-    let fut = ctx
+
+    let message_id = message.id;
+    let author_id = ctx.author.id;
+
+    select_menu.disabled = true;
+
+    let stream = ctx
         .bot
         .standby
-        .wait_for_message(ctx.channel_id, move |event: &MessageCreate| {
-            event.author.id == id && !event.content.is_empty()
-        });
-    match timeout(Duration::from_secs(300), fut).await {
-        Ok(Ok(m)) if !m.content.eq_ignore_ascii_case("cancel") => Ok(m.content.clone()),
-        _ => Err(RoError::Command(CommandError::Timeout)),
+        .wait_for_event_stream(move |event: &Event| {
+            if let Event::InteractionCreate(interaction) = &event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if message_component.message.id == message_id {
+                        return true;
+                    }
+                }
+            } else if let Event::MessageCreate(msg) = &event {
+                if msg.author.id == author_id && !msg.content.is_empty() {
+                    return true;
+                }
+            }
+            false
+        })
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "template-reply-cancel" {
+                        ctx.bot
+                            .http
+                            .create_followup_message(&message_component.token)
+                            .unwrap()
+                            .content("Command has been cancelled")
+                            .await?;
+                        return Err(RoError::NoOp);
+                    } else if message_component.data.custom_id == select_custom_id {
+                        let template_str = message_component.data.values[0].clone();
+                        return Ok(Template(template_str));
+                    }
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
+            }
+        } else if let Event::MessageCreate(msg) = &event {
+            ctx.bot
+                .http
+                .update_message(message.channel_id, message_id)
+                .components(Some(vec![Component::ActionRow(ActionRow {
+                    components: vec![Component::SelectMenu(select_menu.clone())],
+                })]))
+                .unwrap()
+                .await?;
+            return Ok(Template(msg.content.clone()));
+        }
     }
+
+    ctx.bot
+        .http
+        .update_message(message.channel_id, message_id)
+        .components(Some(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::SelectMenu(select_menu.clone())],
+        })]))
+        .unwrap()
+        .await?;
+
+    Err(RoError::Command(CommandError::Timeout))
+}
+
+pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
+    let message = ctx
+        .bot
+        .http
+        .create_message(ctx.channel_id)
+        .content(question)
+        .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("reply-cancel".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Cancel".into()),
+                style: ButtonStyle::Danger,
+                url: None,
+            })],
+        })])
+        .unwrap()
+        .await?;
+    let message_id = message.id;
+    let author_id = ctx.author.id;
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_event_stream(move |event: &Event| {
+            if let Event::InteractionCreate(interaction) = &event {
+                if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if message_component.message.id == message_id {
+                        return true;
+                    }
+                }
+            } else if let Event::MessageCreate(msg) = &event {
+                if msg.author.id == author_id && !msg.content.is_empty() {
+                    return true;
+                }
+            }
+            false
+        })
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id
+                    && message_component.data.custom_id == "reply-cancel"
+                {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(Vec::new()),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    ctx.bot
+                        .http
+                        .create_followup_message(&message_component.token)
+                        .unwrap()
+                        .content("Command has been cancelled")
+                        .await?;
+                    return Err(RoError::NoOp);
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
+            }
+        } else if let Event::MessageCreate(msg) = &event {
+            ctx.bot
+                .http
+                .update_message(message.channel_id, message_id)
+                .components(None)
+                .unwrap()
+                .await?;
+            return Ok(msg.content.clone());
+        }
+    }
+
+    ctx.bot
+        .http
+        .update_message(message.channel_id, message_id)
+        .components(None)
+        .unwrap()
+        .await?;
+
+    Err(RoError::Command(CommandError::Timeout))
 }
 
 pub async fn paginate_embed(
@@ -70,7 +302,7 @@ pub async fn paginate_embed(
             .bot
             .http
             .create_message(ctx.channel_id)
-            .embed(pages[0].clone())
+            .embeds(vec![pages[0].clone()])
             .unwrap()
             .await?;
     } else {
@@ -78,7 +310,52 @@ pub async fn paginate_embed(
             .bot
             .http
             .create_message(ctx.channel_id)
-            .embed(pages[0].clone())
+            .embeds(vec![pages[0].clone()])
+            .unwrap()
+            .components(vec![Component::ActionRow(ActionRow {
+                components: vec![
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "⏮️".into()
+                        }),
+                        label: Some("First Page".into()),
+                        custom_id: Some("first-page".into()),
+                        url: None,
+                        disabled: false,
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "◀️".into()
+                        }),
+                        label: Some("Previous Page".into()),
+                        custom_id: Some("previous-page".into()),
+                        url: None,
+                        disabled: false,
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "▶️".into()
+                        }),
+                        label: Some("Next Page".into()),
+                        custom_id: Some("next-page".into()),
+                        url: None,
+                        disabled: false,
+                    }),
+                    Component::Button(Button {
+                        style: ButtonStyle::Primary,
+                        emoji: Some(ReactionType::Unicode {
+                            name: "⏭️".into()
+                        }),
+                        label: Some("Last Page".into()),
+                        custom_id: Some("last-page".into()),
+                        url: None,
+                        disabled: false,
+                    }),
+                ],
+            })])
             .unwrap()
             .await?;
 
@@ -88,97 +365,67 @@ pub async fn paginate_embed(
         let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
-        //Don't wait up for the reactions to show
-        tokio::spawn(async move {
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏮️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("◀️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("▶️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏭️"),
-                    },
-                )
-                .await;
-            let _ = http
-                .create_reaction(
-                    channel_id,
-                    message_id,
-                    RequestReactionType::Unicode {
-                        name: String::from("⏹️"),
-                    },
-                )
-                .await;
-        });
-
-        let reactions = ctx
+        let component_interaction = ctx
             .bot
             .standby
-            .wait_for_reaction_stream(message_id, move |event: &ReactionAdd| {
-                if event.user_id != author_id {
-                    return false;
-                }
-                if let ReactionType::Unicode { name } = &event.emoji {
-                    return matches!(&name[..], "⏮️" | "◀️" | "▶️" | "⏭️" | "⏹️");
-                }
-                false
-            })
+            .wait_for_component_interaction(message_id)
             .timeout(Duration::from_secs(300));
-        tokio::pin!(reactions);
+        tokio::pin!(component_interaction);
 
         let mut page_pointer: usize = 0;
-        while let Some(Ok(reaction)) = reactions.next().await {
-            if let ReactionType::Unicode { name } = &reaction.emoji {
-                if name == "⏮️" {
-                    page_pointer = 0;
-                } else if name == "◀️" {
-                    page_pointer = max(page_pointer - 1, 0);
-                } else if name == "▶️" {
-                    page_pointer = min(page_pointer + 1, page_count - 1);
-                } else if name == "⏭️" {
-                    page_pointer = page_count - 1;
-                } else if name == "⏹️" {
-                    break;
+        while let Some(Ok(event)) = component_interaction.next().await {
+            if let Event::InteractionCreate(interaction) = event {
+                if let Interaction::MessageComponent(message_component) = interaction.0 {
+                    let component_interaction_author = message_component.author_id().unwrap();
+                    if component_interaction_author == author_id {
+                        match message_component.data.custom_id.as_str() {
+                            "first-page" => {
+                                page_pointer = 0;
+                            }
+                            "previous-page" => {
+                                page_pointer = max(page_pointer - 1, 0);
+                            }
+                            "next-page" => {
+                                page_pointer = min(page_pointer + 1, page_count - 1);
+                            }
+                            "last-page" => {
+                                page_pointer = page_count - 1;
+                            }
+                            _ => {}
+                        }
+
+                        let _ = http
+                            .interaction_callback(
+                                message_component.id,
+                                message_component.token,
+                                InteractionResponse::UpdateMessage(CallbackData {
+                                    allowed_mentions: None,
+                                    content: None,
+                                    components: None,
+                                    embeds: vec![pages[page_pointer].clone()],
+                                    flags: None,
+                                    tts: None,
+                                }),
+                            )
+                            .await;
+                    } else {
+                        let _ = http
+                            .interaction_callback(
+                                message_component.id,
+                                message_component.token.clone(),
+                                InteractionResponse::DeferredUpdateMessage,
+                            )
+                            .await;
+                        let _ = http
+                            .create_followup_message(message_component.token)
+                            .unwrap()
+                            .ephemeral(true)
+                            .content(
+                                "This view menu is only navigable by the original command invoker",
+                            )
+                            .await;
+                    }
                 }
-                let react = RequestReactionType::Unicode { name: name.clone() };
-                let _ = ctx
-                    .bot
-                    .http
-                    .update_message(channel_id, message_id)
-                    .embed(pages[page_pointer as usize].clone())
-                    .unwrap()
-                    .await;
-                let _ = ctx
-                    .bot
-                    .http
-                    .delete_reaction(channel_id, message_id, react, author_id)
-                    .await;
             }
         }
         let _ = ctx.bot.http.delete_message(channel_id, message_id).await;
@@ -223,36 +470,41 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
     }
 }
 
-pub trait EmbedExtensions {
-    fn default_data(self) -> Self;
-    fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self;
-}
+pub fn parse_channel(mention: impl AsRef<str>) -> Option<u64> {
+    let mention = mention.as_ref();
 
-impl EmbedExtensions for EmbedBuilder {
-    fn default_data(self) -> Self {
-        self.timestamp(&chrono::Utc::now().to_rfc3339())
-            .color(Color::Blue as u32)
-            .footer(EmbedFooterBuilder::new("RoWifi"))
+    if mention.len() < 3 {
+        return None;
     }
 
-    fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self {
-        let mut added_str = added_roles
-            .iter()
-            .map(|a| format!("- <@&{}>\n", a.0))
-            .collect::<String>();
-        let mut removed_str = removed_roles
-            .iter()
-            .map(|r| format!("- <@&{}>\n", r.0))
-            .collect::<String>();
-        if added_str.is_empty() {
-            added_str = "None".into();
-        }
-        if removed_str.is_empty() {
-            removed_str = "None".into();
-        }
+    if mention.starts_with("<#") && mention.ends_with('>') {
+        let len = mention.len() - 1;
+        mention[2..len].parse::<u64>().ok()
+    } else if let Ok(r) = mention.parse::<u64>() {
+        Some(r)
+    } else {
+        None
+    }
+}
 
-        self.field(EmbedFieldBuilder::new("Nickname", disc_nick))
-            .field(EmbedFieldBuilder::new("Added Roles", added_str))
-            .field(EmbedFieldBuilder::new("Removed Roles", removed_str))
+pub enum RankId {
+    Range(i64, i64),
+    Single(i64),
+}
+
+impl FromStr for RankId {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let splits = s.split('-').collect::<Vec<_>>();
+        if splits.len() == 2 {
+            if let Ok(r1) = splits[0].parse::<i64>() {
+                if let Ok(r2) = splits[1].parse::<i64>() {
+                    return Ok(Self::Range(r1, r2));
+                }
+            }
+        }
+        let r = s.parse::<i64>()?;
+        Ok(Self::Single(r))
     }
 }

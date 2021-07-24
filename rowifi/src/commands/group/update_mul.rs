@@ -7,17 +7,9 @@ use twilight_model::{
     id::{RoleId, UserId},
 };
 
-#[derive(FromArgs)]
-pub struct UpdateAllArguments {}
-
-pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> CommandResult {
+pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -29,12 +21,22 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
     }
+
     ctx.respond().content("Updating all members...").await?;
+
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("Action by {}", ctx.author.name))
+        .description("Started an `update-all` queue")
+        .build()
+        .unwrap();
+    ctx.log_guild(guild_id, log_embed).await;
+
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot
@@ -87,10 +89,8 @@ pub async fn update_all(ctx: CommandContext, _args: UpdateAllArguments) -> Comma
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
                 if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
-                    if let Some(bypass) = server.bypass_role {
-                        if member.roles.contains(&bypass) {
-                            continue;
-                        }
+                    if c.bot.has_bypass_role(&server, &member) {
+                        continue;
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
@@ -130,12 +130,7 @@ pub struct UpdateMultipleArguments {
 
 pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -147,7 +142,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         ctx.bot
             .http
             .create_message(ctx.channel_id)
-            .embed(embed)
+            .embeds(vec![embed])
             .unwrap()
             .await?;
         return Ok(());
@@ -164,6 +159,15 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     }
 
     ctx.respond().content("Updating all members...").await?;
+
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("Action by {}", ctx.author.name))
+        .description("Started an `update-role` queue")
+        .build()
+        .unwrap();
+    ctx.log_guild(guild_id, log_embed).await;
+
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot
@@ -219,10 +223,8 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     if !member.roles.contains(&role_id) {
                         continue;
                     }
-                    if let Some(bypass) = server.bypass_role {
-                        if member.roles.contains(&bypass) {
-                            continue;
-                        }
+                    if c.bot.has_bypass_role(&server, &member) {
+                        continue;
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();

@@ -22,19 +22,16 @@ pub fn api_config(cmds: &mut Vec<Command>) {
     cmds.push(api_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct APIArguments {}
-
-pub async fn api_view(ctx: CommandContext, _args: APIArguments) -> CommandResult {
+pub async fn api_view(ctx: CommandContext) -> CommandResult {
     let embed = EmbedBuilder::new().default_data().title("API Module")
-        .description("The Module to interact with API keys of the server")
+        .description("Module to interact with API keys of the server")
         .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key"))
         .build().unwrap();
     ctx.respond().embed(embed).await?;
     Ok(())
 }
 
-pub async fn api_generate(ctx: CommandContext, _args: APIArguments) -> CommandResult {
+pub async fn api_generate(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let api_key = thread_rng()

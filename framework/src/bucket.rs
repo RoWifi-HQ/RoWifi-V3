@@ -1,4 +1,4 @@
-use futures::{Future, FutureExt};
+use futures_util::future::{Future, FutureExt};
 use std::{
     pin::Pin,
     sync::Arc,
@@ -10,9 +10,9 @@ use transient_dashmap::TransientDashMap;
 use twilight_model::id::GuildId;
 
 use crate::{
-    command::ServiceRequest,
     context::CommandContext,
     error::{CommandError, RoError},
+    ServiceRequest,
 };
 
 #[derive(Clone)]

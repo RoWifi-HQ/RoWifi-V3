@@ -1,7 +1,3 @@
-use crate::{
-    arguments::FromArgs, command::ServiceRequest, context::CommandContext, error::RoError,
-    CommandResult,
-};
 use std::{
     future::Future,
     marker::PhantomData,
@@ -11,51 +7,59 @@ use std::{
 use tower::Service;
 use twilight_embed_builder::EmbedFieldBuilder;
 
-pub trait Handler<T, R>
-where
-    R: Future<Output = CommandResult>,
-{
-    fn call(&self, param: T) -> R;
-}
+use crate::{
+    arguments::FromArgs, context::CommandContext, error::RoError, CommandResult, ServiceRequest,
+};
 
-impl<F, R, K> Handler<(CommandContext, K), R> for F
+pub trait Handler<T, R>: Clone + 'static
 where
-    F: Fn(CommandContext, K) -> R,
     R: Future<Output = CommandResult>,
-    K: FromArgs,
 {
-    fn call(&self, param: (CommandContext, K)) -> R {
-        (self)(param.0, param.1)
-    }
+    fn call(&self, ctx: CommandContext, param: T) -> R;
 }
 
 pub struct CommandHandler<F, T, R>
 where
     F: Handler<T, R>,
-    R: Future<Output = CommandResult> + Send,
+    T: FromArgs,
+    R: Future<Output = CommandResult>,
 {
     hnd: F,
-    _t: PhantomData<(T, R)>,
+    _p: PhantomData<(T, R)>,
 }
 
 impl<F, T, R> CommandHandler<F, T, R>
 where
     F: Handler<T, R>,
-    R: Future<Output = CommandResult> + Send,
+    T: FromArgs,
+    R: Future<Output = CommandResult>,
 {
-    pub fn new(handler: F) -> Self {
+    pub fn new(hnd: F) -> Self {
         Self {
-            hnd: handler,
-            _t: PhantomData,
+            hnd,
+            _p: PhantomData,
+        }
+    }
+}
+
+impl<F, T, R> Clone for CommandHandler<F, T, R>
+where
+    F: Handler<T, R>,
+    T: FromArgs,
+    R: Future<Output = CommandResult>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            hnd: self.hnd.clone(),
+            _p: PhantomData,
         }
     }
 }
 
 #[allow(clippy::type_complexity)]
-impl<F, R, K> Service<(CommandContext, ServiceRequest)>
-    for CommandHandler<F, (CommandContext, K), R>
+impl<F, R, K> Service<(CommandContext, ServiceRequest)> for CommandHandler<F, K, R>
 where
-    F: Handler<(CommandContext, K), R>,
+    F: Handler<K, R>,
     R: Future<Output = CommandResult> + Send + 'static,
     K: FromArgs,
 {
@@ -69,9 +73,9 @@ where
 
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         match req.1 {
-            ServiceRequest::Message(mut args) => match FromArgs::from_args(&mut args) {
+            ServiceRequest::Message(mut args) => match K::from_args(&mut args) {
                 Ok(args) => {
-                    let fut = self.hnd.call((req.0, args));
+                    let fut = self.hnd.call(req.0, args);
                     Box::pin(fut)
                 }
                 Err(err) => {
@@ -79,9 +83,9 @@ where
                     Box::pin(fut)
                 }
             },
-            ServiceRequest::Interaction(options) => match FromArgs::from_interaction(&options) {
+            ServiceRequest::Interaction(options) => match K::from_interaction(&options) {
                 Ok(args) => {
-                    let fut = self.hnd.call((req.0, args));
+                    let fut = self.hnd.call(req.0, args);
                     Box::pin(fut)
                 }
                 Err(err) => {
@@ -104,7 +108,7 @@ where
                     ctx.bot
                         .http
                         .create_message(ctx.channel_id)
-                        .embed(embed)
+                        .embeds(vec![embed])
                         .unwrap()
                         .await?;
                     Ok(())
@@ -112,5 +116,25 @@ where
                 Box::pin(fut)
             }
         }
+    }
+}
+
+impl<F, R> Handler<(), R> for F
+where
+    F: Fn(CommandContext) -> R + Clone + 'static,
+    R: Future<Output = CommandResult>,
+{
+    fn call(&self, ctx: CommandContext, (): ()) -> R {
+        (self)(ctx)
+    }
+}
+
+impl<F, K, R> Handler<(K,), R> for F
+where
+    F: Fn(CommandContext, K) -> R + Clone + 'static,
+    R: Future<Output = CommandResult>,
+{
+    fn call(&self, ctx: CommandContext, (param,): (K,)) -> R {
+        (self)(ctx, param)
     }
 }

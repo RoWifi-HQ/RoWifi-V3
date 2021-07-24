@@ -6,10 +6,11 @@ mod verify;
 pub use info::{botinfo, support, userinfo};
 use rowifi_framework::prelude::*;
 pub use test::test;
+use twilight_model::id::MessageId;
 pub use update::update;
-pub use verify::verify;
+pub use verify::{verify, verify_config};
 
-use self::verify::verify_config;
+use crate::commands::user::update::{update_func, UpdateArguments};
 
 pub fn user_config(cmds: &mut Vec<Command>) {
     let update_cmd = Command::builder()
@@ -52,4 +53,91 @@ pub fn user_config(cmds: &mut Vec<Command>) {
     cmds.push(test_cmd);
 
     verify_config(cmds);
+}
+
+pub async fn handle_update_button(
+    ctx: &CommandContext,
+    message_id: MessageId,
+    keep_components: Vec<Component>,
+) -> Result<(), RoError> {
+    let author_id = ctx.author.id;
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(60));
+    tokio::pin!(stream);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id
+                    && message_component.data.custom_id == "handle-update"
+                {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(keep_components),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+
+                    let embed = update_func(ctx, UpdateArguments { user_id: None }).await?;
+                    ctx.bot
+                        .http
+                        .create_followup_message(&message_component.token)
+                        .unwrap()
+                        .embeds(vec![embed])
+                        .await?;
+                    return Ok(());
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This button is only interactable by the original command invoker")
+                    .await;
+            }
+        }
+    }
+
+    if let Some(interaction_token) = &ctx.interaction_token {
+        ctx.bot
+            .http
+            .update_interaction_original(interaction_token)
+            .unwrap()
+            .components(None)
+            .unwrap()
+            .await?;
+    } else {
+        ctx.bot
+            .http
+            .update_message(ctx.channel_id, message_id)
+            .components(None)
+            .unwrap()
+            .await?;
+    }
+
+    Ok(())
 }

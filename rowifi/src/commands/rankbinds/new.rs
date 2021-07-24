@@ -37,12 +37,7 @@ lazy_static! {
 
 pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let mut guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let mut guild = ctx.bot.database.get_guild(guild_id.0).await?;
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
 
     let group_id = args.group_id;
@@ -180,7 +175,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         }
     }
 
-    ctx.bot.database.add_guild(guild, true).await?;
+    ctx.bot.database.add_guild(&guild, true).await?;
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
@@ -237,7 +232,9 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         count += 1;
     }
+
     ctx.respond().embed(embed.build().unwrap()).await?;
+
     for rb in added {
         log_rankbind(&ctx, rb).await;
     }
@@ -279,7 +276,7 @@ impl FromArg for CreateType {
     }
 }
 
-async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
+pub async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
     let name = format!("Group Id: {}", bind.group_id);
     let roles_str = bind
         .discord_roles

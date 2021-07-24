@@ -1,5 +1,6 @@
+mod bind;
+mod reset;
 mod serverinfo;
-mod setup;
 mod update_mul;
 
 use std::time::Duration;
@@ -7,9 +8,10 @@ use std::time::Duration;
 use rowifi_framework::{bucket::BucketLayer, handler::CommandHandler, prelude::*};
 use tower::ServiceBuilder;
 
-pub use serverinfo::serverinfo;
-pub use setup::setup;
-pub use update_mul::{update_all, update_role};
+use bind::bind;
+use reset::reset;
+use serverinfo::serverinfo;
+use update_mul::{update_all, update_role};
 
 pub fn group_config(cmds: &mut Vec<Command>) {
     let serverinfo_cmd = Command::builder()
@@ -18,13 +20,6 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .description("Command to view information about the server")
         .group("Miscellanous")
         .handler(serverinfo);
-
-    let setup_cmd = Command::builder()
-        .level(RoLevel::Admin)
-        .names(&["setup"])
-        .description("Command to setup or reset your server settings in the database")
-        .group("Administration")
-        .handler(setup);
 
     let bucket = BucketLayer::new(Duration::from_secs(12 * 60 * 60), 3);
 
@@ -48,8 +43,23 @@ pub fn group_config(cmds: &mut Vec<Command>) {
         .group("Premium")
         .service(Box::new(update_role_srv));
 
+    let reset_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["reset"])
+        .group("Administration")
+        .description("Command to reset the bot for this server")
+        .handler(reset);
+
+    let bind_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["bind"])
+        .group("Administration")
+        .description("Command to create a bind for the server")
+        .handler(bind);
+
     cmds.push(serverinfo_cmd);
-    cmds.push(setup_cmd);
     cmds.push(update_all_cmd);
     cmds.push(update_role_cmd);
+    cmds.push(reset_cmd);
+    cmds.push(bind_cmd);
 }

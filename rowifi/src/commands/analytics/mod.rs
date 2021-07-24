@@ -40,19 +40,8 @@ pub fn analytics_config(cmds: &mut Vec<Command>) {
     cmds.push(analytics);
 }
 
-#[derive(FromArgs)]
-pub struct AnalyticsViewArguments {}
-
-pub async fn analytics_config_view(
-    ctx: CommandContext,
-    _args: AnalyticsViewArguments,
-) -> CommandResult {
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(ctx.guild_id.unwrap().0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
+    let guild = ctx.bot.database.get_guild(ctx.guild_id.unwrap().0).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()

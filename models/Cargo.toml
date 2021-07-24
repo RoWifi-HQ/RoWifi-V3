@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-models"
-version = "3.0.2"
+version = "3.1.0"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -16,5 +16,5 @@ regex = "1"
 serde = "1"
 serde_cbor = "0"
 serde_repr = "0"
-twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
-twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { branch = "feature/message-components", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
+twilight-model = { branch = "feature/message-components", git = "https://github.com/twilight-rs/twilight" }

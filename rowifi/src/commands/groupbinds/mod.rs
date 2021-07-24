@@ -54,12 +54,7 @@ pub struct GroupbindsViewArguments {}
 
 pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     if guild.groupbinds.is_empty() {
         let embed = EmbedBuilder::new()

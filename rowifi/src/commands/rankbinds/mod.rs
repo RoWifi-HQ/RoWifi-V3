@@ -56,12 +56,7 @@ pub struct RankbindArguments {}
 
 pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Result<(), RoError> {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     if guild.rankbinds.is_empty() {
         let embed = EmbedBuilder::new()

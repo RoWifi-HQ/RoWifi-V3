@@ -10,7 +10,7 @@ use serde::{
 };
 use std::{collections::HashMap, default::Default, fmt};
 use twilight_http::Client as DiscordClient;
-use twilight_model::id::{GuildId, RoleId};
+use twilight_model::id::{ChannelId, GuildId, RoleId};
 
 use super::{
     bind::{AssetBind, Backup, CustomBind, GroupBind, RankBind},
@@ -28,17 +28,17 @@ pub struct RoGuild {
     #[serde(rename = "_id")]
     pub id: i64,
     /// The prefix that is to be used by every command run in the guild
-    #[serde(rename = "Prefix")]
+    #[serde(rename = "Prefix", skip_serializing_if = "Option::is_none")]
     pub command_prefix: Option<String>,
     /// The struct containing [GuildSettings]
     #[serde(rename = "Settings")]
     pub settings: GuildSettings,
     /// The role meant for unverified users in the guild
-    #[serde(rename = "VerificationRole")]
-    pub verification_role: i64,
+    #[serde(rename = "VerificationRole", skip_serializing_if = "Option::is_none")]
+    pub verification_role: Option<i64>,
     /// The role meant for verified users in the guild
-    #[serde(rename = "VerifiedRole")]
-    pub verified_role: i64,
+    #[serde(rename = "VerifiedRole", skip_serializing_if = "Option::is_none")]
+    pub verified_role: Option<i64>,
     /// The array containing all the [RankBind] of the guild
     #[serde(rename = "RankBinds")]
     pub rankbinds: Vec<RankBind>,
@@ -77,6 +77,7 @@ impl RoGuild {
         user_id: i64,
         name: &str,
         roles: &HashMap<RoleId, String>,
+        channels: &HashMap<ChannelId, String>,
     ) -> BackupGuild {
         let rankbinds = self
             .rankbinds
@@ -98,15 +99,24 @@ impl RoGuild {
             .iter()
             .map(|a| a.to_backup(roles))
             .collect_vec();
+        let verification_role = match self.verification_role {
+            Some(verification_role) => roles.get(&RoleId(verification_role as u64)).cloned(),
+            None => None,
+        };
+        let verified_role = match self.verified_role {
+            Some(verified_role) => roles.get(&RoleId(verified_role as u64)).cloned(),
+            None => None,
+        };
+        let backup_settings = self.settings.to_backup(roles, channels);
 
         BackupGuild {
             id: ObjectId::new(),
             user_id,
             name: name.to_string(),
             command_prefix: self.command_prefix.clone(),
-            settings: self.settings.clone(),
-            verification_role: roles.get(&RoleId(self.verification_role as u64)).cloned(),
-            verified_role: roles.get(&RoleId(self.verified_role as u64)).cloned(),
+            settings: backup_settings,
+            verification_role,
+            verified_role,
             rankbinds,
             groupbinds,
             custombinds,
@@ -123,6 +133,7 @@ impl RoGuild {
         http: DiscordClient,
         guild_id: GuildId,
         existing_roles: &[(RoleId, String)],
+        existing_channels: &HashMap<String, ChannelId>,
     ) -> Self {
         let mut names_to_ids = HashMap::<String, RoleId>::new();
 
@@ -241,13 +252,22 @@ impl RoGuild {
             )
             .unique()
             .collect_vec();
+        let settings = GuildSettings::from_backup(
+            http,
+            backup.settings,
+            guild_id,
+            &names_to_ids,
+            existing_roles,
+            existing_channels,
+        )
+        .await;
 
         Self {
             id: guild_id.0 as i64,
             command_prefix: backup.command_prefix,
-            settings: backup.settings,
-            verification_role,
-            verified_role,
+            settings,
+            verification_role: Some(verification_role),
+            verified_role: Some(verified_role),
             rankbinds,
             groupbinds,
             custombinds,
@@ -411,12 +431,9 @@ impl<'de> Deserialize<'de> for RoGuild {
                 }
 
                 let id = id.ok_or_else(|| DeError::missing_field("Id"))?;
-                let prefix = prefix.ok_or_else(|| DeError::missing_field("Prefix"))?;
                 let settings = settings.ok_or_else(|| DeError::missing_field("Settings"))?;
-                let verification_role =
-                    verification_role.ok_or_else(|| DeError::missing_field("VerificationRole"))?;
-                let verified_role =
-                    verified_role.ok_or_else(|| DeError::missing_field("VerifiedRole"))?;
+                let verification_role = verification_role.unwrap_or_default();
+                let verified_role = verified_role.unwrap_or_default();
                 let rankbinds = rankbinds.unwrap_or_default();
                 let groupbinds = groupbinds.unwrap_or_default();
                 let custombinds = custombinds.unwrap_or_default();

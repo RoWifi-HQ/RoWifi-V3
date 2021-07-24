@@ -1,6 +1,5 @@
 use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
-use futures::{Future, FutureExt};
 use itertools::Itertools;
 use patreon::Client as Patreon;
 use roblox::Client as Roblox;
@@ -18,15 +17,10 @@ use std::{
     borrow::ToOwned,
     collections::{HashMap, HashSet},
     ops::Deref,
-    pin::Pin,
     sync::Arc,
-    task::{Context, Poll},
 };
 use twilight_gateway::Cluster;
-use twilight_http::{
-    request::{application::UpdateOriginalResponse, prelude::CreateMessage},
-    Client as Http, Error as DiscordHttpError,
-};
+use twilight_http::Client as Http;
 use twilight_model::{
     channel::embed::Embed,
     id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
@@ -35,7 +29,10 @@ use twilight_model::{
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
-use crate::error::{CommandError, RoError};
+use crate::{
+    error::{CommandError, RoError},
+    respond::Responder,
+};
 
 pub struct BotContextRef {
     // Config Items
@@ -50,6 +47,16 @@ pub struct BotContextRef {
     pub disabled_channels: DashSet<ChannelId>,
     /// The set containing all owners of the bot
     pub owners: DashSet<UserId>,
+    /// The map containing the set of admin roles for all servers
+    pub admin_roles: DashMap<GuildId, Vec<RoleId>>,
+    /// The map containing the set of trainer roles for all servers
+    pub trainer_roles: DashMap<GuildId, Vec<RoleId>>,
+    /// The map containing the set of bypass roles for all servers
+    pub bypass_roles: DashMap<GuildId, Vec<RoleId>>,
+    /// The map containing the set of nickname roles for all servers
+    pub nickname_bypass_roles: DashMap<GuildId, Vec<RoleId>>,
+    /// The map containing log channels of all servers
+    pub log_channels: DashMap<GuildId, ChannelId>,
 
     // Twilight Components
     /// The module used to make requests to discord
@@ -139,6 +146,11 @@ impl BotContext {
                 default_prefix,
                 disabled_channels: DashSet::new(),
                 owners: owners_set,
+                admin_roles: DashMap::new(),
+                trainer_roles: DashMap::new(),
+                bypass_roles: DashMap::new(),
+                nickname_bypass_roles: DashMap::new(),
+                log_channels: DashMap::new(),
                 http,
                 cache,
                 cluster,
@@ -240,16 +252,20 @@ impl BotContext {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
 
-        let verification_role = RoleId(guild.verification_role as u64);
-        if guild_roles.get(&verification_role).is_some()
-            && member.roles.contains(&verification_role)
-        {
-            removed_roles.push(verification_role);
+        if let Some(verification_role) = guild.verification_role {
+            let verification_role = RoleId(verification_role as u64);
+            if guild_roles.get(&verification_role).is_some()
+                && member.roles.contains(&verification_role)
+            {
+                removed_roles.push(verification_role);
+            }
         }
 
-        let verified_role = RoleId(guild.verified_role as u64);
-        if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
-            added_roles.push(verified_role);
+        if let Some(verified_role) = guild.verified_role {
+            let verified_role = RoleId(verified_role as u64);
+            if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
+                added_roles.push(verified_role);
+            }
         }
 
         let user_id = RobloxUserId(user.roblox_id as u64);
@@ -377,18 +393,13 @@ impl BotContext {
             .nick
             .as_ref()
             .map_or_else(|| member.user.name.as_str(), |s| s.as_str());
-        let nick_bypass = match server.nickname_bypass {
-            Some(n) => member.roles.contains(&n),
-            None => false,
-        };
+        let nick_bypass = self.has_nickname_bypass(server, &member);
         let nickname = if nick_bypass {
             original_nick.to_string()
         } else {
             nick_bind.map_or_else(
                 || roblox_user.name.to_string(),
-                |nick_bind| {
-                    nick_bind.nickname(&roblox_user, user, &member.user.name, &member.nick)
-                },
+                |nick_bind| nick_bind.nickname(&roblox_user, user, &member.user.name, &member.nick),
             )
         };
 
@@ -463,73 +474,59 @@ impl BotContext {
     }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
-        let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
-        if let Some(channel_id) = log_channel {
+        if let Some(log_channel) = self.log_channels.get(&guild_id) {
             let _ = self
                 .http
-                .create_message(channel_id)
-                .embed(embed)
+                .create_message(*log_channel)
+                .embeds(vec![embed])
                 .unwrap()
                 .await;
-        }
-    }
-}
-
-pub struct Responder<'a> {
-    message: Option<CreateMessage<'a>>,
-    interaction: Option<UpdateOriginalResponse<'a>>,
-}
-
-impl<'a> Responder<'a> {
-    pub fn new(ctx: &'a CommandContext) -> Self {
-        ctx.interaction_token.as_ref().map_or_else(
-            || Self {
-                message: Some(ctx.bot.http.create_message(ctx.channel_id)),
-                interaction: None,
-            },
-            |interaction_token| Self {
-                message: None,
-                interaction: Some(
-                    ctx.bot
-                        .http
-                        .update_interaction_original(interaction_token)
-                        .unwrap(),
-                ),
-            },
-        )
-    }
-
-    pub fn content(mut self, content: impl Into<String>) -> Self {
-        let content = content.into();
-        if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.content(Some(content)).unwrap());
-        } else if let Some(message) = self.message {
-            self.message = Some(message.content(content).unwrap());
-        }
-        self
-    }
-
-    pub fn embed(mut self, embed: Embed) -> Self {
-        if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.embeds(Some(vec![embed])).unwrap());
-        } else if let Some(message) = self.message {
-            self.message = Some(message.embed(embed).unwrap());
-        }
-        self
-    }
-}
-
-#[allow(clippy::option_if_let_else)]
-impl Future for Responder<'_> {
-    type Output = Result<(), DiscordHttpError>;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let Some(interaction) = self.interaction.as_mut() {
-            interaction.poll_unpin(cx)
-        } else if let Some(message) = self.message.as_mut() {
-            message.poll_unpin(cx).map(|p| p.map(|_| ()))
         } else {
-            Poll::Ready(Ok(()))
+            let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
+            if let Some(channel_id) = log_channel {
+                let _ = self
+                    .http
+                    .create_message(channel_id)
+                    .embeds(vec![embed])
+                    .unwrap()
+                    .await;
+            }
         }
+    }
+
+    pub fn has_bypass_role(&self, server: &CachedGuild, member: &CachedMember) -> bool {
+        if let Some(bypass_role) = server.bypass_role {
+            if member.roles.contains(&bypass_role) {
+                return true;
+            }
+        }
+
+        if let Some(bypass_roles) = self.bypass_roles.get(&server.id) {
+            for bypass_role in bypass_roles.value() {
+                if member.roles.contains(bypass_role) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    pub fn has_nickname_bypass(&self, server: &CachedGuild, member: &CachedMember) -> bool {
+        if let Some(nickname_bypass) = server.nickname_bypass {
+            if member.roles.contains(&nickname_bypass) {
+                return true;
+            }
+        }
+
+        if let Some(nickname_bypass) = self.nickname_bypass_roles.get(&server.id) {
+            for nb in nickname_bypass.value() {
+                if member.roles.contains(nb) {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 }

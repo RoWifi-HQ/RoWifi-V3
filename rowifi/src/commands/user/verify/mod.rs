@@ -2,6 +2,13 @@ mod manage;
 
 use rowifi_framework::prelude::*;
 use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
+use twilight_model::application::component::{
+    action_row::ActionRow,
+    button::{Button, ButtonStyle},
+    Component,
+};
+
+use crate::commands::handle_update_button;
 
 use manage::{verify_default, verify_delete, verify_switch};
 
@@ -63,12 +70,27 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .default_data()
             .title("User Already Verified")
             .description(
-                "To link another account, use `verify add`. To get your roles, use `update`",
+                "To link another account, use `verify add`. To get your roles, use `update`. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`.",
             )
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        let message_id = ctx
+            .respond()
+            .embed(embed)
+            .components(vec![Component::ActionRow(ActionRow {
+                components: vec![Component::Button(Button {
+                    custom_id: Some("handle-update".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Update your Roles".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                })],
+            })])
+            .await?;
+
+        handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
         return Ok(());
     }
     verify_common(ctx, args, false).await
@@ -119,7 +141,7 @@ pub async fn verify_common(
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(e)
+                .embeds(vec![e])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -134,10 +156,7 @@ pub async fn verify_common(
         .field(
             EmbedFieldBuilder::new(
                 "Further Steps",
-                format!(
-                    "Please join the following game to verify yourself: [Click Here]({})",
-                    game_url
-                ),
+                "Join the game below to continue the verification process"
             ),
         )
         .field(
@@ -148,10 +167,34 @@ pub async fn verify_common(
         )
         .build()
         .unwrap();
-    ctx.bot
+
+    let game_url_button = Component::Button(Button {
+        style: ButtonStyle::Link,
+        emoji: None,
+        label: Some("Join the Game".into()),
+        custom_id: None,
+        url: Some(game_url.into()),
+        disabled: false,
+    });
+    let message = ctx
+        .bot
         .http
         .create_message(ctx.channel_id)
-        .embed(e)
+        .embeds(vec![e])
+        .unwrap()
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![
+                game_url_button.clone(),
+                Component::Button(Button {
+                    custom_id: Some("handle-update".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Update your Roles".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                }),
+            ],
+        })])
         .unwrap()
         .await?;
     let q_user = QueueUser {
@@ -160,13 +203,19 @@ pub async fn verify_common(
         verified,
     };
     ctx.bot.database.add_queue_user(q_user).await?;
+
+    handle_update_button(
+        &ctx,
+        message.id,
+        vec![Component::ActionRow(ActionRow {
+            components: vec![game_url_button],
+        })],
+    )
+    .await?;
     Ok(())
 }
 
-#[derive(FromArgs)]
-pub struct VerifyViewArguments {}
-
-pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> CommandResult {
+pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
         Some(u) => u,
@@ -181,7 +230,7 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
             ctx.bot
                 .http
                 .create_message(ctx.channel_id)
-                .embed(embed)
+                .embeds(vec![embed])
                 .unwrap()
                 .await?;
             return Ok(());
@@ -230,7 +279,7 @@ pub async fn verify_view(ctx: CommandContext, _args: VerifyViewArguments) -> Com
     ctx.bot
         .http
         .create_message(ctx.channel_id)
-        .embed(embed)
+        .embeds(vec![embed])
         .unwrap()
         .await?;
 

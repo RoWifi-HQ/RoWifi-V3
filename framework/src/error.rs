@@ -20,7 +20,6 @@ pub enum CommandError {
 
 #[derive(Debug)]
 pub enum CommonError {
-    UnknownGuild,
     UnknownMember,
 }
 
@@ -33,6 +32,7 @@ pub enum RoError {
     Patreon(PatreonError),
     Command(CommandError),
     Common(CommonError),
+    NoOp,
 }
 
 impl From<ArgumentError> for RoError {
@@ -51,6 +51,7 @@ impl Display for RoError {
             RoError::Argument(err) => write!(f, "Argument Error - {:?}", err),
             RoError::Command(err) => write!(f, "Command Error - {:?}", err),
             RoError::Common(err) => write!(f, "Common Error - {:?}", err),
+            RoError::NoOp => write!(f, "NoOp error"),
         }
     }
 }

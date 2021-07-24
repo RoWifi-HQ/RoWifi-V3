@@ -1,10 +1,7 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::user::{PremiumType, PremiumUser};
 
-#[derive(FromArgs)]
-pub struct PremiumPatreonArguments {}
-
-pub async fn premium_patreon(ctx: CommandContext, _args: PremiumPatreonArguments) -> CommandResult {
+pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     let author = ctx.author.id.0;
     let premium_already = ctx.bot.database.get_premium(author).await?.is_some();
     let premium_user: PremiumUser;

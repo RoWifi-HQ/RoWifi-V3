@@ -28,12 +28,7 @@ pub enum ModifyOption {
 
 pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.0)
-        .await?
-        .ok_or(CommonError::UnknownGuild)?;
+    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
     let group_id = args.group_id;
     let rank_id = args.rank_id;

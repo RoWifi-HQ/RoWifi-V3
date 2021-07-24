@@ -16,16 +16,16 @@ use twilight_model::{
 };
 
 use crate::{
-    arguments::{ArgumentError, Arguments, FromArgs},
+    arguments::{ArgumentError, FromArgs},
     context::CommandContext,
     error::{CommandError, CommonError, RoError},
+    extensions::EmbedExtensions,
     handler::{CommandHandler, Handler},
-    prelude::{Color, EmbedExtensions},
-    utils::RoLevel,
-    CommandResult,
+    utils::{Color, RoLevel},
+    ServiceRequest,
 };
 
-pub type BoxedService = Box<
+type BoxedService = Box<
     dyn Service<
             (CommandContext, ServiceRequest),
             Response = (),
@@ -34,12 +34,7 @@ pub type BoxedService = Box<
         > + Send,
 >;
 
-#[allow(clippy::large_enum_variant)]
-pub enum ServiceRequest {
-    Message(Arguments),
-    Interaction(Vec<CommandDataOption>),
-    Help(Arguments, EmbedBuilder),
-}
+pub type CommandResult = Result<(), RoError>;
 
 #[derive(Default)]
 pub struct CommandOptions {
@@ -178,6 +173,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                                 embeds: Vec::new(),
                                 content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
+                                components: None,
                             }),
                         )
                         .await;
@@ -203,6 +199,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             embeds: Vec::new(),
                             content: None,
                             flags: None,
+                            components: None,
                         }),
                     )
                     .await;
@@ -300,16 +297,6 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             }
         },
         RoError::Common(err) => match err {
-            CommonError::UnknownGuild => {
-                let embed = EmbedBuilder::new()
-                        .default_data()
-                        .title("Command Failure")
-                        .color(Color::Red as u32)
-                        .description("This server has not been set up. Please ask the server owner to do so using `!setup`")
-                        .build()
-                        .unwrap();
-                let _ = ctx.respond().embed(embed).await;
-            }
             CommonError::UnknownMember => {
                 let embed = EmbedBuilder::new()
                     .default_data()
@@ -321,6 +308,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                 let _ = ctx.respond().embed(embed).await;
             }
         },
+        RoError::NoOp => {}
         _ => {
             tracing::error!(err = ?err);
             let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").await;
@@ -390,7 +378,7 @@ impl CommandBuilder {
 
     pub fn handler<F, R, K>(self, handler: F) -> Command
     where
-        F: Handler<(CommandContext, K), R> + Send + 'static,
+        F: Handler<K, R> + Send + 'static,
         R: Future<Output = CommandResult> + Send + 'static,
         K: FromArgs + Send + 'static,
     {
