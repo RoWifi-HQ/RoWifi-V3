@@ -83,9 +83,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     },
                     SelectMenuOption {
                         default: is_nick_bypass,
-                        description: Some(
-                            "RoWifi will not nickname users with this role".into(),
-                        ),
+                        description: Some("RoWifi will not nickname users with this role".into()),
                         emoji: None,
                         label: "RoWifi Nickname Bypass".into(),
                         value: "rowifi-nickname-bypass".into(),

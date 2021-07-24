@@ -151,7 +151,9 @@ impl Client {
         let group = self.request::<Group>(&url, Method::GET, None).await;
         match group {
             Ok(g) => Ok(Some(g)),
-            Err(Error::APIError(status_code, _)) if status_code == StatusCode::BAD_REQUEST => Ok(None),
+            Err(Error::APIError(status_code, _)) if status_code == StatusCode::BAD_REQUEST => {
+                Ok(None)
+            }
             Err(err) => Err(err),
         }
     }

@@ -217,27 +217,24 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                     );
                     asset_type = Some(message_component.data.values[0].clone());
                     break;
-                } else {
-                    let _ = ctx
-                        .bot
-                        .http
-                        .interaction_callback(
-                            message_component.id,
-                            &message_component.token,
-                            InteractionResponse::DeferredUpdateMessage,
-                        )
-                        .await;
-                    let _ = ctx
-                        .bot
-                        .http
-                        .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .ephemeral(true)
-                        .content(
-                            "This component is only interactable by the original command invoker",
-                        )
-                        .await;
                 }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
             }
         }
     }

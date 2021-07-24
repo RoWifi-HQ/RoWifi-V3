@@ -35,7 +35,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .description("Started an `update-all` queue")
         .build()
         .unwrap();
-    ctx.log_guild(guild_id, log_embed).await; 
+    ctx.log_guild(guild_id, log_embed).await;
 
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
@@ -166,7 +166,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .description("Started an `update-role` queue")
         .build()
         .unwrap();
-    ctx.log_guild(guild_id, log_embed).await; 
+    ctx.log_guild(guild_id, log_embed).await;
 
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
