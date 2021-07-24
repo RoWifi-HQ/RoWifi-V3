@@ -6,6 +6,6 @@ COPY . .
 RUN source $HOME/.cargo/env && cargo build --release
 
 FROM alpine:latest
-RUN apk upgrade && apk add fontconfig ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apk upgrade && apk add fontconfig-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/rowifi/target/release/rowifi /usr/local/bin/rowifi
 CMD ["rowifi"]

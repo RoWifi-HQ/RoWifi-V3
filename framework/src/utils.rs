@@ -1,7 +1,7 @@
 use crate::{
     context::CommandContext,
     error::{CommandError, RoError},
-    extensions::{MessageComponentExtensions, StandbyExtensions},
+    extensions::StandbyExtensions,
 };
 
 use rowifi_models::bind::Template;
