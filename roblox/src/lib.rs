@@ -67,13 +67,14 @@ impl Client {
         let res = self.client.request(req).await?;
 
         let status = res.status();
-        if !status.is_success() {
-            return Err(Error::APIError(status));
-        }
 
         let mut buf = body::aggregate(res.into_body()).await?;
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
+
+        if !status.is_success() {
+            return Err(Error::APIError(status, bytes));
+        }
 
         let result = serde_json::from_slice(&bytes)?;
         Ok(result)
@@ -150,12 +151,7 @@ impl Client {
         let group = self.request::<Group>(&url, Method::GET, None).await;
         match group {
             Ok(g) => Ok(Some(g)),
-            Err(Error::APIError(status_code)) => {
-                if status_code == StatusCode::BAD_REQUEST {
-                    return Ok(None);
-                }
-                Err(Error::APIError(status_code))
-            }
+            Err(Error::APIError(status_code, _)) if status_code == StatusCode::BAD_REQUEST => Ok(None),
             Err(err) => Err(err),
         }
     }
