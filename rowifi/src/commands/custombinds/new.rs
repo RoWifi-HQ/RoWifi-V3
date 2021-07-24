@@ -2,7 +2,7 @@ use itertools::Itertools;
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{CustomBind, Template},
+    bind::CustomBind,
     guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
@@ -88,22 +88,56 @@ pub async fn custombinds_new_common(
         return Ok(());
     }
 
-    let template = await_reply(
-        "Enter the template you wish to set for the bind.\nYou may also enter `N/A`, `disable`",
+    let select_menu = SelectMenu {
+        custom_id: "template-reply".into(),
+        disabled: false,
+        max_values: Some(1),
+        min_values: Some(1),
+        options: vec![
+            SelectMenuOption {
+                default: true,
+                description: Some("Sets the nickname as just the roblox username".into()),
+                emoji: None,
+                label: "{roblox-username}".into(),
+                value: "{roblox-username}".into(),
+            },
+            SelectMenuOption {
+                default: false,
+                description: Some("Sets the nickname as the roblox id of the user".into()),
+                emoji: None,
+                label: "{roblox-id}".into(),
+                value: "{roblox-id}".into(),
+            },
+            SelectMenuOption {
+                default: false,
+                description: Some("Sets the nickname as the discord id of the user".into()),
+                emoji: None,
+                label: "{discord-id}".into(),
+                value: "{discord-id}".into(),
+            },
+            SelectMenuOption {
+                default: false,
+                description: Some("Sets the nickname as the discord username".into()),
+                emoji: None,
+                label: "{discord-name}".into(),
+                value: "{discord-name}".into(),
+            },
+            SelectMenuOption {
+                default: false,
+                description: Some("Sets the nickname as the display name on Roblox".into()),
+                emoji: None,
+                label: "{display-name}".into(),
+                value: "{display-name}".into(),
+            },
+        ],
+        placeholder: None,
+    };
+    let template = await_template_reply(
+        "Enter the template you wish to set for the bind.\nSelect one of the below or enter your own.",
         &ctx,
+        select_menu
     )
     .await?;
-    let template_str = match template.as_str() {
-        "disable" => "{discord-name}".into(),
-        "N/A" => "{roblox-username}".into(),
-        _ => {
-            if Template::has_slug(template.as_str()) {
-                template.clone()
-            } else {
-                format!("{} {{roblox-username}}", template)
-            }
-        }
-    };
 
     let priority = match await_reply("Enter the priority you wish to set for the bind.", &ctx)
         .await?
@@ -149,7 +183,7 @@ pub async fn custombinds_new_common(
         priority,
         command,
         discord_roles,
-        template: Some(Template(template_str)),
+        template: Some(template),
     };
     let bind_bson = to_bson(&bind)?;
     let filter = doc! {"_id": guild.id};

@@ -59,7 +59,7 @@ pub async fn admin_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
     let embed = EmbedBuilder::new()
         .default_data()
         .title("RoWifi Admin Roles")
-        .description(format!("{}\n\n{}", "These are the roles that can manage RoWifi. They are **not** roles with administrator perms on discord.", description))
+        .description(format!("{}\n\n{}", "These are the roles that can manage RoWifi. They are **not** roles with administrator permissions on discord. However, by default, anyone with administrator permissions can manage RoWifi.", description))
         .build()
         .unwrap();
     ctx.respond().embed(embed).await?;

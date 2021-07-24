@@ -61,7 +61,7 @@ pub async fn bypass_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
         .title("RoWifi Bypass Roles")
         .description(format!(
             "{}\n\n{}",
-            "These are the roles that may not get updated by RoWifi.", description
+            "Users with these roles cannot get updated by RoWifi.", description
         ))
         .build()
         .unwrap();

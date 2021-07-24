@@ -182,7 +182,9 @@ impl Service<(u64, Event)> for EventHandler {
                         Some(u) => u,
                         None => {
                             if let Some(verification_role) = guild.verification_role {
-                                eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, RoleId(verification_role as u64)).await?;
+                                if let Some(role) = eh.bot.cache.role(RoleId(verification_role as u64)) {
+                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).await?;
+                                }   
                             }
                             return Ok(());
                         },

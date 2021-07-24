@@ -84,7 +84,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     SelectMenuOption {
                         default: is_nick_bypass,
                         description: Some(
-                            "RoWifi will not nicknames of users with this role".into(),
+                            "RoWifi will not nickname users with this role".into(),
                         ),
                         emoji: None,
                         label: "RoWifi Nickname Bypass".into(),
@@ -104,7 +104,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
         .bot
         .standby
         .wait_for_component_interaction(message_id)
-        .timeout(Duration::from_secs(300));
+        .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
     while let Some(Ok(event)) = stream.next().await {
@@ -234,14 +234,14 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
             .http
             .update_interaction_original(interaction_token)
             .unwrap()
-            .components(None)
+            .components(Some(Vec::new()))
             .unwrap()
             .await?;
     } else {
         ctx.bot
             .http
             .update_message(ctx.channel_id, message_id)
-            .components(None)
+            .components(Some(Vec::new()))
             .unwrap()
             .await?;
     }

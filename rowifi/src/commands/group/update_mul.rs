@@ -26,7 +26,17 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .await?;
         return Ok(());
     }
+
     ctx.respond().content("Updating all members...").await?;
+
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("Action by {}", ctx.author.name))
+        .description("Started an `update-all` queue")
+        .build()
+        .unwrap();
+    ctx.log_guild(guild_id, log_embed).await; 
+
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot
@@ -149,6 +159,15 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     }
 
     ctx.respond().content("Updating all members...").await?;
+
+    let log_embed = EmbedBuilder::new()
+        .default_data()
+        .title(format!("Action by {}", ctx.author.name))
+        .description("Started an `update-role` queue")
+        .build()
+        .unwrap();
+    ctx.log_guild(guild_id, log_embed).await; 
+
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     let mut members = ctx
         .bot

@@ -134,7 +134,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
 }
 
 async fn bind_custom(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
-    let code = await_reply("Enter the code for this bind`", &ctx).await?;
+    let code = await_reply("Enter the code for this bind.", &ctx).await?;
 
     custombinds_new_common(ctx, guild_id, guild, code).await
 }
@@ -216,6 +216,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                         }),
                     );
                     asset_type = Some(message_component.data.values[0].clone());
+                    break;
                 } else {
                     let _ = ctx
                         .bot
@@ -317,7 +318,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         placeholder: None,
     };
     let template = await_template_reply(
-        "Enter the template you wish to set for the bind.\nSelect one of the below or enter your own`",
+        "Enter the template you wish to set for the bind.\nSelect one of the below or enter your own.",
         &ctx,
         select_menu
     )
@@ -456,7 +457,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     let mut rank_ids = Vec::new();
     for id in rank_ids_str.split_ascii_whitespace() {
         if id.eq_ignore_ascii_case("all") {
-            rank_ids = roblox_group.roles.iter().collect();
+            rank_ids = roblox_group.roles.iter().filter(|r| r.rank != 0).collect();
             break;
         }
         if let Ok(r) = RankId::from_str(id) {
@@ -550,7 +551,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     };
 
     let template = await_template_reply(
-        "Enter the template you wish to set for the bind.\nSelect one of the below or enter your own`",
+        "Enter the template you wish to set for the bind.\nSelect one of the below or enter your own.",
         &ctx,
         select_menu
     )
@@ -591,7 +592,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     }
 
     let should_groupbind =
-        rank_ids.len() == roblox_group.roles.len() - 1 && rank_ids.iter().any(|r| r.rank == 0);
+        rank_ids.len() == roblox_group.roles.len() - 1 && rank_ids.iter().any(|r| r.rank != 0);
     if !should_groupbind || template.0 == "auto" {
         return bind_rank(
             ctx,
