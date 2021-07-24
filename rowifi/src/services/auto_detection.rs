@@ -6,7 +6,7 @@ use rowifi_framework::{
 };
 use rowifi_models::{guild::RoGuild, roblox::id::UserId as RobloxUserId, user::RoGuildUser};
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
-use tokio::time::{interval, sleep, Duration};
+use tokio::time::{interval, sleep, timeout, Duration};
 use twilight_embed_builder::EmbedBuilder;
 use twilight_model::{
     gateway::{event::Event, payload::RequestGuildMembers},
@@ -49,18 +49,19 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
         if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
             let req = RequestGuildMembers::builder(server.id).query("", None);
             let shard_id = (guild_id.0 >> 22) % ctx.total_shards;
-            ctx.cluster.command(shard_id, &req).await?;
-            let _ = ctx
-                .standby
-                .wait_for_event(move |event: &Event| {
+            let fut = timeout(
+                Duration::from_secs(30),
+                ctx.standby.wait_for_event(move |event: &Event| {
                     if let Event::MemberChunk(mc) = event {
                         if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
                             return true;
                         }
                     }
                     false
-                })
-                .await;
+                }),
+            );
+            ctx.cluster.command(shard_id, &req).await?;
+            let _ = fut.await;
             members = ctx
                 .cache
                 .members(guild_id)
