@@ -313,8 +313,8 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
             tracing::error!(err = ?err);
             let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").await;
             let content = format!(
-                "```Guild Id: {:?}\n Cluster Id: {}\nError: {:?}```",
-                ctx.guild_id, ctx.bot.cluster_id, err
+                "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
+                ctx.guild_id, master_name, ctx.bot.cluster_id, err
             );
             ctx.log_error(&content).await;
         }

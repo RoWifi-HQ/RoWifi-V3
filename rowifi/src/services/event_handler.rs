@@ -78,9 +78,9 @@ impl Service<(u64, Event)> for EventHandler {
                             });
                         }
                     } else {
-                        let content = "Thank you for adding RoWifi! To get started, please set up your server using `!setup`
-                            \n\nTo get more information about announcements & updates, please join our support server\nhttps://www.discord.gg/h4BGGyR
-                            \n\nTo view our documentation, please visit our website\nhttps://rowifi.link";
+                        let content = "Thank you for adding RoWifi! To view our setup guide, check out our post: https://rowifi.link/blog/setup
+                            \nTo get more information about announcements & updates, please join our support server: https://www.discord.gg/h4BGGyR
+                            \nTo view our documentation, please visit our website: https://rowifi.link";
                         let mut channel = None;
                         for c in &guild.channels {
                             if let GuildChannel::Text(tc) = c {
