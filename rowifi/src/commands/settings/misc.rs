@@ -64,12 +64,12 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
     let option = args.option;
     let (update, desc, add) = match option {
         ToggleOption::Enable => (
-            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0}},
+            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0 as i64}},
             "Commands have been successfully enabled in this channel",
             false,
         ),
         ToggleOption::Disable => (
-            doc! {"$push": {"DisabledChannels": ctx.channel_id.0}},
+            doc! {"$push": {"DisabledChannels": ctx.channel_id.0 as i64}},
             "Commands have been successfully disabled in this channel",
             true,
         ),

@@ -136,8 +136,8 @@ impl Service<(u64, Event)> for EventHandler {
                     let guild_ids = ready
                         .guilds
                         .iter()
-                        .map(|k| k.id.0)
-                        .collect::<Vec<u64>>();
+                        .map(|k| k.id.0 as i64)
+                        .collect::<Vec<_>>();
                     let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
                     for guild in guilds {
                         let guild_id = GuildId(guild.id as u64);

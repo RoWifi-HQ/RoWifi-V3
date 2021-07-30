@@ -72,7 +72,7 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0 as i64};
     let update = doc! {"$set": {"APIKey": hash}};
     ctx.bot.database.modify_guild(filter, update).await?;
     Ok(())

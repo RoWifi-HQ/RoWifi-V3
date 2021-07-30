@@ -71,7 +71,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     };
     let event_bson = to_bson(&event_type)?;
 
-    let filter = doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0 as i64};
     let update = doc! {"$push": {"EventTypes": event_bson}};
 
     ctx.bot.database.modify_guild(filter, update).await?;
@@ -123,7 +123,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
     };
     let event = &guild.event_types[event_type_index];
 
-    let filter = doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0 as i64};
     let index_str = format!("EventTypes.{}.Name", event_type_index);
     let update = doc! {"$set": {index_str: event_name.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;

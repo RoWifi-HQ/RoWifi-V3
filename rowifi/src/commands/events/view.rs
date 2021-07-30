@@ -62,7 +62,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0}},
+        doc! {"$match": {"GuildId": guild_id.0 as i64}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$unwind": "$Attendees"},
         doc! {"$match": {"Attendees": roblox_id}},
@@ -156,7 +156,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0}},
+        doc! {"$match": {"GuildId": guild_id.0 as i64}},
         doc! {"$match": {"HostId": roblox_id}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$limit": 12},
@@ -215,7 +215,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0, "GuildEventId": event_id}}];
+    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0 as i64, "GuildEventId": event_id}}];
     let events = ctx.bot.database.get_events(pipeline).await?;
     if events.is_empty() {
         let embed = EmbedBuilder::new()

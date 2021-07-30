@@ -43,7 +43,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0)
+        .map(|m| m.0 as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
@@ -69,7 +69,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0)
+            .map(|m| m.0 as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx
@@ -174,7 +174,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0)
+        .map(|m| m.0 as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
@@ -200,7 +200,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0)
+            .map(|m| m.0 as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx

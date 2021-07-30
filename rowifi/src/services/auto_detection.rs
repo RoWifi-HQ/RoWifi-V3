@@ -30,7 +30,7 @@ pub async fn auto_detection(ctx: BotContext) {
 }
 
 async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Error>> {
-    let servers = ctx.cache.guilds();
+    let servers = ctx.cache.guilds().into_iter().map(|s| s as i64).collect::<Vec<_>>();
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {
@@ -44,7 +44,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0)
+            .map(|m| m.0 as i64)
             .collect::<Vec<_>>();
         if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
             let req = RequestGuildMembers::builder(server.id).query("", None);
@@ -66,7 +66,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
                 .cache
                 .members(guild_id)
                 .into_iter()
-                .map(|m| m.0)
+                .map(|m| m.0 as i64)
                 .collect::<Vec<_>>();
         }
         let users = ctx.database.get_linked_users(&members, guild_id.0).await?;

@@ -39,7 +39,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
         }
 
         let filter = doc! {"_id": guild.id};
-        let update = doc! {"$set": {"Settings.LogChannel": channel_id.0}};
+        let update = doc! {"$set": {"Settings.LogChannel": channel_id.0 as i64}};
         ctx.bot.database.modify_guild(filter, update).await?;
 
         ctx.bot.log_channels.insert(guild_id, channel_id);

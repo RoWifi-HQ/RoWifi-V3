@@ -134,7 +134,7 @@ pub async fn nickname_bypass_remove(
     let mut role_ids = Vec::new();
     for r in discord_roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
 
@@ -146,7 +146,7 @@ pub async fn nickname_bypass_remove(
         .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| !role_ids.contains(&r.0));
+        .retain(|r| !role_ids.contains(&(r.0 as i64)));
 
     let mut description = "Removed Nickname Bypass Roles:\n".to_string();
     for role in role_ids {

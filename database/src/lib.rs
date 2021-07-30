@@ -87,7 +87,7 @@ impl Database {
             Some(g) => Ok(g),
             None => {
                 let guilds = self.client.database(DATABASE).collection(GUILDS);
-                let result = guilds.find_one(doc! {"_id": guild_id}, None).await?;
+                let result = guilds.find_one(doc! {"_id": guild_id as i64}, None).await?;
                 let guild = match result {
                     Some(res) => bson::from_document::<RoGuild>(res)?,
                     None => {
@@ -106,7 +106,7 @@ impl Database {
     }
 
     /// Get multiple guilds from their ids. This method bypasses the cache
-    pub async fn get_guilds(&self, guild_ids: &[u64], premium_only: bool) -> Result<Vec<RoGuild>> {
+    pub async fn get_guilds(&self, guild_ids: &[i64], premium_only: bool) -> Result<Vec<RoGuild>> {
         let guilds = self
             .client
             .database(DATABASE)
@@ -226,7 +226,7 @@ impl Database {
     /// Delete all documents of a discord user with the given roblox id. This method is called after an user runs `verify delete`
     pub async fn delete_linked_users(&self, user_id: u64, roblox_id: i64) -> Result<()> {
         let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
-        let filter = doc! {"UserId": user_id, "RobloxId": roblox_id};
+        let filter = doc! {"UserId": user_id as i64, "RobloxId": roblox_id};
         let mut conn = self.redis_pool.get().await?;
 
         let mut cursor = linked_users.find(filter.clone(), None).await?;
@@ -257,7 +257,7 @@ impl Database {
             Some(u) => Ok(Some(u)),
             None => {
                 let users = self.client.database(DATABASE).collection(USERS);
-                let result = users.find_one(doc! {"_id": user_id}, None).await?;
+                let result = users.find_one(doc! {"_id": user_id as i64}, None).await?;
                 let user = match result {
                     None => return Ok(None),
                     Some(res) => bson::from_document::<RoUser>(res)?,
@@ -284,7 +284,7 @@ impl Database {
             Some(l) => Ok(Some(l)),
             None => {
                 let result = linked_users
-                    .find_one(doc! {"GuildId": guild_id, "UserId": user_id}, None)
+                    .find_one(doc! {"GuildId": guild_id as i64, "UserId": user_id as i64}, None)
                     .await?;
                 let user = match result {
                     None => return Ok(None),
@@ -297,7 +297,7 @@ impl Database {
     }
 
     /// Get multiple users from provided ids. This method bypasses the cache
-    pub async fn get_users(&self, user_ids: &[u64]) -> Result<Vec<RoUser>> {
+    pub async fn get_users(&self, user_ids: &[i64]) -> Result<Vec<RoUser>> {
         let users = self.client.database(DATABASE).collection(USERS);
         let filter = doc! {"_id": {"$in": user_ids}};
         let mut cursor = users.find(filter, None).await?;
@@ -314,11 +314,11 @@ impl Database {
     /// Get multiple users based on the `guild_id`
     pub async fn get_linked_users(
         &self,
-        user_ids: &[u64],
+        user_ids: &[i64],
         guild_id: u64,
     ) -> Result<Vec<RoGuildUser>> {
         let linked_users = self.client.database(DATABASE).collection(LINKED_USERS);
-        let filter = doc! {"UserId": {"$in": user_ids}, "GuildId": guild_id};
+        let filter = doc! {"UserId": {"$in": user_ids}, "GuildId": guild_id as i64};
         let mut cursor = linked_users.find(filter, None).await?;
         let mut result = HashMap::<i64, RoGuildUser>::new();
         while let Some(res) = cursor.next().await {
@@ -368,7 +368,7 @@ impl Database {
     /// Get a backup provided the `user_id` and `name`
     pub async fn get_backup(&self, user_id: u64, name: &str) -> Result<Option<BackupGuild>> {
         let backups = self.client.database(DATABASE).collection("backups");
-        let filter = doc! {"UserId": user_id, "Name": name};
+        let filter = doc! {"UserId": user_id as i64, "Name": name};
         let result = backups.find_one(filter, None).await?;
         match result {
             Some(b) => Ok(Some(bson::from_document::<BackupGuild>(b)?)),
@@ -379,7 +379,7 @@ impl Database {
     /// Get all the backups of a certain user
     pub async fn get_backups(&self, user_id: u64) -> Result<Vec<BackupGuild>> {
         let backups = self.client.database(DATABASE).collection("backups");
-        let filter = doc! {"UserId": user_id};
+        let filter = doc! {"UserId": user_id as i64};
         let mut cursor = backups.find(filter, None).await?;
         let mut result = Vec::<BackupGuild>::new();
         while let Some(res) = cursor.next().await {
@@ -394,7 +394,7 @@ impl Database {
     /// Get the premium information about an user
     pub async fn get_premium(&self, user_id: u64) -> Result<Option<PremiumUser>> {
         let premium = self.client.database(DATABASE).collection(PREMIUM);
-        let filter = doc! {"_id": user_id};
+        let filter = doc! {"_id": user_id as i64};
         let result = premium.find_one(filter, None).await?;
         match result {
             Some(p) => Ok(Some(bson::from_document::<PremiumUser>(p)?)),
@@ -405,7 +405,7 @@ impl Database {
     /// Get the premium information about a user who has premium transferred to them provided the premium owner's id
     pub async fn get_transferred_premium(&self, user_id: u64) -> Result<Option<PremiumUser>> {
         let premium = self.client.database(DATABASE).collection(PREMIUM);
-        let filter = doc! {"PremiumOwner": user_id};
+        let filter = doc! {"PremiumOwner": user_id as i64};
         let result = premium.find_one(filter, None).await?;
         match result {
             Some(p) => Ok(Some(bson::from_document::<PremiumUser>(p)?)),
@@ -445,7 +445,7 @@ impl Database {
     pub async fn delete_premium(&self, user_id: u64) -> Result<()> {
         let premium = self.client.database(DATABASE).collection(PREMIUM);
         let res = premium
-            .find_one_and_delete(doc! {"_id": user_id}, None)
+            .find_one_and_delete(doc! {"_id": user_id as i64}, None)
             .await?;
         if let Some(doc) = res {
             let premium_user = bson::from_document::<PremiumUser>(doc)?;
@@ -504,7 +504,7 @@ impl Database {
         let event_log_doc = bson::to_document(event_log)?;
         events.insert_one(event_log_doc, None).await?;
 
-        let filter = doc! {"_id": guild_id};
+        let filter = doc! {"_id": guild_id as i64};
         let update = doc! {"$inc": {"EventCounter": 1}};
         self.modify_guild(filter, update).await?;
         Ok(())

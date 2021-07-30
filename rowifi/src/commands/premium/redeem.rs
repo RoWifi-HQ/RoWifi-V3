@@ -48,14 +48,14 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
 
     let guild = ctx.bot.database.get_guild(guild_id.0).await?;
 
-    let filter = doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0 as i64};
     let update =
         doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     if !premium_user.discord_servers.contains(&(guild_id.0 as i64)) {
-        let filter2 = doc! {"_id": ctx.author.id.0};
-        let update2 = doc! {"$push": { "Servers": guild_id.0 }};
+        let filter2 = doc! {"_id": ctx.author.id.0 as i64};
+        let update2 = doc! {"$push": { "Servers": guild_id.0 as i64 }};
         ctx.bot.database.modify_premium(filter2, update2).await?;
     }
 
@@ -137,13 +137,13 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
 
     ctx.bot.database.get_guild(guild_id.0).await?;
 
-    let filter = doc! {"_id": guild_id.0};
+    let filter = doc! {"_id": guild_id.0 as i64};
     let update =
         doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
-    let filter2 = doc! {"_id": ctx.author.id.0};
-    let update2 = doc! {"$pull": { "Servers": guild_id.0 }};
+    let filter2 = doc! {"_id": ctx.author.id.0 as i64};
+    let update2 = doc! {"$pull": { "Servers": guild_id.0 as i64 }};
     ctx.bot.database.modify_premium(filter2, update2).await?;
 
     ctx.bot.admin_roles.remove(&guild_id);
