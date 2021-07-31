@@ -284,7 +284,10 @@ impl Database {
             Some(l) => Ok(Some(l)),
             None => {
                 let result = linked_users
-                    .find_one(doc! {"GuildId": guild_id as i64, "UserId": user_id as i64}, None)
+                    .find_one(
+                        doc! {"GuildId": guild_id as i64, "UserId": user_id as i64},
+                        None,
+                    )
                     .await?;
                 let user = match result {
                     None => return Ok(None),

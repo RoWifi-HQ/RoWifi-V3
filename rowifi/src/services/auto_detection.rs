@@ -30,7 +30,12 @@ pub async fn auto_detection(ctx: BotContext) {
 }
 
 async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Error>> {
-    let servers = ctx.cache.guilds().into_iter().map(|s| s as i64).collect::<Vec<_>>();
+    let servers = ctx
+        .cache
+        .guilds()
+        .into_iter()
+        .map(|s| s as i64)
+        .collect::<Vec<_>>();
     let mut guilds = ctx.database.get_guilds(&servers, true).await?;
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {
