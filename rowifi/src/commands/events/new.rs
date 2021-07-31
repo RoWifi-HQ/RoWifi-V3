@@ -83,6 +83,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     select_menu.disabled = true;
 
     let message_id = message.id;
+    let author_id = ctx.author.id;
     let stream = ctx
         .bot
         .standby
@@ -90,39 +91,59 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut event_type_id = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                ctx.bot
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "event-new-cancel" {
+                        ctx.bot
+                            .http
+                            .create_followup_message(&message_component.token)
+                            .unwrap()
+                            .content("Command has been cancelled")
+                            .await?;
+                    } else if message_component.data.custom_id == "event-new-select" {
+                        event_type_id = Some(message_component.data.values[0].clone());
+                    }
+                    break;
+                }
+                let _ = ctx
+                    .bot
                     .http
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            content: None,
-                            components: Some(vec![Component::ActionRow(ActionRow {
-                                components: vec![Component::SelectMenu(select_menu.clone())],
-                            })]),
-                            embeds: Vec::new(),
-                            flags: None,
-                            tts: None,
-                        }),
+                        InteractionResponse::DeferredUpdateMessage,
                     )
-                    .await?;
-                if message_component.data.custom_id == "event-new-cancel" {
-                    ctx.bot
-                        .http
-                        .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .content("Command has been cancelled")
-                        .await?;
-                    return Ok(());
-                } else if message_component.data.custom_id == "event-new-select" {
-                    event_type_id = Some(message_component.data.values[0].clone());
-                    break;
-                }
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This button is only interactable by the original command invoker")
+                    .await;
             }
         }
     }

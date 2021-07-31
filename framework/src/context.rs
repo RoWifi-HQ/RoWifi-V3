@@ -57,6 +57,8 @@ pub struct BotContextRef {
     pub nickname_bypass_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing log channels of all servers
     pub log_channels: DashMap<GuildId, ChannelId>,
+    /// The array containing the message ids wit active components
+    pub ignore_message_components: DashSet<MessageId>,
 
     // Twilight Components
     /// The module used to make requests to discord
@@ -151,6 +153,7 @@ impl BotContext {
                 bypass_roles: DashMap::new(),
                 nickname_bypass_roles: DashMap::new(),
                 log_channels: DashMap::new(),
+                ignore_message_components: DashSet::new(),
                 http,
                 cache,
                 cluster,

@@ -102,6 +102,7 @@ pub async fn await_template_reply(
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -124,6 +125,7 @@ pub async fn await_template_reply(
                             }),
                         )
                         .await?;
+                    ctx.bot.ignore_message_components.remove(&message_id);
                     if message_component.data.custom_id == "template-reply-cancel" {
                         ctx.bot
                             .http
@@ -164,19 +166,12 @@ pub async fn await_template_reply(
                 })]))
                 .unwrap()
                 .await?;
+            ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(Template(msg.content.clone()));
         }
     }
 
-    ctx.bot
-        .http
-        .update_message(message.channel_id, message_id)
-        .components(Some(vec![Component::ActionRow(ActionRow {
-            components: vec![Component::SelectMenu(select_menu.clone())],
-        })]))
-        .unwrap()
-        .await?;
-
+    ctx.bot.ignore_message_components.remove(&message_id);
     Err(RoError::Command(CommandError::Timeout))
 }
 
@@ -222,6 +217,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -250,6 +246,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .unwrap()
                         .content("Command has been cancelled")
                         .await?;
+                    ctx.bot.ignore_message_components.remove(&message_id);
                     return Err(RoError::NoOp);
                 }
                 let _ = ctx
@@ -277,17 +274,12 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 .components(None)
                 .unwrap()
                 .await?;
+            ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(msg.content.clone());
         }
     }
 
-    ctx.bot
-        .http
-        .update_message(message.channel_id, message_id)
-        .components(None)
-        .unwrap()
-        .await?;
-
+    ctx.bot.ignore_message_components.remove(&message_id);
     Err(RoError::Command(CommandError::Timeout))
 }
 
@@ -360,7 +352,6 @@ pub async fn paginate_embed(
             .await?;
 
         //Get some easy named vars
-        let channel_id = m.channel_id;
         let message_id = m.id;
         let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
@@ -372,6 +363,7 @@ pub async fn paginate_embed(
             .timeout(Duration::from_secs(300));
         tokio::pin!(component_interaction);
 
+        ctx.bot.ignore_message_components.insert(message_id);
         let mut page_pointer: usize = 0;
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
@@ -428,7 +420,7 @@ pub async fn paginate_embed(
                 }
             }
         }
-        let _ = ctx.bot.http.delete_message(channel_id, message_id).await;
+        ctx.bot.ignore_message_components.remove(&message_id);
     }
     Ok(())
 }

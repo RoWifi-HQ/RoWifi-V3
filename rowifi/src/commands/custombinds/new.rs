@@ -250,6 +250,7 @@ pub async fn custombinds_new_common(
         .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -288,7 +289,7 @@ pub async fn custombinds_new_common(
                         .embeds(vec![embed])
                         .await?;
 
-                    return Ok(());
+                    break;
                 }
                 let _ = ctx
                     .bot
@@ -310,12 +311,7 @@ pub async fn custombinds_new_common(
             }
         }
     }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
-    ctx.bot
-        .http
-        .update_message(ctx.channel_id, message_id)
-        .components(None)
-        .unwrap()
-        .await?;
     Ok(())
 }

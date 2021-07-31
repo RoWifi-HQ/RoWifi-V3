@@ -71,6 +71,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
 
     select_menu.disabled = true;
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut bind_type = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
@@ -117,6 +118,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
             }
         }
     }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     let bind_type = match bind_type {
         Some(b) => b,
@@ -195,6 +197,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
     select_menu.disabled = true;
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut asset_type = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
@@ -238,6 +241,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             }
         }
     }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     let asset_type = match asset_type {
         Some(s) => match AssetType::from_arg(&s) {
