@@ -173,19 +173,15 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         placeholder: None,
     };
 
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content("Select the type of asset to bind:")
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
         })])
-        .unwrap()
         .await?;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -264,12 +260,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected asset id to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -338,12 +329,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -390,12 +376,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -423,12 +404,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected the group id to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -443,12 +419,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description(format!("Group with Id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -488,12 +459,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             .description("There were no ranks found associated with the entered ones")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -571,12 +537,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };

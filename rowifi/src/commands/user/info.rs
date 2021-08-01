@@ -23,12 +23,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
                 .description("User was not verified. Please ask him/her to verify themselves")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };

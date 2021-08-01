@@ -18,12 +18,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -49,7 +44,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
             return Ok(());
         }
         let _ = ctx
@@ -139,12 +134,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -180,7 +170,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
             return Ok(());
         }
         let _ = ctx

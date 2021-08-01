@@ -53,12 +53,9 @@ pub async fn await_template_reply(
     mut select_menu: SelectMenu,
 ) -> Result<Template, RoError> {
     let select_custom_id = select_menu.custom_id.clone();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content(question)
-        .unwrap()
         .components(vec![
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -74,10 +71,9 @@ pub async fn await_template_reply(
                 })],
             }),
         ])
-        .unwrap()
         .await?;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     select_menu.disabled = true;
@@ -158,14 +154,6 @@ pub async fn await_template_reply(
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(Some(vec![Component::ActionRow(ActionRow {
-                    components: vec![Component::SelectMenu(select_menu.clone())],
-                })]))
-                .unwrap()
-                .await?;
             ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(Template(msg.content.clone()));
         }
@@ -176,12 +164,9 @@ pub async fn await_template_reply(
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content(question)
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("reply-cancel".into()),
@@ -192,9 +177,8 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 url: None,
             })],
         })])
-        .unwrap()
         .await?;
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -268,12 +252,6 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(None)
-                .unwrap()
-                .await?;
             ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(msg.content.clone());
         }
@@ -290,20 +268,11 @@ pub async fn paginate_embed(
 ) -> Result<(), RoError> {
     let page_count = page_count;
     if page_count <= 1 {
-        let _ = ctx
-            .bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![pages[0].clone()])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![pages[0].clone()]).await?;
     } else {
-        let m = ctx
-            .bot
-            .http
-            .create_message(ctx.channel_id)
+        let message_id = ctx
+            .respond()
             .embeds(vec![pages[0].clone()])
-            .unwrap()
             .components(vec![Component::ActionRow(ActionRow {
                 components: vec![
                     Component::Button(Button {
@@ -348,11 +317,10 @@ pub async fn paginate_embed(
                     }),
                 ],
             })])
-            .unwrap()
             .await?;
 
         //Get some easy named vars
-        let message_id = m.id;
+        let message_id = message_id.unwrap();
         let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 

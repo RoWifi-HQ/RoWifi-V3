@@ -69,22 +69,12 @@ pub async fn custombinds_new_common(
     let command = match RoCommand::new(&code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .content(s)
-                .unwrap()
-                .await?;
+            ctx.respond().content(s).await?;
             return Ok(());
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .content(res)
-            .unwrap()
-            .await?;
+        ctx.respond().content(res).await?;
         return Ok(());
     }
 
@@ -95,7 +85,7 @@ pub async fn custombinds_new_common(
         min_values: Some(1),
         options: vec![
             SelectMenuOption {
-                default: true,
+                default: false,
                 description: Some("Sets the nickname as just the roblox username".into()),
                 emoji: None,
                 label: "{roblox-username}".into(),
@@ -152,12 +142,7 @@ pub async fn custombinds_new_common(
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -210,12 +195,9 @@ pub async fn custombinds_new_common(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![embed])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -228,7 +210,6 @@ pub async fn custombinds_new_common(
                 disabled: false,
             })],
         })])
-        .unwrap()
         .await?;
 
     let log_embed = EmbedBuilder::new()
@@ -241,7 +222,7 @@ pub async fn custombinds_new_common(
     ctx.log_guild(guild_id, log_embed).await;
 
     let author_id = ctx.author.id;
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
 
     let stream = ctx
         .bot

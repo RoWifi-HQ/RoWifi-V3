@@ -2,10 +2,14 @@ use futures_util::future::FutureExt;
 use std::{
     future::Future,
     pin::Pin,
+    sync::atomic::Ordering,
     task::{Context, Poll},
 };
 use twilight_http::{
-    request::{application::UpdateOriginalResponse, prelude::CreateMessage},
+    request::{
+        application::{CreateFollowupMessage, UpdateOriginalResponse},
+        prelude::CreateMessage,
+    },
     Error as DiscordHttpError,
 };
 use twilight_model::{application::component::Component, channel::embed::Embed, id::MessageId};
@@ -15,6 +19,7 @@ use crate::context::CommandContext;
 pub struct Responder<'a> {
     message: Option<CreateMessage<'a>>,
     interaction: Option<UpdateOriginalResponse<'a>>,
+    followup: Option<CreateFollowupMessage<'a>>,
 }
 
 impl<'a> Responder<'a> {
@@ -23,15 +28,33 @@ impl<'a> Responder<'a> {
             || Self {
                 message: Some(ctx.bot.http.create_message(ctx.channel_id)),
                 interaction: None,
+                followup: None,
             },
-            |interaction_token| Self {
-                message: None,
-                interaction: Some(
-                    ctx.bot
-                        .http
-                        .update_interaction_original(interaction_token)
-                        .unwrap(),
-                ),
+            |interaction_token| {
+                if ctx.callback_invoked.load(Ordering::Relaxed) {
+                    Self {
+                        message: None,
+                        interaction: None,
+                        followup: Some(
+                            ctx.bot
+                                .http
+                                .create_followup_message(interaction_token)
+                                .unwrap(),
+                        ),
+                    }
+                } else {
+                    ctx.callback_invoked.store(true, Ordering::Relaxed);
+                    Self {
+                        message: None,
+                        interaction: Some(
+                            ctx.bot
+                                .http
+                                .update_interaction_original(interaction_token)
+                                .unwrap(),
+                        ),
+                        followup: None,
+                    }
+                }
             },
         )
     }
@@ -42,6 +65,8 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.content(Some(content)).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.content(content).unwrap());
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.content(content));
         }
         self
     }
@@ -51,6 +76,8 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.components(Some(vec![component])).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.components(vec![component]).unwrap());
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.components(vec![component]).unwrap());
         }
         self
     }
@@ -60,6 +87,8 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.components(Some(components)).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.components(components).unwrap());
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.components(components).unwrap());
         }
         self
     }
@@ -69,6 +98,18 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.embeds(Some(vec![embed])).unwrap());
         } else if let Some(message) = self.message {
             self.message = Some(message.embeds(vec![embed]).unwrap());
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.embeds(vec![embed]));
+        }
+        self
+    }
+    pub fn embeds(mut self, embeds: Vec<Embed>) -> Self {
+        if let Some(interaction) = self.interaction {
+            self.interaction = Some(interaction.embeds(Some(embeds)).unwrap());
+        } else if let Some(message) = self.message {
+            self.message = Some(message.embeds(embeds).unwrap());
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.embeds(embeds));
         }
         self
     }
@@ -78,6 +119,8 @@ impl<'a> Responder<'a> {
             self.interaction = Some(interaction.files(vec![(name, file)]));
         } else if let Some(message) = self.message {
             self.message = Some(message.files(vec![(name, file)]));
+        } else if let Some(followup) = self.followup {
+            self.followup = Some(followup.files(vec![(name, file)]));
         }
         self
     }
@@ -92,6 +135,8 @@ impl Future for Responder<'_> {
             interaction.poll_unpin(cx).map(|i| i.map(|m| Some(m.id)))
         } else if let Some(message) = self.message.as_mut() {
             message.poll_unpin(cx).map(|p| p.map(|m| Some(m.id)))
+        } else if let Some(followup) = self.followup.as_mut() {
+            followup.poll_unpin(cx).map(|p| p.map(|m| m.map(|i| i.id)))
         } else {
             Poll::Ready(Ok(None))
         }

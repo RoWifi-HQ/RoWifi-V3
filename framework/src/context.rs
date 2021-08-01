@@ -17,7 +17,7 @@ use std::{
     borrow::ToOwned,
     collections::{HashMap, HashSet},
     ops::Deref,
-    sync::Arc,
+    sync::{atomic::AtomicBool, Arc},
 };
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
@@ -111,6 +111,8 @@ pub struct CommandContext {
     pub interaction_id: Option<InteractionId>,
     /// The token of the interaction. This is used to make followups or edit the original response
     pub interaction_token: Option<String>,
+    /// Bool whether callback has been invoked
+    pub callback_invoked: Arc<AtomicBool>,
 }
 
 impl BotContext {

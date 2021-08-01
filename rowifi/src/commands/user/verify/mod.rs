@@ -138,12 +138,7 @@ pub async fn verify_common(
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -176,12 +171,9 @@ pub async fn verify_common(
         url: Some(game_url.into()),
         disabled: false,
     });
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![e])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![
                 game_url_button.clone(),
@@ -195,7 +187,6 @@ pub async fn verify_common(
                 }),
             ],
         })])
-        .unwrap()
         .await?;
     let q_user = QueueUser {
         roblox_id,
@@ -206,7 +197,7 @@ pub async fn verify_common(
 
     handle_update_button(
         &ctx,
-        message.id,
+        message_id.unwrap(),
         vec![Component::ActionRow(ActionRow {
             components: vec![game_url_button],
         })],
@@ -227,12 +218,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -276,12 +262,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
 
     let embed = embed.description(acc_string).build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
 
     Ok(())
 }

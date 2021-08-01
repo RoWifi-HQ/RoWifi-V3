@@ -31,7 +31,7 @@ use rowifi_cache::{CachedGuild, CachedMember};
 use std::{
     future::Future,
     pin::Pin,
-    sync::Arc,
+    sync::{atomic::AtomicBool, Arc},
     task::{Context, Poll},
 };
 use tower::Service;
@@ -110,6 +110,7 @@ impl Framework {
                     message_id: Some(msg.id),
                     interaction_id: None,
                     interaction_token: None,
+                    callback_invoked: Arc::new(AtomicBool::new(false)),
                 };
                 let req = ServiceRequest::Help(args, embed);
                 return cmd.call((ctx, req));
@@ -251,6 +252,7 @@ impl Service<&Event> for Framework {
                     message_id: Some(msg.id),
                     interaction_id: None,
                     interaction_token: None,
+                    callback_invoked: Arc::new(AtomicBool::new(false)),
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -308,6 +310,7 @@ impl Service<&Event> for Framework {
                         message_id: None,
                         interaction_id: Some(id),
                         interaction_token: Some(top_command.token.clone()),
+                        callback_invoked: Arc::new(AtomicBool::new(false)),
                     };
 
                     let request = ServiceRequest::Interaction(command_options.clone());

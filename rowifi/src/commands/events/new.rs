@@ -56,12 +56,9 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         placeholder: None,
     };
 
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content("Select an event type")
-        .unwrap()
         .components(vec![
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -77,12 +74,11 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 })],
             }),
         ])
-        .unwrap()
         .await?;
 
     select_menu.disabled = true;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
     let stream = ctx
         .bot
@@ -150,15 +146,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let event_type_id = match event_type_id {
         Some(e) => e.parse().unwrap(),
-        None => {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(None)
-                .unwrap()
-                .await?;
-            return Ok(());
-        }
+        None => return Ok(()),
     };
 
     let event_type = guild
@@ -183,12 +171,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("The number of valid attendees was found to be zero")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -239,11 +222,6 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
     Ok(())
 }

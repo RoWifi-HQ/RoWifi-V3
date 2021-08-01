@@ -126,7 +126,8 @@ pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<
                     .build()
                     .unwrap();
                 if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
-                    ctx.bot
+                    let _ = ctx
+                        .bot
                         .http
                         .create_message(channel.id)
                         .content(format!(
@@ -134,7 +135,7 @@ pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<
                             server.name, b
                         ))
                         .unwrap()
-                        .await?;
+                        .await;
                 }
                 return Ok(embed);
             }
