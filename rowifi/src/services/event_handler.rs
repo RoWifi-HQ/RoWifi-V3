@@ -1,11 +1,15 @@
 use super::{activity, auto_detection};
 use dashmap::DashSet;
 use futures_util::future::{Future, FutureExt};
-use rowifi_framework::{
-    context::BotContext,
-    prelude::{CommandError, EmbedExtensions, RoError},
+use rowifi_framework::{context::BotContext, prelude::*};
+use rowifi_models::{
+    discord::{
+        channel::GuildChannel,
+        guild::Permissions,
+        id::{ChannelId, GuildId, RoleId},
+    },
+    guild::GuildType,
 };
-use rowifi_models::guild::GuildType;
 use std::{
     pin::Pin,
     sync::{
@@ -15,13 +19,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
-use twilight_model::{
-    channel::GuildChannel,
-    guild::Permissions,
-    id::{ChannelId, GuildId, RoleId},
-};
 
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,

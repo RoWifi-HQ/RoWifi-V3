@@ -213,8 +213,8 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
                 })
             }
 
-            fn from_interaction(options: &[twilight_model::application::interaction::application_command::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
-                use twilight_model::application::interaction::application_command::CommandDataOption;
+            fn from_interaction(options: &[rowifi_models::discord::application::interaction::application_command::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
+                use rowifi_models::discord::application::interaction::application_command::CommandDataOption;
 
                 let options = options.iter().map(|c| (c.name(), c))
                     .collect::<std::collections::HashMap<&str, &CommandDataOption>>();

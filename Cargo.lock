@@ -1740,11 +1740,8 @@ dependencies = [
  "tower",
  "tracing",
  "tracing-subscriber",
- "twilight-embed-builder",
  "twilight-gateway",
  "twilight-http",
- "twilight-mention",
- "twilight-model",
  "twilight-standby",
 ]
 
@@ -1755,7 +1752,6 @@ dependencies = [
  "dashmap",
  "rowifi-models",
  "tracing",
- "twilight-model",
 ]
 
 [[package]]
@@ -1792,7 +1788,6 @@ dependencies = [
  "twilight-embed-builder",
  "twilight-gateway",
  "twilight-http",
- "twilight-model",
  "twilight-standby",
  "twilight-util",
  "uwl",
@@ -2519,14 +2514,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "twilight-model",
-]
-
-[[package]]
-name = "twilight-mention"
-version = "0.5.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=feature/message-components#e6717115d60682a742d31ed2bceb64b6dc7eb926"
-dependencies = [
  "twilight-model",
 ]
 

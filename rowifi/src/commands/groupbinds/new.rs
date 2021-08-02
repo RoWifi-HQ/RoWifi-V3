@@ -1,8 +1,9 @@
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{GroupBind, Template};
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
+use rowifi_models::{
+    bind::{GroupBind, Template},
+    discord::id::RoleId,
+};
 
 #[derive(FromArgs)]
 pub struct GroupbindsNewArguments {
@@ -81,7 +82,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         priority,
         bind.discord_roles
             .iter()
-            .map(|r| RoleId(*r as u64).mention().to_string())
+            .map(|r| format!("<@&{}> ", r))
             .collect::<String>()
     );
     let embed = EmbedBuilder::new()

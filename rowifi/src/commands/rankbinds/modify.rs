@@ -1,7 +1,6 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{guild::RoGuild, roblox::id::GroupId};
-use twilight_embed_builder::EmbedFieldBuilder;
 
 use super::new::PREFIX_REGEX;
 

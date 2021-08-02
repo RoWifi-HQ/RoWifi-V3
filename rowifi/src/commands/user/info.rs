@@ -1,7 +1,8 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::roblox::id::UserId as RobloxUserId;
-use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
-use twilight_model::id::{GuildId, UserId};
+use rowifi_models::{
+    discord::id::{GuildId, UserId},
+    roblox::id::UserId as RobloxUserId,
+};
 
 #[derive(FromArgs)]
 pub struct UserInfoArguments {

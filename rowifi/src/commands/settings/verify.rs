@@ -1,6 +1,6 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use twilight_model::id::RoleId;
+use rowifi_models::discord::id::RoleId;
 
 #[derive(FromArgs)]
 pub struct VerificationArguments {

@@ -1,8 +1,8 @@
 use mongodb::bson::{self, doc};
 use rowifi_framework::prelude::*;
+use rowifi_models::discord::{application::interaction::Interaction, gateway::event::Event};
 use std::time::Duration;
 use tokio_stream::StreamExt;
-use twilight_model::{application::interaction::Interaction, gateway::event::Event};
 
 #[derive(FromArgs)]
 pub struct DeleteArguments {

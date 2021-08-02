@@ -1,4 +1,4 @@
-use twilight_model::{
+use rowifi_models::discord::{
     guild::Permissions,
     id::{GuildId, RoleId},
 };

@@ -1,7 +1,6 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
-use twilight_model::id::ChannelId;
+use rowifi_models::{discord::id::ChannelId, guild::GuildType};
 
 #[derive(FromArgs)]
 pub struct LogChannelArguments {

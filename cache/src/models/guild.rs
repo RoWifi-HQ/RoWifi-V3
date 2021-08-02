@@ -1,8 +1,8 @@
-use std::sync::{atomic::AtomicI64, Arc};
-use twilight_model::{
+use rowifi_models::discord::{
     guild::Permissions,
     id::{ChannelId, GuildId, RoleId, UserId},
 };
+use std::sync::{atomic::AtomicI64, Arc};
 
 #[derive(Debug, Clone)]
 pub struct CachedGuild {

@@ -4,8 +4,6 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
 
 pub use delete::assetbinds_delete;
 pub use modify::assetbinds_modify;
@@ -80,7 +78,7 @@ pub async fn assetbind(ctx: CommandContext) -> CommandResult {
             let roles_str = ab
                 .discord_roles
                 .iter()
-                .map(|r| RoleId(*r as u64).mention().to_string())
+                .map(|r| format!("<@&{}>", r))
                 .collect::<String>();
             let nick = match &ab.template {
                 Some(template) => format!("Template: {}\n", template),

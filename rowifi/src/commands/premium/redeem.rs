@@ -1,8 +1,10 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
+use rowifi_models::{
+    discord::{gateway::payload::RequestGuildMembers, id::RoleId},
+    guild::GuildType,
+};
 use std::env;
-use twilight_model::{gateway::payload::RequestGuildMembers, id::RoleId};
 
 pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();

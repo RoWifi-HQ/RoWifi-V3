@@ -5,11 +5,11 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetBind, AssetType, GroupBind, RankBind, Template},
+    discord::id::{GuildId, RoleId},
     guild::RoGuild,
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
-use twilight_model::id::{GuildId, RoleId};
 
 use crate::commands::{custombinds::new::custombinds_new_common, log_rankbind};
 

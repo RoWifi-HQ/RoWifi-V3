@@ -1,17 +1,17 @@
 use itertools::Itertools;
 use rowifi_cache::CachedGuild;
-use rowifi_framework::{
-    context::BotContext,
-    prelude::{EmbedExtensions, RoError},
+use rowifi_framework::{context::BotContext, prelude::*};
+use rowifi_models::{
+    discord::{
+        gateway::{event::Event, payload::RequestGuildMembers},
+        id::{GuildId, RoleId, UserId},
+    },
+    guild::RoGuild,
+    roblox::id::UserId as RobloxUserId,
+    user::RoGuildUser,
 };
-use rowifi_models::{guild::RoGuild, roblox::id::UserId as RobloxUserId, user::RoGuildUser};
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
-use twilight_embed_builder::EmbedBuilder;
-use twilight_model::{
-    gateway::{event::Event, payload::RequestGuildMembers},
-    id::{GuildId, RoleId, UserId},
-};
 
 pub async fn auto_detection(ctx: BotContext) {
     tracing::info!("Auto Detection starting");

@@ -1,5 +1,4 @@
 use rowifi_framework::prelude::*;
-use twilight_embed_builder::EmbedFieldBuilder;
 
 pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();

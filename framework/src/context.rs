@@ -7,6 +7,11 @@ use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
 use rowifi_models::{
     bind::Bind,
+    discord::{
+        channel::embed::Embed,
+        id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+        user::User,
+    },
     guild::{BlacklistActionType, RoGuild},
     roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
     rolang::RoCommandUser,
@@ -21,11 +26,6 @@ use std::{
 };
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
-use twilight_model::{
-    channel::embed::Embed,
-    id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
-    user::User,
-};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 

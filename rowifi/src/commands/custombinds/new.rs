@@ -3,12 +3,12 @@ use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::CustomBind,
+    discord::id::{GuildId, RoleId},
     guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
-use twilight_model::id::{GuildId, RoleId};
 
 #[derive(FromArgs)]
 pub struct CustombindsNewArguments {

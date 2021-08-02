@@ -14,7 +14,15 @@ mod event;
 mod models;
 
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
-use rowifi_models::stats::BotStats;
+use rowifi_models::{
+    discord::{
+        channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
+        guild::{Guild, Member, Permissions, Role},
+        id::{ChannelId, GuildId, RoleId, UserId},
+        user::{CurrentUser, User},
+    },
+    stats::BotStats,
+};
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -22,12 +30,6 @@ use std::{
         atomic::{AtomicI64, Ordering},
         Arc, Mutex,
     },
-};
-use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
-    guild::{Guild, Member, Permissions, Role},
-    id::{ChannelId, GuildId, RoleId, UserId},
-    user::{CurrentUser, User},
 };
 
 use event::UpdateCache;

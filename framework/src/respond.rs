@@ -1,4 +1,7 @@
 use futures_util::future::FutureExt;
+use rowifi_models::discord::{
+    application::component::Component, channel::embed::Embed, id::MessageId,
+};
 use std::{
     future::Future,
     pin::Pin,
@@ -12,7 +15,6 @@ use twilight_http::{
     },
     Error as DiscordHttpError,
 };
-use twilight_model::{application::component::Component, channel::embed::Embed, id::MessageId};
 
 use crate::context::CommandContext;
 

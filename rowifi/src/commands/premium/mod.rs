@@ -3,8 +3,7 @@ mod redeem;
 mod transfer;
 
 use rowifi_framework::prelude::*;
-use rowifi_models::user::PremiumType;
-use twilight_model::id::UserId;
+use rowifi_models::{discord::id::UserId, user::PremiumType};
 
 use self::patreon::premium_patreon;
 use redeem::{premium_redeem, premium_remove};

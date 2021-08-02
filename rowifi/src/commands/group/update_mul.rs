@@ -1,11 +1,14 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
+use rowifi_models::{
+    discord::{
+        gateway::payload::RequestGuildMembers,
+        id::{RoleId, UserId},
+    },
+    guild::GuildType,
+    roblox::id::UserId as RobloxUserId,
+};
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
-use twilight_model::{
-    gateway::payload::RequestGuildMembers,
-    id::{RoleId, UserId},
-};
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();

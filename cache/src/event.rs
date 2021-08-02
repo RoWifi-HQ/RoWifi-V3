@@ -1,9 +1,4 @@
-use std::{
-    ops::Deref,
-    sync::{atomic::Ordering, Arc},
-};
-use tracing::{debug, info};
-use twilight_model::{
+use rowifi_models::discord::{
     application::interaction::Interaction,
     channel::Channel,
     gateway::{
@@ -15,6 +10,11 @@ use twilight_model::{
         },
     },
 };
+use std::{
+    ops::Deref,
+    sync::{atomic::Ordering, Arc},
+};
+use tracing::{debug, info};
 
 use super::{Cache, CacheError, CachedMember};
 

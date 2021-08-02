@@ -1,9 +1,9 @@
-use std::sync::Arc;
-use twilight_model::{
+use rowifi_models::discord::{
     guild::{Member, PartialMember},
     id::RoleId,
     user::User,
 };
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct CachedMember {

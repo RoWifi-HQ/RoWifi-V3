@@ -1,8 +1,9 @@
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{AssetBind, AssetType, Template};
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
+use rowifi_models::{
+    bind::{AssetBind, AssetType, Template},
+    discord::id::RoleId,
+};
 
 #[derive(FromArgs)]
 pub struct NewArguments {
@@ -91,7 +92,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         priority,
         bind.discord_roles
             .iter()
-            .map(|r| RoleId(*r as u64).mention().to_string())
+            .map(|r| format!("<@&{}> ", r))
             .collect::<String>()
     );
     let embed = EmbedBuilder::new()

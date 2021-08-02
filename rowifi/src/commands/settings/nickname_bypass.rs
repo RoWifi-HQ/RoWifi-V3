@@ -1,7 +1,9 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::{GuildType, RoGuild};
-use twilight_model::id::RoleId;
+use rowifi_models::{
+    discord::id::RoleId,
+    guild::{GuildType, RoGuild},
+};
 
 use super::FunctionOption;
 

@@ -4,8 +4,6 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
 
 pub use delete::groupbinds_delete;
 pub use modify::groupbinds_modify;
@@ -88,7 +86,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
                 gb.priority,
                 gb.discord_roles
                     .iter()
-                    .map(|r| RoleId(*r as u64).mention().to_string())
+                    .map(|r| format!("<@&{}> ", r))
                     .collect::<String>()
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());

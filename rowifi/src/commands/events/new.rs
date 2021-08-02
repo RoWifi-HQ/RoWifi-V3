@@ -4,7 +4,6 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use std::time::Duration;
-use twilight_mention::Mention;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -208,7 +207,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",
-        ctx.author.id.mention(),
+        format!("<@{}>", ctx.author.id.0),
         event_type.name,
         new_event.attendees.len()
     );

@@ -1,5 +1,5 @@
+use rowifi_models::discord::id::RoleId;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
-use twilight_model::id::RoleId;
 
 use crate::utils::Color;
 

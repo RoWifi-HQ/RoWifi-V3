@@ -1,7 +1,6 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
-use twilight_model::id::RoleId;
+use rowifi_models::{discord::id::RoleId, guild::GuildType};
 
 #[derive(FromArgs)]
 pub struct FunctionalArguments {

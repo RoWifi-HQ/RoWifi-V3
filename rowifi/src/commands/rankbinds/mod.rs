@@ -4,9 +4,6 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use twilight_embed_builder::EmbedFieldBuilder;
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
 
 pub use delete::*;
 pub use modify::*;
@@ -95,7 +92,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
                     rb.priority,
                     rb.discord_roles
                         .iter()
-                        .map(|r| RoleId(*r as u64).mention().to_string())
+                        .map(|r| format!("<@&{}> ", r))
                         .collect::<String>()
                 );
                 embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());

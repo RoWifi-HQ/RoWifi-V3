@@ -1,11 +1,14 @@
 mod manage;
 
 use rowifi_framework::prelude::*;
-use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
-use twilight_model::application::component::{
-    action_row::ActionRow,
-    button::{Button, ButtonStyle},
-    Component,
+use rowifi_models::{
+    discord::application::component::{
+        action_row::ActionRow,
+        button::{Button, ButtonStyle},
+        Component,
+    },
+    roblox::id::UserId as RobloxUserId,
+    user::QueueUser,
 };
 
 use crate::commands::handle_update_button;

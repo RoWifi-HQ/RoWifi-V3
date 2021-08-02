@@ -4,7 +4,22 @@ use crate::{
     extensions::StandbyExtensions,
 };
 
-use rowifi_models::bind::Template;
+use rowifi_models::{
+    bind::Template,
+    discord::{
+        application::{
+            callback::{CallbackData, InteractionResponse},
+            component::{
+                action_row::ActionRow,
+                button::{Button, ButtonStyle},
+                Component, SelectMenu,
+            },
+            interaction::Interaction,
+        },
+        channel::{embed::Embed, ReactionType},
+        gateway::event::Event,
+    },
+};
 use std::{
     cmp::{max, min},
     num::ParseIntError,
@@ -12,19 +27,6 @@ use std::{
     time::Duration,
 };
 use tokio_stream::StreamExt;
-use twilight_model::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        component::{
-            action_row::ActionRow,
-            button::{Button, ButtonStyle},
-            Component, SelectMenu,
-        },
-        interaction::Interaction,
-    },
-    channel::{embed::Embed, ReactionType},
-    gateway::event::Event,
-};
 
 pub enum Color {
     Red = 0x00E7_4C3C,

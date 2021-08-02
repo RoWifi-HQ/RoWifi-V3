@@ -1,11 +1,10 @@
 use hyper::StatusCode;
 use rowifi_framework::prelude::*;
-use twilight_embed_builder::EmbedFooterBuilder;
-use twilight_http::error::ErrorType as DiscordErrorType;
-use twilight_model::{
+use rowifi_models::discord::{
     channel::embed::Embed,
     id::{RoleId, UserId},
 };
+use twilight_http::error::ErrorType as DiscordErrorType;
 
 #[derive(Debug, FromArgs)]
 pub struct UpdateArguments {

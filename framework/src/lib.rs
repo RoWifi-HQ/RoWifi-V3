@@ -28,15 +28,7 @@ pub mod utils;
 use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::{atomic::AtomicBool, Arc},
-    task::{Context, Poll},
-};
-use tower::Service;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
-use twilight_model::{
+use rowifi_models::discord::{
     application::{
         callback::{CallbackData, InteractionResponse},
         interaction::{application_command::CommandDataOption, Interaction},
@@ -46,6 +38,14 @@ use twilight_model::{
     guild::Permissions,
     id::{GuildId, UserId},
 };
+use std::{
+    future::Future,
+    pin::Pin,
+    sync::{atomic::AtomicBool, Arc},
+    task::{Context, Poll},
+};
+use tower::Service;
+use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use uwl::Stream;
 
 use arguments::Arguments;
