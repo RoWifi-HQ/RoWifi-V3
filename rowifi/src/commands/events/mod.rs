@@ -1,4 +1,6 @@
 mod new;
+mod reset;
+mod summary;
 mod types;
 mod view;
 
@@ -6,6 +8,8 @@ use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 use new::events_new;
+use reset::event_reset;
+use summary::event_summary;
 use types::{event_type, event_type_modify, event_type_new};
 use view::{event_attendee, event_host, event_view};
 
@@ -54,6 +58,18 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .description("Command to view information about a specific event")
         .handler(event_view);
 
+    let events_reset_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["reset"])
+        .description("Command to reset the events subsystem")
+        .handler(event_reset);
+
+    let events_summary_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["summary"])
+        .description("Command to view the summary of all logged events")
+        .handler(event_summary);
+
     let events_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["event", "events"])
@@ -64,6 +80,8 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .sub_command(events_attendee_cmd)
         .sub_command(events_host_cmd)
         .sub_command(events_view_cmd)
+        .sub_command(events_reset_cmd)
+        .sub_command(events_summary_cmd)
         .handler(events);
     cmds.push(events_cmd);
 }
