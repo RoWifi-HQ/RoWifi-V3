@@ -49,6 +49,100 @@ impl Default for RoLevel {
     }
 }
 
+pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<bool, RoError> {
+    let message_id = ctx
+        .respond()
+        .content(question)
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![
+                Component::Button(Button {
+                    custom_id: Some("confirm-yes".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Yes".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                }),
+                Component::Button(Button {
+                    custom_id: Some("confirm-no".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("No".into()),
+                    style: ButtonStyle::Danger,
+                    url: None,
+                }),
+            ],
+        })])
+        .await?;
+
+    let message_id = message_id.unwrap();
+    let author_id = ctx.author.id;
+
+    let mut answer = false;
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    ctx.bot.ignore_message_components.insert(message_id);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(Vec::new()),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "confirm-yes" {
+                        answer = true;
+                        break;
+                    } else if message_component.data.custom_id == "confirm-no" {
+                        answer = false;
+                        break;
+                    }
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
+            }
+        }
+    }
+
+    ctx.bot.ignore_message_components.remove(&message_id);
+
+    Ok(answer)
+}
+
 pub async fn await_template_reply(
     question: &str,
     ctx: &CommandContext,

@@ -18,6 +18,22 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
+    let confirmation = await_confirmation(
+        "Are you sure you would like to delete all logged events & reset all event types?",
+        &ctx,
+    )
+    .await?;
+    if !confirmation {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Reset was cancelled!")
+            .build()
+            .unwrap();
+        ctx.respond().embed(embed).await?;
+        return Ok(());
+    }
+
     let filter = doc! {"_id": guild.id};
     let update = doc! {"$set": {"EventCounter": 0, "EventTypes": []}};
     ctx.bot.database.modify_guild(filter, update).await?;
