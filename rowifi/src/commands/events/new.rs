@@ -38,13 +38,15 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let mut options = Vec::new();
     for event_type in &guild.event_types {
-        options.push(SelectMenuOption {
-            default: false,
-            description: None,
-            emoji: None,
-            label: event_type.name.clone(),
-            value: event_type.id.to_string(),
-        });
+        if !event_type.disabled {
+            options.push(SelectMenuOption {
+                default: false,
+                description: None,
+                emoji: None,
+                label: event_type.name.clone(),
+                value: event_type.id.to_string(),
+            });
+        }
     }
     let mut select_menu = SelectMenu {
         custom_id: "event-new-select".into(),

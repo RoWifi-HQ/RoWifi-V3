@@ -10,7 +10,7 @@ use rowifi_models::guild::GuildType;
 use new::events_new;
 use reset::event_reset;
 use summary::event_summary;
-use types::{event_type, event_type_modify, event_type_new};
+use types::{event_type, event_type_disable, event_type_enable, event_type_modify, event_type_new};
 use view::{event_attendee, event_host, event_view};
 
 pub fn events_config(cmds: &mut Vec<Command>) {
@@ -26,12 +26,26 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .description("Command to modify an existing event type")
         .handler(event_type_modify);
 
+    let event_types_disable_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["disable"])
+        .description("Command to disable an event type. This prevents trainers from logging new events with this type")
+        .handler(event_type_disable);
+
+    let event_types_enable_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["enable"])
+        .description("Command to enable an event type for logging")
+        .handler(event_type_enable);
+
     let event_types_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["types", "type"])
         .description("Command to view the event types")
         .sub_command(event_types_new_cmd)
         .sub_command(event_types_modify_cmd)
+        .sub_command(event_types_disable_cmd)
+        .sub_command(event_types_enable_cmd)
         .handler(event_type);
 
     let events_new_cmd = Command::builder()
