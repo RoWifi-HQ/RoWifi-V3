@@ -244,7 +244,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let name = format!("Event Type Id: {}", event.id);
-    let desc = format!("Disabled: {} -> {}", event.disabled, true);
+    let desc = format!("Disabled: {} -> {}", event.disabled, false);
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
