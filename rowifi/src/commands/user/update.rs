@@ -6,19 +6,101 @@ use rowifi_models::discord::{
 };
 use twilight_http::error::ErrorType as DiscordErrorType;
 
-#[derive(Debug, FromArgs)]
+#[derive(Debug, FromArgs, Clone)]
 pub struct UpdateArguments {
     #[arg(help = "The user to be updated")]
     pub user_id: Option<UserId>,
 }
 
 pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
-    let embed = update_func(&ctx, args).await?;
-    ctx.respond().embed(embed).await?;
+    let embed = update_func(&ctx, args.clone(), false).await?;
+    let message_id = ctx
+        .respond()
+        .embed(embed)
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![Component::Button(Button {
+                custom_id: Some("recent-username-update".into()),
+                disabled: false,
+                emoji: None,
+                label: Some("Recently changed your username? Update again".into()),
+                style: ButtonStyle::Secondary,
+                url: None,
+            })],
+        })])
+        .await?;
+
+    let author_id = ctx.author.id;
+    let message_id = message_id.unwrap();
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(60));
+    tokio::pin!(stream);
+
+    ctx.bot.ignore_message_components.insert(message_id);
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id
+                    && message_component.data.custom_id == "recent-username-update"
+                {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(Vec::new()),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    let embed = update_func(&ctx, args, true).await?;
+                    ctx.bot
+                        .http
+                        .create_followup_message(&message_component.token)
+                        .unwrap()
+                        .embeds(vec![embed])
+                        .await?;
+                    break;
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This button is only interactable by the original command invoker")
+                    .await;
+            }
+        }
+    }
+    ctx.bot.ignore_message_components.remove(&message_id);
+
     Ok(())
 }
 
-pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<Embed, RoError> {
+pub async fn update_func(
+    ctx: &CommandContext,
+    args: UpdateArguments,
+    bypass_roblox_cache: bool,
+) -> Result<Embed, RoError> {
     let start = chrono::Utc::now().timestamp_millis();
     let guild_id = ctx.guild_id.unwrap();
     let server = ctx.bot.cache.guild(guild_id).unwrap();
@@ -86,7 +168,15 @@ pub async fn update_func(ctx: &CommandContext, args: UpdateArguments) -> Result<
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
     let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx
-        .update_user(member, &user, &server, &guild, &guild_roles)
+        .bot
+        .update_user(
+            member,
+            &user,
+            &server,
+            &guild,
+            &guild_roles,
+            bypass_roblox_cache,
+        )
         .await
     {
         Ok(a) => a,

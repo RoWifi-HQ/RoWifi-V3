@@ -248,7 +248,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let main_user = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(user.roblox_id as u64))
+        .get_user(RobloxUserId(user.roblox_id as u64), false)
         .await?;
     acc_string.push_str(&main_user.name);
     acc_string.push_str(" - `Default`");
@@ -261,7 +261,11 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
     acc_string.push('\n');
     for alt in &user.alts {
-        let user = ctx.bot.roblox.get_user(RobloxUserId(*alt as u64)).await?;
+        let user = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(*alt as u64), false)
+            .await?;
         acc_string.push_str(&user.name);
         if let Some(linked_user) = &linked_user {
             if linked_user.roblox_id == *alt {

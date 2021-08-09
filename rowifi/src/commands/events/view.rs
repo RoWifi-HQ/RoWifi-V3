@@ -90,7 +90,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             let host = ctx
                 .bot
                 .roblox
-                .get_user(RobloxUserId(event.host_id as u64))
+                .get_user(RobloxUserId(event.host_id as u64), false)
                 .await?;
             let desc = format!(
                 "Event Type: {}\nHost: {}\nTimestamp:{}",
@@ -192,7 +192,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             let host = ctx
                 .bot
                 .roblox
-                .get_user(RobloxUserId(event.host_id as u64))
+                .get_user(RobloxUserId(event.host_id as u64), false)
                 .await?;
             let desc = format!(
                 "Event Type: {}\nHost: {}\nTimestamp:{}",
@@ -258,11 +258,15 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     let host = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(event.host_id as u64))
+        .get_user(RobloxUserId(event.host_id as u64), false)
         .await?;
     let mut attendees = Vec::new();
     for a in &event.attendees {
-        let roblox_name = ctx.bot.roblox.get_user(RobloxUserId(*a as u64)).await?;
+        let roblox_name = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(*a as u64), false)
+            .await?;
         attendees.push(roblox_name);
     }
 

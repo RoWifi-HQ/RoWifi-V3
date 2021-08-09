@@ -206,19 +206,6 @@ impl CommandContext {
         }
     }
 
-    pub async fn update_user(
-        &self,
-        member: Arc<CachedMember>,
-        user: &RoGuildUser,
-        server: &CachedGuild,
-        guild: &RoGuild,
-        guild_roles: &HashSet<RoleId>,
-    ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
-        self.bot
-            .update_user(member, user, server, guild, guild_roles)
-            .await
-    }
-
     pub async fn get_linked_user(
         &self,
         user_id: UserId,
@@ -253,6 +240,7 @@ impl BotContext {
         server: &CachedGuild,
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,
+        bypass_roblox_cache: bool,
     ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
@@ -281,7 +269,7 @@ impl BotContext {
             .iter()
             .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
             .collect::<HashMap<_, _>>();
-        let roblox_user = self.roblox.get_user(user_id).await?;
+        let roblox_user = self.roblox.get_user(user_id, bypass_roblox_cache).await?;
         let command_user = RoCommandUser {
             user,
             roles: &member.roles,

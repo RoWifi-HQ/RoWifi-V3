@@ -58,7 +58,7 @@ pub async fn custombinds_new_common(
         .iter()
         .map(|r| (r.group.id.0 as i64, i64::from(r.role.rank)))
         .collect::<HashMap<_, _>>();
-    let roblox_user = ctx.bot.roblox.get_user(user_id).await?;
+    let roblox_user = ctx.bot.roblox.get_user(user_id, false).await?;
 
     let command_user = RoCommandUser {
         user: &user,

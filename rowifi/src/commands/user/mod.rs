@@ -94,7 +94,7 @@ pub async fn handle_update_button(
                         )
                         .await?;
 
-                    let embed = update_func(ctx, UpdateArguments { user_id: None }).await?;
+                    let embed = update_func(ctx, UpdateArguments { user_id: None }, false).await?;
                     ctx.bot
                         .http
                         .create_followup_message(&message_component.token)

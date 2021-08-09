@@ -190,7 +190,7 @@ impl Service<(u64, Event)> for EventHandler {
 
                     let guild_roles = eh.bot.cache.roles(m.guild_id);
                     let (added_roles, removed_roles, disc_nick) = match eh.bot
-                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .update_user(member, &user, &server, &guild, &guild_roles, false)
                         .await
                     {
                         Ok(a) => a,

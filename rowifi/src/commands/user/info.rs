@@ -32,7 +32,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     let roblox_user = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(user.roblox_id as u64))
+        .get_user(RobloxUserId(user.roblox_id as u64), false)
         .await?;
 
     let embed = EmbedBuilder::new()

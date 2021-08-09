@@ -110,17 +110,24 @@ impl Client {
     }
 
     /// Get a [`PartialUser`] from the user id
-    pub async fn get_user(&self, user_id: UserId) -> Result<PartialUser> {
+    pub async fn get_user(&self, user_id: UserId, bypass_cache: bool) -> Result<PartialUser> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
-        let user: Option<PartialUser> = conn.get(&key).await?;
-        if let Some(u) = user {
-            Ok(u)
-        } else {
+        if bypass_cache {
             let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
             let user = self.request::<PartialUser>(&url, Method::GET, None).await?;
             let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
             Ok(user)
+        } else {
+            let user: Option<PartialUser> = conn.get(&key).await?;
+            if let Some(u) = user {
+                Ok(u)
+            } else {
+                let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
+                let user = self.request::<PartialUser>(&url, Method::GET, None).await?;
+                let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+                Ok(user)
+            }
         }
     }
 
