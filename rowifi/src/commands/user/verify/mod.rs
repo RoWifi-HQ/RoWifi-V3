@@ -46,6 +46,12 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .description("Command to view all linked accounts")
         .handler(verify_view);
 
+    let verify_setup_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["setup"])
+        .description("Command to link a roblox account to your discord account")
+        .handler(verify);
+
     let verify_cmd = Command::builder()
         .level(RoLevel::Normal)
         .names(&["verify"])
@@ -56,6 +62,7 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .sub_command(verify_default_cmd)
         .sub_command(verify_delete_cmd)
         .sub_command(verify_view_cmd)
+        .sub_command(verify_setup_cmd)
         .handler(verify);
 
     cmds.push(verify_cmd);

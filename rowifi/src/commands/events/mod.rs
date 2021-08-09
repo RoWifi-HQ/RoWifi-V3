@@ -38,6 +38,12 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .description("Command to enable an event type for logging")
         .handler(event_type_enable);
 
+    let event_types_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view the event types")
+        .handler(event_type);
+
     let event_types_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["types", "type"])
@@ -46,6 +52,7 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .sub_command(event_types_modify_cmd)
         .sub_command(event_types_disable_cmd)
         .sub_command(event_types_enable_cmd)
+        .sub_command(event_types_view_cmd)
         .handler(event_type);
 
     let events_new_cmd = Command::builder()
