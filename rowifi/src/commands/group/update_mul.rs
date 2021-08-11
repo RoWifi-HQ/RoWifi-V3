@@ -1,11 +1,14 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
+use rowifi_models::{
+    discord::{
+        gateway::payload::RequestGuildMembers,
+        id::{RoleId, UserId},
+    },
+    guild::GuildType,
+    roblox::id::UserId as RobloxUserId,
+};
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
-use twilight_model::{
-    gateway::payload::RequestGuildMembers,
-    id::{RoleId, UserId},
-};
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -18,12 +21,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -43,13 +41,13 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0)
+        .map(|m| m.0 as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
             return Ok(());
         }
         let _ = ctx
@@ -69,7 +67,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0)
+            .map(|m| m.0 as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx
@@ -95,7 +93,8 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
                     if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .update_user(member, user, &server, &guild, &guild_roles)
+                        .bot
+                        .update_user(member, user, &server, &guild, &guild_roles, false)
                         .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
@@ -139,12 +138,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -174,13 +168,13 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0)
+        .map(|m| m.0 as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.bot.http.create_message(ctx.channel_id).content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").unwrap().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
             return Ok(());
         }
         let _ = ctx
@@ -200,7 +194,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0)
+            .map(|m| m.0 as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx
@@ -229,7 +223,8 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
                     if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .update_user(member, user, &server, &guild, &guild_roles)
+                        .bot
+                        .update_user(member, user, &server, &guild, &guild_roles, false)
                         .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {

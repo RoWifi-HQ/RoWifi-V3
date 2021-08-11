@@ -4,7 +4,22 @@ use crate::{
     extensions::StandbyExtensions,
 };
 
-use rowifi_models::bind::Template;
+use rowifi_models::{
+    bind::Template,
+    discord::{
+        application::{
+            callback::{CallbackData, InteractionResponse},
+            component::{
+                action_row::ActionRow,
+                button::{Button, ButtonStyle},
+                Component, SelectMenu,
+            },
+            interaction::Interaction,
+        },
+        channel::{embed::Embed, ReactionType},
+        gateway::event::Event,
+    },
+};
 use std::{
     cmp::{max, min},
     num::ParseIntError,
@@ -12,19 +27,6 @@ use std::{
     time::Duration,
 };
 use tokio_stream::StreamExt;
-use twilight_model::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        component::{
-            action_row::ActionRow,
-            button::{Button, ButtonStyle},
-            Component, SelectMenu,
-        },
-        interaction::Interaction,
-    },
-    channel::{embed::Embed, ReactionType},
-    gateway::event::Event,
-};
 
 pub enum Color {
     Red = 0x00E7_4C3C,
@@ -47,18 +49,109 @@ impl Default for RoLevel {
     }
 }
 
+pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<bool, RoError> {
+    let message_id = ctx
+        .respond()
+        .content(question)
+        .components(vec![Component::ActionRow(ActionRow {
+            components: vec![
+                Component::Button(Button {
+                    custom_id: Some("confirm-yes".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("Yes".into()),
+                    style: ButtonStyle::Primary,
+                    url: None,
+                }),
+                Component::Button(Button {
+                    custom_id: Some("confirm-no".into()),
+                    disabled: false,
+                    emoji: None,
+                    label: Some("No".into()),
+                    style: ButtonStyle::Danger,
+                    url: None,
+                }),
+            ],
+        })])
+        .await?;
+
+    let message_id = message_id.unwrap();
+    let author_id = ctx.author.id;
+
+    let mut answer = false;
+
+    let stream = ctx
+        .bot
+        .standby
+        .wait_for_component_interaction(message_id)
+        .timeout(Duration::from_secs(300));
+    tokio::pin!(stream);
+
+    ctx.bot.ignore_message_components.insert(message_id);
+
+    while let Some(Ok(event)) = stream.next().await {
+        if let Event::InteractionCreate(interaction) = &event {
+            if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(Vec::new()),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "confirm-yes" {
+                        answer = true;
+                        break;
+                    } else if message_component.data.custom_id == "confirm-no" {
+                        answer = false;
+                        break;
+                    }
+                }
+                let _ = ctx
+                    .bot
+                    .http
+                    .interaction_callback(
+                        message_component.id,
+                        &message_component.token,
+                        InteractionResponse::DeferredUpdateMessage,
+                    )
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This component is only interactable by the original command invoker")
+                    .await;
+            }
+        }
+    }
+
+    ctx.bot.ignore_message_components.remove(&message_id);
+
+    Ok(answer)
+}
+
 pub async fn await_template_reply(
     question: &str,
     ctx: &CommandContext,
     mut select_menu: SelectMenu,
 ) -> Result<Template, RoError> {
     let select_custom_id = select_menu.custom_id.clone();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content(question)
-        .unwrap()
         .components(vec![
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -74,10 +167,9 @@ pub async fn await_template_reply(
                 })],
             }),
         ])
-        .unwrap()
         .await?;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     select_menu.disabled = true;
@@ -102,6 +194,7 @@ pub async fn await_template_reply(
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -124,6 +217,7 @@ pub async fn await_template_reply(
                             }),
                         )
                         .await?;
+                    ctx.bot.ignore_message_components.remove(&message_id);
                     if message_component.data.custom_id == "template-reply-cancel" {
                         ctx.bot
                             .http
@@ -156,37 +250,19 @@ pub async fn await_template_reply(
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(Some(vec![Component::ActionRow(ActionRow {
-                    components: vec![Component::SelectMenu(select_menu.clone())],
-                })]))
-                .unwrap()
-                .await?;
+            ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(Template(msg.content.clone()));
         }
     }
 
-    ctx.bot
-        .http
-        .update_message(message.channel_id, message_id)
-        .components(Some(vec![Component::ActionRow(ActionRow {
-            components: vec![Component::SelectMenu(select_menu.clone())],
-        })]))
-        .unwrap()
-        .await?;
-
+    ctx.bot.ignore_message_components.remove(&message_id);
     Err(RoError::Command(CommandError::Timeout))
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content(question)
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("reply-cancel".into()),
@@ -197,9 +273,8 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 url: None,
             })],
         })])
-        .unwrap()
         .await?;
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -222,6 +297,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -250,6 +326,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .unwrap()
                         .content("Command has been cancelled")
                         .await?;
+                    ctx.bot.ignore_message_components.remove(&message_id);
                     return Err(RoError::NoOp);
                 }
                 let _ = ctx
@@ -271,23 +348,12 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(None)
-                .unwrap()
-                .await?;
+            ctx.bot.ignore_message_components.remove(&message_id);
             return Ok(msg.content.clone());
         }
     }
 
-    ctx.bot
-        .http
-        .update_message(message.channel_id, message_id)
-        .components(None)
-        .unwrap()
-        .await?;
-
+    ctx.bot.ignore_message_components.remove(&message_id);
     Err(RoError::Command(CommandError::Timeout))
 }
 
@@ -298,20 +364,11 @@ pub async fn paginate_embed(
 ) -> Result<(), RoError> {
     let page_count = page_count;
     if page_count <= 1 {
-        let _ = ctx
-            .bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![pages[0].clone()])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![pages[0].clone()]).await?;
     } else {
-        let m = ctx
-            .bot
-            .http
-            .create_message(ctx.channel_id)
+        let message_id = ctx
+            .respond()
             .embeds(vec![pages[0].clone()])
-            .unwrap()
             .components(vec![Component::ActionRow(ActionRow {
                 components: vec![
                     Component::Button(Button {
@@ -356,12 +413,10 @@ pub async fn paginate_embed(
                     }),
                 ],
             })])
-            .unwrap()
             .await?;
 
         //Get some easy named vars
-        let channel_id = m.channel_id;
-        let message_id = m.id;
+        let message_id = message_id.unwrap();
         let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
@@ -372,6 +427,7 @@ pub async fn paginate_embed(
             .timeout(Duration::from_secs(300));
         tokio::pin!(component_interaction);
 
+        ctx.bot.ignore_message_components.insert(message_id);
         let mut page_pointer: usize = 0;
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
@@ -428,7 +484,7 @@ pub async fn paginate_embed(
                 }
             }
         }
-        let _ = ctx.bot.http.delete_message(channel_id, message_id).await;
+        ctx.bot.ignore_message_components.remove(&message_id);
     }
     Ok(())
 }

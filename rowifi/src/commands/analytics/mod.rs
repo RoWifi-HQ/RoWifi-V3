@@ -28,6 +28,12 @@ pub fn analytics_config(cmds: &mut Vec<Command>) {
         .description("Command to view the membercount analytics of a group")
         .handler(analytics_view);
 
+    let analytics_list_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["list"])
+        .description("Command to view all registered groups")
+        .handler(analytics_config_view);
+
     let analytics = Command::builder()
         .level(RoLevel::Admin)
         .names(&["analytics"])
@@ -36,6 +42,7 @@ pub fn analytics_config(cmds: &mut Vec<Command>) {
         .sub_command(analytics_register_cmd)
         .sub_command(analytics_unregister_cmd)
         .sub_command(analytics_view_cmd)
+        .sub_command(analytics_list_cmd)
         .handler(analytics_config_view);
     cmds.push(analytics);
 }

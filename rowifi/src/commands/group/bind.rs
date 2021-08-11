@@ -5,13 +5,15 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetBind, AssetType, GroupBind, RankBind, Template},
+    discord::id::{GuildId, RoleId},
     guild::RoGuild,
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
-use twilight_model::id::{GuildId, RoleId};
 
-use crate::commands::{custombinds::new::custombinds_new_common, log_rankbind};
+use crate::commands::{
+    custombinds::new::custombinds_new_common, log_rankbind, new::CustombindsNewArguments,
+};
 
 lazy_static! {
     pub static ref TEMPLATE_REGEX: Regex = Regex::new(r"\[(.*?)\]").unwrap();
@@ -71,6 +73,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
 
     select_menu.disabled = true;
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut bind_type = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
@@ -117,6 +120,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
             }
         }
     }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     let bind_type = match bind_type {
         Some(b) => b,
@@ -136,7 +140,18 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
 async fn bind_custom(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
     let code = await_reply("Enter the code for this bind.", &ctx).await?;
 
-    custombinds_new_common(ctx, guild_id, guild, code).await
+    custombinds_new_common(
+        ctx,
+        guild_id,
+        guild,
+        CustombindsNewArguments {
+            code,
+            template: None,
+            priority: None,
+            discord_roles: None,
+        },
+    )
+    .await
 }
 
 async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
@@ -171,19 +186,15 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         placeholder: None,
     };
 
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content("Select the type of asset to bind:")
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
         })])
-        .unwrap()
         .await?;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -195,6 +206,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
     select_menu.disabled = true;
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut asset_type = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
@@ -238,6 +250,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             }
         }
     }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     let asset_type = match asset_type {
         Some(s) => match AssetType::from_arg(&s) {
@@ -260,12 +273,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected asset id to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -334,12 +342,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -386,12 +389,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -419,12 +417,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected the group id to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -439,12 +432,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description(format!("Group with Id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -484,12 +472,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             .description("There were no ranks found associated with the entered ones")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -567,12 +550,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };

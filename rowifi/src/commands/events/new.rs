@@ -4,7 +4,6 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use rowifi_framework::prelude::*;
 use rowifi_models::{events::EventLog, guild::GuildType};
 use std::time::Duration;
-use twilight_mention::Mention;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -39,14 +38,29 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let mut options = Vec::new();
     for event_type in &guild.event_types {
-        options.push(SelectMenuOption {
-            default: false,
-            description: None,
-            emoji: None,
-            label: event_type.name.clone(),
-            value: event_type.id.to_string(),
-        });
+        if !event_type.disabled {
+            options.push(SelectMenuOption {
+                default: false,
+                description: None,
+                emoji: None,
+                label: event_type.name.clone(),
+                value: event_type.id.to_string(),
+            });
+        }
     }
+
+    if options.is_empty() {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Event Addition Failed")
+            .description("There are no event types or all event types are disabled")
+            .build()
+            .unwrap();
+        ctx.respond().embed(embed).await?;
+        return Ok(());
+    }
+
     let mut select_menu = SelectMenu {
         custom_id: "event-new-select".into(),
         disabled: false,
@@ -56,12 +70,9 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         placeholder: None,
     };
 
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .content("Select an event type")
-        .unwrap()
         .components(vec![
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -77,12 +88,12 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 })],
             }),
         ])
-        .unwrap()
         .await?;
 
     select_menu.disabled = true;
 
-    let message_id = message.id;
+    let message_id = message_id.unwrap();
+    let author_id = ctx.author.id;
     let stream = ctx
         .bot
         .standby
@@ -90,54 +101,66 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     let mut event_type_id = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
-                ctx.bot
+                let component_interaction_author = message_component.author_id().unwrap();
+                if component_interaction_author == author_id {
+                    ctx.bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                content: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: None,
+                            }),
+                        )
+                        .await?;
+                    if message_component.data.custom_id == "event-new-cancel" {
+                        ctx.bot
+                            .http
+                            .create_followup_message(&message_component.token)
+                            .unwrap()
+                            .content("Command has been cancelled")
+                            .await?;
+                    } else if message_component.data.custom_id == "event-new-select" {
+                        event_type_id = Some(message_component.data.values[0].clone());
+                    }
+                    break;
+                }
+                let _ = ctx
+                    .bot
                     .http
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            content: None,
-                            components: Some(vec![Component::ActionRow(ActionRow {
-                                components: vec![Component::SelectMenu(select_menu.clone())],
-                            })]),
-                            embeds: Vec::new(),
-                            flags: None,
-                            tts: None,
-                        }),
+                        InteractionResponse::DeferredUpdateMessage,
                     )
-                    .await?;
-                if message_component.data.custom_id == "event-new-cancel" {
-                    ctx.bot
-                        .http
-                        .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .content("Command has been cancelled")
-                        .await?;
-                    return Ok(());
-                } else if message_component.data.custom_id == "event-new-select" {
-                    event_type_id = Some(message_component.data.values[0].clone());
-                    break;
-                }
+                    .await;
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_followup_message(&message_component.token)
+                    .unwrap()
+                    .ephemeral(true)
+                    .content("This button is only interactable by the original command invoker")
+                    .await;
             }
         }
     }
 
     let event_type_id = match event_type_id {
         Some(e) => e.parse().unwrap(),
-        None => {
-            ctx.bot
-                .http
-                .update_message(message.channel_id, message_id)
-                .components(None)
-                .unwrap()
-                .await?;
-            return Ok(());
-        }
+        None => return Ok(()),
     };
 
     let event_type = guild
@@ -146,7 +169,11 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .find(|e| e.id == event_type_id)
         .unwrap();
 
-    let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
+    let attendees_str = await_reply(
+        "Enter the usernames of Roblox Users who attended this event",
+        &ctx,
+    )
+    .await?;
     let mut attendees = Vec::new();
     for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
         if let Ok(Some(roblox_id)) = ctx.bot.roblox.get_user_from_username(attendee).await {
@@ -162,12 +189,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("The number of valid attendees was found to be zero")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![embed])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![embed]).await?;
         return Ok(());
     }
 
@@ -204,7 +226,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",
-        ctx.author.id.mention(),
+        format!("<@{}>", ctx.author.id.0),
         event_type.name,
         new_event.attendees.len()
     );
@@ -218,11 +240,6 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
     Ok(())
 }

@@ -3,12 +3,11 @@ use lazy_static::lazy_static;
 use mongodb::bson::doc;
 use regex::Regex;
 use rowifi_framework::prelude::*;
+use rowifi_models::discord::id::RoleId;
 use rowifi_models::{
     bind::{RankBind, Template},
     roblox::id::GroupId,
 };
-use twilight_embed_builder::EmbedFieldBuilder;
-use twilight_model::id::RoleId;
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {

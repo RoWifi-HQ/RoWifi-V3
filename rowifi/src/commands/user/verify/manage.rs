@@ -42,12 +42,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -61,12 +56,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
             .description("The provided username is not linked to your discord account. Please link it using `verify add`")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![e])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![e]).await?;
         return Ok(());
     }
 
@@ -83,12 +73,9 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Switching Successful")
         .build()
         .unwrap();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![embed])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
@@ -99,10 +86,9 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 url: None,
             })],
         })])
-        .unwrap()
         .await?;
 
-    handle_update_button(&ctx, message.id, Vec::new()).await?;
+    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
 
     Ok(())
 }
@@ -143,12 +129,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -164,12 +145,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .description("The provided username is not linked to your discord account or is already your default account")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -184,12 +160,9 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
         .title("Default Account Set Successfully")
         .build()
         .unwrap();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![embed])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
@@ -200,10 +173,9 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 url: None,
             })],
         })])
-        .unwrap()
         .await?;
 
-    handle_update_button(&ctx, message.id, Vec::new()).await?;
+    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
 
     Ok(())
 }
@@ -244,12 +216,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -265,12 +232,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .description("The provided username is not linked to your discord account or is your default account")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -286,12 +248,9 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Unlinking Successful")
         .build()
         .unwrap();
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![embed])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
@@ -302,10 +261,9 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 url: None,
             })],
         })])
-        .unwrap()
         .await?;
 
-    handle_update_button(&ctx, message.id, Vec::new()).await?;
+    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
 
     Ok(())
 }

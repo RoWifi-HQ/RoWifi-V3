@@ -7,6 +7,11 @@ use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
 use rowifi_models::{
     bind::Bind,
+    discord::{
+        channel::embed::Embed,
+        id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+        user::User,
+    },
     guild::{BlacklistActionType, RoGuild},
     roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
     rolang::RoCommandUser,
@@ -17,15 +22,10 @@ use std::{
     borrow::ToOwned,
     collections::{HashMap, HashSet},
     ops::Deref,
-    sync::Arc,
+    sync::{atomic::AtomicBool, Arc},
 };
 use twilight_gateway::Cluster;
 use twilight_http::Client as Http;
-use twilight_model::{
-    channel::embed::Embed,
-    id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
-    user::User,
-};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -57,6 +57,8 @@ pub struct BotContextRef {
     pub nickname_bypass_roles: DashMap<GuildId, Vec<RoleId>>,
     /// The map containing log channels of all servers
     pub log_channels: DashMap<GuildId, ChannelId>,
+    /// The array containing the message ids wit active components
+    pub ignore_message_components: DashSet<MessageId>,
 
     // Twilight Components
     /// The module used to make requests to discord
@@ -109,6 +111,8 @@ pub struct CommandContext {
     pub interaction_id: Option<InteractionId>,
     /// The token of the interaction. This is used to make followups or edit the original response
     pub interaction_token: Option<String>,
+    /// Bool whether callback has been invoked
+    pub callback_invoked: Arc<AtomicBool>,
 }
 
 impl BotContext {
@@ -151,6 +155,7 @@ impl BotContext {
                 bypass_roles: DashMap::new(),
                 nickname_bypass_roles: DashMap::new(),
                 log_channels: DashMap::new(),
+                ignore_message_components: DashSet::new(),
                 http,
                 cache,
                 cluster,
@@ -201,19 +206,6 @@ impl CommandContext {
         }
     }
 
-    pub async fn update_user(
-        &self,
-        member: Arc<CachedMember>,
-        user: &RoGuildUser,
-        server: &CachedGuild,
-        guild: &RoGuild,
-        guild_roles: &HashSet<RoleId>,
-    ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
-        self.bot
-            .update_user(member, user, server, guild, guild_roles)
-            .await
-    }
-
     pub async fn get_linked_user(
         &self,
         user_id: UserId,
@@ -248,6 +240,7 @@ impl BotContext {
         server: &CachedGuild,
         guild: &RoGuild,
         guild_roles: &HashSet<RoleId>,
+        bypass_roblox_cache: bool,
     ) -> Result<(Vec<RoleId>, Vec<RoleId>, String), RoError> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
@@ -276,7 +269,7 @@ impl BotContext {
             .iter()
             .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
             .collect::<HashMap<_, _>>();
-        let roblox_user = self.roblox.get_user(user_id).await?;
+        let roblox_user = self.roblox.get_user(user_id, bypass_roblox_cache).await?;
         let command_user = RoCommandUser {
             user,
             roles: &member.roles,

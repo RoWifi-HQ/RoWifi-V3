@@ -62,40 +62,50 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0}},
+        doc! {"$match": {"GuildId": guild_id.0 as i64}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$unwind": "$Attendees"},
         doc! {"$match": {"Attendees": roblox_id}},
-        doc! {"$limit": 12},
         doc! {"$unset": "Attendees"},
     ];
     let events = ctx.bot.database.get_events(pipeline).await?;
 
-    let mut embed = EmbedBuilder::new().default_data().title("Events");
-    for event in events {
-        let name = format!("Id: {}", event.guild_event_id);
+    let mut pages = Vec::new();
+    let mut page_count = 0;
 
-        let event_type = guild
-            .event_types
-            .iter()
-            .find(|e| e.id == event.event_type)
-            .unwrap();
-        let host = ctx
-            .bot
-            .roblox
-            .get_user(RobloxUserId(event.host_id as u64))
-            .await?;
-        let desc = format!(
-            "Event Type: {}\nHost: {}\nTimestamp:{}",
-            event_type.name,
-            host.name,
-            DateTime::<Utc>::from(event.timestamp).to_rfc3339()
-        );
+    for events in events.chunks(12) {
+        let mut embed = EmbedBuilder::new()
+            .default_data()
+            .title("Attended Events")
+            .description(format!("Page {}", page_count + 1));
 
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
+        for event in events {
+            let name = format!("Id: {}", event.guild_event_id);
+
+            let event_type = guild
+                .event_types
+                .iter()
+                .find(|e| e.id == event.event_type)
+                .unwrap();
+            let host = ctx
+                .bot
+                .roblox
+                .get_user(RobloxUserId(event.host_id as u64), false)
+                .await?;
+            let desc = format!(
+                "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
+                event_type.name,
+                host.name,
+                event.timestamp.to_chrono().timestamp()
+            );
+
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
+        }
+        pages.push(embed.build().unwrap());
+        page_count += 1;
     }
 
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }
 
@@ -156,39 +166,48 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0}},
+        doc! {"$match": {"GuildId": guild_id.0 as i64}},
         doc! {"$match": {"HostId": roblox_id}},
         doc! {"$sort": {"Timestamp": -1}},
-        doc! {"$limit": 12},
     ];
     let events = ctx.bot.database.get_events(pipeline).await?;
 
-    let mut embed = EmbedBuilder::new().default_data().title("Events");
-    for event in events {
-        let name = format!("Id: {}", event.guild_event_id);
+    let mut pages = Vec::new();
+    let mut page_count = 0;
 
-        let event_type = guild
-            .event_types
-            .iter()
-            .find(|e| e.id == event.event_type)
-            .unwrap();
-        let host = ctx
-            .bot
-            .roblox
-            .get_user(RobloxUserId(event.host_id as u64))
-            .await?;
-        let desc = format!(
-            "Event Type: {}\nHost: {}\nTimestamp:{}\nAttendees: {}",
-            event_type.name,
-            host.name,
-            DateTime::<Utc>::from(event.timestamp).to_rfc3339(),
-            event.attendees.len()
-        );
+    for events in events.chunks(12) {
+        let mut embed = EmbedBuilder::new()
+            .default_data()
+            .title("Hosted Events")
+            .description(format!("Page {}", page_count + 1));
 
-        embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
+        for event in events {
+            let name = format!("Id: {}", event.guild_event_id);
+
+            let event_type = guild
+                .event_types
+                .iter()
+                .find(|e| e.id == event.event_type)
+                .unwrap();
+            let host = ctx
+                .bot
+                .roblox
+                .get_user(RobloxUserId(event.host_id as u64), false)
+                .await?;
+            let desc = format!(
+                "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
+                event_type.name,
+                host.name,
+                event.timestamp.to_chrono().timestamp()
+            );
+
+            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
+        }
+        pages.push(embed.build().unwrap());
+        page_count += 1;
     }
 
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }
 
@@ -215,7 +234,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0, "GuildEventId": event_id}}];
+    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0 as i64, "GuildEventId": event_id}}];
     let events = ctx.bot.database.get_events(pipeline).await?;
     if events.is_empty() {
         let embed = EmbedBuilder::new()
@@ -239,11 +258,15 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     let host = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(event.host_id as u64))
+        .get_user(RobloxUserId(event.host_id as u64), false)
         .await?;
     let mut attendees = Vec::new();
     for a in &event.attendees {
-        let roblox_name = ctx.bot.roblox.get_user(RobloxUserId(*a as u64)).await?;
+        let roblox_name = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(*a as u64), false)
+            .await?;
         attendees.push(roblox_name);
     }
 

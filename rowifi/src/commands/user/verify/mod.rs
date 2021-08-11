@@ -1,11 +1,14 @@
 mod manage;
 
 use rowifi_framework::prelude::*;
-use rowifi_models::{roblox::id::UserId as RobloxUserId, user::QueueUser};
-use twilight_model::application::component::{
-    action_row::ActionRow,
-    button::{Button, ButtonStyle},
-    Component,
+use rowifi_models::{
+    discord::application::component::{
+        action_row::ActionRow,
+        button::{Button, ButtonStyle},
+        Component,
+    },
+    roblox::id::UserId as RobloxUserId,
+    user::QueueUser,
 };
 
 use crate::commands::handle_update_button;
@@ -43,6 +46,12 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .description("Command to view all linked accounts")
         .handler(verify_view);
 
+    let verify_setup_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["setup"])
+        .description("Command to link a roblox account to your discord account")
+        .handler(verify);
+
     let verify_cmd = Command::builder()
         .level(RoLevel::Normal)
         .names(&["verify"])
@@ -53,6 +62,7 @@ pub fn verify_config(cmds: &mut Vec<Command>) {
         .sub_command(verify_default_cmd)
         .sub_command(verify_delete_cmd)
         .sub_command(verify_view_cmd)
+        .sub_command(verify_setup_cmd)
         .handler(verify);
 
     cmds.push(verify_cmd);
@@ -138,12 +148,7 @@ pub async fn verify_common(
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![e])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![e]).await?;
             return Ok(());
         }
     };
@@ -176,12 +181,9 @@ pub async fn verify_common(
         url: Some(game_url.into()),
         disabled: false,
     });
-    let message = ctx
-        .bot
-        .http
-        .create_message(ctx.channel_id)
+    let message_id = ctx
+        .respond()
         .embeds(vec![e])
-        .unwrap()
         .components(vec![Component::ActionRow(ActionRow {
             components: vec![
                 game_url_button.clone(),
@@ -195,7 +197,6 @@ pub async fn verify_common(
                 }),
             ],
         })])
-        .unwrap()
         .await?;
     let q_user = QueueUser {
         roblox_id,
@@ -206,7 +207,7 @@ pub async fn verify_common(
 
     handle_update_button(
         &ctx,
-        message.id,
+        message_id.unwrap(),
         vec![Component::ActionRow(ActionRow {
             components: vec![game_url_button],
         })],
@@ -227,12 +228,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -252,7 +248,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let main_user = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(user.roblox_id as u64))
+        .get_user(RobloxUserId(user.roblox_id as u64), false)
         .await?;
     acc_string.push_str(&main_user.name);
     acc_string.push_str(" - `Default`");
@@ -265,7 +261,11 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
     acc_string.push('\n');
     for alt in &user.alts {
-        let user = ctx.bot.roblox.get_user(RobloxUserId(*alt as u64)).await?;
+        let user = ctx
+            .bot
+            .roblox
+            .get_user(RobloxUserId(*alt as u64), false)
+            .await?;
         acc_string.push_str(&user.name);
         if let Some(linked_user) = &linked_user {
             if linked_user.roblox_id == *alt {
@@ -276,12 +276,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
 
     let embed = embed.description(acc_string).build().unwrap();
-    ctx.bot
-        .http
-        .create_message(ctx.channel_id)
-        .embeds(vec![embed])
-        .unwrap()
-        .await?;
+    ctx.respond().embeds(vec![embed]).await?;
 
     Ok(())
 }

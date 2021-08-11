@@ -1,4 +1,6 @@
 mod new;
+mod reset;
+mod summary;
 mod types;
 mod view;
 
@@ -6,7 +8,9 @@ use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 use new::events_new;
-use types::{event_type, event_type_modify, event_type_new};
+use reset::event_reset;
+use summary::event_summary;
+use types::{event_type, event_type_disable, event_type_enable, event_type_modify, event_type_new};
 use view::{event_attendee, event_host, event_view};
 
 pub fn events_config(cmds: &mut Vec<Command>) {
@@ -22,12 +26,33 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .description("Command to modify an existing event type")
         .handler(event_type_modify);
 
+    let event_types_disable_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["disable"])
+        .description("Command to disable an event type. This prevents trainers from logging new events with this type")
+        .handler(event_type_disable);
+
+    let event_types_enable_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["enable"])
+        .description("Command to enable an event type for logging")
+        .handler(event_type_enable);
+
+    let event_types_view_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["view"])
+        .description("Command to view the event types")
+        .handler(event_type);
+
     let event_types_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["types", "type"])
         .description("Command to view the event types")
         .sub_command(event_types_new_cmd)
         .sub_command(event_types_modify_cmd)
+        .sub_command(event_types_disable_cmd)
+        .sub_command(event_types_enable_cmd)
+        .sub_command(event_types_view_cmd)
         .handler(event_type);
 
     let events_new_cmd = Command::builder()
@@ -54,6 +79,18 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .description("Command to view information about a specific event")
         .handler(event_view);
 
+    let events_reset_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["reset"])
+        .description("Command to reset the events subsystem")
+        .handler(event_reset);
+
+    let events_summary_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["summary"])
+        .description("Command to view the summary of all logged events")
+        .handler(event_summary);
+
     let events_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["event", "events"])
@@ -64,6 +101,8 @@ pub fn events_config(cmds: &mut Vec<Command>) {
         .sub_command(events_attendee_cmd)
         .sub_command(events_host_cmd)
         .sub_command(events_view_cmd)
+        .sub_command(events_reset_cmd)
+        .sub_command(events_summary_cmd)
         .handler(events);
     cmds.push(events_cmd);
 }

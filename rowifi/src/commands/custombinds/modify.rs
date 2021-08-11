@@ -1,12 +1,12 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
+    discord::id::GuildId,
     guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
-use twilight_model::id::GuildId;
 
 #[derive(FromArgs)]
 pub struct CustombindsModifyArguments {
@@ -156,7 +156,7 @@ async fn modify_code<'a>(
         .iter()
         .map(|r| (r.group.id.0 as i64, i64::from(r.role.rank)))
         .collect::<HashMap<_, _>>();
-    let roblox_user = ctx.bot.roblox.get_user(user_id).await?;
+    let roblox_user = ctx.bot.roblox.get_user(user_id, false).await?;
 
     let command_user = RoCommandUser {
         user: &user,
@@ -225,11 +225,11 @@ async fn add_roles(
     guild: &RoGuild,
     bind_id: i64,
     roles: &str,
-) -> Result<Vec<u64>, RoError> {
+) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
@@ -243,11 +243,11 @@ async fn remove_roles(
     guild: &RoGuild,
     bind_id: i64,
     roles: &str,
-) -> Result<Vec<u64>, RoError> {
+) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};

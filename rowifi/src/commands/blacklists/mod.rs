@@ -68,12 +68,7 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
             .description("No blacklists were found associated with this server")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![e])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![e]).await?;
         return Ok(());
     }
 

@@ -1,10 +1,10 @@
 use rowifi_framework::context::BotContext;
-use std::error::Error;
-use tokio::time::{interval, Duration};
-use twilight_model::gateway::{
+use rowifi_models::discord::gateway::{
     payload::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
+use std::error::Error;
+use tokio::time::{interval, Duration};
 
 pub async fn activity(ctx: BotContext) {
     let mut interval = interval(Duration::from_secs(30 * 60));

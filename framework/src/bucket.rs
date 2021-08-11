@@ -1,4 +1,5 @@
 use futures_util::future::{Future, FutureExt};
+use rowifi_models::discord::id::GuildId;
 use std::{
     pin::Pin,
     sync::Arc,
@@ -7,7 +8,6 @@ use std::{
 };
 use tower::{Layer, Service};
 use transient_dashmap::TransientDashMap;
-use twilight_model::id::GuildId;
 
 use crate::{
     context::CommandContext,

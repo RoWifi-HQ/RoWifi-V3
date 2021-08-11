@@ -113,11 +113,11 @@ async fn add_roles(
     guild: &RoGuild,
     bind_index: usize,
     roles: &str,
-) -> Result<Vec<u64>, RoError> {
+) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
     let filter = doc! {"_id": guild.id};
@@ -132,11 +132,11 @@ async fn remove_roles(
     guild: &RoGuild,
     bind_index: usize,
     roles: &str,
-) -> Result<Vec<u64>, RoError> {
+) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
     let filter = doc! {"_id": guild.id};

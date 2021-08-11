@@ -30,7 +30,10 @@ use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
 use rowifi_framework::{context::BotContext, Framework};
-use rowifi_models::stats::BotStats;
+use rowifi_models::{
+    discord::{gateway::Intents, guild::Permissions},
+    stats::BotStats,
+};
 use rowifi_redis::{RedisManager, RedisPool};
 use services::EventHandler;
 use std::{
@@ -50,7 +53,6 @@ use twilight_gateway::{
     Event,
 };
 use twilight_http::Client as HttpClient;
-use twilight_model::{gateway::Intents, guild::Permissions};
 use twilight_standby::Standby;
 
 pub struct RoWifi {

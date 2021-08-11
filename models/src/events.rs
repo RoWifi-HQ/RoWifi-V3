@@ -39,4 +39,7 @@ pub struct EventType {
 
     #[serde(rename = "XP")]
     pub xp: i64,
+
+    #[serde(rename = "Disabled", default)]
+    pub disabled: bool,
 }

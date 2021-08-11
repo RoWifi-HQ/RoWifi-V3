@@ -28,15 +28,7 @@ pub mod utils;
 use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::Arc,
-    task::{Context, Poll},
-};
-use tower::Service;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
-use twilight_model::{
+use rowifi_models::discord::{
     application::{
         callback::{CallbackData, InteractionResponse},
         interaction::{application_command::CommandDataOption, Interaction},
@@ -46,6 +38,14 @@ use twilight_model::{
     guild::Permissions,
     id::{GuildId, UserId},
 };
+use std::{
+    future::Future,
+    pin::Pin,
+    sync::{atomic::AtomicBool, Arc},
+    task::{Context, Poll},
+};
+use tower::Service;
+use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use uwl::Stream;
 
 use arguments::Arguments;
@@ -110,6 +110,7 @@ impl Framework {
                     message_id: Some(msg.id),
                     interaction_id: None,
                     interaction_token: None,
+                    callback_invoked: Arc::new(AtomicBool::new(false)),
                 };
                 let req = ServiceRequest::Help(args, embed);
                 return cmd.call((ctx, req));
@@ -251,6 +252,7 @@ impl Service<&Event> for Framework {
                     message_id: Some(msg.id),
                     interaction_id: None,
                     interaction_token: None,
+                    callback_invoked: Arc::new(AtomicBool::new(false)),
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -308,11 +310,39 @@ impl Service<&Event> for Framework {
                         message_id: None,
                         interaction_id: Some(id),
                         interaction_token: Some(top_command.token.clone()),
+                        callback_invoked: Arc::new(AtomicBool::new(false)),
                     };
 
                     let request = ServiceRequest::Interaction(command_options.clone());
                     let cmd_fut = command.call((ctx, request));
                     return Either::Right(cmd_fut);
+                } else if let Interaction::MessageComponent(message_component) = &interaction.0 {
+                    if !self
+                        .bot
+                        .ignore_message_components
+                        .contains(&message_component.message.id)
+                    {
+                        let http = self.bot.http.clone();
+                        let id = message_component.id;
+                        let token = message_component.token.clone();
+                        let fut = async move {
+                            let _ = http
+                                .interaction_callback(
+                                    id,
+                                    &token,
+                                    InteractionResponse::DeferredUpdateMessage,
+                                )
+                                .await;
+                            let _ = http
+                                .create_followup_message(&token)
+                                .unwrap()
+                                .ephemeral(true)
+                                .content("This component is no longer active and cannot be used.")
+                                .await;
+                            Ok(())
+                        };
+                        return Either::Right(Box::pin(fut));
+                    }
                 }
             }
             _ => {}

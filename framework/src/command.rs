@@ -1,4 +1,11 @@
 use itertools::Itertools;
+use rowifi_models::discord::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        interaction::application_command::CommandDataOption,
+    },
+    channel::message::MessageFlags,
+};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,
@@ -7,13 +14,6 @@ use std::{
 };
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
-use twilight_model::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        interaction::application_command::CommandDataOption,
-    },
-    channel::message::MessageFlags,
-};
 
 use crate::{
     arguments::{ArgumentError, FromArgs},

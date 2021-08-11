@@ -1,6 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::user::PremiumUser;
-use twilight_model::id::UserId;
+use rowifi_models::{discord::id::UserId, user::PremiumUser};
 
 #[derive(FromArgs)]
 pub struct PremiumTransferArguments {

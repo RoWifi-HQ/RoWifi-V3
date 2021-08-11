@@ -1,7 +1,9 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::{GuildType, RoGuild};
-use twilight_model::id::RoleId;
+use rowifi_models::{
+    discord::id::RoleId,
+    guild::{GuildType, RoGuild},
+};
 
 use super::FunctionOption;
 
@@ -31,20 +33,18 @@ pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments)
         return Ok(());
     }
 
-    if let Some(option) = args.option {
-        match option {
-            FunctionOption::Add => {
-                nickname_bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Remove => {
-                nickname_bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Set => {
-                nickname_bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
+    let option = args.option.unwrap_or_default();
+    match option {
+        FunctionOption::Add => {
+            nickname_bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
         }
-    } else {
-        nickname_bypass_view(ctx, guild).await
+        FunctionOption::Remove => {
+            nickname_bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::Set => {
+            nickname_bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::View => nickname_bypass_view(ctx, guild).await,
     }
 }
 
@@ -134,7 +134,7 @@ pub async fn nickname_bypass_remove(
     let mut role_ids = Vec::new();
     for r in discord_roles.split_ascii_whitespace() {
         if let Some(r) = parse_role(r) {
-            role_ids.push(r);
+            role_ids.push(r as i64);
         }
     }
 
@@ -146,7 +146,7 @@ pub async fn nickname_bypass_remove(
         .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| !role_ids.contains(&r.0));
+        .retain(|r| !role_ids.contains(&(r.0 as i64)));
 
     let mut description = "Removed Nickname Bypass Roles:\n".to_string();
     for role in role_ids {

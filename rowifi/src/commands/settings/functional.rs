@@ -1,7 +1,6 @@
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
-use twilight_model::id::RoleId;
+use rowifi_models::{discord::id::RoleId, guild::GuildType};
 
 #[derive(FromArgs)]
 pub struct FunctionalArguments {
@@ -105,6 +104,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
         .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -226,23 +226,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
             }
         }
     }
-
-    if let Some(interaction_token) = &ctx.interaction_token {
-        ctx.bot
-            .http
-            .update_interaction_original(interaction_token)
-            .unwrap()
-            .components(Some(Vec::new()))
-            .unwrap()
-            .await?;
-    } else {
-        ctx.bot
-            .http
-            .update_message(ctx.channel_id, message_id)
-            .components(Some(Vec::new()))
-            .unwrap()
-            .await?;
-    }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     Ok(())
 }

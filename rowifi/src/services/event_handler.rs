@@ -1,11 +1,15 @@
 use super::{activity, auto_detection};
 use dashmap::DashSet;
 use futures_util::future::{Future, FutureExt};
-use rowifi_framework::{
-    context::BotContext,
-    prelude::{CommandError, EmbedExtensions, RoError},
+use rowifi_framework::{context::BotContext, prelude::*};
+use rowifi_models::{
+    discord::{
+        channel::GuildChannel,
+        guild::Permissions,
+        id::{ChannelId, GuildId, RoleId},
+    },
+    guild::GuildType,
 };
-use rowifi_models::guild::GuildType;
 use std::{
     pin::Pin,
     sync::{
@@ -15,13 +19,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::EmbedBuilder;
 use twilight_gateway::Event;
-use twilight_model::{
-    channel::GuildChannel,
-    guild::Permissions,
-    id::{ChannelId, GuildId, RoleId},
-};
 
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,
@@ -136,8 +134,8 @@ impl Service<(u64, Event)> for EventHandler {
                     let guild_ids = ready
                         .guilds
                         .iter()
-                        .map(|k| k.id.0)
-                        .collect::<Vec<u64>>();
+                        .map(|k| k.id.0 as i64)
+                        .collect::<Vec<_>>();
                     let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
                     for guild in guilds {
                         let guild_id = GuildId(guild.id as u64);
@@ -192,7 +190,7 @@ impl Service<(u64, Event)> for EventHandler {
 
                     let guild_roles = eh.bot.cache.roles(m.guild_id);
                     let (added_roles, removed_roles, disc_nick) = match eh.bot
-                        .update_user(member, &user, &server, &guild, &guild_roles)
+                        .update_user(member, &user, &server, &guild, &guild_roles, false)
                         .await
                     {
                         Ok(a) => a,

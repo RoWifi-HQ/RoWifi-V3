@@ -1,8 +1,9 @@
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{GroupBind, Template};
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
+use rowifi_models::{
+    bind::{GroupBind, Template},
+    discord::id::RoleId,
+};
 
 #[derive(FromArgs)]
 pub struct GroupbindsNewArguments {
@@ -81,7 +82,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         priority,
         bind.discord_roles
             .iter()
-            .map(|r| RoleId(*r as u64).mention().to_string())
+            .map(|r| format!("<@&{}> ", r))
             .collect::<String>()
     );
     let embed = EmbedBuilder::new()
@@ -127,6 +128,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .timeout(Duration::from_secs(300));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -165,7 +167,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .embeds(vec![embed])
                         .await?;
 
-                    return Ok(());
+                    break;
                 }
                 let _ = ctx
                     .bot
@@ -187,23 +189,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
             }
         }
     }
-
-    if let Some(interaction_token) = &ctx.interaction_token {
-        ctx.bot
-            .http
-            .update_interaction_original(interaction_token)
-            .unwrap()
-            .components(None)
-            .unwrap()
-            .await?;
-    } else {
-        ctx.bot
-            .http
-            .update_message(ctx.channel_id, message_id)
-            .components(None)
-            .unwrap()
-            .await?;
-    }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     Ok(())
 }

@@ -1,7 +1,8 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::roblox::id::UserId as RobloxUserId;
-use twilight_embed_builder::{EmbedFieldBuilder, ImageSource};
-use twilight_model::id::{GuildId, UserId};
+use rowifi_models::{
+    discord::id::{GuildId, UserId},
+    roblox::id::UserId as RobloxUserId,
+};
 
 #[derive(FromArgs)]
 pub struct UserInfoArguments {
@@ -23,12 +24,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
                 .description("User was not verified. Please ask him/her to verify themselves")
                 .build()
                 .unwrap();
-            ctx.bot
-                .http
-                .create_message(ctx.channel_id)
-                .embeds(vec![embed])
-                .unwrap()
-                .await?;
+            ctx.respond().embeds(vec![embed]).await?;
             return Ok(());
         }
     };
@@ -36,7 +32,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     let roblox_user = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(user.roblox_id as u64))
+        .get_user(RobloxUserId(user.roblox_id as u64), false)
         .await?;
 
     let embed = EmbedBuilder::new()

@@ -5,8 +5,6 @@ pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use twilight_mention::Mention;
-use twilight_model::id::RoleId;
 
 use delete::custombinds_delete;
 use modify::custombinds_modify;
@@ -62,12 +60,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
             .description("No custombinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.bot
-            .http
-            .create_message(ctx.channel_id)
-            .embeds(vec![e])
-            .unwrap()
-            .await?;
+        ctx.respond().embeds(vec![e]).await?;
         return Ok(());
     }
 
@@ -84,7 +77,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
             let roles_str = cb
                 .discord_roles
                 .iter()
-                .map(|r| RoleId(*r as u64).mention().to_string())
+                .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
             let nick = if let Some(template) = &cb.template {
                 format!("Template: `{}`\n", template)

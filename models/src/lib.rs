@@ -58,3 +58,5 @@ pub mod roblox;
 pub mod rolang;
 pub mod stats;
 pub mod user;
+
+pub use twilight_model as discord;

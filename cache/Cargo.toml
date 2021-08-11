@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-cache"
-version = "3.1.0"
+version = "3.1.1"
 authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -10,4 +10,3 @@ edition = "2018"
 dashmap = "4"
 rowifi-models = { path = "../models" }
 tracing = "0"
-twilight-model = { branch = "feature/message-components", git = "https://github.com/twilight-rs/twilight" }

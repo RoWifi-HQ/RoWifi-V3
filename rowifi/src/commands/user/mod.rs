@@ -3,10 +3,11 @@ mod test;
 mod update;
 mod verify;
 
-pub use info::{botinfo, support, userinfo};
 use rowifi_framework::prelude::*;
+use rowifi_models::discord::id::MessageId;
+
+pub use info::{botinfo, support, userinfo};
 pub use test::test;
-use twilight_model::id::MessageId;
 pub use update::update;
 pub use verify::{verify, verify_config};
 
@@ -69,6 +70,7 @@ pub async fn handle_update_button(
         .timeout(Duration::from_secs(60));
     tokio::pin!(stream);
 
+    ctx.bot.ignore_message_components.insert(message_id);
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -92,14 +94,14 @@ pub async fn handle_update_button(
                         )
                         .await?;
 
-                    let embed = update_func(ctx, UpdateArguments { user_id: None }).await?;
+                    let embed = update_func(ctx, UpdateArguments { user_id: None }, false).await?;
                     ctx.bot
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
                         .embeds(vec![embed])
                         .await?;
-                    return Ok(());
+                    break;
                 }
                 let _ = ctx
                     .bot
@@ -121,23 +123,7 @@ pub async fn handle_update_button(
             }
         }
     }
-
-    if let Some(interaction_token) = &ctx.interaction_token {
-        ctx.bot
-            .http
-            .update_interaction_original(interaction_token)
-            .unwrap()
-            .components(None)
-            .unwrap()
-            .await?;
-    } else {
-        ctx.bot
-            .http
-            .update_message(ctx.channel_id, message_id)
-            .components(None)
-            .unwrap()
-            .await?;
-    }
+    ctx.bot.ignore_message_components.remove(&message_id);
 
     Ok(())
 }

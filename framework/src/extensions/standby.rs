@@ -1,5 +1,5 @@
+use rowifi_models::discord::{application::interaction::Interaction, id::MessageId};
 use twilight_gateway::Event;
-use twilight_model::{application::interaction::Interaction, id::MessageId};
 use twilight_standby::{Standby, WaitForEventStream};
 
 pub trait StandbyExtensions {
