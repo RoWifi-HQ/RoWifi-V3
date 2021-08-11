@@ -60,21 +60,6 @@ impl Service<(u64, Event)> for EventHandler {
                 Event::GuildCreate(guild) => {
                     if eh.unavailable.contains(&guild.id) {
                         eh.unavailable.remove(&guild.id);
-                        if eh.unavailable.is_empty()
-                            && !eh.auto_detection_started.load(Ordering::SeqCst)
-                            && shard_id % eh.bot.shards_per_cluster
-                                == eh.bot.shards_per_cluster - 1
-                        {
-                            eh.auto_detection_started.store(true, Ordering::SeqCst);
-                            let context_ad = eh.bot.clone();
-                            tokio::spawn(async move {
-                                auto_detection(context_ad).await;
-                            });
-                            let context_ac = eh.bot.clone();
-                            tokio::spawn(async move {
-                                activity(context_ac).await;
-                            });
-                        }
                     } else {
                         let content = "Thank you for adding RoWifi! To view our setup guide, check out our post: https://rowifi.link/blog/setup
                             \nTo get more information about announcements & updates, please join our support server: https://www.discord.gg/h4BGGyR
@@ -130,6 +115,22 @@ impl Service<(u64, Event)> for EventHandler {
                     tracing::info!("RoWifi ready for service!");
                     for ug in &ready.guilds {
                         eh.unavailable.insert(ug.id);
+                    }
+                    if !eh.auto_detection_started.load(Ordering::SeqCst)
+                        && shard_id % eh.bot.shards_per_cluster
+                            == eh.bot.shards_per_cluster - 1
+                    {
+                        eh.auto_detection_started.store(true, Ordering::SeqCst);
+                        let context_ad = eh.bot.clone();
+                        tokio::spawn(async move {
+                            tokio::time::sleep(Duration::from_secs(3 * 60)).await;
+                            auto_detection(context_ad).await;
+                        });
+                        let context_ac = eh.bot.clone();
+                        tokio::spawn(async move {
+                            tokio::time::sleep(Duration::from_secs(3 * 60)).await;
+                            activity(context_ac).await;
+                        });
                     }
                     let guild_ids = ready
                         .guilds
