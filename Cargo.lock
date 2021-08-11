@@ -1697,7 +1697,7 @@ dependencies = [
 
 [[package]]
 name = "roblox"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -1711,7 +1711,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "base64",
  "chacha20poly1305",
@@ -1748,7 +1748,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-cache"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "dashmap",
  "rowifi-models",
@@ -1757,7 +1757,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-database"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "futures-util",
  "mongodb",
@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-framework"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "chacha20poly1305",
  "chrono",
@@ -1796,7 +1796,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-models"
-version = "3.1.0"
+version = "3.1.1"
 dependencies = [
  "itertools",
  "lazy_static",
