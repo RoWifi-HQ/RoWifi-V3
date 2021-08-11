@@ -31,20 +31,14 @@ pub async fn admin(ctx: CommandContext, args: AdminArguments) -> CommandResult {
         return Ok(());
     }
 
-    if let Some(option) = args.option {
-        match option {
-            FunctionOption::Add => {
-                admin_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Remove => {
-                admin_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Set => {
-                admin_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
+    let option = args.option.unwrap_or_default();
+    match option {
+        FunctionOption::Add => admin_add(ctx, guild, args.discord_roles.unwrap_or_default()).await,
+        FunctionOption::Remove => {
+            admin_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
         }
-    } else {
-        admin_view(ctx, guild).await
+        FunctionOption::Set => admin_set(ctx, guild, args.discord_roles.unwrap_or_default()).await,
+        FunctionOption::View => admin_view(ctx, guild).await,
     }
 }
 

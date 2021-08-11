@@ -11,7 +11,9 @@ use rowifi_models::{
 };
 use std::str::FromStr;
 
-use crate::commands::{custombinds::new::custombinds_new_common, log_rankbind, new::CustombindsNewArguments};
+use crate::commands::{
+    custombinds::new::custombinds_new_common, log_rankbind, new::CustombindsNewArguments,
+};
 
 lazy_static! {
     pub static ref TEMPLATE_REGEX: Regex = Regex::new(r"\[(.*?)\]").unwrap();
@@ -138,12 +140,18 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
 async fn bind_custom(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
     let code = await_reply("Enter the code for this bind.", &ctx).await?;
 
-    custombinds_new_common(ctx, guild_id, guild, CustombindsNewArguments {
-        code,
-        template: None,
-        priority: None,
-        discord_roles: None
-    }).await
+    custombinds_new_common(
+        ctx,
+        guild_id,
+        guild,
+        CustombindsNewArguments {
+            code,
+            template: None,
+            priority: None,
+            discord_roles: None,
+        },
+    )
+    .await
 }
 
 async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {

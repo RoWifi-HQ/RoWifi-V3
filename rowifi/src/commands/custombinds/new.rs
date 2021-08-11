@@ -1,94 +1,125 @@
 use itertools::Itertools;
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::{bind::{CustomBind, Template}, discord::id::{GuildId, RoleId}, guild::RoGuild, roblox::id::UserId as RobloxUserId, rolang::{RoCommand, RoCommandUser}};
+use rowifi_models::{
+    bind::{CustomBind, Template},
+    discord::id::{GuildId, RoleId},
+    guild::RoGuild,
+    roblox::id::UserId as RobloxUserId,
+    rolang::{RoCommand, RoCommandUser},
+};
 use std::collections::HashMap;
 
+#[allow(clippy::option_option)]
 pub struct CustombindsNewArguments {
     pub code: String,
     pub template: Option<String>,
     pub priority: Option<Option<i64>>,
-    pub discord_roles: Option<Option<String>>
+    pub discord_roles: Option<Option<String>>,
 }
 
 impl FromArgs for CustombindsNewArguments {
     fn from_args(args: &mut Arguments) -> Result<Self, ArgumentError> {
         let code = match args.rest().map(|s| String::from_arg(s.as_str())) {
             Some(Ok(s)) => s,
-            Some(Err(err)) => return Err(ArgumentError::ParseError{
-                expected: err.0,
-                usage: Self::generate_help(),
-                name: "code"
-            }),
-            None => return Err(ArgumentError::MissingArgument {
-                usage: Self::generate_help(),
-                name: "code"
-            })
+            Some(Err(err)) => {
+                return Err(ArgumentError::ParseError {
+                    expected: err.0,
+                    usage: Self::generate_help(),
+                    name: "code",
+                })
+            }
+            None => {
+                return Err(ArgumentError::MissingArgument {
+                    usage: Self::generate_help(),
+                    name: "code",
+                })
+            }
         };
 
         Ok(Self {
             code,
             template: None,
             priority: None,
-            discord_roles: None
+            discord_roles: None,
         })
     }
 
     fn from_interaction(options: &[CommandDataOption]) -> Result<Self, ArgumentError> {
-        let options = options.iter().map(|c| (c.name(), c))
-                    .collect::<std::collections::HashMap<&str, &CommandDataOption>>();
+        let options = options
+            .iter()
+            .map(|c| (c.name(), c))
+            .collect::<std::collections::HashMap<&str, &CommandDataOption>>();
 
         let code = match options.get(&"code").map(|s| String::from_interaction(*s)) {
             Some(Ok(s)) => s,
-            Some(Err(err)) => return Err(ArgumentError::ParseError{
-                expected: err.0,
-                usage: Self::generate_help(),
-                name: "code"
-            }),
-            None => return Err(ArgumentError::MissingArgument {
-                usage: Self::generate_help(),
-                name: "code"
-            })
+            Some(Err(err)) => {
+                return Err(ArgumentError::ParseError {
+                    expected: err.0,
+                    usage: Self::generate_help(),
+                    name: "code",
+                })
+            }
+            None => {
+                return Err(ArgumentError::MissingArgument {
+                    usage: Self::generate_help(),
+                    name: "code",
+                })
+            }
         };
 
-        let template = match options.get(&"template").map(|s| String::from_interaction(*s)) {
+        let template = match options
+            .get(&"template")
+            .map(|s| String::from_interaction(*s))
+        {
             Some(Ok(s)) => s,
-            Some(Err(err)) => return Err(ArgumentError::ParseError{
-                expected: err.0,
-                usage: Self::generate_help(),
-                name: "template"
-            }),
-            None => return Err(ArgumentError::MissingArgument {
-                usage: Self::generate_help(),
-                name: "template"
-            })
+            Some(Err(err)) => {
+                return Err(ArgumentError::ParseError {
+                    expected: err.0,
+                    usage: Self::generate_help(),
+                    name: "template",
+                })
+            }
+            None => {
+                return Err(ArgumentError::MissingArgument {
+                    usage: Self::generate_help(),
+                    name: "template",
+                })
+            }
         };
 
         let priority = match options.get(&"priority").map(|s| i64::from_interaction(*s)) {
             Some(Ok(s)) => Some(Some(s)),
-            Some(Err(err)) => return Err(ArgumentError::ParseError{
-                expected: err.0,
-                usage: Self::generate_help(),
-                name: "priority"
-            }),
-            None => Some(None)
+            Some(Err(err)) => {
+                return Err(ArgumentError::ParseError {
+                    expected: err.0,
+                    usage: Self::generate_help(),
+                    name: "priority",
+                })
+            }
+            None => Some(None),
         };
 
-        let discord_roles = match options.get(&"discord_roles").map(|s| String::from_interaction(*s)) {
+        let discord_roles = match options
+            .get(&"discord_roles")
+            .map(|s| String::from_interaction(*s))
+        {
             Some(Ok(s)) => Some(Some(s)),
-            Some(Err(err)) => return Err(ArgumentError::ParseError{
-                expected: err.0,
-                usage: Self::generate_help(),
-                name: "discord_roles"
-            }),
-            None => Some(None)
+            Some(Err(err)) => {
+                return Err(ArgumentError::ParseError {
+                    expected: err.0,
+                    usage: Self::generate_help(),
+                    name: "discord_roles",
+                })
+            }
+            None => Some(None),
         };
 
         Ok(Self {
             code,
             template: Some(template),
             priority,
-            discord_roles
+            discord_roles,
         })
     }
 
@@ -217,9 +248,9 @@ pub async fn custombinds_new_common(
         Some(p) => p.unwrap_or_default(),
         None => {
             match await_reply("Enter the priority you wish to set for the bind.", &ctx)
-            .await?
-            .parse::<i64>()
-            {   
+                .await?
+                .parse::<i64>()
+            {
                 Ok(p) => p,
                 Err(_) => {
                     let embed = EmbedBuilder::new()

@@ -31,20 +31,18 @@ pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResu
         return Ok(());
     }
 
-    if let Some(option) = args.option {
-        match option {
-            FunctionOption::Add => {
-                trainer_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Remove => {
-                trainer_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Set => {
-                trainer_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
+    let option = args.option.unwrap_or_default();
+    match option {
+        FunctionOption::Add => {
+            trainer_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
         }
-    } else {
-        trainer_view(ctx, guild).await
+        FunctionOption::Remove => {
+            trainer_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::Set => {
+            trainer_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::View => trainer_view(ctx, guild).await,
     }
 }
 

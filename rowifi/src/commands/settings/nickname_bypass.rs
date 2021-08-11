@@ -33,20 +33,18 @@ pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments)
         return Ok(());
     }
 
-    if let Some(option) = args.option {
-        match option {
-            FunctionOption::Add => {
-                nickname_bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Remove => {
-                nickname_bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Set => {
-                nickname_bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
+    let option = args.option.unwrap_or_default();
+    match option {
+        FunctionOption::Add => {
+            nickname_bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
         }
-    } else {
-        nickname_bypass_view(ctx, guild).await
+        FunctionOption::Remove => {
+            nickname_bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::Set => {
+            nickname_bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
+        }
+        FunctionOption::View => nickname_bypass_view(ctx, guild).await,
     }
 }
 

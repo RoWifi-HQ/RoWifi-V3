@@ -31,20 +31,14 @@ pub async fn bypass(ctx: CommandContext, args: BypassArguments) -> CommandResult
         return Ok(());
     }
 
-    if let Some(option) = args.option {
-        match option {
-            FunctionOption::Add => {
-                bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Remove => {
-                bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
-            FunctionOption::Set => {
-                bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-            }
+    let option = args.option.unwrap_or_default();
+    match option {
+        FunctionOption::Add => bypass_add(ctx, guild, args.discord_roles.unwrap_or_default()).await,
+        FunctionOption::Remove => {
+            bypass_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
         }
-    } else {
-        bypass_view(ctx, guild).await
+        FunctionOption::Set => bypass_set(ctx, guild, args.discord_roles.unwrap_or_default()).await,
+        FunctionOption::View => bypass_view(ctx, guild).await,
     }
 }
 

@@ -212,6 +212,13 @@ pub enum FunctionOption {
     Add,
     Remove,
     Set,
+    View,
+}
+
+impl Default for FunctionOption {
+    fn default() -> Self {
+        Self::View
+    }
 }
 
 impl FromArg for FunctionOption {
@@ -222,6 +229,7 @@ impl FromArg for FunctionOption {
             "add" => Ok(Self::Add),
             "remove" => Ok(Self::Remove),
             "set" => Ok(Self::Set),
+            "view" => Ok(Self::View),
             _ => Err(ParseError("one of `add` `remove` `set`")),
         }
     }

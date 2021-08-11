@@ -93,10 +93,10 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                 .get_user(RobloxUserId(event.host_id as u64), false)
                 .await?;
             let desc = format!(
-                "Event Type: {}\nHost: {}\nTimestamp:{}",
+                "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
                 event_type.name,
                 host.name,
-                DateTime::<Utc>::from(event.timestamp).to_rfc3339()
+                event.timestamp.to_chrono().timestamp()
             );
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
@@ -195,10 +195,10 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                 .get_user(RobloxUserId(event.host_id as u64), false)
                 .await?;
             let desc = format!(
-                "Event Type: {}\nHost: {}\nTimestamp:{}",
+                "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
                 event_type.name,
                 host.name,
-                DateTime::<Utc>::from(event.timestamp).to_rfc3339()
+                event.timestamp.to_chrono().timestamp()
             );
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());

@@ -48,6 +48,19 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             });
         }
     }
+
+    if options.is_empty() {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Event Addition Failed")
+            .description("There are no event types or all event types are disabled")
+            .build()
+            .unwrap();
+        ctx.respond().embed(embed).await?;
+        return Ok(());
+    }
+
     let mut select_menu = SelectMenu {
         custom_id: "event-new-select".into(),
         disabled: false,
@@ -156,7 +169,11 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .find(|e| e.id == event_type_id)
         .unwrap();
 
-    let attendees_str = await_reply("Enter the list of attendees in this event", &ctx).await?;
+    let attendees_str = await_reply(
+        "Enter the usernames of Roblox Users who attended this event",
+        &ctx,
+    )
+    .await?;
     let mut attendees = Vec::new();
     for attendee in attendees_str.split(|c| c == ' ' || c == ',') {
         if let Ok(Some(roblox_id)) = ctx.bot.roblox.get_user_from_username(attendee).await {
