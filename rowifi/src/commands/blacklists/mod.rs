@@ -44,7 +44,7 @@ pub fn blacklists_config(cmds: &mut Vec<Command>) {
 
     let blacklist_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["blacklist", "bl"])
+        .names(&["blacklist", "bl", "blacklists"])
         .description("Command to view blacklists of a server")
         .group("Administration")
         .sub_command(blacklist_view_cmd)
