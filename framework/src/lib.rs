@@ -163,6 +163,10 @@ impl Service<&Event> for Framework {
     fn call(&mut self, req: &Event) -> Self::Future {
         match req {
             Event::MessageCreate(msg) => {
+                if msg.content.is_empty() || msg.author.bot {
+                    return Either::Left(ready(Ok(())));
+                }
+
                 let mut stream = Stream::new(&msg.content);
                 stream.take_while_char(char::is_whitespace);
 
