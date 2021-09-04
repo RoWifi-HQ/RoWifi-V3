@@ -176,7 +176,7 @@ pub async fn settings_view(ctx: CommandContext) -> CommandResult {
         .build()
         .unwrap();
 
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 

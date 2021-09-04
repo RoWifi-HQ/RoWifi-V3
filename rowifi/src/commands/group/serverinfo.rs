@@ -51,6 +51,6 @@ pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Assetbinds", guild.assetbinds.len().to_string()).inline())
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

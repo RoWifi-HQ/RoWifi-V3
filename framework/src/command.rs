@@ -166,8 +166,8 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     let _ = http
                         .interaction_callback(
                             id,
-                            token,
-                            InteractionResponse::ChannelMessageWithSource(CallbackData {
+                            &token,
+                            &InteractionResponse::ChannelMessageWithSource(CallbackData {
                                 allowed_mentions: None,
                                 tts: None,
                                 embeds: Vec::new(),
@@ -176,6 +176,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                                 components: None,
                             }),
                         )
+                        .exec()
                         .await;
                     Ok(())
                 };
@@ -192,8 +193,8 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                 let _ = http
                     .interaction_callback(
                         id,
-                        token,
-                        InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
+                        &token,
+                        &InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
                             allowed_mentions: None,
                             tts: None,
                             embeds: Vec::new(),
@@ -202,6 +203,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             components: None,
                         }),
                     )
+                    .exec()
                     .await;
             }
             let res = fut.await;
@@ -243,7 +245,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
                     master_name, usage.0, name, usage.1
                 );
-                let _ = ctx.respond().content(content).await;
+                let _ = ctx.respond().content(&content).exec().await;
             }
             ArgumentError::ParseError {
                 expected,
@@ -254,7 +256,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
                     master_name, usage.0, name, expected, usage.1
                 );
-                let _ = ctx.respond().content(content).await;
+                let _ = ctx.respond().content(&content).exec().await;
             }
             ArgumentError::BadArgument => {
                 //This shouldn't be happening but still report it to the user
@@ -270,7 +272,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .description(b)
                     .build()
                     .unwrap();
-                let _ = ctx.respond().embed(embed).await;
+                let _ = ctx.respond().embeds(&[embed]).exec().await;
             }
             CommandError::Timeout => {
                 let embed = EmbedBuilder::new()
@@ -280,7 +282,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .description("Command cancelled. Please try again")
                     .build()
                     .unwrap();
-                let _ = ctx.respond().embed(embed).await;
+                let _ = ctx.respond().embeds(&[embed]).exec().await;
             }
             CommandError::Ratelimit(ref d) => {
                 let embed = EmbedBuilder::new()
@@ -293,7 +295,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     ))
                     .build()
                     .unwrap();
-                let _ = ctx.respond().embed(embed).await;
+                let _ = ctx.respond().embeds(&[embed]).exec().await;
             }
         },
         RoError::Common(err) => match err {
@@ -305,13 +307,13 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                     .color(Color::Red as u32)
                     .build()
                     .unwrap();
-                let _ = ctx.respond().embed(embed).await;
+                let _ = ctx.respond().embeds(&[embed]).exec().await;
             }
         },
         RoError::NoOp => {}
         _ => {
             tracing::error!(err = ?err);
-            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").await;
+            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").exec().await;
             let content = format!(
                 "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
                 ctx.guild_id, master_name, ctx.bot.cluster_id, err

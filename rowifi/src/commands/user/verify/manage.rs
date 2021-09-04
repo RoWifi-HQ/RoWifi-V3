@@ -17,7 +17,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -35,28 +35,28 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     {
         Some(r) => r,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
     let roblox_id = roblox_id.id.0 as i64;
 
     if !user.alts.contains(&roblox_id) && user.roblox_id != roblox_id {
-        let e = EmbedBuilder::new()
+        let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
             .title("Verification Process Failed")
             .description("The provided username is not linked to your discord account. Please link it using `verify add`")
             .build()
             .unwrap();
-        ctx.respond().embeds(vec![e]).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -73,10 +73,10 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Switching Successful")
         .build()
         .unwrap();
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embeds(vec![embed])
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
                 disabled: false,
@@ -86,9 +86,12 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 url: None,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }
@@ -104,7 +107,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -122,14 +125,14 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     {
         Some(r) => r,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -138,14 +141,14 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     let account_index = match user.alts.iter().position(|r| *r == roblox_id) {
         Some(i) => i,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("The provided username is not linked to your discord account or is already your default account")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -160,10 +163,10 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
         .title("Default Account Set Successfully")
         .build()
         .unwrap();
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embeds(vec![embed])
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
                 disabled: false,
@@ -173,9 +176,12 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 url: None,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }
@@ -191,7 +197,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -209,14 +215,14 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     {
         Some(r) => r,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -225,14 +231,14 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     let account_index = match user.alts.iter().position(|r| *r == roblox_id) {
         Some(i) => i,
         None => {
-            let e = EmbedBuilder::new()
+            let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("The provided username is not linked to your discord account or is your default account")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -248,10 +254,10 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         .title("Account Unlinking Successful")
         .build()
         .unwrap();
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embeds(vec![embed])
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("handle-update".into()),
                 disabled: false,
@@ -261,9 +267,12 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 url: None,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
+    handle_update_button(&ctx, message.id, Vec::new()).await?;
 
     Ok(())
 }

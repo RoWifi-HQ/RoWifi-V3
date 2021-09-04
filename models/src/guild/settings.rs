@@ -101,7 +101,8 @@ impl GuildSettings {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
                 (r.0).0 as i64
             } else {
-                let role = http.create_role(guild_id).name(role).await.unwrap();
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             };
             admin_roles.push(role_id);
@@ -114,7 +115,8 @@ impl GuildSettings {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
                 (r.0).0 as i64
             } else {
-                let role = http.create_role(guild_id).name(role).await.unwrap();
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             };
             trainer_roles.push(role_id);
@@ -127,7 +129,8 @@ impl GuildSettings {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
                 (r.0).0 as i64
             } else {
-                let role = http.create_role(guild_id).name(role).await.unwrap();
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             };
             bypass_roles.push(role_id);
@@ -140,7 +143,8 @@ impl GuildSettings {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
                 (r.0).0 as i64
             } else {
-                let role = http.create_role(guild_id).name(role).await.unwrap();
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             };
             nickname_bypass_roles.push(role_id);

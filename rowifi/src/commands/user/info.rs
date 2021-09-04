@@ -24,7 +24,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
                 .description("User was not verified. Please ask him/her to verify themselves")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -57,7 +57,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         )
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -86,7 +86,7 @@ pub async fn botinfo(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Members", member_count.to_string()).inline())
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -116,6 +116,6 @@ pub async fn support(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

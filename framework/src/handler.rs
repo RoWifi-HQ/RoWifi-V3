@@ -108,8 +108,9 @@ where
                     ctx.bot
                         .http
                         .create_message(ctx.channel_id)
-                        .embeds(vec![embed])
+                        .embeds(&[embed])
                         .unwrap()
+                        .exec()
                         .await?;
                     Ok(())
                 };

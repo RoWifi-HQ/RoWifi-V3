@@ -27,7 +27,7 @@ pub async fn admin(ctx: CommandContext, args: AdminArguments) -> CommandResult {
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -58,7 +58,7 @@ pub async fn admin_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
         .description(format!("{}\n\n{}", "These are the roles that can manage RoWifi. They are **not** roles with administrator permissions on discord. However, by default, anyone with administrator permissions can manage RoWifi.", description))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -109,7 +109,7 @@ pub async fn admin_add(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -149,7 +149,7 @@ pub async fn admin_remove(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -193,7 +193,7 @@ pub async fn admin_set(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }

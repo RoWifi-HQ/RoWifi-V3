@@ -23,7 +23,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -38,7 +38,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                     .color(Color::Red as u32)
                     .build()
                     .unwrap();
-                ctx.respond().embed(embed).await?;
+                ctx.respond().embeds(&[embed]).exec().await?;
                 return Ok(());
             }
         },
@@ -54,7 +54,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                         .color(Color::Red as u32)
                         .build()
                         .unwrap();
-                    ctx.respond().embed(embed).await?;
+                    ctx.respond().embeds(&[embed]).exec().await?;
                     return Ok(());
                 }
             }
@@ -127,7 +127,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -142,7 +142,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                     .color(Color::Red as u32)
                     .build()
                     .unwrap();
-                ctx.respond().embed(embed).await?;
+                ctx.respond().embeds(&[embed]).exec().await?;
                 return Ok(());
             }
         },
@@ -158,7 +158,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                         .color(Color::Red as u32)
                         .build()
                         .unwrap();
-                    ctx.respond().embed(embed).await?;
+                    ctx.respond().embeds(&[embed]).exec().await?;
                     return Ok(());
                 }
             }
@@ -229,7 +229,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -244,7 +244,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             .description(format!("An event with id {} does not exist", event_id))
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -297,6 +297,6 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         ));
     }
 
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
     Ok(())
 }

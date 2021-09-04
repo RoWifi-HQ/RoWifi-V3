@@ -1,4 +1,3 @@
-use hyper::StatusCode;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::{
     channel::embed::Embed,
@@ -14,10 +13,10 @@ pub struct UpdateArguments {
 
 pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), RoError> {
     let embed = update_func(&ctx, args.clone(), false).await?;
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embed(embed)
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("recent-username-update".into()),
                 disabled: false,
@@ -27,10 +26,13 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 url: None,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
     let author_id = ctx.author.id;
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
 
     let stream = ctx
         .bot
@@ -52,7 +54,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
@@ -61,13 +63,15 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
                     let embed = update_func(&ctx, args, true).await?;
                     ctx.bot
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
-                        .embeds(vec![embed])
+                        .embeds(&[embed])
+                        .exec()
                         .await?;
                     break;
                 }
@@ -77,8 +81,9 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -87,6 +92,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .unwrap()
                     .ephemeral(true)
                     .content("This button is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }
@@ -188,7 +194,7 @@ pub async fn update_func(
                     status,
                 } = d.kind()
                 {
-                    if *status == StatusCode::FORBIDDEN {
+                    if *status == 403 {
                         let embed = EmbedBuilder::new()
                             .default_data()
                             .color(Color::Red as u32)
@@ -214,16 +220,17 @@ pub async fn update_func(
                     ))
                     .build()
                     .unwrap();
-                if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).await {
+                if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).exec().await?.model().await {
                     let _ = ctx
                         .bot
                         .http
                         .create_message(channel.id)
-                        .content(format!(
+                        .content(&format!(
                             "You were found on the {} blacklist. Reason: {}",
                             server.name, b
                         ))
                         .unwrap()
+                        .exec()
                         .await;
                 }
                 return Ok(embed);

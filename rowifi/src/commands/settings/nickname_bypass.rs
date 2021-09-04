@@ -29,7 +29,7 @@ pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments)
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -68,7 +68,7 @@ pub async fn nickname_bypass_view(ctx: CommandContext, guild: RoGuild) -> Comman
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -119,7 +119,7 @@ pub async fn nickname_bypass_add(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -160,7 +160,7 @@ pub async fn nickname_bypass_remove(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }
@@ -204,7 +204,7 @@ pub async fn nickname_bypass_set(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }

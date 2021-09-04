@@ -30,7 +30,7 @@ pub async fn settings_verification(
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -70,7 +70,7 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

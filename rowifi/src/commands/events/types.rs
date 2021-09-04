@@ -14,7 +14,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -24,7 +24,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         let value = format!("Name: {}", event_type.name);
         embed = embed.field(EmbedFieldBuilder::new(name, value).inline());
     }
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
     Ok(())
 }
 
@@ -48,7 +48,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -60,7 +60,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             .title("Event Type Addition Failed")
             .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id))
             .build().unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -86,7 +86,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -102,7 +102,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -118,7 +118,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
                 .description(format!("An event type with id {} does not exist", event_id))
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -138,7 +138,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -160,7 +160,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -175,7 +175,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
                 .description(format!("An event type with id {} does not exist", event_id))
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -195,7 +195,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
         .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -217,7 +217,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -232,7 +232,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
                 .description(format!("An event type with id {} does not exist", event_id))
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -252,6 +252,6 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
         .field(EmbedFieldBuilder::new(name, desc))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

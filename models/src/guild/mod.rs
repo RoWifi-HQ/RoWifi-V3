@@ -168,11 +168,8 @@ impl RoGuild {
             {
                 names_to_ids.insert(role_name, r.0);
             } else {
-                let role = http
-                    .create_role(guild_id)
-                    .name(role_name)
-                    .await
-                    .expect("Error creating a role");
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&role_name).exec().await.unwrap().model().await.unwrap();
                 names_to_ids.insert(role.name, role.id);
             }
         }
@@ -204,11 +201,8 @@ impl RoGuild {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&verification_name)) {
                 (r.0).0 as i64
             } else {
-                let role = http
-                    .create_role(guild_id)
-                    .name(verification_name)
-                    .await
-                    .expect("Error creating a role");
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&verification_name).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             }
         } else {
@@ -221,11 +215,8 @@ impl RoGuild {
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&verified_name)) {
                 (r.0).0 as i64
             } else {
-                let role = http
-                    .create_role(guild_id)
-                    .name(verified_name)
-                    .await
-                    .expect("Error creating a role");
+                #[rustfmt::skip]
+                let role = http.create_role(guild_id).name(&verified_name).exec().await.unwrap().model().await.unwrap();
                 role.id.0 as i64
             }
         } else {

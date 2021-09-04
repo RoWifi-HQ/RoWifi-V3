@@ -83,7 +83,7 @@ pub async fn handle_update_button(
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(keep_components),
@@ -92,6 +92,7 @@ pub async fn handle_update_button(
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
 
                     let embed = update_func(ctx, UpdateArguments { user_id: None }, false).await?;
@@ -99,7 +100,8 @@ pub async fn handle_update_button(
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
-                        .embeds(vec![embed])
+                        .embeds(&[embed])
+                        .exec()
                         .await?;
                     break;
                 }
@@ -109,8 +111,9 @@ pub async fn handle_update_button(
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -119,6 +122,7 @@ pub async fn handle_update_button(
                     .unwrap()
                     .ephemeral(true)
                     .content("This button is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }

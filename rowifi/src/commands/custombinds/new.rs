@@ -151,7 +151,7 @@ pub async fn custombinds_new_common(
                 .description("You must be verified to create a custom bind")
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -179,12 +179,12 @@ pub async fn custombinds_new_common(
     let command = match RoCommand::new(&args.code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.respond().content(s).await?;
+            ctx.respond().content(&s).exec().await?;
             return Ok(());
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.respond().content(res).await?;
+        ctx.respond().content(&res).exec().await?;
         return Ok(());
     }
 
@@ -260,7 +260,7 @@ pub async fn custombinds_new_common(
                         .description("Expected priority to be a number")
                         .build()
                         .unwrap();
-                    ctx.respond().embeds(vec![embed]).await?;
+                    ctx.respond().embeds(&[embed]).exec().await?;
                     return Ok(());
                 }
             }
@@ -318,10 +318,10 @@ pub async fn custombinds_new_common(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embeds(vec![embed])
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
                 emoji: Some(ReactionType::Unicode {
@@ -333,6 +333,9 @@ pub async fn custombinds_new_common(
                 disabled: false,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
     let log_embed = EmbedBuilder::new()
@@ -345,7 +348,7 @@ pub async fn custombinds_new_common(
     ctx.log_guild(guild_id, log_embed).await;
 
     let author_id = ctx.author.id;
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
 
     let stream = ctx
         .bot
@@ -368,7 +371,7 @@ pub async fn custombinds_new_common(
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
@@ -377,6 +380,7 @@ pub async fn custombinds_new_common(
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
 
                     let embed = EmbedBuilder::new()
@@ -390,7 +394,8 @@ pub async fn custombinds_new_common(
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
-                        .embeds(vec![embed])
+                        .embeds(&[embed])
+                        .exec()
                         .await?;
 
                     break;
@@ -401,8 +406,9 @@ pub async fn custombinds_new_common(
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -411,6 +417,7 @@ pub async fn custombinds_new_common(
                     .unwrap()
                     .ephemeral(true)
                     .content("This button is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }

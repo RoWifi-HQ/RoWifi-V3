@@ -54,15 +54,18 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
         placeholder: None,
     };
 
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .component(Component::ActionRow(ActionRow {
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
-        }))
+        })])
         .content("What type of bind would you like to create?")
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
     let stream = ctx
         .bot
@@ -85,7 +88,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 components: Some(vec![Component::ActionRow(ActionRow {
                                     components: vec![Component::SelectMenu(select_menu.clone())],
@@ -96,6 +99,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                                 tts: Some(false),
                             }),
                         )
+                        .exec()
                         .await?;
                     bind_type = Some(message_component.data.values[0].clone());
                     break;
@@ -106,8 +110,9 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -116,6 +121,7 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }
@@ -186,15 +192,18 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         placeholder: None,
     };
 
-    let message_id = ctx
+    let message = ctx
         .respond()
         .content("Select the type of asset to bind:")
-        .components(vec![Component::ActionRow(ActionRow {
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -216,7 +225,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                     let _ = ctx.bot.http.interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::UpdateMessage(CallbackData {
+                        &InteractionResponse::UpdateMessage(CallbackData {
                             allowed_mentions: None,
                             components: Some(vec![Component::ActionRow(ActionRow {
                                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -226,7 +235,9 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                             flags: None,
                             tts: Some(false),
                         }),
-                    );
+                    )
+                    .exec()
+                    .await;
                     asset_type = Some(message_component.data.values[0].clone());
                     break;
                 }
@@ -236,8 +247,9 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -246,6 +258,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                     .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }
@@ -273,7 +286,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected asset id to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -342,7 +355,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -389,7 +402,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(vec![embed]).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -417,7 +430,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected the group id to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -432,7 +445,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description(format!("Group with Id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -472,7 +485,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             .description("There were no ranks found associated with the entered ones")
             .build()
             .unwrap();
-        ctx.respond().embeds(vec![embed]).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -550,7 +563,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -610,7 +623,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -686,7 +699,7 @@ async fn bind_rank(
         .build()
         .unwrap();
 
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;

@@ -46,7 +46,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
                 .description("This module may only be used by a Beta Tier user")
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -62,6 +62,6 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val));
     }
 
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
     Ok(())
 }

@@ -85,10 +85,10 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        let message_id = ctx
+        let message = ctx
             .respond()
-            .embed(embed)
-            .components(vec![Component::ActionRow(ActionRow {
+            .embeds(&[embed])
+            .components(&[Component::ActionRow(ActionRow {
                 components: vec![Component::Button(Button {
                     custom_id: Some("handle-update".into()),
                     disabled: false,
@@ -98,9 +98,12 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
                     url: None,
                 })],
             })])
+            .exec()
+            .await?
+            .model()
             .await?;
 
-        handle_update_button(&ctx, message_id.unwrap(), Vec::new()).await?;
+        handle_update_button(&ctx, message.id, Vec::new()).await?;
         return Ok(());
     }
     verify_common(ctx, args, false).await
@@ -115,7 +118,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
     verify_common(ctx, args, true).await
@@ -144,11 +147,11 @@ pub async fn verify_common(
     {
         Some(r) => r,
         None => {
-            let e = embed
+            let embed = embed
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![e]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -181,10 +184,10 @@ pub async fn verify_common(
         url: Some(game_url.into()),
         disabled: false,
     });
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embeds(vec![e])
-        .components(vec![Component::ActionRow(ActionRow {
+        .embeds(&[e])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![
                 game_url_button.clone(),
                 Component::Button(Button {
@@ -197,6 +200,9 @@ pub async fn verify_common(
                 }),
             ],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
     let q_user = QueueUser {
         roblox_id,
@@ -207,7 +213,7 @@ pub async fn verify_common(
 
     handle_update_button(
         &ctx,
-        message_id.unwrap(),
+        message.id,
         vec![Component::ActionRow(ActionRow {
             components: vec![game_url_button],
         })],
@@ -228,7 +234,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -276,7 +282,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
 
     let embed = embed.description(acc_string).build().unwrap();
-    ctx.respond().embeds(vec![embed]).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }

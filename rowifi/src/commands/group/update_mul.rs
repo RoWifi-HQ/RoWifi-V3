@@ -21,11 +21,11 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(vec![embed]).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
-    ctx.respond().content("Updating all members...").await?;
+    ctx.respond().content("Updating all members...").exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -47,7 +47,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
             return Ok(());
         }
         let _ = ctx
@@ -116,6 +116,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .create_message(channel_id)
             .content("Finished updating all members")
             .unwrap()
+            .exec()
             .await;
     });
     Ok(())
@@ -138,7 +139,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(vec![embed]).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -152,7 +153,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         }));
     }
 
-    ctx.respond().content("Updating all members...").await?;
+    ctx.respond().content("Updating all members...").exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -174,7 +175,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
             return Ok(());
         }
         let _ = ctx
@@ -246,6 +247,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .create_message(channel_id)
             .content("Finished updating all members")
             .unwrap()
+            .exec()
             .await;
     });
     Ok(())

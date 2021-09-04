@@ -18,7 +18,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .description("This module may only be used by a Beta Tier user")
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -40,7 +40,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 ))
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -116,6 +116,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     ctx.respond()
         .content("Backup successfully restored")
+        .exec()
         .await?;
     Ok(())
 }

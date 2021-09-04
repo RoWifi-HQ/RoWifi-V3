@@ -27,7 +27,7 @@ pub async fn api_view(ctx: CommandContext) -> CommandResult {
         .description("Module to interact with API keys of the server")
         .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key"))
         .build().unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -49,25 +49,30 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
         .map(i32::from)
         .collect::<Vec<_>>();
 
-    if let Ok(channel) = ctx.bot.http.create_private_channel(ctx.author.id).await {
+    if let Ok(channel) = ctx.bot.http.create_private_channel(ctx.author.id).exec().await?.model().await {
         let msg = ctx.bot
             .http
             .create_message(channel.id)
-            .content(format!(
+            .content(&format!(
                 "Generated API Key for {}: `{}`. This will be deleted in 5 mins. Please make note of this key before it is deleted.",
                 server.name, api_key
             ))
             .unwrap()
+            .exec()
+            .await?
+            .model()
             .await?;
         let _ = ctx
             .respond()
             .content("The API key has been direct messaged to you")
+            .exec()
             .await;
         sleep(Duration::from_secs(5 * 60)).await;
-        ctx.bot.http.delete_message(channel.id, msg.id).await?;
+        ctx.bot.http.delete_message(channel.id, msg.id).exec().await?;
     } else {
         ctx.respond()
             .content("I was unable to DM you the API key")
+            .exec()
             .await?;
         return Ok(());
     }

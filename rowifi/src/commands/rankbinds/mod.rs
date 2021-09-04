@@ -63,7 +63,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
             .description("No rankbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 

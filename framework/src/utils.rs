@@ -50,10 +50,10 @@ impl Default for RoLevel {
 }
 
 pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<bool, RoError> {
-    let message_id = ctx
+    let message = ctx
         .respond()
         .content(question)
-        .components(vec![Component::ActionRow(ActionRow {
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![
                 Component::Button(Button {
                     custom_id: Some("confirm-yes".into()),
@@ -73,9 +73,12 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                 }),
             ],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
 
     let mut answer = false;
@@ -99,7 +102,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
@@ -108,6 +111,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
                     if message_component.data.custom_id == "confirm-yes" {
                         answer = true;
@@ -123,8 +127,9 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -133,6 +138,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }
@@ -149,10 +155,10 @@ pub async fn await_template_reply(
     mut select_menu: SelectMenu,
 ) -> Result<Template, RoError> {
     let select_custom_id = select_menu.custom_id.clone();
-    let message_id = ctx
+    let message = ctx
         .respond()
         .content(question)
-        .components(vec![
+        .components(&[
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
             }),
@@ -167,9 +173,12 @@ pub async fn await_template_reply(
                 })],
             }),
         ])
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
 
     select_menu.disabled = true;
@@ -205,7 +214,7 @@ pub async fn await_template_reply(
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(vec![Component::ActionRow(ActionRow {
@@ -216,6 +225,7 @@ pub async fn await_template_reply(
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
                     ctx.bot.ignore_message_components.remove(&message_id);
                     if message_component.data.custom_id == "template-reply-cancel" {
@@ -224,6 +234,7 @@ pub async fn await_template_reply(
                             .create_followup_message(&message_component.token)
                             .unwrap()
                             .content("Command has been cancelled")
+                            .exec()
                             .await?;
                         return Err(RoError::NoOp);
                     } else if message_component.data.custom_id == select_custom_id {
@@ -237,8 +248,9 @@ pub async fn await_template_reply(
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -247,6 +259,7 @@ pub async fn await_template_reply(
                     .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
@@ -260,10 +273,10 @@ pub async fn await_template_reply(
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
-    let message_id = ctx
+    let message = ctx
         .respond()
         .content(question)
-        .components(vec![Component::ActionRow(ActionRow {
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("reply-cancel".into()),
                 disabled: false,
@@ -273,8 +286,11 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 url: None,
             })],
         })])
+        .exec()
+        .await?
+        .model()
         .await?;
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -310,7 +326,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
@@ -319,12 +335,14 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
                     ctx.bot
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
                         .content("Command has been cancelled")
+                        .exec()
                         .await?;
                     ctx.bot.ignore_message_components.remove(&message_id);
                     return Err(RoError::NoOp);
@@ -335,8 +353,9 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -345,6 +364,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         } else if let Event::MessageCreate(msg) = &event {
@@ -364,12 +384,12 @@ pub async fn paginate_embed(
 ) -> Result<(), RoError> {
     let page_count = page_count;
     if page_count <= 1 {
-        ctx.respond().embeds(vec![pages[0].clone()]).await?;
+        ctx.respond().embeds(&[pages[0].clone()]).exec().await?;
     } else {
-        let message_id = ctx
+        let message = ctx
             .respond()
-            .embeds(vec![pages[0].clone()])
-            .components(vec![Component::ActionRow(ActionRow {
+            .embeds(&[pages[0].clone()])
+            .components(&[Component::ActionRow(ActionRow {
                 components: vec![
                     Component::Button(Button {
                         style: ButtonStyle::Primary,
@@ -413,10 +433,13 @@ pub async fn paginate_embed(
                     }),
                 ],
             })])
+            .exec()
+            .await?
+            .model()
             .await?;
 
         //Get some easy named vars
-        let message_id = message_id.unwrap();
+        let message_id = message.id;
         let author_id = ctx.author.id;
         let http = ctx.bot.http.clone();
 
@@ -453,8 +476,8 @@ pub async fn paginate_embed(
                         let _ = http
                             .interaction_callback(
                                 message_component.id,
-                                message_component.token,
-                                InteractionResponse::UpdateMessage(CallbackData {
+                                &message_component.token,
+                                &InteractionResponse::UpdateMessage(CallbackData {
                                     allowed_mentions: None,
                                     content: None,
                                     components: None,
@@ -463,22 +486,25 @@ pub async fn paginate_embed(
                                     tts: None,
                                 }),
                             )
+                            .exec()
                             .await;
                     } else {
                         let _ = http
                             .interaction_callback(
                                 message_component.id,
-                                message_component.token.clone(),
-                                InteractionResponse::DeferredUpdateMessage,
+                                &message_component.token,
+                                &InteractionResponse::DeferredUpdateMessage,
                             )
+                            .exec()
                             .await;
                         let _ = http
-                            .create_followup_message(message_component.token)
+                            .create_followup_message(&message_component.token)
                             .unwrap()
                             .ephemeral(true)
                             .content(
                                 "This view menu is only navigable by the original command invoker",
                             )
+                            .exec()
                             .await;
                     }
                 }
