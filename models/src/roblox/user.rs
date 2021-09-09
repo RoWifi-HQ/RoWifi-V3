@@ -10,7 +10,8 @@ pub struct User {
     pub display_name: Option<String>,
     pub description: String,
     #[serde(rename = "isBanned")]
-    pub is_banned: bool, // TODO: field for created
+    pub is_banned: bool,
+    pub created: String
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

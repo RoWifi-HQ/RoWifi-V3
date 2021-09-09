@@ -25,7 +25,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use twilight_gateway::Cluster;
-use twilight_http::Client as Http;
+use twilight_http::{Client as Http, error::ErrorType as DiscordErrorType};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -197,13 +197,26 @@ impl CommandContext {
         if let Some(member) = self.bot.cache.member(guild_id, user_id) {
             return Ok(Some(member));
         }
-        let res = self.bot.http.guild_member(guild_id, user_id).exec().await?;
-        if res.status().is_success() {
-            return Ok(None);
+        let res = self.bot.http.guild_member(guild_id, user_id).exec().await;
+        match res {
+            Err(e) => {
+                if let DiscordErrorType::Response {
+                    body: _,
+                    error: _,
+                    status
+                } = e.kind() {
+                    if *status == 404 {
+                        return Ok(None);
+                    }
+                }
+                Err(RoError::Discord(e))
+            },
+            Ok(res) => {
+                let member = res.model().await?;
+                let cached = self.bot.cache.cache_member(guild_id, member);
+                Ok(Some(cached))
+            }
         }
-        let member = res.model().await?;
-        let cached = self.bot.cache.cache_member(guild_id, member);
-        Ok(Some(cached))
     }
 
     pub async fn get_linked_user(

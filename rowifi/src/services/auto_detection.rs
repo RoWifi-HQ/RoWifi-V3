@@ -76,12 +76,14 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
         }
         let users = ctx.database.get_linked_users(&members, guild_id.0).await?;
         let guild_roles = ctx.cache.roles(guild_id);
-        for user_chunk in users.chunks(50) {
+        for user_chunk in users.chunks(90) {
             let user_ids = user_chunk
                 .iter()
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect_vec();
-            let _roblox_ids = ctx.roblox.get_users(&user_ids).await;
+            if let Err(err) = ctx.roblox.get_users(&user_ids).await {
+                tracing::error!(err = ?err);
+            }
             for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
                     execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles),
