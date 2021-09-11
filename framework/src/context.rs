@@ -25,7 +25,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use twilight_gateway::Cluster;
-use twilight_http::Client as Http;
+use twilight_http::{error::ErrorType as DiscordErrorType, Client as Http};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -197,12 +197,26 @@ impl CommandContext {
         if let Some(member) = self.bot.cache.member(guild_id, user_id) {
             return Ok(Some(member));
         }
-        match self.bot.http.guild_member(guild_id, user_id).await? {
-            Some(m) => {
-                let cached = self.bot.cache.cache_member(guild_id, m);
+        let res = self.bot.http.guild_member(guild_id, user_id).exec().await;
+        match res {
+            Err(e) => {
+                if let DiscordErrorType::Response {
+                    body: _,
+                    error: _,
+                    status,
+                } = e.kind()
+                {
+                    if *status == 404 {
+                        return Ok(None);
+                    }
+                }
+                Err(RoError::Discord(e))
+            }
+            Ok(res) => {
+                let member = res.model().await?;
+                let cached = self.bot.cache.cache_member(guild_id, member);
                 Ok(Some(cached))
             }
-            None => Ok(None),
         }
     }
 
@@ -289,10 +303,11 @@ impl BotContext {
                         let _ = self
                             .http
                             .remove_guild_member(server.id, member.user.id)
+                            .exec()
                             .await;
                     }
                     BlacklistActionType::Ban => {
-                        let _ = self.http.create_ban(server.id, member.user.id).await;
+                        let _ = self.http.create_ban(server.id, member.user.id).exec().await;
                     }
                 };
                 return Err(RoError::Command(CommandError::Blacklist(
@@ -413,7 +428,12 @@ impl BotContext {
         let nick_changes = nickname != original_nick;
 
         if role_changes || nick_changes {
-            update.roles(roles).nick(nickname.clone()).unwrap().await?;
+            update
+                .roles(&roles)
+                .nick(Some(&nickname))
+                .unwrap()
+                .exec()
+                .await?;
         }
 
         Ok((added_roles, removed_roles, nickname))
@@ -444,7 +464,8 @@ impl BotContext {
         let _ = self
             .http
             .execute_webhook(*id, token)
-            .embeds(vec![embed])
+            .embeds(&[embed])
+            .exec()
             .await;
     }
 
@@ -453,7 +474,8 @@ impl BotContext {
         let _ = self
             .http
             .execute_webhook(*id, token)
-            .content(text.to_string())
+            .content(text)
+            .exec()
             .await;
     }
 
@@ -462,7 +484,8 @@ impl BotContext {
         let _ = self
             .http
             .execute_webhook(*id, token)
-            .content(text.to_string())
+            .content(text)
+            .exec()
             .await;
     }
 
@@ -471,8 +494,9 @@ impl BotContext {
             let _ = self
                 .http
                 .create_message(*log_channel)
-                .embeds(vec![embed])
+                .embeds(&[embed])
                 .unwrap()
+                .exec()
                 .await;
         } else {
             let log_channel = self.cache.guild(guild_id).and_then(|g| g.log_channel);
@@ -480,8 +504,9 @@ impl BotContext {
                 let _ = self
                     .http
                     .create_message(channel_id)
-                    .embeds(vec![embed])
+                    .embeds(&[embed])
                     .unwrap()
+                    .exec()
                     .await;
             }
         }

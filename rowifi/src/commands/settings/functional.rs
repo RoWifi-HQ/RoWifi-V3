@@ -20,7 +20,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -49,9 +49,9 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
         .map(|r| r.contains(&args.role))
         .unwrap_or_default();
 
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .component(Component::ActionRow(ActionRow {
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(SelectMenu {
                 custom_id: "functional-select".into(),
                 disabled: false,
@@ -89,11 +89,14 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     },
                 ],
             })],
-        }))
+        })])
         .content("Choose permissions to give:")
+        .exec()
+        .await?
+        .model()
         .await?;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
     let role_id = args.role.0 as i64;
 
@@ -115,8 +118,9 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 if component_interaction_author == author_id {
                     let filter = doc! {"_id": guild.id};
@@ -221,6 +225,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .content(
                             "This component is only interactable by the original command invoker",
                         )
+                        .exec()
                         .await;
                 }
             }

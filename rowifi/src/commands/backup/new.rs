@@ -14,7 +14,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
                 .description("This module may only be used by a Beta Tier user")
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -44,7 +44,8 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     let backup = guild.to_backup(ctx.author.id.0 as i64, &name, &roles, &channels);
     ctx.bot.database.add_backup(backup, &name).await?;
     ctx.respond()
-        .content(format!("New backup with {} was created", name))
+        .content(&format!("New backup with {} was created", name))
+        .exec()
         .await?;
     Ok(())
 }

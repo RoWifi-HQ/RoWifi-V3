@@ -10,10 +10,28 @@ pub struct UserInfoArguments {
 }
 
 pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandResult {
-    let author = match args.user.and_then(|u| ctx.bot.cache.user(u)) {
-        Some(u) => (u.id, u.name.clone()),
-        None => (ctx.author.id, ctx.author.name.clone()),
+    let guild_id = ctx.guild_id.unwrap();
+    let author = if let Some(user) = args.user {
+        let u = ctx.member(guild_id, user).await?;
+        if let Some(u) = u {
+            (u.user.id, u.user.name.clone())
+        } else {
+            let author_user = ctx.member(guild_id, ctx.author.id).await?;
+            if let Some(a) = author_user {
+                (a.user.id, a.user.name.clone())
+            } else {
+                return Ok(());
+            }
+        }
+    } else {
+        let author_user = ctx.member(guild_id, ctx.author.id).await?;
+        if let Some(a) = author_user {
+            (a.user.id, a.user.name.clone())
+        } else {
+            return Ok(());
+        }
     };
+
     let user = match ctx.get_linked_user(author.0, ctx.guild_id.unwrap()).await? {
         Some(u) => u,
         None => {
@@ -24,7 +42,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
                 .description("User was not verified. Please ask him/her to verify themselves")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(vec![embed]).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -57,7 +75,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         )
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -86,7 +104,7 @@ pub async fn botinfo(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Members", member_count.to_string()).inline())
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }
 
@@ -116,6 +134,6 @@ pub async fn support(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

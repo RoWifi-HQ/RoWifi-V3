@@ -6,7 +6,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::Duration,
 };
-use twilight_http::Error as DiscordHttpError;
+use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
 
 use crate::arguments::ArgumentError;
 
@@ -95,6 +95,12 @@ impl From<CommandError> for RoError {
 impl From<CommonError> for RoError {
     fn from(err: CommonError) -> Self {
         RoError::Common(err)
+    }
+}
+
+impl From<DeserializeBodyError> for RoError {
+    fn from(_: DeserializeBodyError) -> Self {
+        RoError::NoOp
     }
 }
 

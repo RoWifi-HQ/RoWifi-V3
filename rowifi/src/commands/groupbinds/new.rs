@@ -30,7 +30,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
             .description(format!("A bind with group id {} already exists", group_id))
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -92,10 +92,10 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    let message_id = ctx
+    let message = ctx
         .respond()
-        .embed(embed)
-        .component(Component::ActionRow(ActionRow {
+        .embeds(&[embed])
+        .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
                 emoji: Some(ReactionType::Unicode {
@@ -106,7 +106,10 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                 url: None,
                 disabled: false,
             })],
-        }))
+        })])
+        .exec()
+        .await?
+        .model()
         .await?;
 
     let log_embed = EmbedBuilder::new()
@@ -118,7 +121,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
 
     let stream = ctx
@@ -142,7 +145,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
@@ -151,6 +154,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
 
                     let embed = EmbedBuilder::new()
@@ -164,7 +168,8 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .http
                         .create_followup_message(&message_component.token)
                         .unwrap()
-                        .embeds(vec![embed])
+                        .embeds(&[embed])
+                        .exec()
                         .await?;
 
                     break;
@@ -175,8 +180,9 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -185,6 +191,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                     .unwrap()
                     .ephemeral(true)
                     .content("This button is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }

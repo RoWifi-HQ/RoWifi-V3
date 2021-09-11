@@ -1,19 +1,14 @@
-use futures_util::future::FutureExt;
 use rowifi_models::discord::{
-    application::component::Component, channel::embed::Embed, id::MessageId,
+    application::component::Component,
+    channel::{embed::Embed, Message},
 };
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::atomic::Ordering,
-    task::{Context, Poll},
-};
+use std::sync::atomic::Ordering;
 use twilight_http::{
     request::{
-        application::{CreateFollowupMessage, UpdateOriginalResponse},
+        application::interaction::{CreateFollowupMessage, UpdateOriginalResponse},
         prelude::CreateMessage,
     },
-    Error as DiscordHttpError,
+    response::ResponseFuture,
 };
 
 use crate::context::CommandContext;
@@ -61,8 +56,7 @@ impl<'a> Responder<'a> {
         )
     }
 
-    pub fn content(mut self, content: impl Into<String>) -> Self {
-        let content = content.into();
+    pub fn content(mut self, content: &'a str) -> Self {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.content(Some(content)).unwrap());
         } else if let Some(message) = self.message {
@@ -73,18 +67,7 @@ impl<'a> Responder<'a> {
         self
     }
 
-    pub fn component(mut self, component: Component) -> Self {
-        if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.components(Some(vec![component])).unwrap());
-        } else if let Some(message) = self.message {
-            self.message = Some(message.components(vec![component]).unwrap());
-        } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.components(vec![component]).unwrap());
-        }
-        self
-    }
-
-    pub fn components(mut self, components: Vec<Component>) -> Self {
+    pub fn components(mut self, components: &'a [Component]) -> Self {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.components(Some(components)).unwrap());
         } else if let Some(message) = self.message {
@@ -95,17 +78,7 @@ impl<'a> Responder<'a> {
         self
     }
 
-    pub fn embed(mut self, embed: Embed) -> Self {
-        if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.embeds(Some(vec![embed])).unwrap());
-        } else if let Some(message) = self.message {
-            self.message = Some(message.embeds(vec![embed]).unwrap());
-        } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.embeds(vec![embed]));
-        }
-        self
-    }
-    pub fn embeds(mut self, embeds: Vec<Embed>) -> Self {
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.embeds(Some(embeds)).unwrap());
         } else if let Some(message) = self.message {
@@ -116,31 +89,26 @@ impl<'a> Responder<'a> {
         self
     }
 
-    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.files(vec![(name, file)]));
+            self.interaction = Some(interaction.files(files));
         } else if let Some(message) = self.message {
-            self.message = Some(message.files(vec![(name, file)]));
+            self.message = Some(message.files(files));
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.files(vec![(name, file)]));
+            self.followup = Some(followup.files(files));
         }
         self
     }
-}
 
-#[allow(clippy::option_if_let_else)]
-impl Future for Responder<'_> {
-    type Output = Result<Option<MessageId>, DiscordHttpError>;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let Some(interaction) = self.interaction.as_mut() {
-            interaction.poll_unpin(cx).map(|i| i.map(|m| Some(m.id)))
-        } else if let Some(message) = self.message.as_mut() {
-            message.poll_unpin(cx).map(|p| p.map(|m| Some(m.id)))
-        } else if let Some(followup) = self.followup.as_mut() {
-            followup.poll_unpin(cx).map(|p| p.map(|m| m.map(|i| i.id)))
+    pub fn exec(self) -> ResponseFuture<Message> {
+        if let Some(interaction) = self.interaction {
+            interaction.exec()
+        } else if let Some(message) = self.message {
+            message.exec()
+        } else if let Some(followup) = self.followup {
+            followup.exec()
         } else {
-            Poll::Ready(Ok(None))
+            unreachable!()
         }
     }
 }

@@ -138,8 +138,9 @@ impl Framework {
         let fut = async move {
             bot.http
                 .create_message(channel_id)
-                .embeds(vec![embed])
+                .embeds(&[embed])
                 .unwrap()
+                .exec()
                 .await?;
             Ok(())
         };
@@ -186,8 +187,9 @@ impl Service<&Event> for Framework {
                             tokio::spawn(async move {
                                 let _ = http
                                     .create_message(channel_id)
-                                    .content(format!("My prefix here is {}", actual_prefix))
+                                    .content(&format!("My prefix here is {}", actual_prefix))
                                     .unwrap()
+                                    .exec()
                                     .await;
                             });
                             return Either::Left(ready(Ok(())));
@@ -230,11 +232,12 @@ impl Service<&Event> for Framework {
                             let channel_id = msg.channel_id;
                             let fut = async move {
                                 let _ = http.create_message(channel_id)
-                                    .content(format!(
+                                    .content(&format!(
                                         "I seem to be missing one of the following permissions: `{:?}`",
                                         perms
                                     ))
                                     .unwrap()
+                                    .exec()
                                     .await;
                                 Ok(())
                             };
@@ -287,8 +290,8 @@ impl Service<&Event> for Framework {
                             let _ = http
                                 .interaction_callback(
                                     id,
-                                    token,
-                                    InteractionResponse::ChannelMessageWithSource(CallbackData {
+                                    &token,
+                                    &InteractionResponse::ChannelMessageWithSource(CallbackData {
                                         allowed_mentions: None,
                                         tts: None,
                                         embeds: Vec::new(),
@@ -300,6 +303,7 @@ impl Service<&Event> for Framework {
                                         components: None,
                                     }),
                                 )
+                                .exec()
                                 .await;
                             Ok(())
                         };
@@ -334,14 +338,16 @@ impl Service<&Event> for Framework {
                                 .interaction_callback(
                                     id,
                                     &token,
-                                    InteractionResponse::DeferredUpdateMessage,
+                                    &InteractionResponse::DeferredUpdateMessage,
                                 )
+                                .exec()
                                 .await;
                             let _ = http
                                 .create_followup_message(&token)
                                 .unwrap()
                                 .ephemeral(true)
                                 .content("This component is no longer active and cannot be used.")
+                                .exec()
                                 .await;
                             Ok(())
                         };

@@ -58,7 +58,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -70,7 +70,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
             .description("There are no groups registered to this server")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -86,6 +86,6 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
         .description(registered_groups)
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

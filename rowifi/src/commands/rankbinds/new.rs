@@ -64,7 +64,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 .description(format!("The group with id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -97,7 +97,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             .description(desc)
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -134,7 +134,10 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                             .bot
                             .http
                             .create_role(ctx.guild_id.unwrap())
-                            .name(roblox_rank.name.clone())
+                            .name(&roblox_rank.name)
+                            .exec()
+                            .await?
+                            .model()
                             .await?;
                         new_role.id.0 as i64
                     }
@@ -232,7 +235,10 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         count += 1;
     }
 
-    ctx.respond().embed(embed.build().unwrap()).await?;
+    ctx.respond()
+        .embeds(&[embed.build().unwrap()])
+        .exec()
+        .await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;

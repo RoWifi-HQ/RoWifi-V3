@@ -1,6 +1,6 @@
 [package]
 name = "rowifi-framework"
-version = "3.1.1"
+version = "3.2.0"
 authors = ["AsianIntel <gautam.abhyankar@gmail.com>"]
 edition = "2018"
 
@@ -23,9 +23,9 @@ tokio = { version = "1", features = ["time"] }
 tokio-stream = { version = "0" }
 tower = { version = "0", features = ["util"] }
 transient-dashmap = { branch = "main", git = "https://github.com/AsianIntel/transient-dashmap" }
-twilight-embed-builder = { branch = "feature/message-components", git = "https://github.com/AsianIntel/twilight" }
-twilight-gateway = { branch = "feature/message-components", git = "https://github.com/AsianIntel/twilight", default-features = false, features= ["zlib-stock", "rustls-webpki-roots"] }
-twilight-http = { branch = "feature/message-components", git = "https://github.com/AsianIntel/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
-twilight-standby = { branch = "feature/message-components", git = "https://github.com/AsianIntel/twilight" }
-twilight-util = { branch = "feature/message-components", git = "https://github.com/AsianIntel/twilight", features = ["link"] }
+twilight-embed-builder = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-gateway = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features= ["zlib-stock", "rustls-webpki-roots"] }
+twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
+twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+twilight-util = { branch = "main", git = "https://github.com/twilight-rs/twilight", features = ["link"] }
 uwl = "0"

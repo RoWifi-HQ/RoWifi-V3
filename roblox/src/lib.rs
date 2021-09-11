@@ -20,7 +20,7 @@ use rowifi_models::roblox::{
     asset::Asset,
     group::{Group, GroupUserRole},
     id::{AssetId, GroupId, UserId},
-    user::PartialUser,
+    user::{PartialUser, User},
     VecWrapper,
 };
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
@@ -109,23 +109,37 @@ impl Client {
         }
     }
 
+    pub async fn get_user_profile(&self, user_id: UserId) -> Result<User> {
+        let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
+        let user = self.request::<User>(&url, Method::GET, None).await?;
+        Ok(user)
+    }
+
     /// Get a [`PartialUser`] from the user id
     pub async fn get_user(&self, user_id: UserId, bypass_cache: bool) -> Result<PartialUser> {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
         if bypass_cache {
-            let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
-            let user = self.request::<PartialUser>(&url, Method::GET, None).await?;
-            let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+            let user = self
+                .get_users(&[user_id])
+                .await?
+                .into_iter()
+                .next()
+                .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+            let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
             Ok(user)
         } else {
             let user: Option<PartialUser> = conn.get(&key).await?;
             if let Some(u) = user {
                 Ok(u)
             } else {
-                let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
-                let user = self.request::<PartialUser>(&url, Method::GET, None).await?;
-                let _: () = conn.set_ex(key, user.clone(), 6 * 3600).await?;
+                let user = self
+                    .get_users(&[user_id])
+                    .await?
+                    .into_iter()
+                    .next()
+                    .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
                 Ok(user)
             }
         }
@@ -145,7 +159,7 @@ impl Client {
         let mut pipe = pipe.atomic();
         for user in &users.data {
             let key = format!("roblox:u:{}", user.id.0);
-            pipe = pipe.set_ex(key, user.clone(), 6 * 3600);
+            pipe = pipe.set_ex(key, user.clone(), 24 * 3600);
         }
         let _: () = pipe.query_async(&mut conn).await?;
 

@@ -16,7 +16,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
             .title("Reset was cancelled!")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -43,7 +43,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         .description("Your settings & bind configurations have been reset")
         .build()
         .unwrap();
-    ctx.respond().embed(embed).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
 
     Ok(())
 }

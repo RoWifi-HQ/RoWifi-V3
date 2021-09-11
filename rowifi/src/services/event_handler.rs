@@ -81,6 +81,7 @@ impl Service<(u64, Event)> for EventHandler {
                                 .create_message(channel.id())
                                 .content(content)
                                 .unwrap()
+                                .exec()
                                 .await;
                         }
                         let log_embed = EmbedBuilder::new()
@@ -182,7 +183,7 @@ impl Service<(u64, Event)> for EventHandler {
                         None => {
                             if let Some(verification_role) = guild.verification_role {
                                 if let Some(role) = eh.bot.cache.role(RoleId(verification_role as u64)) {
-                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).await?;
+                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).exec().await?;
                                 }
                             }
                             return Ok(());
@@ -197,15 +198,16 @@ impl Service<(u64, Event)> for EventHandler {
                         Ok(a) => a,
                         Err(e) => {
                             if let RoError::Command(CommandError::Blacklist(ref b)) = e {
-                                if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).await {
+                                if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).exec().await?.model().await {
                                     let _ = eh.bot
                                         .http
                                         .create_message(channel.id)
-                                        .content(format!(
+                                        .content(&format!(
                                             "You were found on the server blacklist. Reason: {}",
                                             b
                                         ))
                                         .unwrap()
+                                        .exec()
                                         .await;
                                 }
                             }

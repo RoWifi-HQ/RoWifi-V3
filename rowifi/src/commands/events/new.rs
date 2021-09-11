@@ -17,7 +17,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -31,7 +31,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embed(embed).await?;
+            ctx.respond().embeds(&[embed]).exec().await?;
             return Ok(());
         }
     };
@@ -57,7 +57,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("There are no event types or all event types are disabled")
             .build()
             .unwrap();
-        ctx.respond().embed(embed).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -70,10 +70,10 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         placeholder: None,
     };
 
-    let message_id = ctx
+    let message = ctx
         .respond()
         .content("Select an event type")
-        .components(vec![
+        .components(&[
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
             }),
@@ -88,11 +88,14 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 })],
             }),
         ])
+        .exec()
+        .await?
+        .model()
         .await?;
 
     select_menu.disabled = true;
 
-    let message_id = message_id.unwrap();
+    let message_id = message.id;
     let author_id = ctx.author.id;
     let stream = ctx
         .bot
@@ -113,7 +116,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
-                            InteractionResponse::UpdateMessage(CallbackData {
+                            &InteractionResponse::UpdateMessage(CallbackData {
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(vec![Component::ActionRow(ActionRow {
@@ -124,6 +127,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                                 tts: None,
                             }),
                         )
+                        .exec()
                         .await?;
                     if message_component.data.custom_id == "event-new-cancel" {
                         ctx.bot
@@ -131,6 +135,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                             .create_followup_message(&message_component.token)
                             .unwrap()
                             .content("Command has been cancelled")
+                            .exec()
                             .await?;
                     } else if message_component.data.custom_id == "event-new-select" {
                         event_type_id = Some(message_component.data.values[0].clone());
@@ -143,8 +148,9 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
-                        InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse::DeferredUpdateMessage,
                     )
+                    .exec()
                     .await;
                 let _ = ctx
                     .bot
@@ -153,6 +159,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     .unwrap()
                     .ephemeral(true)
                     .content("This button is only interactable by the original command invoker")
+                    .exec()
                     .await;
             }
         }
@@ -189,7 +196,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("The number of valid attendees was found to be zero")
             .build()
             .unwrap();
-        ctx.respond().embeds(vec![embed]).await?;
+        ctx.respond().embeds(&[embed]).exec().await?;
         return Ok(());
     }
 
@@ -240,6 +247,6 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.respond().embeds(vec![embed]).await?;
+    ctx.respond().embeds(&[embed]).exec().await?;
     Ok(())
 }

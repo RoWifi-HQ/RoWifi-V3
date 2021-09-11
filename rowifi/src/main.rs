@@ -140,10 +140,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         config = config.proxy(proxy, true).ratelimiter(None);
     }
     let http = config.build();
-    let app_info = http.current_user().await?;
+    let app_info = http.current_user().exec().await?.model().await?;
 
     let mut owners = Vec::new();
-    let current_user = http.current_user_application().await?;
+    let current_user = http
+        .current_user_application()
+        .exec()
+        .await?
+        .model()
+        .await?;
     let owner = current_user.owner.id;
     http.set_application_id(current_user.id);
     owners.push(owner);
