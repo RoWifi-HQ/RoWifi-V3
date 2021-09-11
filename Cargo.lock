@@ -1594,7 +1594,7 @@ dependencies = [
 
 [[package]]
 name = "roblox"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -1608,7 +1608,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi"
-version = "3.1.1"
+version = "3.1.2"
 dependencies = [
  "base64",
  "chacha20poly1305",
@@ -1665,7 +1665,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-framework"
-version = "3.1.1"
+version = "3.2.0"
 dependencies = [
  "chacha20poly1305",
  "chrono",
@@ -1693,7 +1693,7 @@ dependencies = [
 
 [[package]]
 name = "rowifi-models"
-version = "3.1.1"
+version = "3.1.2"
 dependencies = [
  "itertools",
  "lazy_static",
