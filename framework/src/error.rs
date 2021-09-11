@@ -6,7 +6,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::Duration,
 };
-use twilight_http::{Error as DiscordHttpError, response::DeserializeBodyError};
+use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
 
 use crate::arguments::ArgumentError;
 

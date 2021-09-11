@@ -297,6 +297,9 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         ));
     }
 
-    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
+    ctx.respond()
+        .embeds(&[embed.build().unwrap()])
+        .exec()
+        .await?;
     Ok(())
 }

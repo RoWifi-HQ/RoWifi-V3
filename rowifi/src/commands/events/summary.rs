@@ -62,7 +62,10 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         );
     }
 
-    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
+    ctx.respond()
+        .embeds(&[embed.build().unwrap()])
+        .exec()
+        .await?;
 
     Ok(())
 }

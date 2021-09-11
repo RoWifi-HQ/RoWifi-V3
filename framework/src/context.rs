@@ -25,7 +25,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use twilight_gateway::Cluster;
-use twilight_http::{Client as Http, error::ErrorType as DiscordErrorType};
+use twilight_http::{error::ErrorType as DiscordErrorType, Client as Http};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
@@ -203,14 +203,15 @@ impl CommandContext {
                 if let DiscordErrorType::Response {
                     body: _,
                     error: _,
-                    status
-                } = e.kind() {
+                    status,
+                } = e.kind()
+                {
                     if *status == 404 {
                         return Ok(None);
                     }
                 }
                 Err(RoError::Discord(e))
-            },
+            }
             Ok(res) => {
                 let member = res.model().await?;
                 let cached = self.bot.cache.cache_member(guild_id, member);
@@ -427,7 +428,12 @@ impl BotContext {
         let nick_changes = nickname != original_nick;
 
         if role_changes || nick_changes {
-            update.roles(&roles).nick(Some(&nickname)).unwrap().exec().await?;
+            update
+                .roles(&roles)
+                .nick(Some(&nickname))
+                .unwrap()
+                .exec()
+                .await?;
         }
 
         Ok((added_roles, removed_roles, nickname))

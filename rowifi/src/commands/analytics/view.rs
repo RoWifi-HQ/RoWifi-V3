@@ -152,7 +152,10 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     let img = PngEncoder::new(Cursor::new(&mut bytes));
     img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
 
-    ctx.respond().files(&[("analytics.png", &bytes)]).exec().await?;
+    ctx.respond()
+        .files(&[("analytics.png", &bytes)])
+        .exec()
+        .await?;
     Ok(())
 }
 

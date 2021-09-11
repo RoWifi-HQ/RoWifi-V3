@@ -1,9 +1,15 @@
-use rowifi_models::discord::{application::component::Component, channel::{Message, embed::Embed}};
+use rowifi_models::discord::{
+    application::component::Component,
+    channel::{embed::Embed, Message},
+};
 use std::sync::atomic::Ordering;
-use twilight_http::{request::{
-        application::{CreateFollowupMessage, UpdateOriginalResponse},
+use twilight_http::{
+    request::{
+        application::interaction::{CreateFollowupMessage, UpdateOriginalResponse},
         prelude::CreateMessage,
-    }, response::ResponseFuture};
+    },
+    response::ResponseFuture,
+};
 
 use crate::context::CommandContext;
 
@@ -52,11 +58,11 @@ impl<'a> Responder<'a> {
 
     pub fn content(mut self, content: &'a str) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.content(Some(&content)).unwrap());
+            self.interaction = Some(interaction.content(Some(content)).unwrap());
         } else if let Some(message) = self.message {
-            self.message = Some(message.content(&content).unwrap());
+            self.message = Some(message.content(content).unwrap());
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.content(&content));
+            self.followup = Some(followup.content(content));
         }
         self
     }

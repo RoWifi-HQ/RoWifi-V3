@@ -49,7 +49,15 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
         .map(i32::from)
         .collect::<Vec<_>>();
 
-    if let Ok(channel) = ctx.bot.http.create_private_channel(ctx.author.id).exec().await?.model().await {
+    if let Ok(channel) = ctx
+        .bot
+        .http
+        .create_private_channel(ctx.author.id)
+        .exec()
+        .await?
+        .model()
+        .await
+    {
         let msg = ctx.bot
             .http
             .create_message(channel.id)
@@ -68,7 +76,11 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
             .exec()
             .await;
         sleep(Duration::from_secs(5 * 60)).await;
-        ctx.bot.http.delete_message(channel.id, msg.id).exec().await?;
+        ctx.bot
+            .http
+            .delete_message(channel.id, msg.id)
+            .exec()
+            .await?;
     } else {
         ctx.respond()
             .content("I was unable to DM you the API key")

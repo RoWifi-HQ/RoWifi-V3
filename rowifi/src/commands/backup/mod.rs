@@ -62,6 +62,9 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val));
     }
 
-    ctx.respond().embeds(&[embed.build().unwrap()]).exec().await?;
+    ctx.respond()
+        .embeds(&[embed.build().unwrap()])
+        .exec()
+        .await?;
     Ok(())
 }

@@ -25,7 +25,10 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    ctx.respond().content("Updating all members...").exec().await?;
+    ctx.respond()
+        .content("Updating all members...")
+        .exec()
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -153,7 +156,10 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         }));
     }
 
-    ctx.respond().content("Updating all members...").exec().await?;
+    ctx.respond()
+        .content("Updating all members...")
+        .exec()
+        .await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

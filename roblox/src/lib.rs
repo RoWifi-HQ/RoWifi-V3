@@ -16,7 +16,13 @@ use hyper::{
     Body, Client as HyperClient, Method, Request, StatusCode,
 };
 use hyper_rustls::HttpsConnector;
-use rowifi_models::roblox::{VecWrapper, asset::Asset, group::{Group, GroupUserRole}, id::{AssetId, GroupId, UserId}, user::{PartialUser, User}};
+use rowifi_models::roblox::{
+    asset::Asset,
+    group::{Group, GroupUserRole},
+    id::{AssetId, GroupId, UserId},
+    user::{PartialUser, User},
+    VecWrapper,
+};
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use serde::de::DeserializeOwned;
 use std::result::Result as StdResult;
@@ -114,16 +120,25 @@ impl Client {
         let mut conn = self.redis_pool.get().await?;
         let key = format!("roblox:u:{}", user_id.0);
         if bypass_cache {
-            let user = self.get_users(&[user_id]).await?.into_iter().next().ok_or(Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+            let user = self
+                .get_users(&[user_id])
+                .await?
+                .into_iter()
+                .next()
+                .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
             let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
             Ok(user)
-            
         } else {
             let user: Option<PartialUser> = conn.get(&key).await?;
             if let Some(u) = user {
                 Ok(u)
             } else {
-                let user = self.get_users(&[user_id]).await?.into_iter().next().ok_or(Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                let user = self
+                    .get_users(&[user_id])
+                    .await?
+                    .into_iter()
+                    .next()
+                    .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
                 let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
                 Ok(user)
             }

@@ -11,7 +11,7 @@ pub struct User {
     pub description: String,
     #[serde(rename = "isBanned")]
     pub is_banned: bool,
-    pub created: String
+    pub created: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

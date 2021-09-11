@@ -220,7 +220,15 @@ pub async fn update_func(
                     ))
                     .build()
                     .unwrap();
-                if let Ok(channel) = ctx.bot.http.create_private_channel(user_id).exec().await?.model().await {
+                if let Ok(channel) = ctx
+                    .bot
+                    .http
+                    .create_private_channel(user_id)
+                    .exec()
+                    .await?
+                    .model()
+                    .await
+                {
                     let _ = ctx
                         .bot
                         .http

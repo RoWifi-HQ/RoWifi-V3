@@ -222,22 +222,25 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let _ = ctx.bot.http.interaction_callback(
-                        message_component.id,
-                        &message_component.token,
-                        &InteractionResponse::UpdateMessage(CallbackData {
-                            allowed_mentions: None,
-                            components: Some(vec![Component::ActionRow(ActionRow {
-                                components: vec![Component::SelectMenu(select_menu.clone())],
-                            })]),
-                            content: None,
-                            embeds: Vec::new(),
-                            flags: None,
-                            tts: Some(false),
-                        }),
-                    )
-                    .exec()
-                    .await;
+                    let _ = ctx
+                        .bot
+                        .http
+                        .interaction_callback(
+                            message_component.id,
+                            &message_component.token,
+                            &InteractionResponse::UpdateMessage(CallbackData {
+                                allowed_mentions: None,
+                                components: Some(vec![Component::ActionRow(ActionRow {
+                                    components: vec![Component::SelectMenu(select_menu.clone())],
+                                })]),
+                                content: None,
+                                embeds: Vec::new(),
+                                flags: None,
+                                tts: Some(false),
+                            }),
+                        )
+                        .exec()
+                        .await;
                     asset_type = Some(message_component.data.values[0].clone());
                     break;
                 }
