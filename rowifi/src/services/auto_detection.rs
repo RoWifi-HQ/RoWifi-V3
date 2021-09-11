@@ -76,7 +76,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
         }
         let users = ctx.database.get_linked_users(&members, guild_id.0).await?;
         let guild_roles = ctx.cache.roles(guild_id);
-        for user_chunk in users.chunks(90) {
+        for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
                 .map(|u| RobloxUserId(u.roblox_id as u64))
