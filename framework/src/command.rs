@@ -1,11 +1,5 @@
 use itertools::Itertools;
-use rowifi_models::discord::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        interaction::application_command::CommandDataOption,
-    },
-    channel::message::MessageFlags,
-};
+use rowifi_models::discord::{application::{callback::{CallbackData, InteractionResponse}, interaction::application_command::CommandOptionValue}, channel::message::MessageFlags};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,
@@ -96,11 +90,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
             }
             ServiceRequest::Interaction(ref top_options) => {
                 for option in top_options {
-                    if let CommandDataOption::SubCommand { name, options } = option {
+                    if let CommandOptionValue::SubCommand(options) = &option.value {
                         if let Some(sub_cmd) = self
                             .sub_commands
                             .iter_mut()
-                            .find(|c| c.names.contains(&name.as_str()))
+                            .find(|c| c.names.contains(&option.name.as_str()))
                         {
                             req.1 = ServiceRequest::Interaction(options.clone());
                             return sub_cmd.call(req);

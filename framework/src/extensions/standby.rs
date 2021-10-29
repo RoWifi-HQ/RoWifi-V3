@@ -1,6 +1,6 @@
 use rowifi_models::discord::{application::interaction::Interaction, id::MessageId};
 use twilight_gateway::Event;
-use twilight_standby::{Standby, WaitForEventStream};
+use twilight_standby::{Standby, future::WaitForEventStream};
 
 pub trait StandbyExtensions {
     fn wait_for_component_interaction(&self, message_id: MessageId) -> WaitForEventStream;

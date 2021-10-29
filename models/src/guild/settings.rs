@@ -42,34 +42,34 @@ impl GuildSettings {
     ) -> BackupGuildSettings {
         let mut admin_roles = Vec::new();
         for role_id in &self.admin_roles {
-            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
                 admin_roles.push(role.clone());
             }
         }
 
         let mut trainer_roles = Vec::new();
         for role_id in &self.admin_roles {
-            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
                 trainer_roles.push(role.clone());
             }
         }
 
         let mut bypass_roles = Vec::new();
         for role_id in &self.admin_roles {
-            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
                 bypass_roles.push(role.clone());
             }
         }
 
         let mut nickname_bypass_roles = Vec::new();
         for role_id in &self.admin_roles {
-            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
                 nickname_bypass_roles.push(role.clone());
             }
         }
 
         let log_channel = match self.log_channel {
-            Some(log_channel) => channels.get(&ChannelId(log_channel as u64)).cloned(),
+            Some(log_channel) => channels.get(&ChannelId::new(log_channel as u64).unwrap()).cloned(),
             None => None,
         };
 
@@ -97,13 +97,13 @@ impl GuildSettings {
         let mut admin_roles = Vec::new();
         for role in backup_settings.admin_roles {
             let role_id = if let Some(r) = names_to_ids.get(&role) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             };
             admin_roles.push(role_id);
         }
@@ -111,13 +111,13 @@ impl GuildSettings {
         let mut trainer_roles = Vec::new();
         for role in backup_settings.trainer_roles {
             let role_id = if let Some(r) = names_to_ids.get(&role) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             };
             trainer_roles.push(role_id);
         }
@@ -125,13 +125,13 @@ impl GuildSettings {
         let mut bypass_roles = Vec::new();
         for role in backup_settings.bypass_roles {
             let role_id = if let Some(r) = names_to_ids.get(&role) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             };
             bypass_roles.push(role_id);
         }
@@ -139,13 +139,13 @@ impl GuildSettings {
         let mut nickname_bypass_roles = Vec::new();
         for role in backup_settings.nickname_bypass_roles {
             let role_id = if let Some(r) = names_to_ids.get(&role) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&role)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&role).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             };
             nickname_bypass_roles.push(role_id);
         }
@@ -153,7 +153,7 @@ impl GuildSettings {
         let mut log_channel = None;
         if let Some(backup_channel) = &backup_settings.log_channel {
             if let Some(channel) = existing_channels.get(backup_channel) {
-                log_channel = Some(channel.0 as i64);
+                log_channel = Some(channel.0.get() as i64);
             }
         }
 

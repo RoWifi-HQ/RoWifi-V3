@@ -158,7 +158,7 @@ impl Cache {
 
     /// Get a list of all guild ids inside the cache
     pub fn guilds(&self) -> Vec<u64> {
-        self.0.guilds.iter().map(|g| g.id.0).collect::<Vec<_>>()
+        self.0.guilds.iter().map(|g| g.id.0.get()).collect::<Vec<_>>()
     }
 
     /// Get an immutable reference to a certain user in a certain guild

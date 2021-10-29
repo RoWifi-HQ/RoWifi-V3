@@ -62,7 +62,7 @@ pub struct BotContextRef {
 
     // Twilight Components
     /// The module used to make requests to discord
-    pub http: Http,
+    pub http: Arc<Http>,
     /// The module holding all discord structs in-memory
     pub cache: Cache,
     /// The module handling the gateway
@@ -121,7 +121,7 @@ impl BotContext {
         on_mention: String,
         default_prefix: String,
         owners: &[UserId],
-        http: Http,
+        http: Arc<Http>,
         cache: Cache,
         cluster: Cluster,
         standby: Standby,
@@ -260,7 +260,7 @@ impl BotContext {
         let mut removed_roles = Vec::<RoleId>::new();
 
         if let Some(verification_role) = guild.verification_role {
-            let verification_role = RoleId(verification_role as u64);
+            let verification_role = RoleId::new(verification_role as u64).unwrap();
             if guild_roles.get(&verification_role).is_some()
                 && member.roles.contains(&verification_role)
             {
@@ -269,7 +269,7 @@ impl BotContext {
         }
 
         if let Some(verified_role) = guild.verified_role {
-            let verified_role = RoleId(verified_role as u64);
+            let verified_role = RoleId::new(verified_role as u64).unwrap();
             if guild_roles.get(&verified_role).is_some() && !member.roles.contains(&verified_role) {
                 added_roles.push(verified_role);
             }
@@ -385,7 +385,7 @@ impl BotContext {
         }
 
         for bind_role in &guild.all_roles {
-            let r = RoleId(*bind_role as u64);
+            let r = RoleId::new(*bind_role as u64).unwrap();
             if guild_roles.get(&r).is_some() {
                 if roles_to_add.contains(bind_role) {
                     if !member.roles.contains(&r) {
@@ -445,12 +445,12 @@ impl BotContext {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<RoGuildUser>, RoError> {
-        let mut linked_user = self.database.get_linked_user(user_id.0, guild_id.0).await?;
+        let mut linked_user = self.database.get_linked_user(user_id.0.get(), guild_id.0.get()).await?;
         if linked_user.is_none() {
-            let user = self.database.get_user(user_id.0).await?;
+            let user = self.database.get_user(user_id.0.get()).await?;
             if let Some(user) = user {
                 linked_user = Some(RoGuildUser {
-                    guild_id: guild_id.0 as i64,
+                    guild_id: guild_id.0.get() as i64,
                     discord_id: user.discord_id,
                     roblox_id: user.roblox_id,
                 });

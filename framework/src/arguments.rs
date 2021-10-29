@@ -1,11 +1,4 @@
-use rowifi_models::{
-    bind::AssetType,
-    discord::{
-        application::interaction::application_command::CommandDataOption,
-        id::{ChannelId, RoleId, UserId},
-    },
-    guild::BlacklistActionType,
-};
+use rowifi_models::{bind::AssetType, discord::{application::interaction::application_command::{CommandDataOption, CommandOptionValue}, id::{ChannelId, RoleId, UserId}}, guild::BlacklistActionType};
 use std::{num::ParseIntError, str::FromStr};
 
 use crate::utils::{parse_channel, parse_role, parse_username};
@@ -174,15 +167,16 @@ impl FromArg for UserId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_username(arg) {
-            Some(id) => Ok(UserId(id)),
+            Some(id) => Ok(UserId::new(id).unwrap()),
             None => Err(ParseError("an User")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(UserId(*value as u64)),
-            CommandDataOption::String { value, .. } => Self::from_arg(value),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(UserId::new(*value as u64).unwrap()),
+            CommandOptionValue::String(value) => Self::from_arg(value),
+            CommandOptionValue::User(value) => Ok(*value),
             _ => unreachable!("UserId unreached"),
         }
     }
@@ -192,15 +186,16 @@ impl FromArg for RoleId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_role(arg) {
-            Some(id) => Ok(RoleId(id)),
+            Some(id) => Ok(RoleId::new(id).unwrap()),
             None => Err(ParseError("a Role")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(RoleId(*value as u64)),
-            CommandDataOption::String { value, .. } => Self::from_arg(value),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(RoleId::new(*value as u64).unwrap()),
+            CommandOptionValue::String(value) => Self::from_arg(value),
+            CommandOptionValue::Role(value) => Ok(*value),
             _ => unreachable!("RoleId unreached"),
         }
     }
@@ -210,15 +205,16 @@ impl FromArg for ChannelId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_channel(arg) {
-            Some(id) => Ok(ChannelId(id)),
+            Some(id) => Ok(ChannelId::new(id).unwrap()),
             None => Err(ParseError("a Channel")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(ChannelId(*value as u64)),
-            CommandDataOption::String { value, .. } => Self::from_arg(value),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(ChannelId::new(*value as u64).unwrap()),
+            CommandOptionValue::String(value) => Self::from_arg(value),
+            CommandOptionValue::Channel(value) => Ok(*value),
             _ => unreachable!("ChannelId unreached"),
         }
     }
@@ -231,9 +227,9 @@ impl FromArg for u64 {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(*value as u64),
-            CommandDataOption::String { value, .. } => Ok(value.parse::<u64>()?),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(*value as u64),
+            CommandOptionValue::String(value) => Ok(value.parse::<u64>()?),
             _ => unreachable!("u64 unreached"),
         }
     }
@@ -246,9 +242,9 @@ impl FromArg for i64 {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(*value as i64),
-            CommandDataOption::String { value, .. } => Ok(value.parse::<i64>()?),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(*value as i64),
+            CommandOptionValue::String(value) => Ok(value.parse::<i64>()?),
             _ => unreachable!("i64 unreached"),
         }
     }
@@ -262,9 +258,9 @@ impl FromArg for String {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        match option {
-            CommandDataOption::Integer { value, .. } => Ok(value.to_string()),
-            CommandDataOption::String { value, .. } => Ok(value.clone()),
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(value.to_string()),
+            CommandOptionValue::String(value) => Ok(value.clone()),
             _ => unreachable!("String unreached"),
         }
     }
@@ -281,9 +277,9 @@ impl FromArg for AssetType {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::String(value) => value.clone(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("AssetType unreached"),
         };
 
@@ -302,9 +298,9 @@ impl FromArg for BlacklistActionType {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::String(value) => value.clone(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("BlacklistActionType unreached"),
         };
 
