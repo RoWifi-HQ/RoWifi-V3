@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use super::BackupArguments;
 
 pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> CommandResult {
-    match ctx.bot.database.get_premium(ctx.author.id.0).await? {
+    match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {
             let embed = EmbedBuilder::new()
@@ -25,9 +25,9 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     let guild_id = ctx.guild_id.unwrap();
     let name = args.name;
-    ctx.bot.database.get_guild(guild_id.0).await?;
+    ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
-    let backup = match ctx.bot.database.get_backup(ctx.author.id.0, &name).await? {
+    let backup = match ctx.bot.database.get_backup(ctx.author.id.0.get(), &name).await? {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
@@ -74,7 +74,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .settings
                 .admin_roles
                 .iter()
-                .map(|r| RoleId(*r as u64))
+                .map(|r| RoleId::new(*r as u64).unwrap())
                 .collect(),
         );
         ctx.bot.trainer_roles.insert(
@@ -83,7 +83,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .settings
                 .trainer_roles
                 .iter()
-                .map(|r| RoleId(*r as u64))
+                .map(|r| RoleId::new(*r as u64).unwrap())
                 .collect(),
         );
         ctx.bot.bypass_roles.insert(
@@ -92,7 +92,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .settings
                 .bypass_roles
                 .iter()
-                .map(|r| RoleId(*r as u64))
+                .map(|r| RoleId::new(*r as u64).unwrap())
                 .collect(),
         );
         ctx.bot.nickname_bypass_roles.insert(
@@ -101,14 +101,14 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .settings
                 .nickname_bypass_roles
                 .iter()
-                .map(|r| RoleId(*r as u64))
+                .map(|r| RoleId::new(*r as u64).unwrap())
                 .collect(),
         );
     }
     if let Some(log_channel) = guild.settings.log_channel {
         ctx.bot
             .log_channels
-            .insert(guild_id, ChannelId(log_channel as u64));
+            .insert(guild_id, ChannelId::new(log_channel as u64).unwrap());
     }
     if let Some(prefix) = guild.command_prefix {
         ctx.bot.prefixes.insert(guild_id, prefix);

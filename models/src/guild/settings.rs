@@ -1,6 +1,6 @@
 use super::{BackupGuildSettings, BlacklistActionType, GuildType};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use twilight_http::Client as DiscordClient;
 use twilight_model::id::{ChannelId, GuildId, RoleId};
 
@@ -87,7 +87,7 @@ impl GuildSettings {
     }
 
     pub async fn from_backup(
-        http: DiscordClient,
+        http: Arc<DiscordClient>,
         backup_settings: BackupGuildSettings,
         guild_id: GuildId,
         names_to_ids: &HashMap<String, RoleId>,

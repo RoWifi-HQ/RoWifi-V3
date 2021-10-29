@@ -19,7 +19,7 @@ pub struct GroupbindsNewArguments {
 
 pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let group_id = args.group_id;
     if guild.groupbinds.iter().any(|g| g.group_id == group_id) {
@@ -58,7 +58,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     let mut roles = Vec::new();
     for r in roles_to_add {
         if let Some(role_id) = parse_role(r) {
-            if server_roles.contains(&RoleId(role_id)) {
+            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
             }
         }

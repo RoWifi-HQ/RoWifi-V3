@@ -50,7 +50,7 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.custombinds.is_empty() {
         let e = EmbedBuilder::new()

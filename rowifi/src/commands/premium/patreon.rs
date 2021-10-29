@@ -3,9 +3,9 @@ use rowifi_models::user::{PremiumType, PremiumUser};
 
 pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     let author = ctx.author.id.0;
-    let premium_already = ctx.bot.database.get_premium(author).await?.is_some();
+    let premium_already = ctx.bot.database.get_premium(author.get()).await?.is_some();
     let premium_user: PremiumUser;
-    let (patreon_id, tier) = ctx.bot.patreon.get_patron(author).await?;
+    let (patreon_id, tier) = ctx.bot.patreon.get_patron(author.get()).await?;
     if patreon_id.is_none() {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Patreon Linking Failed")
@@ -30,7 +30,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     let tier = tier.unwrap().parse::<i64>().unwrap();
     if tier == 4_014_582 {
         premium_user = PremiumUser {
-            discord_id: author as i64,
+            discord_id: author.get() as i64,
             patreon_id: Some(patreon_id),
             premium_type: PremiumType::Alpha,
             discord_servers: Vec::new(),
@@ -39,7 +39,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         };
     } else if tier == 4_656_839 {
         premium_user = PremiumUser {
-            discord_id: author as i64,
+            discord_id: author.get() as i64,
             patreon_id: Some(patreon_id),
             premium_type: PremiumType::Beta,
             discord_servers: Vec::new(),
@@ -50,7 +50,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let transferred_premium = ctx.bot.database.get_transferred_premium(author).await?;
+    let transferred_premium = ctx.bot.database.get_transferred_premium(author.get()).await?;
     if let Some(transferred_premium) = transferred_premium {
         ctx.bot
             .database

@@ -4,7 +4,7 @@ use rowifi_models::{events::EventType, guild::GuildType};
 
 pub async fn event_type(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -41,7 +41,7 @@ pub struct EventTypeArguments {
 
 pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -75,7 +75,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     };
     let event_bson = to_bson(&event_type)?;
 
-    let filter = doc! {"_id": guild_id.0 as i64};
+    let filter = doc! {"_id": guild_id.0.get() as i64};
     let update = doc! {"$push": {"EventTypes": event_bson}};
 
     ctx.bot.database.modify_guild(filter, update).await?;
@@ -95,7 +95,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
 
 pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -127,7 +127,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
     };
     let event = &guild.event_types[event_type_index];
 
-    let filter = doc! {"_id": guild_id.0 as i64};
+    let filter = doc! {"_id": guild_id.0.get() as i64};
     let index_str = format!("EventTypes.{}.Name", event_type_index);
     let update = doc! {"$set": {index_str: event_name.clone()}};
     ctx.bot.database.modify_guild(filter, update).await?;
@@ -153,7 +153,7 @@ pub struct DisableArguments {
 
 pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -184,7 +184,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
     };
     let event = &guild.event_types[event_type_index];
 
-    let filter = doc! {"_id": guild_id.0 as i64};
+    let filter = doc! {"_id": guild_id.0.get() as i64};
     let index_str = format!("EventTypes.{}.Disabled", event_type_index);
     let update = doc! {"$set": {index_str: true}};
     ctx.bot.database.modify_guild(filter, update).await?;
@@ -210,7 +210,7 @@ pub struct EnableArguments {
 
 pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -241,7 +241,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
     };
     let event = &guild.event_types[event_type_index];
 
-    let filter = doc! {"_id": guild_id.0 as i64};
+    let filter = doc! {"_id": guild_id.0.get() as i64};
     let index_str = format!("EventTypes.{}.Disabled", event_type_index);
     let update = doc! {"$set": {index_str: false}};
     ctx.bot.database.modify_guild(filter, update).await?;

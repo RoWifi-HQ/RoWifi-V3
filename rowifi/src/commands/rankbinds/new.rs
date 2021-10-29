@@ -36,7 +36,7 @@ lazy_static! {
 
 pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let mut guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let mut guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
 
     let group_id = args.group_id;
@@ -128,7 +128,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                     .iter()
                     .find(|r| r.name.eq_ignore_ascii_case(&roblox_rank.name))
                 {
-                    Some(r) => r.id.0 as i64,
+                    Some(r) => r.id.0.get() as i64,
                     None => {
                         let new_role = ctx
                             .bot
@@ -139,12 +139,12 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                             .await?
                             .model()
                             .await?;
-                        new_role.id.0 as i64
+                        new_role.id.0.get() as i64
                     }
                 };
                 roles.push(role);
             } else if let Some(role_id) = parse_role(role_to_add) {
-                if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
+                if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap()) {
                     roles.push(role_id as i64);
                 }
             }
@@ -271,9 +271,9 @@ impl FromArg for CreateType {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::Integer { value, .. } => value.to_string(),
-            CommandDataOption::String { value, .. } => value.to_string(),
+        let arg = match option.value {
+            CommandOptionValue::Integer(value) => value.to_string(),
+            CommandOptionValue::String(value) => value.to_string(),
             _ => unreachable!("NewRankbind unreached"),
         };
 

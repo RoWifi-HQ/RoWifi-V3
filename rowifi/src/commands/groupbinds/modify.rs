@@ -26,7 +26,7 @@ pub async fn groupbinds_modify(
     args: GroupbindsModifyArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let field = args.option;
     let group_id = args.group_id;
@@ -203,9 +203,9 @@ impl FromArg for ModifyOption {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match option.value {
+            CommandOptionValue::String(value) => value.to_string(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("Modify Groupbinds unreached"),
         };
 

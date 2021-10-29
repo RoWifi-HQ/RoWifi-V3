@@ -7,7 +7,7 @@ use std::time::Duration;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -220,7 +220,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let new_event = EventLog {
         id: event_id,
-        guild_id: guild_id as i64,
+        guild_id: guild_id.get() as i64,
         event_type: event_type_id,
         guild_event_id: guild.event_counter + 1,
         host_id: user.roblox_id,
@@ -229,7 +229,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         notes,
     };
 
-    ctx.bot.database.add_event(guild_id, &new_event).await?;
+    ctx.bot.database.add_event(guild_id.get(), &new_event).await?;
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",

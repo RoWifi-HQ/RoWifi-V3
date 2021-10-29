@@ -1,7 +1,7 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::{
-        gateway::payload::RequestGuildMembers,
+        gateway::payload::outgoing::RequestGuildMembers,
         id::{RoleId, UserId},
     },
     guild::GuildType,
@@ -12,7 +12,7 @@ use twilight_gateway::Event;
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -44,11 +44,11 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0 as i64)
+        .map(|m| m.0.get() as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
-        let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
+        let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
             ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
             return Ok(());
@@ -70,13 +70,13 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0 as i64)
+            .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx
         .bot
         .database
-        .get_linked_users(&members, guild_id.0)
+        .get_linked_users(&members, guild_id.0.get())
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
@@ -89,7 +89,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                 .collect::<Vec<_>>();
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
-                if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
+                if let Some(member) = c.bot.cache.member(guild_id, UserId::new(user.discord_id as u64).unwrap()) {
                     if c.bot.has_bypass_role(&server, &member) {
                         continue;
                     }
@@ -133,7 +133,7 @@ pub struct UpdateMultipleArguments {
 
 pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -175,11 +175,11 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .cache
         .members(guild_id)
         .into_iter()
-        .map(|m| m.0 as i64)
+        .map(|m| m.0.get() as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
         let req = RequestGuildMembers::builder(server.id).query("", None);
-        let shard_id = (guild_id.0 >> 22) % ctx.bot.total_shards;
+        let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
             ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
             return Ok(());
@@ -201,13 +201,13 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0 as i64)
+            .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
     }
     let users = ctx
         .bot
         .database
-        .get_linked_users(&members, guild_id.0)
+        .get_linked_users(&members, guild_id.0.get())
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
@@ -220,7 +220,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                 .collect::<Vec<_>>();
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
-                if let Some(member) = c.bot.cache.member(guild_id, UserId(user.discord_id as u64)) {
+                if let Some(member) = c.bot.cache.member(guild_id, UserId::new(user.discord_id as u64).unwrap()) {
                     if !member.roles.contains(&role_id) {
                         continue;
                     }

@@ -1,9 +1,8 @@
 use chacha20poly1305::{aead::Aead, Nonce};
-use chrono::{DateTime, Utc};
 use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId};
+use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId, discord::datetime::Timestamp};
 
 #[derive(FromArgs)]
 pub struct EventAttendeeArguments {
@@ -13,7 +12,7 @@ pub struct EventAttendeeArguments {
 
 pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -62,7 +61,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0 as i64}},
+        doc! {"$match": {"GuildId": guild_id.0.get() as i64}},
         doc! {"$sort": {"Timestamp": -1}},
         doc! {"$unwind": "$Attendees"},
         doc! {"$match": {"Attendees": roblox_id}},
@@ -117,7 +116,7 @@ pub struct EventHostArguments {
 
 pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -166,7 +165,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
     };
 
     let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0 as i64}},
+        doc! {"$match": {"GuildId": guild_id.0.get() as i64}},
         doc! {"$match": {"HostId": roblox_id}},
         doc! {"$sort": {"Timestamp": -1}},
     ];
@@ -219,7 +218,7 @@ pub struct EventViewArguments {
 
 pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -234,7 +233,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0 as i64, "GuildEventId": event_id}}];
+    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64, "GuildEventId": event_id}}];
     let events = ctx.bot.database.get_events(pipeline).await?;
     if events.is_empty() {
         let embed = EmbedBuilder::new()
@@ -278,7 +277,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             event_type.name.clone(),
         ))
         .field(EmbedFieldBuilder::new("Host", host.name))
-        .timestamp(DateTime::<Utc>::from(event.timestamp).to_rfc3339());
+        .timestamp(Timestamp::from_secs(event.timestamp.to_chrono().timestamp() as u64).unwrap());
 
     if !event.attendees.is_empty() {
         embed = embed.field(EmbedFieldBuilder::new(

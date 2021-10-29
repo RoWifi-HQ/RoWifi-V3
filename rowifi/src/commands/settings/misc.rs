@@ -17,7 +17,7 @@ pub async fn blacklist_action(
     args: BlacklistActionArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let bl_type = args.option;
     let filter = doc! {"_id": guild.id};
@@ -59,17 +59,17 @@ pub struct ToggleCommandsArguments {
 
 pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let option = args.option;
     let (update, desc, add) = match option {
         ToggleOption::Enable => (
-            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0 as i64}},
+            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0.get() as i64}},
             "Commands have been successfully enabled in this channel",
             false,
         ),
         ToggleOption::Disable => (
-            doc! {"$push": {"DisabledChannels": ctx.channel_id.0 as i64}},
+            doc! {"$push": {"DisabledChannels": ctx.channel_id.0.get() as i64}},
             "Commands have been successfully disabled in this channel",
             true,
         ),
@@ -103,7 +103,7 @@ pub struct SettingsPrefixArguments {
 
 pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let prefix = args.prefix;
     let filter = doc! {"_id": guild.id};

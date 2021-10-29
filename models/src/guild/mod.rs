@@ -8,7 +8,7 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::{collections::HashMap, default::Default, fmt};
+use std::{collections::HashMap, default::Default, fmt, sync::Arc};
 use twilight_http::Client as DiscordClient;
 use twilight_model::id::{ChannelId, GuildId, RoleId};
 
@@ -130,7 +130,7 @@ impl RoGuild {
     // Rewrite this part
     pub async fn from_backup(
         backup: BackupGuild,
-        http: DiscordClient,
+        http: Arc<DiscordClient>,
         guild_id: GuildId,
         existing_roles: &[(RoleId, String)],
         existing_channels: &HashMap<String, ChannelId>,
