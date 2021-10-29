@@ -105,6 +105,7 @@ where
 
                 let ctx = req.0;
                 let fut = async move {
+                    let _ = &ctx;
                     ctx.bot
                         .http
                         .create_message(ctx.channel_id)
