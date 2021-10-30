@@ -64,7 +64,10 @@ pub async fn premium_transfer(
             premium_owner: Some(premium_user.discord_id),
             premium_patreon_owner: premium_user.patreon_id,
         };
-        ctx.bot.database.delete_premium(ctx.author.id.0.get()).await?;
+        ctx.bot
+            .database
+            .delete_premium(ctx.author.id.0.get())
+            .await?;
         ctx.bot
             .database
             .add_premium(new_premium_user, false)

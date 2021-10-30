@@ -1,4 +1,8 @@
-use rowifi_models::discord::{datetime::Timestamp, guild::Permissions, id::{ChannelId, GuildId, RoleId, UserId}};
+use rowifi_models::discord::{
+    datetime::Timestamp,
+    guild::Permissions,
+    id::{ChannelId, GuildId, RoleId, UserId},
+};
 use std::sync::{atomic::AtomicI64, Arc};
 
 #[derive(Debug, Clone)]

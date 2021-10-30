@@ -77,7 +77,9 @@ pub async fn bypass_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap())
+            if server_roles
+                .iter()
+                .any(|r| r.id == RoleId::new(role_id).unwrap())
                 && !ctx
                     .bot
                     .bypass_roles
@@ -170,7 +172,10 @@ pub async fn bypass_set(
     let mut roles_to_set = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap()) {
+            if server_roles
+                .iter()
+                .any(|r| r.id == RoleId::new(role_id).unwrap())
+            {
                 roles_to_set.push(role_id as i64);
             }
         }
@@ -182,7 +187,10 @@ pub async fn bypass_set(
 
     ctx.bot.bypass_roles.insert(
         guild_id,
-        roles_to_set.iter().map(|r| RoleId::new(*r as u64).unwrap()).collect(),
+        roles_to_set
+            .iter()
+            .map(|r| RoleId::new(*r as u64).unwrap())
+            .collect(),
     );
 
     let mut description = "Set Bypass Roles:\n".to_string();

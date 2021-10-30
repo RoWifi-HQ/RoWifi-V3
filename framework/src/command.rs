@@ -1,5 +1,11 @@
 use itertools::Itertools;
-use rowifi_models::discord::{application::{callback::{CallbackData, InteractionResponse}, interaction::application_command::CommandOptionValue}, channel::message::MessageFlags};
+use rowifi_models::discord::{
+    application::{
+        callback::{CallbackData, InteractionResponse},
+        interaction::application_command::CommandOptionValue,
+    },
+    channel::message::MessageFlags,
+};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     future::Future,

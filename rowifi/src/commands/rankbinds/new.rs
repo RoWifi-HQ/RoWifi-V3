@@ -144,7 +144,10 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 };
                 roles.push(role);
             } else if let Some(role_id) = parse_role(role_to_add) {
-                if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap()) {
+                if server_roles
+                    .iter()
+                    .any(|r| r.id == RoleId::new(role_id).unwrap())
+                {
                     roles.push(role_id as i64);
                 }
             }

@@ -1,4 +1,11 @@
-use rowifi_models::{bind::AssetType, discord::{application::interaction::application_command::{CommandDataOption, CommandOptionValue}, id::{ChannelId, RoleId, UserId}}, guild::BlacklistActionType};
+use rowifi_models::{
+    bind::AssetType,
+    discord::{
+        application::interaction::application_command::{CommandDataOption, CommandOptionValue},
+        id::{ChannelId, RoleId, UserId},
+    },
+    guild::BlacklistActionType,
+};
 use std::{num::ParseIntError, str::FromStr};
 
 use crate::utils::{parse_channel, parse_role, parse_username};

@@ -100,11 +100,15 @@ impl RoGuild {
             .map(|a| a.to_backup(roles))
             .collect_vec();
         let verification_role = match self.verification_role {
-            Some(verification_role) => roles.get(&RoleId::new(verification_role as u64).unwrap()).cloned(),
+            Some(verification_role) => roles
+                .get(&RoleId::new(verification_role as u64).unwrap())
+                .cloned(),
             None => None,
         };
         let verified_role = match self.verified_role {
-            Some(verified_role) => roles.get(&RoleId::new(verified_role as u64).unwrap()).cloned(),
+            Some(verified_role) => roles
+                .get(&RoleId::new(verified_role as u64).unwrap())
+                .cloned(),
             None => None,
         };
         let backup_settings = self.settings.to_backup(roles, channels);

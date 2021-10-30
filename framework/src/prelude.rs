@@ -15,7 +15,10 @@ pub use rowifi_models::discord::{
             select_menu::{SelectMenu, SelectMenuOption},
             Component, ComponentType,
         },
-        interaction::{application_command::{CommandDataOption, CommandOptionValue}, Interaction},
+        interaction::{
+            application_command::{CommandDataOption, CommandOptionValue},
+            Interaction,
+        },
     },
     channel::ReactionType,
     gateway::event::Event,

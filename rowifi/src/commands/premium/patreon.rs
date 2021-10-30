@@ -50,7 +50,11 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let transferred_premium = ctx.bot.database.get_transferred_premium(author.get()).await?;
+    let transferred_premium = ctx
+        .bot
+        .database
+        .get_transferred_premium(author.get())
+        .await?;
     if let Some(transferred_premium) = transferred_premium {
         ctx.bot
             .database

@@ -55,7 +55,10 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
-    if !premium_user.discord_servers.contains(&(guild_id.0.get() as i64)) {
+    if !premium_user
+        .discord_servers
+        .contains(&(guild_id.0.get() as i64))
+    {
         let filter2 = doc! {"_id": ctx.author.id.0.get() as i64};
         let update2 = doc! {"$push": { "Servers": guild_id.0.get() as i64 }};
         ctx.bot.database.modify_premium(filter2, update2).await?;
@@ -128,7 +131,10 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    if !premium_user.discord_servers.contains(&(guild_id.0.get() as i64)) {
+    if !premium_user
+        .discord_servers
+        .contains(&(guild_id.0.get() as i64))
+    {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Premium Disable Failed")
             .description("This server either does not have premium enabled or the premium is owned by an another member")

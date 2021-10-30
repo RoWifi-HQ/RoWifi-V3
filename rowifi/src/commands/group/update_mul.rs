@@ -89,7 +89,11 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                 .collect::<Vec<_>>();
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
-                if let Some(member) = c.bot.cache.member(guild_id, UserId::new(user.discord_id as u64).unwrap()) {
+                if let Some(member) = c
+                    .bot
+                    .cache
+                    .member(guild_id, UserId::new(user.discord_id as u64).unwrap())
+                {
                     if c.bot.has_bypass_role(&server, &member) {
                         continue;
                     }
@@ -220,7 +224,11 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                 .collect::<Vec<_>>();
             let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
             for user in user_chunk {
-                if let Some(member) = c.bot.cache.member(guild_id, UserId::new(user.discord_id as u64).unwrap()) {
+                if let Some(member) = c
+                    .bot
+                    .cache
+                    .member(guild_id, UserId::new(user.discord_id as u64).unwrap())
+                {
                     if !member.roles.contains(&role_id) {
                         continue;
                     }

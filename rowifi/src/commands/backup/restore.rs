@@ -27,7 +27,12 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let name = args.name;
     ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
-    let backup = match ctx.bot.database.get_backup(ctx.author.id.0.get(), &name).await? {
+    let backup = match ctx
+        .bot
+        .database
+        .get_backup(ctx.author.id.0.get(), &name)
+        .await?
+    {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()

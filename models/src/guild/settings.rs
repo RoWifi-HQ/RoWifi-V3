@@ -69,7 +69,9 @@ impl GuildSettings {
         }
 
         let log_channel = match self.log_channel {
-            Some(log_channel) => channels.get(&ChannelId::new(log_channel as u64).unwrap()).cloned(),
+            Some(log_channel) => channels
+                .get(&ChannelId::new(log_channel as u64).unwrap())
+                .cloned(),
             None => None,
         };
 

@@ -229,7 +229,10 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         notes,
     };
 
-    ctx.bot.database.add_event(guild_id.get(), &new_event).await?;
+    ctx.bot
+        .database
+        .add_event(guild_id.get(), &new_event)
+        .await?;
 
     let value = format!(
         "Host: {}\nType: {}\nAttendees: {}",

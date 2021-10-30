@@ -75,7 +75,13 @@ pub struct VerifyArguments {
 }
 
 pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    if ctx.bot.database.get_user(ctx.author.id.0.get()).await?.is_some() {
+    if ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get())
+        .await?
+        .is_some()
+    {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Already Verified")
@@ -110,7 +116,13 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
 }
 
 pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    if ctx.bot.database.get_user(ctx.author.id.0.get()).await?.is_none() {
+    if ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get())
+        .await?
+        .is_none()
+    {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Not Verified")

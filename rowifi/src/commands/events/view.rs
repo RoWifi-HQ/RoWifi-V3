@@ -2,7 +2,9 @@ use chacha20poly1305::{aead::Aead, Nonce};
 use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::{guild::GuildType, roblox::id::UserId as RobloxUserId, discord::datetime::Timestamp};
+use rowifi_models::{
+    discord::datetime::Timestamp, guild::GuildType, roblox::id::UserId as RobloxUserId,
+};
 
 #[derive(FromArgs)]
 pub struct EventAttendeeArguments {
@@ -233,7 +235,8 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64, "GuildEventId": event_id}}];
+    let pipeline =
+        vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64, "GuildEventId": event_id}}];
     let events = ctx.bot.database.get_events(pipeline).await?;
     if events.is_empty() {
         let embed = EmbedBuilder::new()

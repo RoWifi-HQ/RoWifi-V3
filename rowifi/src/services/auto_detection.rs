@@ -74,7 +74,10 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
                 .map(|m| m.0.get() as i64)
                 .collect::<Vec<_>>();
         }
-        let users = ctx.database.get_linked_users(&members, guild_id.0.get()).await?;
+        let users = ctx
+            .database
+            .get_linked_users(&members, guild_id.0.get())
+            .await?;
         let guild_roles = ctx.cache.roles(guild_id);
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
@@ -107,7 +110,10 @@ async fn execute_chunk(
     guild_roles: &HashSet<RoleId>,
 ) -> Result<(), RoError> {
     for user in user_chunk {
-        if let Some(member) = ctx.cache.member(server.id, UserId::new(user.discord_id as u64).unwrap()) {
+        if let Some(member) = ctx
+            .cache
+            .member(server.id, UserId::new(user.discord_id as u64).unwrap())
+        {
             if let Some(bypass) = server.bypass_role {
                 if member.roles.contains(&bypass) {
                     continue;
