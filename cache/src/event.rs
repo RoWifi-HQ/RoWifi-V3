@@ -3,7 +3,7 @@ use rowifi_models::discord::{
     channel::Channel,
     gateway::{
         event::Event,
-        payload::{
+        payload::incoming::{
             ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
             InteractionCreate, MemberAdd, MemberChunk, MemberRemove, MemberUpdate, MessageCreate,
             Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,

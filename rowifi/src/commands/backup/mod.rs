@@ -36,7 +36,7 @@ pub struct BackupArguments {
 }
 
 pub async fn backup(ctx: CommandContext) -> CommandResult {
-    match ctx.bot.database.get_premium(ctx.author.id.0).await? {
+    match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {
             let embed = EmbedBuilder::new()
@@ -51,7 +51,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    let backups = ctx.bot.database.get_backups(ctx.author.id.0).await?;
+    let backups = ctx.bot.database.get_backups(ctx.author.id.0.get()).await?;
     let mut embed = EmbedBuilder::new().default_data().title("Backups");
 
     for backup in backups {

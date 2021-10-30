@@ -84,7 +84,7 @@ pub async fn botinfo(ctx: CommandContext) -> CommandResult {
     let guilds = ctx.bot.cache.guilds();
     let member_count: i64 = guilds
         .iter()
-        .map(|g| ctx.bot.cache.member_count(GuildId(*g)))
+        .map(|g| ctx.bot.cache.member_count(GuildId::new(*g).unwrap()))
         .sum();
 
     let embed = EmbedBuilder::new()

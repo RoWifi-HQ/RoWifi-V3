@@ -1,4 +1,5 @@
 use rowifi_models::discord::{
+    datetime::Timestamp,
     guild::Permissions,
     id::{ChannelId, GuildId, RoleId, UserId},
 };
@@ -9,7 +10,7 @@ pub struct CachedGuild {
     pub id: GuildId,
     pub description: Option<String>,
     pub icon: Option<String>,
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub name: String,
     pub owner_id: UserId,
     pub permissions: Option<Permissions>,

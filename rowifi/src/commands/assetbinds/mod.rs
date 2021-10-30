@@ -49,7 +49,7 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn assetbind(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.assetbinds.is_empty() {
         let e = EmbedBuilder::new()

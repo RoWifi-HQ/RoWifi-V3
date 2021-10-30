@@ -6,7 +6,7 @@ use rowifi_models::guild::GuildType;
 
 pub async fn event_summary(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -20,7 +20,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0 as i64}}];
+    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64}}];
     let events = ctx.bot.database.get_events(pipeline).await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events Summary");

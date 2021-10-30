@@ -7,7 +7,7 @@ use super::VerifyArguments;
 
 pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -61,8 +61,8 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     }
 
     let linked_user = RoGuildUser {
-        guild_id: guild_id.0 as i64,
-        discord_id: ctx.author.id.0 as i64,
+        guild_id: guild_id.0.get() as i64,
+        discord_id: ctx.author.id.0.get() as i64,
         roblox_id,
     };
 
@@ -97,7 +97,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
 }
 
 pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -187,7 +187,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
 }
 
 pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -245,7 +245,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     user.alts.remove(account_index);
     ctx.bot
         .database
-        .delete_linked_users(ctx.author.id.0, roblox_id)
+        .delete_linked_users(ctx.author.id.0.get(), roblox_id)
         .await?;
     ctx.bot.database.add_user(user, true).await?;
     let embed = EmbedBuilder::new()

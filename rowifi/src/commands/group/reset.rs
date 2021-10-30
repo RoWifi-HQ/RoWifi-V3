@@ -20,9 +20,9 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     let guild = RoGuild {
-        id: guild_id.0 as i64,
+        id: guild_id.0.get() as i64,
         command_prefix: guild.command_prefix,
         event_counter: guild.event_counter,
         ..RoGuild::default()

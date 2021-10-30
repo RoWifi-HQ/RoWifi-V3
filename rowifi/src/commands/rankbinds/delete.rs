@@ -13,7 +13,7 @@ pub struct RankBindsDelete {
 
 pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let group_id = args.group_id;
 

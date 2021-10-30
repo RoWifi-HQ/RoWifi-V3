@@ -21,7 +21,7 @@ pub struct NewArguments {
 
 pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let asset_type = args.option;
     let asset_id = args.asset_id;
@@ -65,7 +65,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let mut roles = Vec::new();
     for r in roles_to_add {
         if let Some(role_id) = parse_role(r) {
-            if server_roles.contains(&RoleId(role_id)) {
+            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
             }
         }

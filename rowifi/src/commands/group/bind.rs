@@ -21,7 +21,7 @@ lazy_static! {
 
 pub async fn bind(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let mut select_menu = SelectMenu {
         custom_id: "bind-select".into(),
@@ -368,7 +368,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     let mut discord_roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(role_str) {
-            if server_roles.contains(&RoleId(role_id)) {
+            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 discord_roles.push(role_id as i64);
             }
         }
@@ -576,7 +576,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     let mut discord_roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(role_str) {
-            if server_roles.contains(&RoleId(role_id)) {
+            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 discord_roles.push(role_id as i64);
             }
         }

@@ -74,7 +74,7 @@ impl Backup for CustomBind {
     fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
         let mut discord_roles = Vec::new();
         for role_id in &self.discord_roles {
-            if let Some(role) = roles.get(&RoleId(*role_id as u64)) {
+            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
                 discord_roles.push(role.clone());
             }
         }
@@ -92,7 +92,7 @@ impl Backup for CustomBind {
     fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self {
         let mut discord_roles = Vec::new();
         for role_name in &bind.discord_roles {
-            let role = roles.get(role_name).unwrap().0 as i64;
+            let role = roles.get(role_name).unwrap().0.get() as i64;
             discord_roles.push(role);
         }
 

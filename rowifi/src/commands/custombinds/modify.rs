@@ -33,7 +33,7 @@ pub async fn custombinds_modify(
     args: CustombindsModifyArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let field = args.option;
     let bind_id = args.id;
@@ -126,7 +126,7 @@ async fn modify_code<'a>(
     code: &'a str,
 ) -> Result<Option<&'a str>, RoError> {
     let user = match ctx
-        .get_linked_user(ctx.author.id, GuildId(guild.id as u64))
+        .get_linked_user(ctx.author.id, GuildId::new(guild.id as u64).unwrap())
         .await?
     {
         Some(u) => u,
@@ -273,9 +273,9 @@ impl FromArg for ModifyOption {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::String(value) => value.to_string(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("ModifyArgument unreached"),
         };
 

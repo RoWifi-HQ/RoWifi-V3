@@ -12,7 +12,7 @@ pub struct BlacklistNameArguments {
 
 pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let username = args.username;
     let user = match ctx.bot.roblox.get_user_from_username(&username).await? {

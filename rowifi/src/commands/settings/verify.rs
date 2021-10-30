@@ -13,11 +13,11 @@ pub async fn settings_verification(
     args: VerificationArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let verification_role = args.role.0;
     let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"VerificationRole": verification_role as i64, "VerificationRoles": [verification_role as i64]}};
+    let update = doc! {"$set": {"VerificationRole": verification_role.get() as i64, "VerificationRoles": [verification_role.get() as i64]}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new()
@@ -53,11 +53,11 @@ pub struct VerifiedArguments {
 
 pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let verified_role = args.role.0;
     let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"VerifiedRole": verified_role as i64, "VerifiedRoles": [verified_role as i64]}};
+    let update = doc! {"$set": {"VerifiedRole": verified_role.get() as i64, "VerifiedRoles": [verified_role.get() as i64]}};
     ctx.bot.database.modify_guild(filter, update).await?;
 
     let embed = EmbedBuilder::new()

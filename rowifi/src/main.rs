@@ -139,7 +139,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Some(proxy) = proxy {
         config = config.proxy(proxy, true).ratelimiter(None);
     }
-    let http = config.build();
+    let http = Arc::new(config.build());
     let app_info = http.current_user().exec().await?.model().await?;
 
     let mut owners = Vec::new();
@@ -164,6 +164,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .http_client(http.clone())
     .build()
     .await?;
+    let cluster = Arc::new(cluster);
 
     let stats = Arc::new(BotStats::new(cluster_id));
     let cache = Cache::new(stats.clone());

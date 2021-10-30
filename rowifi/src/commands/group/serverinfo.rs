@@ -2,7 +2,7 @@ use rowifi_framework::prelude::*;
 
 pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

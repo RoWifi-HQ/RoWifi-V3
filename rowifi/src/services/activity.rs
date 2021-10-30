@@ -1,6 +1,6 @@
 use rowifi_framework::context::BotContext;
 use rowifi_models::discord::gateway::{
-    payload::UpdatePresence,
+    payload::outgoing::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
 use std::error::Error;
