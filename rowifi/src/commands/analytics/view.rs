@@ -19,7 +19,11 @@ pub struct ViewArguments {
 pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
-    let guild = ctx.bot.database.get_guild(ctx.guild_id.unwrap().0).await?;
+    let guild = ctx
+        .bot
+        .database
+        .get_guild(ctx.guild_id.unwrap().0.get())
+        .await?;
 
     if guild.settings.guild_type != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -179,9 +183,9 @@ impl FromArg for ViewDuration {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::Integer { value, .. } => value.to_string(),
-            CommandDataOption::String { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::Integer(value) => value.to_string(),
+            CommandOptionValue::String(value) => value.to_string(),
             _ => unreachable!("ViewDuration unreached"),
         };
         Self::from_arg(&arg)

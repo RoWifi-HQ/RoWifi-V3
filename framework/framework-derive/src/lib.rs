@@ -216,7 +216,7 @@ pub fn from_args_derive(input: TokenStream) -> TokenStream {
             fn from_interaction(options: &[rowifi_models::discord::application::interaction::application_command::CommandDataOption]) -> std::result::Result<Self, ArgumentError> {
                 use rowifi_models::discord::application::interaction::application_command::CommandDataOption;
 
-                let options = options.iter().map(|c| (c.name(), c))
+                let options = options.iter().map(|c| (c.name.as_str(), c))
                     .collect::<std::collections::HashMap<&str, &CommandDataOption>>();
                 #(#field_interaction_decs)*
                 Ok(Self {

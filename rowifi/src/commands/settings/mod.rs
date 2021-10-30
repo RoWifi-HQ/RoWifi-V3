@@ -124,7 +124,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
 
 pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -197,9 +197,9 @@ impl FromArg for ToggleOption {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::String(value) => value.to_string(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("ToggleOption unreached"),
         };
 
@@ -235,9 +235,9 @@ impl FromArg for FunctionOption {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option {
-            CommandDataOption::String { value, .. } => value.to_string(),
-            CommandDataOption::Integer { value, .. } => value.to_string(),
+        let arg = match &option.value {
+            CommandOptionValue::String(value) => value.to_string(),
+            CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("AdminOption unreached"),
         };
 

@@ -11,7 +11,7 @@ pub async fn premium_transfer(
     ctx: CommandContext,
     args: PremiumTransferArguments,
 ) -> CommandResult {
-    let premium_user = ctx.bot.database.get_premium(ctx.author.id.0).await?;
+    let premium_user = ctx.bot.database.get_premium(ctx.author.id.0.get()).await?;
     if let Some(premium_user) = premium_user {
         if premium_user.premium_owner.is_some() {
             let embed = EmbedBuilder::new()
@@ -41,7 +41,7 @@ pub async fn premium_transfer(
         if ctx
             .bot
             .database
-            .get_premium(to_transfer_id.0 as u64)
+            .get_premium(to_transfer_id.0.get() as u64)
             .await?
             .is_some()
         {
@@ -57,14 +57,17 @@ pub async fn premium_transfer(
         }
 
         let new_premium_user = PremiumUser {
-            discord_id: to_transfer_id.0 as i64,
+            discord_id: to_transfer_id.0.get() as i64,
             patreon_id: None,
             discord_servers: Vec::new(),
             premium_type: premium_user.premium_type,
             premium_owner: Some(premium_user.discord_id),
             premium_patreon_owner: premium_user.patreon_id,
         };
-        ctx.bot.database.delete_premium(ctx.author.id.0).await?;
+        ctx.bot
+            .database
+            .delete_premium(ctx.author.id.0.get())
+            .await?;
         ctx.bot
             .database
             .add_premium(new_premium_user, false)
@@ -80,7 +83,7 @@ pub async fn premium_transfer(
     } else if let Some(transferred_premium_user) = ctx
         .bot
         .database
-        .get_transferred_premium(ctx.author.id.0)
+        .get_transferred_premium(ctx.author.id.0.get())
         .await?
     {
         ctx.bot
@@ -89,7 +92,7 @@ pub async fn premium_transfer(
             .await?;
 
         let premium_user = PremiumUser {
-            discord_id: ctx.author.id.0 as i64,
+            discord_id: ctx.author.id.0.get() as i64,
             patreon_id: transferred_premium_user.premium_patreon_owner,
             discord_servers: Vec::new(),
             premium_type: transferred_premium_user.premium_type,

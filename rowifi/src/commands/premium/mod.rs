@@ -91,7 +91,7 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("{}#{}", author.1, author.2));
-    if let Some(premium_user) = ctx.bot.database.get_premium((author.0).0).await? {
+    if let Some(premium_user) = ctx.bot.database.get_premium((author.0).0.get()).await? {
         embed = match premium_user.premium_type {
             PremiumType::Beta => embed.field(EmbedFieldBuilder::new("Tier", "Beta"))
                                     .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System")),

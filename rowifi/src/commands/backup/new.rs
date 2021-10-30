@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use super::BackupArguments;
 
 pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandResult {
-    match ctx.bot.database.get_premium(ctx.author.id.0).await? {
+    match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
         Some(p) if p.premium_type.has_backup() => {}
         _ => {
             let embed = EmbedBuilder::new()
@@ -20,7 +20,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     };
 
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let name = args.name;
     let server_roles = ctx.bot.cache.roles(guild_id);
@@ -41,7 +41,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
         }
     }
 
-    let backup = guild.to_backup(ctx.author.id.0 as i64, &name, &roles, &channels);
+    let backup = guild.to_backup(ctx.author.id.0.get() as i64, &name, &roles, &channels);
     ctx.bot.database.add_backup(backup, &name).await?;
     ctx.respond()
         .content(&format!("New backup with {} was created", name))

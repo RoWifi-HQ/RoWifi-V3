@@ -1,4 +1,4 @@
-use rowifi_models::discord::id::RoleId;
+use rowifi_models::discord::{datetime::Timestamp, id::RoleId};
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
 
 use crate::utils::Color;
@@ -10,7 +10,7 @@ pub trait EmbedExtensions {
 
 impl EmbedExtensions for EmbedBuilder {
     fn default_data(self) -> Self {
-        self.timestamp(&chrono::Utc::now().to_rfc3339())
+        self.timestamp(Timestamp::from_secs(chrono::Utc::now().timestamp() as u64).unwrap())
             .color(Color::Blue as u32)
             .footer(EmbedFooterBuilder::new("RoWifi"))
     }

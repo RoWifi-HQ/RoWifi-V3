@@ -8,7 +8,7 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::{collections::HashMap, default::Default, fmt};
+use std::{collections::HashMap, default::Default, fmt, sync::Arc};
 use twilight_http::Client as DiscordClient;
 use twilight_model::id::{ChannelId, GuildId, RoleId};
 
@@ -100,11 +100,15 @@ impl RoGuild {
             .map(|a| a.to_backup(roles))
             .collect_vec();
         let verification_role = match self.verification_role {
-            Some(verification_role) => roles.get(&RoleId(verification_role as u64)).cloned(),
+            Some(verification_role) => roles
+                .get(&RoleId::new(verification_role as u64).unwrap())
+                .cloned(),
             None => None,
         };
         let verified_role = match self.verified_role {
-            Some(verified_role) => roles.get(&RoleId(verified_role as u64)).cloned(),
+            Some(verified_role) => roles
+                .get(&RoleId::new(verified_role as u64).unwrap())
+                .cloned(),
             None => None,
         };
         let backup_settings = self.settings.to_backup(roles, channels);
@@ -130,7 +134,7 @@ impl RoGuild {
     // Rewrite this part
     pub async fn from_backup(
         backup: BackupGuild,
-        http: DiscordClient,
+        http: Arc<DiscordClient>,
         guild_id: GuildId,
         existing_roles: &[(RoleId, String)],
         existing_channels: &HashMap<String, ChannelId>,
@@ -197,13 +201,13 @@ impl RoGuild {
 
         let verification_role = if let Some(verification_name) = backup.verification_role {
             if let Some(r) = names_to_ids.get(&verification_name) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&verification_name)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&verification_name).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             }
         } else {
             0
@@ -211,13 +215,13 @@ impl RoGuild {
 
         let verified_role = if let Some(verified_name) = backup.verified_role {
             if let Some(r) = names_to_ids.get(&verified_name) {
-                r.0 as i64
+                r.0.get() as i64
             } else if let Some(r) = existing_roles.iter().find(|e| e.1.eq(&verified_name)) {
-                (r.0).0 as i64
+                (r.0).0.get() as i64
             } else {
                 #[rustfmt::skip]
                 let role = http.create_role(guild_id).name(&verified_name).exec().await.unwrap().model().await.unwrap();
-                role.id.0 as i64
+                role.id.0.get() as i64
             }
         } else {
             0
@@ -254,7 +258,7 @@ impl RoGuild {
         .await;
 
         Self {
-            id: guild_id.0 as i64,
+            id: guild_id.0.get() as i64,
             command_prefix: backup.command_prefix,
             settings,
             verification_role: Some(verification_role),

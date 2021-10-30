@@ -12,7 +12,7 @@ pub struct DeleteArguments {
 
 pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let mut assets_to_delete = Vec::new();
     for arg in args.asset_id.split_ascii_whitespace() {

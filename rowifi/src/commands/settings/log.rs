@@ -10,7 +10,7 @@ pub struct LogChannelArguments {
 
 pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
@@ -38,7 +38,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
         }
 
         let filter = doc! {"_id": guild.id};
-        let update = doc! {"$set": {"Settings.LogChannel": channel_id.0 as i64}};
+        let update = doc! {"$set": {"Settings.LogChannel": channel_id.0.get() as i64}};
         ctx.bot.database.modify_guild(filter, update).await?;
 
         ctx.bot.log_channels.insert(guild_id, channel_id);
