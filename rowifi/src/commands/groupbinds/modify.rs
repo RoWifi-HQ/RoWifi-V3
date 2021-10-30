@@ -203,7 +203,7 @@ impl FromArg for ModifyOption {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option.value {
+        let arg = match &option.value {
             CommandOptionValue::String(value) => value.to_string(),
             CommandOptionValue::Integer(value) => value.to_string(),
             _ => unreachable!("Modify Groupbinds unreached"),

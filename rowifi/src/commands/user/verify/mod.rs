@@ -75,7 +75,7 @@ pub struct VerifyArguments {
 }
 
 pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    if ctx.bot.database.get_user(ctx.author.id.0).await?.is_some() {
+    if ctx.bot.database.get_user(ctx.author.id.0.get()).await?.is_some() {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Already Verified")
@@ -110,7 +110,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
 }
 
 pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    if ctx.bot.database.get_user(ctx.author.id.0).await?.is_none() {
+    if ctx.bot.database.get_user(ctx.author.id.0.get()).await?.is_none() {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("User Not Verified")
@@ -206,7 +206,7 @@ pub async fn verify_common(
         .await?;
     let q_user = QueueUser {
         roblox_id,
-        discord_id: ctx.author.id.0 as i64,
+        discord_id: ctx.author.id.0.get() as i64,
         verified,
     };
     ctx.bot.database.add_queue_user(q_user).await?;
@@ -224,7 +224,7 @@ pub async fn verify_common(
 
 pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -241,7 +241,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let linked_user = ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.0, guild_id.0)
+        .get_linked_user(ctx.author.id.0.get(), guild_id.0.get())
         .await?;
 
     let embed = EmbedBuilder::new()

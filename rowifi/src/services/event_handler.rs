@@ -136,29 +136,29 @@ impl Service<(u64, Event)> for EventHandler {
                     let guild_ids = ready
                         .guilds
                         .iter()
-                        .map(|k| k.id.0 as i64)
+                        .map(|k| k.id.0.get() as i64)
                         .collect::<Vec<_>>();
                     let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
                     for guild in guilds {
-                        let guild_id = GuildId(guild.id as u64);
+                        let guild_id = GuildId::new(guild.id as u64).unwrap();
                         if let Some(command_prefix) = guild.command_prefix {
                             eh.bot.prefixes
                                 .insert(guild_id, command_prefix);
                         }
                         for channel in guild.disabled_channels {
                             eh.bot.disabled_channels
-                                .insert(ChannelId(channel as u64));
+                                .insert(ChannelId::new(channel as u64).unwrap());
                         }
 
                         if guild.settings.guild_type != GuildType::Normal {
-                            eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId(a as u64)).collect());
-                            eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId(t as u64)).collect());
-                            eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId(b as u64)).collect());
-                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId(nb as u64)).collect());
+                            eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId::new(a as u64).unwrap()).collect());
+                            eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId::new(t as u64).unwrap()).collect());
+                            eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId::new(b as u64).unwrap()).collect());
+                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId::new(nb as u64).unwrap()).collect());
                         }
 
                         if let Some(log_channel) = guild.settings.log_channel {
-                            eh.bot.log_channels.insert(guild_id, ChannelId(log_channel as u64));
+                            eh.bot.log_channels.insert(guild_id, ChannelId::new(log_channel as u64).unwrap());
                         }
                     }
                 }
@@ -174,7 +174,7 @@ impl Service<(u64, Event)> for EventHandler {
                         Some(m) => m,
                         None => return Ok(()),
                     };
-                    let guild = eh.bot.database.get_guild(m.guild_id.0).await?;
+                    let guild = eh.bot.database.get_guild(m.guild_id.0.get()).await?;
                     if !guild.settings.update_on_join {
                         return Ok(());
                     }
@@ -182,7 +182,7 @@ impl Service<(u64, Event)> for EventHandler {
                         Some(u) => u,
                         None => {
                             if let Some(verification_role) = guild.verification_role {
-                                if let Some(role) = eh.bot.cache.role(RoleId(verification_role as u64)) {
+                                if let Some(role) = eh.bot.cache.role(RoleId::new(verification_role as u64).unwrap()) {
                                     eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).exec().await?;
                                 }
                             }

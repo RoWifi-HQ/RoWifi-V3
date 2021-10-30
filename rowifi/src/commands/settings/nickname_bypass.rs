@@ -19,7 +19,7 @@ pub struct NicknameBypassArguments {
 
 pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     if guild.settings.guild_type == GuildType::Normal {
         let embed = EmbedBuilder::new()
@@ -84,13 +84,13 @@ pub async fn nickname_bypass_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId(role_id))
+            if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap())
                 && !ctx
                     .bot
                     .nickname_bypass_roles
                     .entry(guild_id)
                     .or_default()
-                    .contains(&RoleId(role_id))
+                    .contains(&RoleId::new(role_id).unwrap())
             {
                 roles_to_add.push(role_id as i64);
             }
@@ -105,7 +105,7 @@ pub async fn nickname_bypass_add(
         .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
-        .extend(roles_to_add.iter().map(|r| RoleId(*r as u64)));
+        .extend(roles_to_add.iter().map(|r| RoleId::new(*r as u64).unwrap()));
 
     let mut description = "Added Nickname Bypass Roles:\n".to_string();
     for role in roles_to_add {
@@ -146,7 +146,7 @@ pub async fn nickname_bypass_remove(
         .nickname_bypass_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| !role_ids.contains(&(r.0 as i64)));
+        .retain(|r| !role_ids.contains(&(r.0.get() as i64)));
 
     let mut description = "Removed Nickname Bypass Roles:\n".to_string();
     for role in role_ids {
@@ -177,7 +177,7 @@ pub async fn nickname_bypass_set(
     let mut roles_to_set = Vec::new();
     for role in roles {
         if let Some(role_id) = parse_role(role) {
-            if server_roles.iter().any(|r| r.id == RoleId(role_id)) {
+            if server_roles.iter().any(|r| r.id == RoleId::new(role_id).unwrap()) {
                 roles_to_set.push(role_id as i64);
             }
         }
@@ -189,7 +189,7 @@ pub async fn nickname_bypass_set(
 
     ctx.bot.nickname_bypass_roles.insert(
         guild_id,
-        roles_to_set.iter().map(|r| RoleId(*r as u64)).collect(),
+        roles_to_set.iter().map(|r| RoleId::new(*r as u64).unwrap()).collect(),
     );
 
     let mut description = "Set Nickname Bypass Roles:\n".to_string();

@@ -179,7 +179,7 @@ impl FromArg for ViewDuration {
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
-        let arg = match option.value {
+        let arg = match &option.value {
             CommandOptionValue::Integer(value) => value.to_string(),
             CommandOptionValue::String(value) => value.to_string(),
             _ => unreachable!("ViewDuration unreached"),

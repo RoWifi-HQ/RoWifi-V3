@@ -66,7 +66,7 @@ pub struct BotContextRef {
     /// The module holding all discord structs in-memory
     pub cache: Cache,
     /// The module handling the gateway
-    pub cluster: Cluster,
+    pub cluster: Arc<Cluster>,
     /// The module for waiting for certain events within commands
     pub standby: Standby,
     /// The pre-configured webhooks that we write to for logging purposes
@@ -123,7 +123,7 @@ impl BotContext {
         owners: &[UserId],
         http: Arc<Http>,
         cache: Cache,
-        cluster: Cluster,
+        cluster: Arc<Cluster>,
         standby: Standby,
         database: Database,
         roblox: Roblox,

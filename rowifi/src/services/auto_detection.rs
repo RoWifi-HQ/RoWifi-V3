@@ -3,7 +3,7 @@ use rowifi_cache::CachedGuild;
 use rowifi_framework::{context::BotContext, prelude::*};
 use rowifi_models::{
     discord::{
-        gateway::{event::Event, payload::RequestGuildMembers},
+        gateway::{event::Event, payload::outgoing::RequestGuildMembers},
         id::{GuildId, RoleId, UserId},
     },
     guild::RoGuild,
@@ -40,7 +40,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
     guilds.sort_by_key(|g| g.id);
     for guild in guilds {
         let start = chrono::Utc::now().timestamp_millis();
-        let guild_id = GuildId(guild.id as u64);
+        let guild_id = GuildId::new(guild.id as u64).unwrap();
         let server = match ctx.cache.guild(guild_id) {
             Some(g) => g,
             None => continue,
@@ -49,11 +49,11 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
             .cache
             .members(guild_id)
             .into_iter()
-            .map(|m| m.0 as i64)
+            .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
         if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
             let req = RequestGuildMembers::builder(server.id).query("", None);
-            let shard_id = (guild_id.0 >> 22) % ctx.total_shards;
+            let shard_id = (guild_id.0.get() >> 22) % ctx.total_shards;
             let fut = timeout(
                 Duration::from_secs(30),
                 ctx.standby.wait_for_event(move |event: &Event| {
@@ -71,10 +71,10 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
                 .cache
                 .members(guild_id)
                 .into_iter()
-                .map(|m| m.0 as i64)
+                .map(|m| m.0.get() as i64)
                 .collect::<Vec<_>>();
         }
-        let users = ctx.database.get_linked_users(&members, guild_id.0).await?;
+        let users = ctx.database.get_linked_users(&members, guild_id.0.get()).await?;
         let guild_roles = ctx.cache.roles(guild_id);
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
@@ -107,7 +107,7 @@ async fn execute_chunk(
     guild_roles: &HashSet<RoleId>,
 ) -> Result<(), RoError> {
     for user in user_chunk {
-        if let Some(member) = ctx.cache.member(server.id, UserId(user.discord_id as u64)) {
+        if let Some(member) = ctx.cache.member(server.id, UserId::new(user.discord_id as u64).unwrap()) {
             if let Some(bypass) = server.bypass_role {
                 if member.roles.contains(&bypass) {
                     continue;
