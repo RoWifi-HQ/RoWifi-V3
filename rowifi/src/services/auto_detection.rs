@@ -13,6 +13,8 @@ use rowifi_models::{
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
 
+use crate::utils::{update_user, UpdateUserResult};
+
 pub async fn auto_detection(ctx: BotContext) {
     tracing::info!("Auto Detection starting");
     let mut interval = interval(Duration::from_secs(3 * 3600));
@@ -121,8 +123,7 @@ async fn execute_chunk(
             }
             tracing::trace!(id = user.discord_id, "Auto Detection for member");
             let name = member.user.name.clone();
-            if let Ok((added_roles, removed_roles, disc_nick)) = ctx
-                .update_user(member, user, server, guild, guild_roles, false)
+            if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(ctx, member, user, server, guild, guild_roles, false)
                 .await
             {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {

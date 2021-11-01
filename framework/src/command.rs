@@ -13,15 +13,14 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
+use twilight_embed_builder::EmbedFieldBuilder;
 
 use crate::{
-    arguments::{ArgumentError, FromArgs},
+    arguments::FromArgs,
     context::CommandContext,
-    error::{CommandError, RoError},
-    extensions::EmbedExtensions,
+    error::RoError,
     handler::{CommandHandler, Handler},
-    utils::{Color, RoLevel},
+    utils::RoLevel,
     ServiceRequest,
 };
 

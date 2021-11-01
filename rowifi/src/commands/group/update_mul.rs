@@ -10,6 +10,8 @@ use rowifi_models::{
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
 
+use crate::utils::{update_user, UpdateUserResult};
+
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
@@ -99,10 +101,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .bot
-                        .update_user(member, user, &server, &guild, &guild_roles, false)
-                        .await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()
@@ -237,10 +236,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .bot
-                        .update_user(member, user, &server, &guild, &guild_roles, false)
-                        .await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()
