@@ -240,12 +240,13 @@ impl UpdateCache for MemberUpdate {
             }
         }
 
-        let current_user = c.current_user().unwrap();
-        if self.user.id == current_user.id {
-            c.cache_guild_permissions(self.guild_id);
-            let channels = c.guild_channels(self.guild_id);
-            for channel in channels {
-                c.cache_channel_permissions(self.guild_id, channel);
+        if let Some(current_user) = c.current_user() {
+            if self.user.id == current_user.id {
+                c.cache_guild_permissions(self.guild_id);
+                let channels = c.guild_channels(self.guild_id);
+                for channel in channels {
+                    c.cache_channel_permissions(self.guild_id, channel);
+                }
             }
         }
 

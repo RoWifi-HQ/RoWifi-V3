@@ -73,7 +73,7 @@ impl Client {
         buf.copy_to_slice(&mut bytes);
 
         if !status.is_success() {
-            return Err(Error::APIError(status, bytes));
+            return Err(Error::APIError(status, bytes, url.to_string()));
         }
 
         let result = serde_json::from_slice(&bytes)?;
@@ -125,7 +125,7 @@ impl Client {
                 .await?
                 .into_iter()
                 .next()
-                .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new(), "".into()))?;
             let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
             Ok(user)
         } else {
@@ -138,7 +138,7 @@ impl Client {
                     .await?
                     .into_iter()
                     .next()
-                    .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                    .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new(), "".into()))?;
                 let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
                 Ok(user)
             }
@@ -172,7 +172,7 @@ impl Client {
         let group = self.request::<Group>(&url, Method::GET, None).await;
         match group {
             Ok(g) => Ok(Some(g)),
-            Err(Error::APIError(status_code, _)) if status_code == StatusCode::BAD_REQUEST => {
+            Err(Error::APIError(status_code, _, _)) if status_code == StatusCode::BAD_REQUEST => {
                 Ok(None)
             }
             Err(err) => Err(err),

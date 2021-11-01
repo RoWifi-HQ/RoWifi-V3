@@ -115,9 +115,10 @@ async fn execute_chunk(
             }
             tracing::trace!(id = user.discord_id, "Auto Detection for member");
             let name = member.user.name.clone();
-            if let Ok((added_roles, removed_roles, disc_nick)) = ctx
+            let res = ctx
                 .update_user(member, user, server, guild, guild_roles, false)
-                .await
+                .await;
+            if let Ok((added_roles, removed_roles, disc_nick)) = res
             {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()
@@ -128,6 +129,8 @@ async fn execute_chunk(
                         .unwrap();
                     ctx.log_guild(server.id, log_embed).await;
                 }
+            } else if let Err(err) = res {
+                tracing::error!(err = ?err);
             }
         }
     }

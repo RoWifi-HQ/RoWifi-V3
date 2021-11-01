@@ -11,14 +11,14 @@ pub enum Error {
     BuildingRequest(HttpError),
     Request(HyperError),
     Parsing(SerdeError),
-    APIError(StatusCode, Vec<u8>),
+    APIError(StatusCode, Vec<u8>, String),
     Redis(PoolError<RedisError>),
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Error::APIError(err, bytes) => write!(f, "API Error - {}, Body - {:?}", err, bytes),
+            Error::APIError(err, bytes, url) => write!(f, "API Error - {}, Body - {:?}, Url - {}", err, bytes, url),
             Error::BuildingRequest(err) => write!(f, "Building Request Error - {}", err),
             Error::Parsing(err) => write!(f, "Parsing Error - {}", err),
             Error::Request(err) => write!(f, "Request Error - {}", err),
