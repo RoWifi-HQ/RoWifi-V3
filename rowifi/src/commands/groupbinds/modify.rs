@@ -173,11 +173,11 @@ async fn modify_priority(
     let priority = match priority.parse::<i64>() {
         Ok(p) => p,
         Err(_) => {
-            return Err(RoError::Argument(ArgumentError::ParseError {
+            return Err(ArgumentError::ParseError {
                 expected: "a number",
                 usage: GroupbindsModifyArguments::generate_help(),
                 name: "change",
-            }));
+            }.into());
         }
     };
     let filter = doc! {"_id": guild.id};

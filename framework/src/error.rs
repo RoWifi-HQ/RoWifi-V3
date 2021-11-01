@@ -1,107 +1,148 @@
-use patreon::PatreonError;
+use std::{error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}, time::Duration};
+use twilight_http::{Error as DiscordHttpError, response::DeserializeBodyError};
 use roblox::error::Error as RobloxError;
-use rowifi_database::error::{DatabaseError, SerializationError};
-use std::{
-    error::Error as StdError,
-    fmt::{Display, Formatter, Result as FmtResult},
-    time::Duration,
-};
-use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
+use rowifi_database::{DatabaseError, error::SerializationError as BsonSerializationError};
+use patreon::PatreonError;
 
 use crate::arguments::ArgumentError;
 
 #[derive(Debug)]
-pub enum CommandError {
-    Timeout,
-    Blacklist(String),
-    Miscellanous(String),
-    Ratelimit(Duration),
+pub struct RoError {
+    pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
+    pub(super) kind: ErrorKind
 }
 
-#[derive(Debug)]
-pub enum CommonError {
-    UnknownMember,
-}
+impl RoError {
+    pub const fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
 
-#[derive(Debug)]
-pub enum RoError {
-    Argument(ArgumentError),
-    Database(DatabaseError),
-    Roblox(RobloxError),
-    Discord(DiscordHttpError),
-    Patreon(PatreonError),
-    Command(CommandError),
-    Common(CommonError),
-    NoOp,
-}
+    pub fn into_source(self) -> Option<Box<dyn StdError + Send + Sync>> {
+        self.source
+    }
 
-impl From<ArgumentError> for RoError {
-    fn from(err: ArgumentError) -> Self {
-        RoError::Argument(err)
+    pub fn into_parts(self) -> (ErrorKind, Option<Box<dyn StdError + Send + Sync>>) {
+        (self.kind, self.source)
     }
 }
 
 impl Display for RoError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            RoError::Database(err) => write!(f, "Database Error - {:?}", err),
-            RoError::Roblox(err) => write!(f, "Roblox Error - {:?}", err),
-            RoError::Discord(err) => write!(f, "Discord Http Error - {}", err),
-            RoError::Patreon(err) => write!(f, "Patreon Error - {}", err),
-            RoError::Argument(err) => write!(f, "Argument Error - {:?}", err),
-            RoError::Command(err) => write!(f, "Command Error - {:?}", err),
-            RoError::Common(err) => write!(f, "Common Error - {:?}", err),
-            RoError::NoOp => write!(f, "NoOp error"),
+        todo!()
+    }
+}
+
+impl StdError for RoError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.source.as_ref().map(|source| &**source as &(dyn StdError + 'static))
+    }
+}
+
+#[derive(Debug)]
+pub enum ErrorKind {
+    Discord,
+    Roblox,
+    Database,
+    Patreon,
+    Command
+}
+
+#[derive(Debug)]
+pub enum CommandError {
+    Argument(ArgumentError),
+    Cancelled,
+    Message(MessageError),
+    Timeout,
+    Ratelimit(Duration),
+    Other(String)
+}
+
+impl Display for CommandError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        todo!()
+    }
+}
+
+impl StdError for CommandError {}
+
+#[derive(Debug)]
+pub enum MessageError {
+
+}
+
+impl Display for MessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        todo!()
+    }
+}
+
+impl StdError for MessageError {}
+
+impl From<DiscordHttpError> for RoError {
+    fn from(err: DiscordHttpError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Discord
+        }
+    }
+}
+
+impl From<DeserializeBodyError> for RoError {
+    fn from(err: DeserializeBodyError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Discord
+        }
+    }
+}
+
+impl From<RobloxError> for RoError {
+    fn from(err: RobloxError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Roblox
         }
     }
 }
 
 impl From<DatabaseError> for RoError {
     fn from(err: DatabaseError) -> Self {
-        RoError::Database(err)
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Database
+        }
     }
 }
 
-impl From<RobloxError> for RoError {
-    fn from(err: RobloxError) -> Self {
-        RoError::Roblox(err)
-    }
-}
-
-impl From<DiscordHttpError> for RoError {
-    fn from(err: DiscordHttpError) -> Self {
-        RoError::Discord(err)
-    }
-}
-
-impl From<PatreonError> for RoError {
-    fn from(err: PatreonError) -> Self {
-        RoError::Patreon(err)
-    }
-}
-
-impl From<SerializationError> for RoError {
-    fn from(err: SerializationError) -> Self {
-        RoError::Database(DatabaseError::Serialization(err))
+impl From<ArgumentError> for RoError {
+    fn from(err: ArgumentError) -> Self {
+        Self {
+            source: Some(Box::new(CommandError::Argument(err))),
+            kind: ErrorKind::Command
+        }
     }
 }
 
 impl From<CommandError> for RoError {
     fn from(err: CommandError) -> Self {
-        RoError::Command(err)
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Command
+        }
     }
 }
 
-impl From<CommonError> for RoError {
-    fn from(err: CommonError) -> Self {
-        RoError::Common(err)
+impl From<BsonSerializationError> for RoError {
+    fn from(err: BsonSerializationError) -> Self {
+        DatabaseError::Serialization(err).into()
     }
 }
 
-impl From<DeserializeBodyError> for RoError {
-    fn from(_: DeserializeBodyError) -> Self {
-        RoError::NoOp
+impl From<PatreonError> for RoError {
+    fn from(err: PatreonError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Patreon
+        }
     }
 }
-
-impl StdError for RoError {}

@@ -153,11 +153,11 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     let server_roles = ctx.bot.cache.roles(guild_id);
     let role_id = args.role;
     if !server_roles.contains(&role_id) {
-        return Err(RoError::Argument(ArgumentError::ParseError {
+        return Err(ArgumentError::ParseError {
             expected: "a Discord Role/Id",
             usage: UpdateMultipleArguments::generate_help(),
             name: "role",
-        }));
+        }.into());
     }
 
     ctx.respond()

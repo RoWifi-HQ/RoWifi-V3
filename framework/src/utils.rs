@@ -236,7 +236,7 @@ pub async fn await_template_reply(
                             .content("Command has been cancelled")
                             .exec()
                             .await?;
-                        return Err(RoError::NoOp);
+                        return Err(CommandError::Cancelled.into());
                     } else if message_component.data.custom_id == select_custom_id {
                         let template_str = message_component.data.values[0].clone();
                         return Ok(Template(template_str));
@@ -269,7 +269,7 @@ pub async fn await_template_reply(
     }
 
     ctx.bot.ignore_message_components.remove(&message_id);
-    Err(RoError::Command(CommandError::Timeout))
+    Err(CommandError::Timeout.into())
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
@@ -345,7 +345,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .exec()
                         .await?;
                     ctx.bot.ignore_message_components.remove(&message_id);
-                    return Err(RoError::NoOp);
+                    return Err(CommandError::Cancelled.into());
                 }
                 let _ = ctx
                     .bot
@@ -374,7 +374,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
     }
 
     ctx.bot.ignore_message_components.remove(&message_id);
-    Err(RoError::Command(CommandError::Timeout))
+    Err(CommandError::Timeout.into())
 }
 
 pub async fn paginate_embed(

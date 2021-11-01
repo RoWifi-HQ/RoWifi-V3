@@ -1,4 +1,5 @@
 use mongodb::bson::{doc, Document};
+use rowifi_database::DatabaseError;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
@@ -44,7 +45,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let _res = events
         .delete_many(filter, None)
         .await
-        .map_err(|d| RoError::Database(d.into()))?;
+        .map_err(|d| DatabaseError::Mongo(Box::new(d)))?;
 
     ctx.respond()
         .content("The event system has been reset successfully")

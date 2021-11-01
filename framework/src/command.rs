@@ -18,7 +18,7 @@ use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 use crate::{
     arguments::{ArgumentError, FromArgs},
     context::CommandContext,
-    error::{CommandError, CommonError, RoError},
+    error::{CommandError, RoError},
     extensions::EmbedExtensions,
     handler::{CommandHandler, Handler},
     utils::{Color, RoLevel},
@@ -238,89 +238,90 @@ impl Debug for Command {
 }
 
 async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
-    match err {
-        RoError::Argument(arg_err) => match arg_err {
-            ArgumentError::MissingArgument { usage, name } => {
-                let content = format!(
-                    "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
-                    master_name, usage.0, name, usage.1
-                );
-                let _ = ctx.respond().content(&content).exec().await;
-            }
-            ArgumentError::ParseError {
-                expected,
-                usage,
-                name,
-            } => {
-                let content = format!(
-                    "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
-                    master_name, usage.0, name, expected, usage.1
-                );
-                let _ = ctx.respond().content(&content).exec().await;
-            }
-            ArgumentError::BadArgument => {
-                //This shouldn't be happening but still report it to the user
-            }
-        },
-        RoError::Command(cmd_err) => match cmd_err {
-            CommandError::Blacklist(_) => { /*Handled invidually by the methods that raise this */ }
-            CommandError::Miscellanous(ref b) => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description(b)
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-            CommandError::Timeout => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description("Command cancelled. Please try again")
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-            CommandError::Ratelimit(ref d) => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description(format!(
-                        "Ratelimit reached. You may retry this command in {} seconds",
-                        d.as_secs()
-                    ))
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-        },
-        RoError::Common(err) => match err {
-            CommonError::UnknownMember => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .description("User was not verified. Please ask them to verify themselves")
-                    .color(Color::Red as u32)
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-        },
-        RoError::NoOp => {}
-        _ => {
-            tracing::error!(err = ?err);
-            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").exec().await;
-            let content = format!(
-                "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
-                ctx.guild_id, master_name, ctx.bot.cluster_id, err
-            );
-            ctx.log_error(&content).await;
-        }
-    }
+    todo!()
+    // match err {
+    //     RoError::Argument(arg_err) => match arg_err {
+    //         ArgumentError::MissingArgument { usage, name } => {
+    //             let content = format!(
+    //                 "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
+    //                 master_name, usage.0, name, usage.1
+    //             );
+    //             let _ = ctx.respond().content(&content).exec().await;
+    //         }
+    //         ArgumentError::ParseError {
+    //             expected,
+    //             usage,
+    //             name,
+    //         } => {
+    //             let content = format!(
+    //                 "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
+    //                 master_name, usage.0, name, expected, usage.1
+    //             );
+    //             let _ = ctx.respond().content(&content).exec().await;
+    //         }
+    //         ArgumentError::BadArgument => {
+    //             //This shouldn't be happening but still report it to the user
+    //         }
+    //     },
+    //     RoError::Command(cmd_err) => match cmd_err {
+    //         CommandError::Blacklist(_) => { /*Handled invidually by the methods that raise this */ }
+    //         CommandError::Miscellanous(ref b) => {
+    //             let embed = EmbedBuilder::new()
+    //                 .default_data()
+    //                 .title("Command Failure")
+    //                 .color(Color::Red as u32)
+    //                 .description(b)
+    //                 .build()
+    //                 .unwrap();
+    //             let _ = ctx.respond().embeds(&[embed]).exec().await;
+    //         }
+    //         CommandError::Timeout => {
+    //             let embed = EmbedBuilder::new()
+    //                 .default_data()
+    //                 .title("Command Failure")
+    //                 .color(Color::Red as u32)
+    //                 .description("Command cancelled. Please try again")
+    //                 .build()
+    //                 .unwrap();
+    //             let _ = ctx.respond().embeds(&[embed]).exec().await;
+    //         }
+    //         CommandError::Ratelimit(ref d) => {
+    //             let embed = EmbedBuilder::new()
+    //                 .default_data()
+    //                 .title("Command Failure")
+    //                 .color(Color::Red as u32)
+    //                 .description(format!(
+    //                     "Ratelimit reached. You may retry this command in {} seconds",
+    //                     d.as_secs()
+    //                 ))
+    //                 .build()
+    //                 .unwrap();
+    //             let _ = ctx.respond().embeds(&[embed]).exec().await;
+    //         }
+    //     },
+    //     RoError::Common(err) => match err {
+    //         CommonError::UnknownMember => {
+    //             let embed = EmbedBuilder::new()
+    //                 .default_data()
+    //                 .title("Command Failure")
+    //                 .description("User was not verified. Please ask them to verify themselves")
+    //                 .color(Color::Red as u32)
+    //                 .build()
+    //                 .unwrap();
+    //             let _ = ctx.respond().embeds(&[embed]).exec().await;
+    //         }
+    //     },
+    //     RoError::NoOp => {}
+    //     _ => {
+    //         tracing::error!(err = ?err);
+    //         let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").exec().await;
+    //         let content = format!(
+    //             "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
+    //             ctx.guild_id, master_name, ctx.bot.cluster_id, err
+    //         );
+    //         ctx.log_error(&content).await;
+    //     }
+    // }
 }
 
 #[derive(Default)]

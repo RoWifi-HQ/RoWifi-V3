@@ -8,13 +8,9 @@
 )]
 
 pub mod error;
+mod route;
 
-use hyper::{
-    body::{self, Buf},
-    client::HttpConnector,
-    header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE},
-    Body, Client as HyperClient, Method, Request, StatusCode,
-};
+use hyper::{Body, Client as HyperClient, Method, Request, StatusCode, body::{self, Buf}, client::HttpConnector, header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE}};
 use hyper_rustls::HttpsConnector;
 use rowifi_models::roblox::{
     asset::Asset,
@@ -27,7 +23,8 @@ use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use serde::de::DeserializeOwned;
 use std::result::Result as StdResult;
 
-use error::Error;
+use error::{Error, ErrorKind};
+use route::Route;
 
 type Result<T> = StdResult<T, Error>;
 
@@ -49,57 +46,84 @@ impl Client {
     /// Common method to make requests with the client
     pub async fn request<T: DeserializeOwned>(
         &self,
-        url: &str,
+        route: Route<'_>,
         method: Method,
         body: Option<Vec<u8>>,
     ) -> Result<T> {
-        let builder = Request::builder().uri(url).method(method);
+        let route = route.to_string();
+        let builder = Request::builder().uri(&route).method(method);
         let req = if let Some(bytes) = body {
             let len = bytes.len();
             builder
                 .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
                 .header(CONTENT_LENGTH, len)
-                .body(Body::from(bytes))?
+                .body(Body::from(bytes))
+                .map_err(|source| Error {
+                    source: Some(Box::new(source)),
+                    kind: ErrorKind::BuildingRequest
+                })?
         } else {
-            builder.body(Body::empty())?
+            builder.body(Body::empty())
+            .map_err(|source| Error {
+                source: Some(Box::new(source)),
+                kind: ErrorKind::BuildingRequest
+            })?
         };
 
-        let res = self.client.request(req).await?;
+        let res = self.client.request(req).await.map_err(|source| Error {
+            source: Some(Box::new(source)),
+            kind: ErrorKind::RequestError
+        })?;
 
         let status = res.status();
 
-        let mut buf = body::aggregate(res.into_body()).await?;
+        let mut buf = body::aggregate(res.into_body()).await.map_err(|source| Error {
+            source: Some(Box::new(source)),
+            kind: ErrorKind::ChunkingResponse
+        })?;
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
         if !status.is_success() {
-            return Err(Error::APIError(status, bytes));
+            return Err(Error {
+                source: None,
+                kind: ErrorKind::Response {
+                    body: bytes,
+                    status,
+                    route
+                }
+            });
         }
 
-        let result = serde_json::from_slice(&bytes)?;
+        let result = serde_json::from_slice(&bytes).map_err(|source| Error {
+            source: Some(Box::new(source)),
+            kind: ErrorKind::Json {
+                body: bytes
+            }
+        })?;
         Ok(result)
     }
 
     /// Get the group roles of an user
     pub async fn get_user_roles(&self, user_id: UserId) -> Result<Vec<GroupUserRole>> {
-        let url = format!(
-            "https://groups.roblox.com/v2/users/{}/groups/roles",
-            user_id.0
-        );
+        let route = Route::UserGroupRoles{ user_id: user_id.0 };
         let user_roles = self
-            .request::<VecWrapper<GroupUserRole>>(&url, Method::GET, None)
+            .request::<VecWrapper<GroupUserRole>>(route, Method::GET, None)
             .await?;
         Ok(user_roles.data)
     }
 
     /// Get a [`PartialUser`] from the username
     pub async fn get_user_from_username(&self, username: &str) -> Result<Option<PartialUser>> {
-        let url = "https://users.roblox.com/v1/usernames/users";
+        let route = Route::UsersByUsername;
         let usernames = vec![username];
         let json = serde_json::json!({ "usernames": usernames });
-        let body = serde_json::to_vec(&json)?;
+        let body = serde_json::to_vec(&json).map_err(|source| Error {
+            source: Some(Box::new(source)),
+            kind: ErrorKind::BuildingRequest
+        })?;
         let mut ids = self
-            .request::<VecWrapper<PartialUser>>(url, Method::POST, Some(body))
+            .request::<VecWrapper<PartialUser>>(route, Method::POST, Some(body))
             .await?
             .data
             .into_iter();
@@ -110,8 +134,8 @@ impl Client {
     }
 
     pub async fn get_user_profile(&self, user_id: UserId) -> Result<User> {
-        let url = format!("https://users.roblox.com/v1/users/{}", user_id.0);
-        let user = self.request::<User>(&url, Method::GET, None).await?;
+        let route = Route::UserById { user_id: user_id.0 };
+        let user = self.request::<User>(route, Method::GET, None).await?;
         Ok(user)
     }
 
@@ -125,7 +149,14 @@ impl Client {
                 .await?
                 .into_iter()
                 .next()
-                .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                .ok_or_else(|| Error {
+                    source: None,
+                    kind: ErrorKind::Response {
+                        body: vec![],
+                        status: StatusCode::NOT_FOUND,
+                        route: Route::UsersById.to_string()
+                    }
+                })?;
             let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
             Ok(user)
         } else {
@@ -138,7 +169,14 @@ impl Client {
                     .await?
                     .into_iter()
                     .next()
-                    .ok_or_else(|| Error::APIError(StatusCode::NOT_FOUND, Vec::new()))?;
+                    .ok_or_else(|| Error {
+                        source: None,
+                        kind: ErrorKind::Response {
+                            body: vec![],
+                            status: StatusCode::NOT_FOUND,
+                            route: Route::UsersById.to_string()
+                        }
+                    })?;
                 let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
                 Ok(user)
             }
@@ -148,11 +186,14 @@ impl Client {
     /// Get multiple [`PartialUser`] from their ids
     pub async fn get_users(&self, user_ids: &[UserId]) -> Result<Vec<PartialUser>> {
         let mut conn = self.redis_pool.get().await?;
-        let url = "https://users.roblox.com/v1/users";
+        let route = Route::UsersById;
         let json = serde_json::json!({ "userIds": user_ids });
-        let body = serde_json::to_vec(&json)?;
+        let body = serde_json::to_vec(&json).map_err(|source| Error {
+            source: Some(Box::new(source)),
+            kind: ErrorKind::BuildingRequest
+        })?;
         let users = self
-            .request::<VecWrapper<PartialUser>>(url, Method::POST, Some(body))
+            .request::<VecWrapper<PartialUser>>(route, Method::POST, Some(body))
             .await?;
 
         let mut pipe = rowifi_redis::redis::pipe();
@@ -168,14 +209,18 @@ impl Client {
 
     /// Get all ranks of a [`Group`] with its id
     pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {
-        let url = format!("https://groups.roblox.com/v1/groups/{}/roles", group_id.0);
-        let group = self.request::<Group>(&url, Method::GET, None).await;
+        let route = Route::GroupRoles { group_id: group_id.0 };
+        let group = self.request::<Group>(route, Method::GET, None).await;
         match group {
             Ok(g) => Ok(Some(g)),
-            Err(Error::APIError(status_code, _)) if status_code == StatusCode::BAD_REQUEST => {
-                Ok(None)
+            Err(err) => {
+                if let ErrorKind::Response { body: _, status, route: _} = err.kind() {
+                    if *status == StatusCode::NOT_FOUND {
+                        return Ok(None);
+                    }
+                }
+                Err(err)
             }
-            Err(err) => Err(err),
         }
     }
 
@@ -186,12 +231,13 @@ impl Client {
         asset_id: AssetId,
         asset_type: &str,
     ) -> Result<Option<Asset>> {
-        let url = format!(
-            "https://inventory.roblox.com/v1/users/{}/items/{}/{}",
-            user_id.0, asset_type, asset_id.0
-        );
+        let route = Route::UserInventoryAsset {
+            user_id: user_id.0,
+            asset_id: asset_id.0,
+            asset_type
+        };
         let mut assets = self
-            .request::<VecWrapper<Asset>>(&url, Method::GET, None)
+            .request::<VecWrapper<Asset>>(route, Method::GET, None)
             .await?
             .data
             .into_iter();

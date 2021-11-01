@@ -210,7 +210,7 @@ impl CommandContext {
                         return Ok(None);
                     }
                 }
-                Err(RoError::Discord(e))
+                Err(e.into())
             }
             Ok(res) => {
                 let member = res.model().await?;
@@ -310,9 +310,7 @@ impl BotContext {
                         let _ = self.http.create_ban(server.id, member.user.id).exec().await;
                     }
                 };
-                return Err(RoError::Command(CommandError::Blacklist(
-                    success.reason.clone(),
-                )));
+                return Err(CommandError::Other(success.reason.clone()).into());
             }
         }
 
@@ -412,10 +410,10 @@ impl BotContext {
         };
 
         if nickname.len() > 32 {
-            return Err(RoError::Command(CommandError::Miscellanous(format!(
+            return Err(CommandError::Other(format!(
                 "The supposed nickname {} was found to be more than 32 characters",
                 nickname
-            ))));
+            )).into());
         }
 
         let update = self.http.update_guild_member(server.id, member.user.id);

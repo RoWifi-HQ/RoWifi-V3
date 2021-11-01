@@ -1,9 +1,10 @@
+use std::error::Error;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::{
     channel::embed::Embed,
     id::{RoleId, UserId},
 };
-use twilight_http::error::ErrorType as DiscordErrorType;
+use twilight_http::error::{ErrorType as DiscordErrorType, Error as DiscordHttpError};
 
 #[derive(Debug, FromArgs, Clone)]
 pub struct UpdateArguments {
@@ -187,12 +188,12 @@ pub async fn update_func(
     {
         Ok(a) => a,
         Err(e) => {
-            if let RoError::Discord(d) = &e {
+            if let Some(source) = e.source().and_then(|e| e.downcast_ref::<DiscordHttpError>()) {
                 if let DiscordErrorType::Response {
                     body: _,
                     error: _,
                     status,
-                } = d.kind()
+                } = source.kind()
                 {
                     if *status == 403 {
                         let embed = EmbedBuilder::new()
