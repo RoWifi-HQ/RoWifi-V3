@@ -1604,6 +1604,7 @@ dependencies = [
  "serde_cbor",
  "serde_json",
  "tokio",
+ "tower",
 ]
 
 [[package]]
@@ -2168,6 +2169,8 @@ dependencies = [
  "futures-core",
  "futures-util",
  "pin-project",
+ "tokio",
+ "tokio-util",
  "tower-layer",
  "tower-service",
  "tracing",

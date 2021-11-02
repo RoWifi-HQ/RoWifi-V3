@@ -25,15 +25,16 @@ use rowifi_models::roblox::{
 };
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use serde::de::DeserializeOwned;
-use std::result::Result as StdResult;
+use std::{result::Result as StdResult, time::Duration, sync::Arc, env};
+use tower::{Service, ServiceBuilder, ServiceExt, limit::RateLimit};
+use tokio::sync::Mutex;
 
 use error::Error;
 
 type Result<T> = StdResult<T, Error>;
 
-#[derive(Clone)]
 pub struct Client {
-    client: HyperClient<HttpsConnector<HttpConnector>>,
+    client: Arc<Mutex<RateLimit<HyperClient<HttpsConnector<HttpConnector>>>>>,
     redis_pool: RedisPool,
 }
 
@@ -43,7 +44,12 @@ impl Client {
     pub fn new(redis_pool: RedisPool) -> Self {
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
-        Self { client, redis_pool }
+        let num = env::var("RBX_RATELIMIT_NUM").unwrap_or("1".into()).parse::<u64>().unwrap_or(1);
+        let dur = env::var("RBX_RATELIMIT_DURATION").unwrap_or("1".into()).parse::<u64>().unwrap_or(1);
+        let service = ServiceBuilder::new()
+            .rate_limit(num, Duration::from_secs(dur))
+            .service(client);
+        Self { client: Arc::new(Mutex::new(service)), redis_pool }
     }
 
     /// Common method to make requests with the client
@@ -64,7 +70,8 @@ impl Client {
             builder.body(Body::empty())?
         };
 
-        let res = self.client.request(req).await?;
+        let mut lock = self.client.lock().await;
+        let res = lock.ready().await?.call(req).await?;
 
         let status = res.status();
 
