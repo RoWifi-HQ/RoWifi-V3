@@ -341,8 +341,7 @@ impl Cache {
 
     fn cache_guild_permissions(&self, guild_id: GuildId) {
         let user = self.0.current_user.lock().expect("current user poisoned");
-        if let Some(user) = user.as_ref() {
-            let guild = self.guild(guild_id).unwrap();
+        if let (Some(user), Some(guild)) = (user.as_ref(), self.guild(guild_id)) {
             let server_roles = self
                 .guild_roles(guild_id)
                 .iter()
@@ -362,33 +361,34 @@ impl Cache {
     }
 
     fn cache_channel_permissions(&self, guild_id: GuildId, channel_id: ChannelId) {
-        let channel = self.channel(channel_id).unwrap();
-        if let GuildChannel::Text(_) = channel.as_ref() {
-            let user = self.0.current_user.lock().expect("current user poisoned");
-            if let Some(user) = user.as_ref() {
-                let guild = self.guild(guild_id).unwrap();
-                let server_roles = self
-                    .guild_roles(guild_id)
-                    .iter()
-                    .map(|r| (r.id, r.clone()))
-                    .collect::<HashMap<RoleId, Arc<CachedRole>>>();
-                let member = self.member(guild_id, user.id).unwrap();
-                let new_permissions = match channel_permissions(
-                    &guild,
-                    &server_roles,
-                    user.id,
-                    &member.roles,
-                    &channel,
-                ) {
-                    Ok(p) => p,
-                    Err(why) => {
-                        tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
-                        return;
-                    }
-                };
-                self.0
-                    .channel_permissions
-                    .insert(channel_id, new_permissions);
+        if let Some(channel) = self.channel(channel_id) {
+            if let GuildChannel::Text(_) = channel.as_ref() {
+                let user = self.0.current_user.lock().expect("current user poisoned");
+                if let Some(user) = user.as_ref() {
+                    let guild = self.guild(guild_id).unwrap();
+                    let server_roles = self
+                        .guild_roles(guild_id)
+                        .iter()
+                        .map(|r| (r.id, r.clone()))
+                        .collect::<HashMap<RoleId, Arc<CachedRole>>>();
+                    let member = self.member(guild_id, user.id).unwrap();
+                    let new_permissions = match channel_permissions(
+                        &guild,
+                        &server_roles,
+                        user.id,
+                        &member.roles,
+                        &channel,
+                    ) {
+                        Ok(p) => p,
+                        Err(why) => {
+                            tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
+                            return;
+                        }
+                    };
+                    self.0
+                        .channel_permissions
+                        .insert(channel_id, new_permissions);
+                }
             }
         }
     }
