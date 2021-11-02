@@ -92,7 +92,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
-        pages.push(embed.build().unwrap());
+        pages.push(embed.build()?);
         page_count += 1;
     }
     paginate_embed(&ctx, pages, page_count).await?;

@@ -26,7 +26,7 @@ pub async fn api_view(ctx: CommandContext) -> CommandResult {
     let embed = EmbedBuilder::new().default_data().title("API Module")
         .description("Module to interact with API keys of the server")
         .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key"))
-        .build().unwrap();
+        .build()?;
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

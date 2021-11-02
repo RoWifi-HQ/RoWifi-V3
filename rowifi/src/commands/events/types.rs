@@ -25,7 +25,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         embed = embed.field(EmbedFieldBuilder::new(name, value).inline());
     }
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])?
+        .embeds(&[embed.build()?])?
         .exec()
         .await?;
     Ok(())
@@ -62,7 +62,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Event Type Addition Failed")
             .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id))
-            .build().unwrap();
+            .build()?;
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }

@@ -63,7 +63,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
     }
 
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])?
+        .embeds(&[embed.build()?])?
         .exec()
         .await?;
     Ok(())

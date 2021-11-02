@@ -10,7 +10,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Patreon Linking Failed")
             .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account")
-            .build().unwrap();
+            .build()?;
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }

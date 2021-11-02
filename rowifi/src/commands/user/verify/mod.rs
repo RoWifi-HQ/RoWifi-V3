@@ -293,7 +293,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
         acc_string.push('\n');
     }
 
-    let embed = embed.description(acc_string).build().unwrap();
+    let embed = embed.description(acc_string).build()?;
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

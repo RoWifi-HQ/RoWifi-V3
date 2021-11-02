@@ -102,7 +102,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
         }
-        pages.push(embed.build().unwrap());
+        pages.push(embed.build()?);
         page_count += 1;
     }
 
@@ -204,7 +204,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
         }
-        pages.push(embed.build().unwrap());
+        pages.push(embed.build()?);
         page_count += 1;
     }
 
