@@ -24,7 +24,14 @@ impl Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        todo!()
+        match &self.kind {
+            ErrorKind::BuildingRequest => f.write_str("failed to build the request."),
+            ErrorKind::ChunkingResponse => f.write_str("chunking the response failed."),
+            ErrorKind::Json { body } => write!(f, "value failed to serialized: {:?}.", body),
+            ErrorKind::Redis => f.write_str("error from redis occurred."),
+            ErrorKind::RequestError => f.write_str("Parsing or sending the response failed"),
+            ErrorKind::Response { body, status, route } => write!(f, "response error: status code {}, route: {}, body: {:?}", status, route, body),
+        }
     }
 }
 

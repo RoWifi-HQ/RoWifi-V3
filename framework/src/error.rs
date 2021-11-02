@@ -1,8 +1,9 @@
-use std::{error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}, time::Duration};
-use twilight_http::{Error as DiscordHttpError, response::DeserializeBodyError};
+use std::{error::Error as StdError, fmt::{Debug, Display, Formatter, Result as FmtResult}, time::Duration};
+use twilight_http::{Error as DiscordHttpError, request::prelude::{create_message::CreateMessageError, update_message::UpdateMessageError}, response::DeserializeBodyError};
 use roblox::error::Error as RobloxError;
 use rowifi_database::{DatabaseError, error::SerializationError as BsonSerializationError};
 use patreon::PatreonError;
+use twilight_embed_builder::EmbedError;
 
 use crate::arguments::ArgumentError;
 
@@ -24,11 +25,25 @@ impl RoError {
     pub fn into_parts(self) -> (ErrorKind, Option<Box<dyn StdError + Send + Sync>>) {
         (self.kind, self.source)
     }
+
+    pub fn parts(&self) -> (&ErrorKind, &Option<Box<dyn StdError + Send + Sync>>) {
+        (&self.kind, &self.source)
+    }
 }
 
 impl Display for RoError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        todo!()
+        match self.kind {
+            ErrorKind::Command => f.write_str("command error: ")?,
+            ErrorKind::Database => f.write_str("database error: ")?,
+            ErrorKind::Discord => f.write_str("discord error: ")?,
+            ErrorKind::Patreon => f.write_str("patreon error: ")?,
+            ErrorKind::Roblox => f.write_str("roblox error: ")?,
+        };
+        match self.source() {
+            Some(err) => Display::fmt(&err, f),
+            None => f.write_str("")
+        }
     }
 }
 
@@ -54,12 +69,17 @@ pub enum CommandError {
     Message(MessageError),
     Timeout,
     Ratelimit(Duration),
-    Other(String)
 }
 
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        todo!()
+        match self {
+            Self::Argument(arg_err) => write!(f, "argument error: {:?}", arg_err),
+            Self::Cancelled => write!(f, "command cancelled."),
+            Self::Message(msg_err) => write!(f, "message error: {}", msg_err),
+            Self::Timeout => write!(f, "command timed out."),
+            Self::Ratelimit(d) => write!(f, "command ratelimited: {}", d.as_secs())
+        }
     }
 }
 
@@ -67,12 +87,18 @@ impl StdError for CommandError {}
 
 #[derive(Debug)]
 pub enum MessageError {
-
+    Create(CreateMessageError),
+    Update(UpdateMessageError),
+    Embed(EmbedError)
 }
 
 impl Display for MessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        todo!()
+        match self {
+            Self::Create(err) => Debug::fmt(&err, f),
+            Self::Update(err) => Debug::fmt(&err, f),
+            Self::Embed(err) => Debug::fmt(&err, f)
+        }
     }
 }
 
