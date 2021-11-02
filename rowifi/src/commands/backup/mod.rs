@@ -46,7 +46,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
                 .description("This module may only be used by a Beta Tier user")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -63,7 +63,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
     }
 
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])
+        .embeds(&[embed.build().unwrap()])?
         .exec()
         .await?;
     Ok(())

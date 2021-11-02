@@ -40,7 +40,7 @@ pub async fn groupbinds_modify(
                 .description(format!("There was no bind found with id {}", group_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -79,7 +79,7 @@ pub async fn groupbinds_modify(
                     .description("You have entered a blank template")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
             let template = modify_template(&ctx, &guild, bind_index, &args.change).await?;
@@ -95,7 +95,7 @@ pub async fn groupbinds_modify(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

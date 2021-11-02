@@ -17,7 +17,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -31,7 +31,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -57,7 +57,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("There are no event types or all event types are disabled")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -72,7 +72,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let message = ctx
         .respond()
-        .content("Select an event type")
+        .content("Select an event type")?
         .components(&[
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -87,7 +87,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     url: None,
                 })],
             }),
-        ])
+        ])?
         .exec()
         .await?
         .model()
@@ -196,7 +196,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .description("The number of valid attendees was found to be zero")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -250,6 +250,6 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

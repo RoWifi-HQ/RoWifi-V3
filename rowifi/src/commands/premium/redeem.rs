@@ -15,7 +15,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
                 .title("Premium Redeem Failed")
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
                 .build().unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -29,7 +29,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
             .description("You must be the server owner to redeem premium in a server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -43,7 +43,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
                 .description("You may only use premium in one of your servers")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     }
@@ -108,7 +108,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         .description(format!("Added Premium Features to {}", server.name))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let req = RequestGuildMembers::builder(server.id).query("", None);
     let total_shards = env::var("TOTAL_SHARDS").unwrap().parse::<u64>().unwrap();
@@ -126,7 +126,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
                 .title("Premium Disable Failed")
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
                 .build().unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -139,7 +139,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
             .title("Premium Disable Failed")
             .description("This server either does not have premium enabled or the premium is owned by an another member")
             .build().unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -167,7 +167,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         .description(format!("Removed Premium Features from {}", server.name))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }

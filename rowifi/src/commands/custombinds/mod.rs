@@ -60,7 +60,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
             .description("No custombinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[e]).exec().await?;
+        ctx.respond().embeds(&[e])?.exec().await?;
         return Ok(());
     }
 

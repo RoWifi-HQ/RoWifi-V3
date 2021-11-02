@@ -18,7 +18,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     let embed = update_func(&ctx, args.clone(), false).await?;
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("recent-username-update".into()),
@@ -28,7 +28,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 style: ButtonStyle::Secondary,
                 url: None,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

@@ -1,5 +1,5 @@
 use std::{error::Error as StdError, fmt::{Debug, Display, Formatter, Result as FmtResult}, time::Duration};
-use twilight_http::{Error as DiscordHttpError, request::prelude::{create_message::CreateMessageError, update_message::UpdateMessageError}, response::DeserializeBodyError};
+use twilight_http::{Error as DiscordHttpError, request::{application::interaction::{create_followup_message::CreateFollowupMessageError, update_original_response::UpdateOriginalResponseError}, prelude::{create_message::CreateMessageError, update_message::UpdateMessageError}}, response::DeserializeBodyError};
 use roblox::error::Error as RobloxError;
 use rowifi_database::{DatabaseError, error::SerializationError as BsonSerializationError};
 use patreon::PatreonError;
@@ -89,7 +89,9 @@ impl StdError for CommandError {}
 pub enum MessageError {
     Create(CreateMessageError),
     Update(UpdateMessageError),
-    Embed(EmbedError)
+    Embed(EmbedError),
+    Interaction(UpdateOriginalResponseError),
+    Followup(CreateFollowupMessageError)
 }
 
 impl Display for MessageError {
@@ -97,7 +99,9 @@ impl Display for MessageError {
         match self {
             Self::Create(err) => Debug::fmt(&err, f),
             Self::Update(err) => Debug::fmt(&err, f),
-            Self::Embed(err) => Debug::fmt(&err, f)
+            Self::Embed(err) => Debug::fmt(&err, f),
+            Self::Interaction(err) => Debug::fmt(&err, f),
+            Self::Followup(err) => Debug::fmt(&err, f)
         }
     }
 }
@@ -169,6 +173,48 @@ impl From<PatreonError> for RoError {
         Self {
             source: Some(Box::new(err)),
             kind: ErrorKind::Patreon
+        }
+    }
+}
+
+impl From<MessageError> for RoError {
+    fn from(err: MessageError) -> Self {
+        Self {
+            source: Some(Box::new(CommandError::Message(err))),
+            kind: ErrorKind::Command
+        }
+    }
+}
+
+impl From<UpdateOriginalResponseError> for MessageError {
+    fn from(err: UpdateOriginalResponseError) -> Self {
+        MessageError::Interaction(err)
+    }
+}
+
+impl From<CreateMessageError> for MessageError {
+    fn from(err: CreateMessageError) -> Self {
+        MessageError::Create(err)
+    }
+}
+
+impl From<CreateFollowupMessageError> for MessageError {
+    fn from(err: CreateFollowupMessageError) -> Self {
+        MessageError::Followup(err)
+    }
+}
+
+impl From<EmbedError> for MessageError {
+    fn from(err: EmbedError) -> Self {
+        MessageError::Embed(err)
+    }
+}
+
+impl From<EmbedError> for RoError {
+    fn from(err: EmbedError) -> Self {
+        Self {
+            source: Some(Box::new(CommandError::Message(MessageError::Embed(err)))),
+            kind: ErrorKind::Command
         }
     }
 }

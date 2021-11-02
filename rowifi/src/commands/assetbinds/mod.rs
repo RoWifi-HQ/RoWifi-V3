@@ -59,7 +59,7 @@ pub async fn assetbind(ctx: CommandContext) -> CommandResult {
             .description("No assetbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[e]).exec().await?;
+        ctx.respond().embeds(&[e])?.exec().await?;
         return Ok(());
     }
 

@@ -20,7 +20,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -32,7 +32,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -46,7 +46,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         .title("Group Registration Successful")
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
 
@@ -68,7 +68,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -80,7 +80,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -94,6 +94,6 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
         .title("Group Unregistration Successful")
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

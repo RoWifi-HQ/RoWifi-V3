@@ -37,7 +37,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
             .description(format!("A bind with asset id {} already exists", asset_id))
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -104,7 +104,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -116,7 +116,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

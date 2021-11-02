@@ -151,7 +151,7 @@ pub async fn custombinds_new_common(
                 .description("You must be verified to create a custom bind")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -179,12 +179,12 @@ pub async fn custombinds_new_common(
     let command = match RoCommand::new(&args.code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.respond().content(&s).exec().await?;
+            ctx.respond().content(&s)?.exec().await?;
             return Ok(());
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.respond().content(&res).exec().await?;
+        ctx.respond().content(&res)?.exec().await?;
         return Ok(());
     }
 
@@ -260,7 +260,7 @@ pub async fn custombinds_new_common(
                         .description("Expected priority to be a number")
                         .build()
                         .unwrap();
-                    ctx.respond().embeds(&[embed]).exec().await?;
+                    ctx.respond().embeds(&[embed])?.exec().await?;
                     return Ok(());
                 }
             }
@@ -320,7 +320,7 @@ pub async fn custombinds_new_common(
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -332,7 +332,7 @@ pub async fn custombinds_new_common(
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

@@ -62,7 +62,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
             .description("No groupbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 

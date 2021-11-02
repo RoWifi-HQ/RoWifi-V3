@@ -59,7 +59,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
             .description("There were no binds found associated with given ids")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -76,7 +76,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -88,7 +88,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

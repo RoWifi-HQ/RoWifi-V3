@@ -28,7 +28,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                 ))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -60,7 +60,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -72,7 +72,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

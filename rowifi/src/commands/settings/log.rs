@@ -20,7 +20,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -33,7 +33,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
                 .description("This channel cannot be set as a log channel or does not exist")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
 
@@ -50,15 +50,15 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             .description(format!("Logs channel has been set to <#{}>", channel_id))
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
     } else if let Some(channel_id) = guild.settings.log_channel {
         ctx.respond()
-            .content(&format!("Current log channel is <#{}>", channel_id))
+            .content(&format!("Current log channel is <#{}>", channel_id))?
             .exec()
             .await?;
     } else {
         ctx.respond()
-            .content("This server does not have a log channel set up")
+            .content("This server does not have a log channel set up")?
             .exec()
             .await?;
     }

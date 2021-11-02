@@ -27,7 +27,7 @@ pub async fn api_view(ctx: CommandContext) -> CommandResult {
         .description("Module to interact with API keys of the server")
         .field(EmbedFieldBuilder::new("Key Generation", "Run `!api generate` to generate a new API key. This key will be direct messaged to you. Please note running this command will invalidate your previous API key"))
         .build().unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
 
@@ -72,7 +72,7 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
             .await?;
         let _ = ctx
             .respond()
-            .content("The API key has been direct messaged to you")
+            .content("The API key has been direct messaged to you")?
             .exec()
             .await;
         sleep(Duration::from_secs(5 * 60)).await;
@@ -83,7 +83,7 @@ pub async fn api_generate(ctx: CommandContext) -> CommandResult {
             .await?;
     } else {
         ctx.respond()
-            .content("I was unable to DM you the API key")
+            .content("I was unable to DM you the API key")?
             .exec()
             .await?;
         return Ok(());

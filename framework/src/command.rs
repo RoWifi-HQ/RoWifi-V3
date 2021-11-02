@@ -244,7 +244,10 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                                 "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
                                 master_name, usage.0, name, usage.1
                             );
-                            let _ = ctx.respond().content(&content).exec().await;
+                            match ctx.respond().content(&content) {
+                                Ok(r) => {let _ = r.exec().await;},
+                                Err(err) => tracing::error!("handle_error: {}", err)
+                            }
                         }
                         ArgumentError::ParseError {
                             expected,
@@ -255,7 +258,10 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                                 "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
                                 master_name, usage.0, name, expected, usage.1
                             );
-                            let _ = ctx.respond().content(&content).exec().await;
+                            match ctx.respond().content(&content) {
+                                Ok(r) => {let _ = r.exec().await;},
+                                Err(err) => tracing::error!("handle_error: {}", err)
+                            }
                         }
                         ArgumentError::BadArgument => {
                             //This shouldn't be happening but still report it to the user
@@ -269,7 +275,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .description("Command was cancelled.")
                             .build()
                             .unwrap();
-                        let _ = ctx.respond().embeds(&[embed]).exec().await;
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     },
                     CommandError::Message(_) => todo!(),
                     CommandError::Timeout => {
@@ -280,7 +286,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .description("Command timed out. Please try again.")
                             .build()
                             .unwrap();
-                        let _ = ctx.respond().embeds(&[embed]).exec().await;
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     },
                     CommandError::Ratelimit(d) => {
                         let embed = EmbedBuilder::new()
@@ -293,14 +299,14 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             ))
                             .build()
                             .unwrap();
-                        let _ = ctx.respond().embeds(&[embed]).exec().await;
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     },
                 }
             }
         },
         _ => {
             tracing::error!(err = ?err);
-            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").exec().await;
+            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().exec().await;
             let content = format!(
                 "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
                 ctx.guild_id, master_name, ctx.bot.cluster_id, err

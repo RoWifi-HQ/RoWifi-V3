@@ -93,7 +93,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
             .unwrap();
         let message = ctx
             .respond()
-            .embeds(&[embed])
+            .embeds(&[embed])?
             .components(&[Component::ActionRow(ActionRow {
                 components: vec![Component::Button(Button {
                     custom_id: Some("handle-update".into()),
@@ -103,7 +103,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
                     style: ButtonStyle::Primary,
                     url: None,
                 })],
-            })])
+            })])?
             .exec()
             .await?
             .model()
@@ -130,7 +130,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
             .color(Color::Red as u32)
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
     verify_common(ctx, args, true).await
@@ -163,7 +163,7 @@ pub async fn verify_common(
                 .description("Invalid Roblox Username. Please try again.")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -198,7 +198,7 @@ pub async fn verify_common(
     });
     let message = ctx
         .respond()
-        .embeds(&[e])
+        .embeds(&[e])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![
                 game_url_button.clone(),
@@ -211,7 +211,7 @@ pub async fn verify_common(
                     url: None,
                 }),
             ],
-        })])
+        })])?
         .exec()
         .await?
         .model()
@@ -246,7 +246,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -294,7 +294,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     }
 
     let embed = embed.description(acc_string).build().unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }

@@ -33,7 +33,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -46,7 +46,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("You may only view groups that are registered with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -67,7 +67,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data or use another timeframe")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 

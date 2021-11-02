@@ -38,7 +38,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -86,7 +86,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                     .description("You have entered a blank template")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
             let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
@@ -98,7 +98,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = log_embed
         .field(EmbedFieldBuilder::new(name, desc))
