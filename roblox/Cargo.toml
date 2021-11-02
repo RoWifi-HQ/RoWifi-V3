@@ -16,6 +16,7 @@ serde_cbor = "0"
 serde_json = { version = "1", default-features = false, features = ["alloc"] }
 tower = { version = "0", features = ["limit"] }
 tokio = "1"
+urlencoding = "2"
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

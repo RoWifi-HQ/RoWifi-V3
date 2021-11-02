@@ -26,7 +26,7 @@ use rowifi_models::roblox::{
 };
 use rowifi_redis::{redis::AsyncCommands, RedisPool};
 use serde::de::DeserializeOwned;
-use std::result::Result as StdResult;
+use std::{result::Result as StdResult, env};
 
 use error::{Error, ErrorKind};
 use route::Route;
@@ -37,15 +37,17 @@ type Result<T> = StdResult<T, Error>;
 pub struct Client {
     client: HyperClient<HttpsConnector<HttpConnector>>,
     redis_pool: RedisPool,
+    proxy: Option<String>
 }
 
 impl Client {
     /// Create an instance of the Roblox Client
     #[must_use]
     pub fn new(redis_pool: RedisPool) -> Self {
+        let proxy = env::var("RBX_PROXY").ok();
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
-        Self { client, redis_pool }
+        Self { client, redis_pool, proxy }
     }
 
     /// Common method to make requests with the client
@@ -56,7 +58,10 @@ impl Client {
         body: Option<Vec<u8>>,
     ) -> Result<T> {
         let route = route.to_string();
-        let builder = Request::builder().uri(&route).method(method);
+        let builder = match &self.proxy {
+            Some(p) => Request::builder().uri(format!("{}?url={}", p, urlencoding::encode(&route))).method(method),
+            None => Request::builder().uri(&route).method(method)
+        };
         let req = if let Some(bytes) = body {
             let len = bytes.len();
             builder
