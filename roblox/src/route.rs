@@ -32,7 +32,7 @@ impl Display for Route<'_> {
             } => write!(
                 f,
                 "https://inventory.roblox.com/v1/users/{}/items/{}/{}",
-                user_id, asset_id, asset_type
+                user_id, asset_type, asset_id
             ),
             Route::UserById { user_id } => {
                 write!(f, "https://users.roblox.com/v1/users/{}", user_id)
