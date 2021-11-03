@@ -16,7 +16,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -63,7 +63,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
     }
 
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])
+        .embeds(&[embed.build()?])?
         .exec()
         .await?;
 

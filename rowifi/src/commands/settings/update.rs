@@ -30,7 +30,7 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         .description(desc)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()

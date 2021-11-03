@@ -1,4 +1,3 @@
-use super::{activity, auto_detection};
 use dashmap::DashSet;
 use futures_util::future::{Future, FutureExt};
 use rowifi_framework::{context::BotContext, prelude::*};
@@ -20,6 +19,10 @@ use std::{
 };
 use tower::Service;
 use twilight_gateway::Event;
+
+use crate::utils::{update_user, UpdateUserResult};
+
+use super::{activity, auto_detection};
 
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,
@@ -191,28 +194,27 @@ impl Service<(u64, Event)> for EventHandler {
                     };
 
                     let guild_roles = eh.bot.cache.roles(m.guild_id);
-                    let (added_roles, removed_roles, disc_nick) = match eh.bot
-                        .update_user(member, &user, &server, &guild, &guild_roles, false)
+                    let (added_roles, removed_roles, disc_nick) = match update_user(&eh.bot, member, &user, &server, &guild, &guild_roles, false)
                         .await
                     {
-                        Ok(a) => a,
-                        Err(e) => {
-                            if let RoError::Command(CommandError::Blacklist(ref b)) = e {
-                                if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).exec().await?.model().await {
-                                    let _ = eh.bot
-                                        .http
-                                        .create_message(channel.id)
-                                        .content(&format!(
-                                            "You were found on the server blacklist. Reason: {}",
-                                            b
-                                        ))
-                                        .unwrap()
-                                        .exec()
-                                        .await;
-                                }
+                        UpdateUserResult::Success(a, r, n) => (a, r, n),
+                        UpdateUserResult::Blacklist(reason) => {
+                            if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).exec().await?.model().await {
+                                let _ = eh.bot
+                                    .http
+                                    .create_message(channel.id)
+                                    .content(&format!(
+                                        "You were found on the server blacklist. Reason: {}",
+                                        reason
+                                    ))
+                                    .unwrap()
+                                    .exec()
+                                    .await;
                             }
-                            return Err(e);
-                        }
+                            return Ok(());
+                        },
+                        UpdateUserResult::InvalidNickname(_) => return Ok(()),
+                        UpdateUserResult::Error(err) => return Err(err.into())
                     };
                     let log_embed = EmbedBuilder::new()
                         .default_data()

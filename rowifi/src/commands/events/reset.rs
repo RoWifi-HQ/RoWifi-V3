@@ -1,4 +1,5 @@
 use mongodb::bson::{doc, Document};
+use rowifi_database::DatabaseError;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
@@ -14,7 +15,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
             .description("This module may only be used in Beta Tier Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -30,7 +31,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
             .title("Reset was cancelled!")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -44,10 +45,10 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let _res = events
         .delete_many(filter, None)
         .await
-        .map_err(|d| RoError::Database(d.into()))?;
+        .map_err(|d| DatabaseError::Mongo(Box::new(d)))?;
 
     ctx.respond()
-        .content("The event system has been reset successfully")
+        .content("The event system has been reset successfully")?
         .exec()
         .await?;
 

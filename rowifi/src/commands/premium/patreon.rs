@@ -10,8 +10,8 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Patreon Linking Failed")
             .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account")
-            .build().unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+            .build()?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
     if tier.is_none() {
@@ -22,7 +22,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             .description("You were not found to be a member of any tier")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -73,6 +73,6 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         .description("Your patreon account has successfully been registered with our database")
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

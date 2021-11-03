@@ -68,7 +68,7 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
             .description("No blacklists were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[e]).exec().await?;
+        ctx.respond().embeds(&[e])?.exec().await?;
         return Ok(());
     }
 
@@ -84,7 +84,7 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
             let desc = format!("Id: {}\nReason: {}", bl.id, bl.reason);
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
-        pages.push(embed.build().unwrap());
+        pages.push(embed.build()?);
         page_count += 1;
     }
     paginate_embed(&ctx, pages, page_count).await?;

@@ -25,7 +25,7 @@ pub async fn blacklist_delete(
                 .description("A blacklist with the given id was not found")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -43,7 +43,7 @@ pub async fn blacklist_delete(
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -55,7 +55,7 @@ pub async fn blacklist_delete(
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

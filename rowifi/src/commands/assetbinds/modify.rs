@@ -38,7 +38,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -86,7 +86,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                     .description("You have entered a blank template")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
             let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
@@ -98,7 +98,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = log_embed
         .field(EmbedFieldBuilder::new(name, desc))
@@ -170,11 +170,11 @@ async fn modify_priority(
     let priority = match priority.parse::<i64>() {
         Ok(p) => p,
         Err(_) => {
-            return Err(RoError::Argument(ArgumentError::ParseError {
+            return Err(ArgumentError::ParseError {
                 expected: "a number",
                 usage: ModifyArguments::generate_help(),
                 name: "change",
-            }));
+            }.into());
         }
     };
     let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};

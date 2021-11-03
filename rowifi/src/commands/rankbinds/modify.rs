@@ -49,7 +49,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 ))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -58,7 +58,23 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
     let name = format!("Group Id: {}", bind.group_id);
     let desc = match args.option {
         ModifyOption::Priority => {
-            let new_priority = modify_priority(&ctx, &guild, bind_index, &args.change).await?;
+            let priority = match args.change.parse::<i64>() {
+                Ok(p) => p,
+                Err(_) => {
+                    let embed = EmbedBuilder::new()
+                    .default_data()
+                    .color(Color::Red as u32)
+                    .title("Rank Bind Modification Failed")
+                    .description(format!(
+                        "Priority was not found to be a number",
+                    ))
+                    .build()
+                    .unwrap();
+                    ctx.respond().embeds(&[embed])?.exec().await?;
+                    return Ok(());
+                }
+            };
+            let new_priority = modify_priority(&ctx, &guild, bind_index, priority).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::RolesAdd => {
@@ -86,7 +102,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                     .description("You have entered a blank template")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
             let template =
@@ -104,7 +120,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -121,16 +137,8 @@ async fn modify_priority(
     ctx: &CommandContext,
     guild: &RoGuild,
     bind_index: usize,
-    priority: &str,
+    priority: i64,
 ) -> Result<i64, RoError> {
-    let priority = match priority.parse::<i64>() {
-        Ok(p) => p,
-        Err(_) => {
-            return Err(RoError::Command(CommandError::Miscellanous(
-                "Given priority was found not to be a number".into(),
-            )))
-        }
-    };
     let filter = doc! {"_id": guild.id};
     let index_str = format!("RankBinds.{}.Priority", bind_index);
     let update = doc! {"$set": {index_str: priority}};

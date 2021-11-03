@@ -13,6 +13,8 @@ use rowifi_models::{
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
 
+use crate::utils::{update_user, UpdateUserResult};
+
 pub async fn auto_detection(ctx: BotContext) {
     tracing::info!("Auto Detection starting");
     let mut interval = interval(Duration::from_secs(3 * 3600));
@@ -124,7 +126,8 @@ async fn execute_chunk(
             let res = ctx
                 .update_user(member, user, server, guild, guild_roles, false)
                 .await;
-            if let Ok((added_roles, removed_roles, disc_nick)) = res
+            if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res
+                .await
             {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()
@@ -135,7 +138,7 @@ async fn execute_chunk(
                         .unwrap();
                     ctx.log_guild(server.id, log_embed).await;
                 }
-            } else if let Err(err) = res {
+            } else if let UpdateUserResult::Error(err) = res {
                 tracing::error!(err = ?err);
             }
         }

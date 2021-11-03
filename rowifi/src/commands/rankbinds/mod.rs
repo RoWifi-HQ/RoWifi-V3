@@ -63,7 +63,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
             .description("No rankbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -97,7 +97,7 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
                 );
                 embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
             }
-            pages.push(embed.build().unwrap());
+            pages.push(embed.build()?);
             page_count += 1;
         }
     }

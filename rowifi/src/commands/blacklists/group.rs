@@ -41,7 +41,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -53,7 +53,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

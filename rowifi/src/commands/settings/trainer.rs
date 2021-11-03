@@ -27,7 +27,7 @@ pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResu
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -65,7 +65,7 @@ pub async fn trainer_view(ctx: CommandContext, guild: RoGuild) -> CommandResult 
         ))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -118,7 +118,7 @@ pub async fn trainer_add(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -158,7 +158,7 @@ pub async fn trainer_remove(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -208,7 +208,7 @@ pub async fn trainer_set(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }

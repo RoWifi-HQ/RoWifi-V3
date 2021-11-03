@@ -30,7 +30,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
             .description(format!("A bind with group id {} already exists", group_id))
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -94,7 +94,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -106,7 +106,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

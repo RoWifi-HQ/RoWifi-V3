@@ -6,23 +6,18 @@ use rowifi_models::discord::{
     },
     channel::message::MessageFlags,
 };
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    future::Future,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::{fmt::{Debug, Formatter, Result as FmtResult}, future::Future, pin::Pin, task::{Context, Poll}};
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 use crate::{
-    arguments::{ArgumentError, FromArgs},
+    arguments::{FromArgs, ArgumentError},
     context::CommandContext,
-    error::{CommandError, CommonError, RoError},
-    extensions::EmbedExtensions,
+    error::{RoError, ErrorKind, CommandError},
     handler::{CommandHandler, Handler},
-    utils::{Color, RoLevel},
+    utils::{RoLevel, Color},
     ServiceRequest,
+    extensions::EmbedExtensions
 };
 
 type BoxedService = Box<
@@ -238,84 +233,82 @@ impl Debug for Command {
 }
 
 async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
-    match err {
-        RoError::Argument(arg_err) => match arg_err {
-            ArgumentError::MissingArgument { usage, name } => {
-                let content = format!(
-                    "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
-                    master_name, usage.0, name, usage.1
-                );
-                let _ = ctx.respond().content(&content).exec().await;
-            }
-            ArgumentError::ParseError {
-                expected,
-                usage,
-                name,
-            } => {
-                let content = format!(
-                    "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
-                    master_name, usage.0, name, expected, usage.1
-                );
-                let _ = ctx.respond().content(&content).exec().await;
-            }
-            ArgumentError::BadArgument => {
-                //This shouldn't be happening but still report it to the user
+    let (kind, err) = err.parts();
+    match kind {
+        ErrorKind::Command => {
+            if let Some(err) = err.as_ref().and_then(|e| e.downcast_ref::<CommandError>()) {
+                match err {
+                    CommandError::Argument(arg_err) => match arg_err {
+                        ArgumentError::MissingArgument { usage, name } => {
+                            let content = format!(
+                                "```{} {}\n\nExpected the {} argument\n\nFields Help:\n{}```",
+                                master_name, usage.0, name, usage.1
+                            );
+                            match ctx.respond().content(&content) {
+                                Ok(r) => {let _ = r.exec().await;},
+                                Err(err) => tracing::error!("handle_error: {}", err)
+                            }
+                        }
+                        ArgumentError::ParseError {
+                            expected,
+                            usage,
+                            name,
+                        } => {
+                            let content = format!(
+                                "```{} {}\n\nExpected {} to be {}\n\nFields Help:\n{}```",
+                                master_name, usage.0, name, expected, usage.1
+                            );
+                            match ctx.respond().content(&content) {
+                                Ok(r) => {let _ = r.exec().await;},
+                                Err(err) => tracing::error!("handle_error: {}", err)
+                            }
+                        }
+                        ArgumentError::BadArgument => {
+                            //This shouldn't be happening but still report it to the user
+                        }
+                    },
+                    CommandError::Cancelled => {
+                        let embed = EmbedBuilder::new()
+                            .default_data()
+                            .title("Command Failure")
+                            .color(Color::Red as u32)
+                            .description("Command was cancelled.")
+                            .build()
+                            .unwrap();
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
+                    },
+                    CommandError::Message(_) => todo!(),
+                    CommandError::Timeout => {
+                        let embed = EmbedBuilder::new()
+                            .default_data()
+                            .title("Command Failure")
+                            .color(Color::Red as u32)
+                            .description("Command timed out. Please try again.")
+                            .build()
+                            .unwrap();
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
+                    },
+                    CommandError::Ratelimit(d) => {
+                        let embed = EmbedBuilder::new()
+                            .default_data()
+                            .title("Command Failure")
+                            .color(Color::Red as u32)
+                            .description(format!(
+                                "Ratelimit reached. You may retry this command in {} seconds",
+                                d.as_secs()
+                            ))
+                            .build()
+                            .unwrap();
+                        let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
+                    },
+                }
             }
         },
-        RoError::Command(cmd_err) => match cmd_err {
-            CommandError::Blacklist(_) => { /*Handled invidually by the methods that raise this */ }
-            CommandError::Miscellanous(ref b) => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description(b)
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-            CommandError::Timeout => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description("Command cancelled. Please try again")
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-            CommandError::Ratelimit(ref d) => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .color(Color::Red as u32)
-                    .description(format!(
-                        "Ratelimit reached. You may retry this command in {} seconds",
-                        d.as_secs()
-                    ))
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-        },
-        RoError::Common(err) => match err {
-            CommonError::UnknownMember => {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Command Failure")
-                    .description("User was not verified. Please ask them to verify themselves")
-                    .color(Color::Red as u32)
-                    .build()
-                    .unwrap();
-                let _ = ctx.respond().embeds(&[embed]).exec().await;
-            }
-        },
-        RoError::NoOp => {}
         _ => {
             tracing::error!(err = ?err);
-            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").exec().await;
+            let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().exec().await;
             let content = format!(
-                "```Guild Id: {:?}Command:{}\n Cluster Id: {}\nError: {:?}```",
+                "```Guild Id: {:?}\nCommand:{}\nCluster Id: {}\nError: {:?}```",
                 ctx.guild_id, master_name, ctx.bot.cluster_id, err
             );
             ctx.log_error(&content).await;

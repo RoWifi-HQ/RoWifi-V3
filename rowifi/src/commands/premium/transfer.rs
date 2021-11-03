@@ -21,7 +21,7 @@ pub async fn premium_transfer(
                 .description("You may not transfer a premium that you do not own")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
         let to_transfer_id = match args.user_id {
@@ -34,7 +34,7 @@ pub async fn premium_transfer(
                     .description("You must specify a user id to transfer to")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
         };
@@ -52,7 +52,7 @@ pub async fn premium_transfer(
                 .description("You cannot transfer premium to a user who already has premium")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
 
@@ -79,7 +79,7 @@ pub async fn premium_transfer(
             .title("Premium Transfer Successful")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
     } else if let Some(transferred_premium_user) = ctx
         .bot
         .database
@@ -107,7 +107,7 @@ pub async fn premium_transfer(
             .title("Premium Transfer Successful")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
     } else {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -116,7 +116,7 @@ pub async fn premium_transfer(
             .description("You do not have a premium subscription")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
     }
     Ok(())
 }

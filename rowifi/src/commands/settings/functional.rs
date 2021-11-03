@@ -20,7 +20,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -89,8 +89,8 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     },
                 ],
             })],
-        })])
-        .content("Choose permissions to give:")
+        })])?
+        .content("Choose permissions to give:")?
         .exec()
         .await?
         .model()

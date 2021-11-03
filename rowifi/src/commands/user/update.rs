@@ -1,9 +1,12 @@
+use std::error::Error;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::{
     channel::embed::Embed,
     id::{RoleId, UserId},
 };
-use twilight_http::error::ErrorType as DiscordErrorType;
+use twilight_http::error::{ErrorType as DiscordErrorType, Error as DiscordHttpError};
+
+use crate::utils::{UpdateUserResult, update_user};
 
 #[derive(Debug, FromArgs, Clone)]
 pub struct UpdateArguments {
@@ -15,7 +18,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
     let embed = update_func(&ctx, args.clone(), false).await?;
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("recent-username-update".into()),
@@ -25,7 +28,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 style: ButtonStyle::Secondary,
                 url: None,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()
@@ -173,9 +176,8 @@ pub async fn update_func(
     let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
-    let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match ctx
-        .bot
-        .update_user(
+    let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match update_user(
+            &ctx.bot,
             member,
             &user,
             &server,
@@ -185,14 +187,14 @@ pub async fn update_func(
         )
         .await
     {
-        Ok(a) => a,
-        Err(e) => {
-            if let RoError::Discord(d) = &e {
+        UpdateUserResult::Success(a, r, n) => (a, r, n),
+        UpdateUserResult::Error(e) => {
+            if let Some(source) = e.source().and_then(|e| e.downcast_ref::<DiscordHttpError>()) {
                 if let DiscordErrorType::Response {
                     body: _,
                     error: _,
                     status,
-                } = d.kind()
+                } = source.kind()
                 {
                     if *status == 403 {
                         let embed = EmbedBuilder::new()
@@ -210,40 +212,53 @@ pub async fn update_func(
                         return Ok(embed);
                     }
                 }
-            } else if let RoError::Command(CommandError::Blacklist(ref b)) = e {
-                let embed = EmbedBuilder::new()
-                    .default_data()
-                    .title("Update Failed")
-                    .description(format!(
-                        "User was found on the server blacklist. Reason: {}",
-                        b
-                    ))
-                    .build()
-                    .unwrap();
-                if let Ok(channel) = ctx
-                    .bot
-                    .http
-                    .create_private_channel(user_id)
-                    .exec()
-                    .await?
-                    .model()
-                    .await
-                {
-                    let _ = ctx
-                        .bot
-                        .http
-                        .create_message(channel.id)
-                        .content(&format!(
-                            "You were found on the {} blacklist. Reason: {}",
-                            server.name, b
-                        ))
-                        .unwrap()
-                        .exec()
-                        .await;
-                }
-                return Ok(embed);
             }
             return Err(e);
+        },
+        UpdateUserResult::Blacklist(reason) => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .title("Update Failed")
+                .description(format!(
+                    "User was found on the server blacklist. Reason: {}",
+                    reason
+                ))
+                .build()
+                .unwrap();
+            if let Ok(channel) = ctx
+                .bot
+                .http
+                .create_private_channel(user_id)
+                .exec()
+                .await?
+                .model()
+                .await
+            {
+                let _ = ctx
+                    .bot
+                    .http
+                    .create_message(channel.id)
+                    .content(&format!(
+                        "You were found on the {} blacklist. Reason: {}",
+                        server.name, reason
+                    ))
+                    .unwrap()
+                    .exec()
+                    .await;
+            }
+            return Ok(embed);
+        },
+        UpdateUserResult::InvalidNickname(nickname) => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .title("Update Failed")
+                .description(format!(
+                    "The supposed nickname {} is greater than 32 characters.",
+                    nickname
+                ))
+                .build()
+                .unwrap();
+            return Ok(embed);
         }
     };
     let end = chrono::Utc::now().timestamp_millis();

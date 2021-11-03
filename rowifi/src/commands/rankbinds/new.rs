@@ -64,7 +64,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 .description(format!("The group with id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -97,7 +97,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             .description(desc)
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -239,7 +239,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
     }
 
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])
+        .embeds(&[embed.build()?])?
         .exec()
         .await?;
 

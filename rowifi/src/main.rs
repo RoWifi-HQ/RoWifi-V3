@@ -13,6 +13,7 @@
 
 mod commands;
 mod services;
+mod utils;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
 use commands::{

@@ -27,7 +27,7 @@ pub async fn bypass(ctx: CommandContext, args: BypassArguments) -> CommandResult
             .description("This command is only available on Premium servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -61,7 +61,7 @@ pub async fn bypass_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
         ))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -114,7 +114,7 @@ pub async fn bypass_add(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -155,7 +155,7 @@ pub async fn bypass_remove(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }
@@ -205,7 +205,7 @@ pub async fn bypass_set(
         .description(description)
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
 }

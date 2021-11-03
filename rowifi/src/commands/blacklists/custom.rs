@@ -29,7 +29,7 @@ pub async fn blacklist_custom(
             .description("No code was found. Please try again")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
     let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
@@ -42,7 +42,7 @@ pub async fn blacklist_custom(
                 .description("You must be verified to create a custom blacklist")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -67,12 +67,12 @@ pub async fn blacklist_custom(
     let command = match RoCommand::new(&code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.respond().content(&s).exec().await?;
+            ctx.respond().content(&s)?.exec().await?;
             return Ok(());
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.respond().content(&res).exec().await?;
+        ctx.respond().content(&res)?.exec().await?;
         return Ok(());
     }
     let reason = await_reply("Enter the reason of this blacklist.", &ctx).await?;
@@ -99,7 +99,7 @@ pub async fn blacklist_custom(
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -111,7 +111,7 @@ pub async fn blacklist_custom(
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

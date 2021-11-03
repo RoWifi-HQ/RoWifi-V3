@@ -58,8 +58,8 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
         .respond()
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
-        })])
-        .content("What type of bind would you like to create?")
+        })])?
+        .content("What type of bind would you like to create?")?
         .exec()
         .await?
         .model()
@@ -194,10 +194,10 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
     let message = ctx
         .respond()
-        .content("Select the type of asset to bind:")
+        .content("Select the type of asset to bind:")?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::SelectMenu(select_menu.clone())],
-        })])
+        })])?
         .exec()
         .await?
         .model()
@@ -289,7 +289,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected asset id to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -358,7 +358,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -405,7 +405,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -433,7 +433,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected the group id to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -448,7 +448,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description(format!("Group with Id {} does not exist", group_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -488,7 +488,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             .description("There were no ranks found associated with the entered ones")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -566,7 +566,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
                 .description("Expected priority to be a number")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -626,7 +626,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -702,7 +702,7 @@ async fn bind_rank(
         .build()
         .unwrap();
 
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;

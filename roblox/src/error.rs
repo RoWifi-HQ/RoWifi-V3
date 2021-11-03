@@ -1,60 +1,76 @@
-use hyper::{http::Error as HttpError, Error as HyperError, StatusCode};
-use rowifi_redis::{redis::RedisError, PoolError};
-use serde_json::Error as SerdeError;
-use std::{
-    error::Error as StdError,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::{error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
+use hyper::StatusCode;
+use rowifi_redis::{PoolError, redis::RedisError};
 
 #[derive(Debug)]
-pub enum Error {
-    BuildingRequest(HttpError),
-    Request(HyperError),
-    Parsing(SerdeError),
-    APIError(StatusCode, Vec<u8>, String),
-    Redis(PoolError<RedisError>),
+pub struct Error {
+    pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
+    pub(super) kind: ErrorKind
+}
+
+impl Error {
+    pub const fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+
+    pub fn into_source(self) -> Option<Box<dyn StdError + Send + Sync>> {
+        self.source
+    }
+
+    pub fn into_parts(self) -> (ErrorKind, Option<Box<dyn StdError + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Error::APIError(err, bytes, url) => write!(f, "API Error - {}, Body - {:?}, Url - {}", err, bytes, url),
-            Error::BuildingRequest(err) => write!(f, "Building Request Error - {}", err),
-            Error::Parsing(err) => write!(f, "Parsing Error - {}", err),
-            Error::Request(err) => write!(f, "Request Error - {}", err),
-            Error::Redis(err) => write!(f, "Redis Error - {}", err),
+        match &self.kind {
+            ErrorKind::BuildingRequest => f.write_str("failed to build the request."),
+            ErrorKind::ChunkingResponse => f.write_str("chunking the response failed."),
+            ErrorKind::Json { body } => write!(f, "value failed to serialized: {:?}.", body),
+            ErrorKind::Redis => f.write_str("error from redis occurred."),
+            ErrorKind::RequestError => f.write_str("Parsing or sending the response failed"),
+            ErrorKind::Response { body, status, route } => write!(f, "response error: status code {}, route: {}, body: {:?}", status, route, body),
         }
     }
 }
 
-impl From<HttpError> for Error {
-    fn from(err: HttpError) -> Self {
-        Error::BuildingRequest(err)
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.source.as_ref().map(|source| &**source as &(dyn StdError + 'static))
     }
 }
 
-impl From<HyperError> for Error {
-    fn from(err: HyperError) -> Self {
-        Error::Request(err)
-    }
-}
-
-impl From<SerdeError> for Error {
-    fn from(err: SerdeError) -> Self {
-        Error::Parsing(err)
-    }
+#[derive(Debug)]
+pub enum ErrorKind {
+    BuildingRequest,
+    ChunkingResponse,
+    Json {
+        body: Vec<u8>
+    },
+    Redis,
+    RequestError,
+    Response {
+        body: Vec<u8>,
+        status: StatusCode,
+        route: String
+    },
 }
 
 impl From<RedisError> for Error {
     fn from(err: RedisError) -> Self {
-        Error::Redis(PoolError::Backend(err))
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Redis
+        }
     }
 }
 
 impl From<PoolError<RedisError>> for Error {
     fn from(err: PoolError<RedisError>) -> Self {
-        Error::Redis(err)
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Redis
+        }
     }
 }
-
-impl StdError for Error {}

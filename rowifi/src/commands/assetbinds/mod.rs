@@ -59,7 +59,7 @@ pub async fn assetbind(ctx: CommandContext) -> CommandResult {
             .description("No assetbinds were found associated with this server")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[e]).exec().await?;
+        ctx.respond().embeds(&[e])?.exec().await?;
         return Ok(());
     }
 
@@ -90,7 +90,7 @@ pub async fn assetbind(ctx: CommandContext) -> CommandResult {
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
-        pages.push(embed.build().unwrap());
+        pages.push(embed.build()?);
         page_count += 1;
     }
 

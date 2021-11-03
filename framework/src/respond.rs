@@ -11,7 +11,7 @@ use twilight_http::{
     response::ResponseFuture,
 };
 
-use crate::context::CommandContext;
+use crate::{context::CommandContext, error::MessageError};
 
 pub struct Responder<'a> {
     message: Option<CreateMessage<'a>>,
@@ -56,37 +56,37 @@ impl<'a> Responder<'a> {
         )
     }
 
-    pub fn content(mut self, content: &'a str) -> Self {
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.content(Some(content)).unwrap());
+            self.interaction = Some(interaction.content(Some(content))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.content(content).unwrap());
+            self.message = Some(message.content(content)?);
         } else if let Some(followup) = self.followup {
             self.followup = Some(followup.content(content));
         }
-        self
+        Ok(self)
     }
 
-    pub fn components(mut self, components: &'a [Component]) -> Self {
+    pub fn components(mut self, components: &'a [Component]) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.components(Some(components)).unwrap());
+            self.interaction = Some(interaction.components(Some(components))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.components(components).unwrap());
+            self.message = Some(message.components(components)?);
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.components(components).unwrap());
+            self.followup = Some(followup.components(components)?);
         }
-        self
+        Ok(self)
     }
 
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.embeds(Some(embeds)).unwrap());
+            self.interaction = Some(interaction.embeds(Some(embeds))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.embeds(embeds).unwrap());
+            self.message = Some(message.embeds(embeds)?);
         } else if let Some(followup) = self.followup {
             self.followup = Some(followup.embeds(embeds));
         }
-        self
+        Ok(self)
     }
 
     pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {

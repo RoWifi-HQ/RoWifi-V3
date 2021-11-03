@@ -37,7 +37,7 @@ pub async fn custombinds_delete(
             .description("There were no binds found associated with given ids")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
@@ -54,7 +54,7 @@ pub async fn custombinds_delete(
         .unwrap();
     let message = ctx
         .respond()
-        .embeds(&[embed])
+        .embeds(&[embed])?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 style: ButtonStyle::Danger,
@@ -66,7 +66,7 @@ pub async fn custombinds_delete(
                 url: None,
                 disabled: false,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()

@@ -110,7 +110,7 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
             .field(EmbedFieldBuilder::new("Perks", "None"));
     }
     ctx.respond()
-        .embeds(&[embed.build().unwrap()])
+        .embeds(&[embed.build()?])?
         .exec()
         .await?;
 

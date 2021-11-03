@@ -47,7 +47,7 @@ pub async fn custombinds_modify(
                 .description(format!("There was no bind found with id {}", bind_id))
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
@@ -90,7 +90,7 @@ pub async fn custombinds_modify(
                     .description("You have entered a blank template")
                     .build()
                     .unwrap();
-                ctx.respond().embeds(&[embed]).exec().await?;
+                ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
             let template = modify_template(&ctx, &guild, bind_id, &args.change).await?;
@@ -106,7 +106,7 @@ pub async fn custombinds_modify(
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .build()
         .unwrap();
-    ctx.respond().embeds(&[embed]).exec().await?;
+    ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -138,7 +138,7 @@ async fn modify_code<'a>(
                 .description("You must be verified to create a custom blacklist")
                 .build()
                 .unwrap();
-            ctx.respond().embeds(&[embed]).exec().await?;
+            ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(None);
         }
     };
@@ -167,12 +167,12 @@ async fn modify_code<'a>(
     let command = match RoCommand::new(code) {
         Ok(c) => c,
         Err(s) => {
-            ctx.respond().content(&s).exec().await?;
+            ctx.respond().content(&s)?.exec().await?;
             return Ok(None);
         }
     };
     if let Err(res) = command.evaluate(&command_user) {
-        ctx.respond().content(&res).exec().await?;
+        ctx.respond().content(&res)?.exec().await?;
         return Ok(None);
     }
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
@@ -207,11 +207,11 @@ async fn modify_priority(
     let priority = match priority.parse::<i64>() {
         Ok(p) => p,
         Err(_) => {
-            return Err(RoError::Argument(ArgumentError::ParseError {
+            return Err(ArgumentError::ParseError {
                 expected: "a number",
                 usage: CustombindsModifyArguments::generate_help(),
                 name: "change",
-            }));
+            }.into());
         }
     };
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};

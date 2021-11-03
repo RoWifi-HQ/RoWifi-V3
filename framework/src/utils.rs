@@ -52,7 +52,7 @@ impl Default for RoLevel {
 pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<bool, RoError> {
     let message = ctx
         .respond()
-        .content(question)
+        .content(question)?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![
                 Component::Button(Button {
@@ -72,7 +72,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     url: None,
                 }),
             ],
-        })])
+        })])?
         .exec()
         .await?
         .model()
@@ -157,7 +157,7 @@ pub async fn await_template_reply(
     let select_custom_id = select_menu.custom_id.clone();
     let message = ctx
         .respond()
-        .content(question)
+        .content(question)?
         .components(&[
             Component::ActionRow(ActionRow {
                 components: vec![Component::SelectMenu(select_menu.clone())],
@@ -172,7 +172,7 @@ pub async fn await_template_reply(
                     url: None,
                 })],
             }),
-        ])
+        ])?
         .exec()
         .await?
         .model()
@@ -236,7 +236,7 @@ pub async fn await_template_reply(
                             .content("Command has been cancelled")
                             .exec()
                             .await?;
-                        return Err(RoError::NoOp);
+                        return Err(CommandError::Cancelled.into());
                     } else if message_component.data.custom_id == select_custom_id {
                         let template_str = message_component.data.values[0].clone();
                         return Ok(Template(template_str));
@@ -269,13 +269,13 @@ pub async fn await_template_reply(
     }
 
     ctx.bot.ignore_message_components.remove(&message_id);
-    Err(RoError::Command(CommandError::Timeout))
+    Err(CommandError::Timeout.into())
 }
 
 pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String, RoError> {
     let message = ctx
         .respond()
-        .content(question)
+        .content(question)?
         .components(&[Component::ActionRow(ActionRow {
             components: vec![Component::Button(Button {
                 custom_id: Some("reply-cancel".into()),
@@ -285,7 +285,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 style: ButtonStyle::Danger,
                 url: None,
             })],
-        })])
+        })])?
         .exec()
         .await?
         .model()
@@ -345,7 +345,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .exec()
                         .await?;
                     ctx.bot.ignore_message_components.remove(&message_id);
-                    return Err(RoError::NoOp);
+                    return Err(CommandError::Cancelled.into());
                 }
                 let _ = ctx
                     .bot
@@ -374,7 +374,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
     }
 
     ctx.bot.ignore_message_components.remove(&message_id);
-    Err(RoError::Command(CommandError::Timeout))
+    Err(CommandError::Timeout.into())
 }
 
 pub async fn paginate_embed(
@@ -384,11 +384,11 @@ pub async fn paginate_embed(
 ) -> Result<(), RoError> {
     let page_count = page_count;
     if page_count <= 1 {
-        ctx.respond().embeds(&[pages[0].clone()]).exec().await?;
+        ctx.respond().embeds(&[pages[0].clone()])?.exec().await?;
     } else {
         let message = ctx
             .respond()
-            .embeds(&[pages[0].clone()])
+            .embeds(&[pages[0].clone()])?
             .components(&[Component::ActionRow(ActionRow {
                 components: vec![
                     Component::Button(Button {
@@ -432,7 +432,7 @@ pub async fn paginate_embed(
                         disabled: false,
                     }),
                 ],
-            })])
+            })])?
             .exec()
             .await?
             .model()

@@ -10,6 +10,8 @@ use rowifi_models::{
 use std::sync::atomic::Ordering;
 use twilight_gateway::Event;
 
+use crate::utils::{update_user, UpdateUserResult};
+
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
@@ -21,12 +23,12 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
     ctx.respond()
-        .content("Updating all members...")
+        .content("Updating all members...")?
         .exec()
         .await?;
 
@@ -50,7 +52,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.")?.exec().await?;
             return Ok(());
         }
         let _ = ctx
@@ -99,10 +101,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .bot
-                        .update_user(member, user, &server, &guild, &guild_roles, false)
-                        .await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()
@@ -146,22 +145,22 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .description("This command may only be used in Premium Servers")
             .build()
             .unwrap();
-        ctx.respond().embeds(&[embed]).exec().await?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
 
     let server_roles = ctx.bot.cache.roles(guild_id);
     let role_id = args.role;
     if !server_roles.contains(&role_id) {
-        return Err(RoError::Argument(ArgumentError::ParseError {
+        return Err(ArgumentError::ParseError {
             expected: "a Discord Role/Id",
             usage: UpdateMultipleArguments::generate_help(),
             name: "role",
-        }));
+        }.into());
     }
 
     ctx.respond()
-        .content("Updating all members...")
+        .content("Updating all members...")?
         .exec()
         .await?;
 
@@ -185,7 +184,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         let req = RequestGuildMembers::builder(server.id).query("", None);
         let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
-            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.").exec().await?;
+            ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.")?.exec().await?;
             return Ok(());
         }
         let _ = ctx
@@ -237,10 +236,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let Ok((added_roles, removed_roles, disc_nick)) = c
-                        .bot
-                        .update_user(member, user, &server, &guild, &guild_roles, false)
-                        .await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()
