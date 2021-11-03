@@ -1,11 +1,14 @@
-use std::{error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
 use hyper::StatusCode;
-use rowifi_redis::{PoolError, redis::RedisError};
+use rowifi_redis::{redis::RedisError, PoolError};
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 #[derive(Debug)]
 pub struct Error {
     pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
-    pub(super) kind: ErrorKind
+    pub(super) kind: ErrorKind,
 }
 
 impl Error {
@@ -30,14 +33,24 @@ impl Display for Error {
             ErrorKind::Json { body } => write!(f, "value failed to serialized: {:?}.", body),
             ErrorKind::Redis => f.write_str("error from redis occurred."),
             ErrorKind::RequestError => f.write_str("Parsing or sending the response failed"),
-            ErrorKind::Response { body, status, route } => write!(f, "response error: status code {}, route: {}, body: {:?}", status, route, body),
+            ErrorKind::Response {
+                body,
+                status,
+                route,
+            } => write!(
+                f,
+                "response error: status code {}, route: {}, body: {:?}",
+                status, route, body
+            ),
         }
     }
 }
 
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.source.as_ref().map(|source| &**source as &(dyn StdError + 'static))
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn StdError + 'static))
     }
 }
 
@@ -46,14 +59,14 @@ pub enum ErrorKind {
     BuildingRequest,
     ChunkingResponse,
     Json {
-        body: Vec<u8>
+        body: Vec<u8>,
     },
     Redis,
     RequestError,
     Response {
         body: Vec<u8>,
         status: StatusCode,
-        route: String
+        route: String,
     },
 }
 
@@ -61,7 +74,7 @@ impl From<RedisError> for Error {
     fn from(err: RedisError) -> Self {
         Self {
             source: Some(Box::new(err)),
-            kind: ErrorKind::Redis
+            kind: ErrorKind::Redis,
         }
     }
 }
@@ -70,7 +83,7 @@ impl From<PoolError<RedisError>> for Error {
     fn from(err: PoolError<RedisError>) -> Self {
         Self {
             source: Some(Box::new(err)),
-            kind: ErrorKind::Redis
+            kind: ErrorKind::Redis,
         }
     }
 }

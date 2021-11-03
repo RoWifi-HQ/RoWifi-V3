@@ -11,7 +11,7 @@ use transient_dashmap::TransientDashMap;
 
 use crate::{
     context::CommandContext,
-    error::{CommandError, RoError, ErrorKind},
+    error::{CommandError, ErrorKind, RoError},
     ServiceRequest,
 };
 
@@ -85,10 +85,12 @@ where
     fn call(&mut self, req: (CommandContext, ServiceRequest)) -> Self::Future {
         if let Some(guild_id) = req.0.guild_id {
             if let Some(duration) = self.get(guild_id) {
-                let fut = async move { Err(RoError {
-                    source: Some(Box::new(CommandError::Ratelimit(duration))),
-                    kind: ErrorKind::Command
-                }) };
+                let fut = async move {
+                    Err(RoError {
+                        source: Some(Box::new(CommandError::Ratelimit(duration))),
+                        kind: ErrorKind::Command,
+                    })
+                };
                 return Box::pin(fut);
             }
 

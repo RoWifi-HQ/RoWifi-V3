@@ -10,7 +10,12 @@
 pub mod error;
 mod route;
 
-use hyper::{Body, Client as HyperClient, Method, Request, StatusCode, body::{self, Buf}, client::HttpConnector, header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE}};
+use hyper::{
+    body::{self, Buf},
+    client::HttpConnector,
+    header::{HeaderValue, CONTENT_LENGTH, CONTENT_TYPE},
+    Body, Client as HyperClient, Method, Request, StatusCode,
+};
 use hyper_rustls::HttpsConnector;
 use rowifi_models::roblox::{
     asset::Asset,
@@ -60,27 +65,28 @@ impl Client {
                 .body(Body::from(bytes))
                 .map_err(|source| Error {
                     source: Some(Box::new(source)),
-                    kind: ErrorKind::BuildingRequest
+                    kind: ErrorKind::BuildingRequest,
                 })?
         } else {
-            builder.body(Body::empty())
-            .map_err(|source| Error {
+            builder.body(Body::empty()).map_err(|source| Error {
                 source: Some(Box::new(source)),
-                kind: ErrorKind::BuildingRequest
+                kind: ErrorKind::BuildingRequest,
             })?
         };
 
         let res = self.client.request(req).await.map_err(|source| Error {
             source: Some(Box::new(source)),
-            kind: ErrorKind::RequestError
+            kind: ErrorKind::RequestError,
         })?;
 
         let status = res.status();
 
-        let mut buf = body::aggregate(res.into_body()).await.map_err(|source| Error {
-            source: Some(Box::new(source)),
-            kind: ErrorKind::ChunkingResponse
-        })?;
+        let mut buf = body::aggregate(res.into_body())
+            .await
+            .map_err(|source| Error {
+                source: Some(Box::new(source)),
+                kind: ErrorKind::ChunkingResponse,
+            })?;
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
@@ -90,23 +96,21 @@ impl Client {
                 kind: ErrorKind::Response {
                     body: bytes,
                     status,
-                    route
-                }
+                    route,
+                },
             });
         }
 
         let result = serde_json::from_slice(&bytes).map_err(|source| Error {
             source: Some(Box::new(source)),
-            kind: ErrorKind::Json {
-                body: bytes
-            }
+            kind: ErrorKind::Json { body: bytes },
         })?;
         Ok(result)
     }
 
     /// Get the group roles of an user
     pub async fn get_user_roles(&self, user_id: UserId) -> Result<Vec<GroupUserRole>> {
-        let route = Route::UserGroupRoles{ user_id: user_id.0 };
+        let route = Route::UserGroupRoles { user_id: user_id.0 };
         let user_roles = self
             .request::<VecWrapper<GroupUserRole>>(route, Method::GET, None)
             .await?;
@@ -120,7 +124,7 @@ impl Client {
         let json = serde_json::json!({ "usernames": usernames });
         let body = serde_json::to_vec(&json).map_err(|source| Error {
             source: Some(Box::new(source)),
-            kind: ErrorKind::BuildingRequest
+            kind: ErrorKind::BuildingRequest,
         })?;
         let mut ids = self
             .request::<VecWrapper<PartialUser>>(route, Method::POST, Some(body))
@@ -154,8 +158,8 @@ impl Client {
                     kind: ErrorKind::Response {
                         body: vec![],
                         status: StatusCode::NOT_FOUND,
-                        route: Route::UsersById.to_string()
-                    }
+                        route: Route::UsersById.to_string(),
+                    },
                 })?;
             let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
             Ok(user)
@@ -174,8 +178,8 @@ impl Client {
                         kind: ErrorKind::Response {
                             body: vec![],
                             status: StatusCode::NOT_FOUND,
-                            route: Route::UsersById.to_string()
-                        }
+                            route: Route::UsersById.to_string(),
+                        },
                     })?;
                 let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
                 Ok(user)
@@ -190,7 +194,7 @@ impl Client {
         let json = serde_json::json!({ "userIds": user_ids });
         let body = serde_json::to_vec(&json).map_err(|source| Error {
             source: Some(Box::new(source)),
-            kind: ErrorKind::BuildingRequest
+            kind: ErrorKind::BuildingRequest,
         })?;
         let users = self
             .request::<VecWrapper<PartialUser>>(route, Method::POST, Some(body))
@@ -209,12 +213,19 @@ impl Client {
 
     /// Get all ranks of a [`Group`] with its id
     pub async fn get_group_ranks(&self, group_id: GroupId) -> Result<Option<Group>> {
-        let route = Route::GroupRoles { group_id: group_id.0 };
+        let route = Route::GroupRoles {
+            group_id: group_id.0,
+        };
         let group = self.request::<Group>(route, Method::GET, None).await;
         match group {
             Ok(g) => Ok(Some(g)),
             Err(err) => {
-                if let ErrorKind::Response { body: _, status, route: _} = err.kind() {
+                if let ErrorKind::Response {
+                    body: _,
+                    status,
+                    route: _,
+                } = err.kind()
+                {
                     if *status == StatusCode::NOT_FOUND {
                         return Ok(None);
                     }
@@ -234,7 +245,7 @@ impl Client {
         let route = Route::UserInventoryAsset {
             user_id: user_id.0,
             asset_id: asset_id.0,
-            asset_type
+            asset_type,
         };
         let mut assets = self
             .request::<VecWrapper<Asset>>(route, Method::GET, None)

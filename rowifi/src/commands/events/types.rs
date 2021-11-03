@@ -24,10 +24,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         let value = format!("Name: {}", event_type.name);
         embed = embed.field(EmbedFieldBuilder::new(name, value).inline());
     }
-    ctx.respond()
-        .embeds(&[embed.build()?])?
-        .exec()
-        .await?;
+    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
     Ok(())
 }
 

@@ -1,14 +1,24 @@
-use std::{collections::{HashSet, HashMap}, sync::Arc};
 use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
 use rowifi_framework::{context::BotContext, error::RoError};
-use rowifi_models::{discord::id::RoleId, guild::{BlacklistActionType, RoGuild}, roblox::id::{UserId as RobloxUserId, AssetId as RobloxAssetId}, rolang::RoCommandUser, user::RoGuildUser, bind::Bind};
+use rowifi_models::{
+    bind::Bind,
+    discord::id::RoleId,
+    guild::{BlacklistActionType, RoGuild},
+    roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
+    rolang::RoCommandUser,
+    user::RoGuildUser,
+};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 pub enum UpdateUserResult {
     Success(Vec<RoleId>, Vec<RoleId>, String),
     Blacklist(String),
     InvalidNickname(String),
-    Error(RoError)
+    Error(RoError),
 }
 
 pub async fn update_user(
@@ -40,21 +50,17 @@ pub async fn update_user(
     }
 
     let user_id = RobloxUserId(user.roblox_id as u64);
-    let user_roles = match ctx
-        .roblox
-        .get_user_roles(user_id)
-        .await {
-            Ok(user_roles) => {
-                user_roles.iter()
-                .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
-                .collect::<HashMap<_, _>>()
-            },
-            Err(e) => return UpdateUserResult::Error(e.into())
-        };
+    let user_roles = match ctx.roblox.get_user_roles(user_id).await {
+        Ok(user_roles) => user_roles
+            .iter()
+            .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
+            .collect::<HashMap<_, _>>(),
+        Err(e) => return UpdateUserResult::Error(e.into()),
+    };
 
     let roblox_user = match ctx.roblox.get_user(user_id, bypass_roblox_cache).await {
         Ok(r) => r,
-        Err(err) => return UpdateUserResult::Error(err.into())
+        Err(err) => return UpdateUserResult::Error(err.into()),
     };
     let command_user = RoCommandUser {
         user,
@@ -133,7 +139,15 @@ pub async fn update_user(
     }
 
     for a in &guild.assetbinds {
-        match ctx.roblox.get_asset(user_id, RobloxAssetId(a.id as u64), &a.asset_type.to_string()).await {
+        match ctx
+            .roblox
+            .get_asset(
+                user_id,
+                RobloxAssetId(a.id as u64),
+                &a.asset_type.to_string(),
+            )
+            .await
+        {
             Ok(Some(_)) => {
                 if let Some(highest) = nick_bind {
                     if highest.priority() < a.priority() {
@@ -143,9 +157,9 @@ pub async fn update_user(
                     nick_bind = Some(a);
                 }
                 roles_to_add.extend(a.discord_roles.iter().copied());
-            },
-            Ok(None) => {},
-            Err(err) => return UpdateUserResult::Error(err.into())
+            }
+            Ok(None) => {}
+            Err(err) => return UpdateUserResult::Error(err.into()),
         }
     }
 
@@ -195,9 +209,10 @@ pub async fn update_user(
             .nick(Some(&nickname))
             .unwrap()
             .exec()
-            .await {
-                return UpdateUserResult::Error(err.into())
-            }
+            .await
+        {
+            return UpdateUserResult::Error(err.into());
+        }
     }
 
     UpdateUserResult::Success(added_roles, removed_roles, nickname)

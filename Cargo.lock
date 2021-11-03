@@ -244,9 +244,9 @@ checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
 
 [[package]]
 name = "core-graphics"
-version = "0.22.2"
+version = "0.22.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "269f35f69b542b80e736a20a89a05215c0ce80c2c03c514abb2e318b78379d86"
+checksum = "2581bbab3b8ffc6fcbd550bf46c355135d16e9ff2a6ea032ad6b9bf1d7efe4fb"
 dependencies = [
  "bitflags",
  "core-foundation",
@@ -370,7 +370,7 @@ checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 [[package]]
 name = "deadpool"
 version = "0.9.1"
-source = "git+https://github.com/bikeshedder/deadpool?branch=master#c14c7ad9e0e4a916c3bd75263b272205477d7612"
+source = "git+https://github.com/bikeshedder/deadpool?branch=master#ef252a7c75d5455ff85224c20a4ffa6611ae5fd1"
 dependencies = [
  "async-trait",
  "deadpool-runtime",
@@ -381,7 +381,7 @@ dependencies = [
 [[package]]
 name = "deadpool-runtime"
 version = "0.1.2"
-source = "git+https://github.com/bikeshedder/deadpool?branch=master#c14c7ad9e0e4a916c3bd75263b272205477d7612"
+source = "git+https://github.com/bikeshedder/deadpool?branch=master#ef252a7c75d5455ff85224c20a4ffa6611ae5fd1"
 
 [[package]]
 name = "deflate"
@@ -976,9 +976,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.105"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "869d572136620d55835903746bcb5cdc54cb2851fd0aeec53220b4bb65ef3013"
+checksum = "a60553f9a9e039a333b4e9b20573b9e9b9c0bb3a11e201ccc48ef4283456d673"
 
 [[package]]
 name = "libz-sys"
@@ -1097,7 +1097,7 @@ dependencies = [
 [[package]]
 name = "mongodb"
 version = "2.0.0"
-source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#64b8e3435a1f2fee516938f0ff9225065ea88ab6"
+source = "git+https://github.com/mongodb/mongo-rust-driver?branch=master#d654857d092db1d7e6c327b9fd7274bc298e2cf7"
 dependencies = [
  "async-trait",
  "base64",
@@ -1510,7 +1510,7 @@ dependencies = [
 [[package]]
 name = "redis"
 version = "0.21.4-alpha.0"
-source = "git+https://github.com/mitsuhiko/redis-rs?branch=master#acf2c57b7dd4bd4e297ce5d01647aed2d846819c"
+source = "git+https://github.com/mitsuhiko/redis-rs?branch=master#0a69346cd36f9df7709423c3106df024d13b92cf"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -1600,6 +1600,7 @@ dependencies = [
  "serde_cbor",
  "serde_json",
  "tokio",
+ "tower",
 ]
 
 [[package]]
@@ -2165,6 +2166,8 @@ dependencies = [
  "futures-util",
  "pin-project",
  "pin-project-lite",
+ "tokio",
+ "tokio-util",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -2331,7 +2334,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "twilight-model",
 ]
@@ -2339,7 +2342,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "bitflags",
  "flate2",
@@ -2358,7 +2361,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "tokio",
  "tracing",
@@ -2368,7 +2371,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -2384,7 +2387,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "bitflags",
  "serde",
@@ -2396,7 +2399,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "dashmap",
  "futures-util",
@@ -2408,7 +2411,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#90db147b658b007bb8a2b86fa7bfb811d398df24"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
 dependencies = [
  "twilight-model",
 ]

@@ -101,7 +101,9 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) =
+                        update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false)
+                            .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()
@@ -156,7 +158,8 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             expected: "a Discord Role/Id",
             usage: UpdateMultipleArguments::generate_help(),
             name: "role",
-        }.into());
+        }
+        .into());
     }
 
     ctx.respond()
@@ -236,7 +239,9 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                     }
                     tracing::trace!(id = user.discord_id, "Mass Update for member");
                     let name = member.user.name.clone();
-                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false).await
+                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) =
+                        update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false)
+                            .await
                     {
                         if !added_roles.is_empty() || !removed_roles.is_empty() {
                             let log_embed = EmbedBuilder::new()

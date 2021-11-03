@@ -109,10 +109,7 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
             .field(EmbedFieldBuilder::new("Tier", "Normal"))
             .field(EmbedFieldBuilder::new("Perks", "None"));
     }
-    ctx.respond()
-        .embeds(&[embed.build()?])?
-        .exec()
-        .await?;
+    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
 
     Ok(())
 }

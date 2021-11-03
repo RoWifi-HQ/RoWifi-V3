@@ -123,12 +123,8 @@ async fn execute_chunk(
             }
             tracing::trace!(id = user.discord_id, "Auto Detection for member");
             let name = member.user.name.clone();
-            let res = ctx
-                .update_user(member, user, server, guild, guild_roles, false)
-                .await;
-            if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res
-                .await
-            {
+            let res = update_user(&ctx, member, user, server, guild, guild_roles, false).await;
+            if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()
                         .default_data()

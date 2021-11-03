@@ -6,18 +6,23 @@ use rowifi_models::discord::{
     },
     channel::message::MessageFlags,
 };
-use std::{fmt::{Debug, Formatter, Result as FmtResult}, future::Future, pin::Pin, task::{Context, Poll}};
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use tower::Service;
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 use crate::{
-    arguments::{FromArgs, ArgumentError},
+    arguments::{ArgumentError, FromArgs},
     context::CommandContext,
-    error::{RoError, ErrorKind, CommandError},
+    error::{CommandError, ErrorKind, RoError},
+    extensions::EmbedExtensions,
     handler::{CommandHandler, Handler},
-    utils::{RoLevel, Color},
+    utils::{Color, RoLevel},
     ServiceRequest,
-    extensions::EmbedExtensions
 };
 
 type BoxedService = Box<
@@ -245,8 +250,10 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                                 master_name, usage.0, name, usage.1
                             );
                             match ctx.respond().content(&content) {
-                                Ok(r) => {let _ = r.exec().await;},
-                                Err(err) => tracing::error!("handle_error: {}", err)
+                                Ok(r) => {
+                                    let _ = r.exec().await;
+                                }
+                                Err(err) => tracing::error!("handle_error: {}", err),
                             }
                         }
                         ArgumentError::ParseError {
@@ -259,8 +266,10 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                                 master_name, usage.0, name, expected, usage.1
                             );
                             match ctx.respond().content(&content) {
-                                Ok(r) => {let _ = r.exec().await;},
-                                Err(err) => tracing::error!("handle_error: {}", err)
+                                Ok(r) => {
+                                    let _ = r.exec().await;
+                                }
+                                Err(err) => tracing::error!("handle_error: {}", err),
                             }
                         }
                         ArgumentError::BadArgument => {
@@ -276,7 +285,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .build()
                             .unwrap();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
-                    },
+                    }
                     CommandError::Message(_) => todo!(),
                     CommandError::Timeout => {
                         let embed = EmbedBuilder::new()
@@ -287,7 +296,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .build()
                             .unwrap();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
-                    },
+                    }
                     CommandError::Ratelimit(d) => {
                         let embed = EmbedBuilder::new()
                             .default_data()
@@ -300,10 +309,10 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .build()
                             .unwrap();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
-                    },
+                    }
                 }
             }
-        },
+        }
         _ => {
             tracing::error!(err = ?err);
             let _ = ctx.respond().content("There was an issue in executing. Please try again. If the issue persists, please contact our support server").unwrap().exec().await;

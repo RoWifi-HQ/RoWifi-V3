@@ -238,10 +238,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         count += 1;
     }
 
-    ctx.respond()
-        .embeds(&[embed.build()?])?
-        .exec()
-        .await?;
+    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;

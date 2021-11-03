@@ -174,7 +174,8 @@ async fn modify_priority(
                 expected: "a number",
                 usage: ModifyArguments::generate_help(),
                 name: "change",
-            }.into());
+            }
+            .into());
         }
     };
     let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};

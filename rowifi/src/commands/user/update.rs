@@ -1,12 +1,12 @@
-use std::error::Error;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::{
     channel::embed::Embed,
     id::{RoleId, UserId},
 };
-use twilight_http::error::{ErrorType as DiscordErrorType, Error as DiscordHttpError};
+use std::error::Error;
+use twilight_http::error::{Error as DiscordHttpError, ErrorType as DiscordErrorType};
 
-use crate::utils::{UpdateUserResult, update_user};
+use crate::utils::{update_user, UpdateUserResult};
 
 #[derive(Debug, FromArgs, Clone)]
 pub struct UpdateArguments {
@@ -176,7 +176,8 @@ pub async fn update_func(
     let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
 
-    let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) = match update_user(
+    let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) =
+        match update_user(
             &ctx.bot,
             member,
             &user,
@@ -186,81 +187,84 @@ pub async fn update_func(
             bypass_roblox_cache,
         )
         .await
-    {
-        UpdateUserResult::Success(a, r, n) => (a, r, n),
-        UpdateUserResult::Error(e) => {
-            if let Some(source) = e.source().and_then(|e| e.downcast_ref::<DiscordHttpError>()) {
-                if let DiscordErrorType::Response {
-                    body: _,
-                    error: _,
-                    status,
-                } = source.kind()
+        {
+            UpdateUserResult::Success(a, r, n) => (a, r, n),
+            UpdateUserResult::Error(e) => {
+                if let Some(source) = e
+                    .source()
+                    .and_then(|e| e.downcast_ref::<DiscordHttpError>())
                 {
-                    if *status == 403 {
-                        let embed = EmbedBuilder::new()
-                            .default_data()
-                            .color(Color::Red as u32)
-                            .title("Update Failed")
-                            .description(
-                                "There was an error in updating the user. Possible causes:
+                    if let DiscordErrorType::Response {
+                        body: _,
+                        error: _,
+                        status,
+                    } = source.kind()
+                    {
+                        if *status == 403 {
+                            let embed = EmbedBuilder::new()
+                                .default_data()
+                                .color(Color::Red as u32)
+                                .title("Update Failed")
+                                .description(
+                                    "There was an error in updating the user. Possible causes:
                             1. The user has a role higher than or equal to mine
                             2. I am trying to add/remove a binded role that is above my highest role
                             3. Either the verification & verified role are above my highest role",
-                            )
-                            .build()
-                            .unwrap();
-                        return Ok(embed);
+                                )
+                                .build()
+                                .unwrap();
+                            return Ok(embed);
+                        }
                     }
                 }
+                return Err(e);
             }
-            return Err(e);
-        },
-        UpdateUserResult::Blacklist(reason) => {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .title("Update Failed")
-                .description(format!(
-                    "User was found on the server blacklist. Reason: {}",
-                    reason
-                ))
-                .build()
-                .unwrap();
-            if let Ok(channel) = ctx
-                .bot
-                .http
-                .create_private_channel(user_id)
-                .exec()
-                .await?
-                .model()
-                .await
-            {
-                let _ = ctx
+            UpdateUserResult::Blacklist(reason) => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Update Failed")
+                    .description(format!(
+                        "User was found on the server blacklist. Reason: {}",
+                        reason
+                    ))
+                    .build()
+                    .unwrap();
+                if let Ok(channel) = ctx
                     .bot
                     .http
-                    .create_message(channel.id)
-                    .content(&format!(
-                        "You were found on the {} blacklist. Reason: {}",
-                        server.name, reason
-                    ))
-                    .unwrap()
+                    .create_private_channel(user_id)
                     .exec()
-                    .await;
+                    .await?
+                    .model()
+                    .await
+                {
+                    let _ = ctx
+                        .bot
+                        .http
+                        .create_message(channel.id)
+                        .content(&format!(
+                            "You were found on the {} blacklist. Reason: {}",
+                            server.name, reason
+                        ))
+                        .unwrap()
+                        .exec()
+                        .await;
+                }
+                return Ok(embed);
             }
-            return Ok(embed);
-        },
-        UpdateUserResult::InvalidNickname(nickname) => {
-            let embed = EmbedBuilder::new()
-                .default_data()
-                .title("Update Failed")
-                .description(format!(
-                    "The supposed nickname {} is greater than 32 characters.",
-                    nickname
-                ))
-                .build()
-                .unwrap();
-            return Ok(embed);
-        }
-    };
+            UpdateUserResult::InvalidNickname(nickname) => {
+                let embed = EmbedBuilder::new()
+                    .default_data()
+                    .title("Update Failed")
+                    .description(format!(
+                        "The supposed nickname {} is greater than 32 characters.",
+                        nickname
+                    ))
+                    .build()
+                    .unwrap();
+                return Ok(embed);
+            }
+        };
     let end = chrono::Utc::now().timestamp_millis();
     let embed = EmbedBuilder::new()
         .default_data()

@@ -177,7 +177,8 @@ async fn modify_priority(
                 expected: "a number",
                 usage: GroupbindsModifyArguments::generate_help(),
                 name: "change",
-            }.into());
+            }
+            .into());
         }
     };
     let filter = doc! {"_id": guild.id};

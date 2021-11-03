@@ -211,7 +211,8 @@ async fn modify_priority(
                 expected: "a number",
                 usage: CustombindsModifyArguments::generate_help(),
                 name: "change",
-            }.into());
+            }
+            .into());
         }
     };
     let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};

@@ -24,10 +24,7 @@ use twilight_http::{error::ErrorType as DiscordErrorType, Client as Http};
 use twilight_standby::Standby;
 use twilight_util::link::webhook;
 
-use crate::{
-    error::RoError,
-    respond::Responder,
-};
+use crate::{error::RoError, respond::Responder};
 
 pub struct BotContextRef {
     // Config Items

@@ -62,14 +62,12 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 Ok(p) => p,
                 Err(_) => {
                     let embed = EmbedBuilder::new()
-                    .default_data()
-                    .color(Color::Red as u32)
-                    .title("Rank Bind Modification Failed")
-                    .description(format!(
-                        "Priority was not found to be a number",
-                    ))
-                    .build()
-                    .unwrap();
+                        .default_data()
+                        .color(Color::Red as u32)
+                        .title("Rank Bind Modification Failed")
+                        .description(format!("Priority was not found to be a number",))
+                        .build()
+                        .unwrap();
                     ctx.respond().embeds(&[embed])?.exec().await?;
                     return Ok(());
                 }
