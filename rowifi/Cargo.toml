@@ -21,7 +21,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
 tower = "0"
 tracing = "0"
-tracing-subscriber = "0"
+tracing-subscriber = { version = "0", features = ["env-filter"] }
 
 # Command Utilities
 base64 = "0.13"
@@ -34,7 +34,7 @@ regex = "1"
 sha2 = "0"
 
 # Twilight Modules
-twilight-gateway = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features= ["zlib-stock", "rustls-webpki-roots"] }
+twilight-gateway = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features= ["zlib-stock", "rustls-webpki-roots", "tracing"] }
 twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
 twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
 
