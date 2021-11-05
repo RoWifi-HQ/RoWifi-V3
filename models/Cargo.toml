@@ -11,7 +11,7 @@ itertools = "0"
 lazy_static = "1"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 prometheus = "0"
-rowifi-redis = { path = "../redis" }
+deadpool-redis = "0"
 regex = "1"
 serde = "1"
 serde_cbor = "0"

@@ -35,7 +35,7 @@ use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
     stats::BotStats,
 };
-use rowifi_redis::{RedisManager, RedisPool};
+use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use services::EventHandler;
 use std::{
     collections::HashMap,
@@ -173,6 +173,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let redis = RedisPool::builder(RedisManager::new(redis_conn).unwrap())
         .max_size(4)
+        .runtime(Runtime::Tokio1)
+        .recycle_timeout(Some(Duration::from_secs(30)))
+        .wait_timeout(Some(Duration::from_secs(30)))
+        .create_timeout(Some(Duration::from_secs(30)))
         .build()
         .unwrap();
     let _res = redis.get().await.expect("Redis Connection failed");

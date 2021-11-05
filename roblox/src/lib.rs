@@ -24,7 +24,7 @@ use rowifi_models::roblox::{
     user::{PartialUser, User},
     VecWrapper,
 };
-use rowifi_redis::{redis::AsyncCommands, RedisPool};
+use deadpool_redis::{redis::AsyncCommands, Pool};
 use serde::de::DeserializeOwned;
 use std::{result::Result as StdResult, env};
 
@@ -36,14 +36,14 @@ type Result<T> = StdResult<T, Error>;
 #[derive(Clone)]
 pub struct Client {
     client: HyperClient<HttpsConnector<HttpConnector>>,
-    redis_pool: RedisPool,
+    redis_pool: Pool,
     proxy: Option<String>
 }
 
 impl Client {
     /// Create an instance of the Roblox Client
     #[must_use]
-    pub fn new(redis_pool: RedisPool) -> Self {
+    pub fn new(redis_pool: Pool) -> Self {
         let proxy = env::var("RBX_PROXY").ok();
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
@@ -205,7 +205,7 @@ impl Client {
             .request::<VecWrapper<PartialUser>>(route, Method::POST, Some(body))
             .await?;
 
-        let mut pipe = rowifi_redis::redis::pipe();
+        let mut pipe = deadpool_redis::redis::pipe();
         let mut pipe = pipe.atomic();
         for user in &users.data {
             let key = format!("roblox:u:{}", user.id.0);

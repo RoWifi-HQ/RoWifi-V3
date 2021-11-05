@@ -6,7 +6,6 @@ members = [
     "framework",
     "framework/framework-derive",
     "models",
-    "redis",
     "roblox"
 ]
 

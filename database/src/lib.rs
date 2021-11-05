@@ -27,7 +27,7 @@ use rowifi_models::{
     guild::{BackupGuild, GuildType, RoGuild},
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
-use rowifi_redis::{redis::AsyncCommands, RedisPool};
+use deadpool_redis::{redis::AsyncCommands, Pool};
 use std::{collections::HashMap, result::Result as StdResult};
 
 pub use error::DatabaseError;
@@ -44,12 +44,12 @@ const PREMIUM: &str = "premium_new";
 #[derive(Clone)]
 pub struct Database {
     client: Client,
-    redis_pool: RedisPool,
+    redis_pool: Pool,
 }
 
 impl Database {
     /// Create a database instance by passing in the connection string and redis pool object
-    pub async fn new(conn_string: &str, redis_pool: RedisPool) -> Self {
+    pub async fn new(conn_string: &str, redis_pool: Pool) -> Self {
         let client_options = ClientOptions::parse(conn_string).await.unwrap();
         let client = Client::with_options(client_options).unwrap();
         Self { client, redis_pool }

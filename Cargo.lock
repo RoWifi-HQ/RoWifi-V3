@@ -370,7 +370,8 @@ checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 [[package]]
 name = "deadpool"
 version = "0.9.1"
-source = "git+https://github.com/bikeshedder/deadpool?branch=master#ef252a7c75d5455ff85224c20a4ffa6611ae5fd1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51dc1e92ba8164da131a4753a26cb1e7ebcfe617e56bb3c2b6136049c8ee5730"
 dependencies = [
  "async-trait",
  "deadpool-runtime",
@@ -379,9 +380,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "deadpool-redis"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9af95b44f3bbc1ab2ef8dc54ce81510f486e4bd05ed93ffa60ec5b2b5290a8ba"
+dependencies = [
+ "deadpool",
+ "redis",
+]
+
+[[package]]
 name = "deadpool-runtime"
 version = "0.1.2"
-source = "git+https://github.com/bikeshedder/deadpool?branch=master#ef252a7c75d5455ff85224c20a4ffa6611ae5fd1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eaa37046cc0f6c3cc6090fbdbf73ef0b8ef4cfcc37f6befc0020f63e8cf121e1"
+dependencies = [
+ "tokio",
+]
 
 [[package]]
 name = "deflate"
@@ -1509,8 +1524,9 @@ dependencies = [
 
 [[package]]
 name = "redis"
-version = "0.21.4-alpha.0"
-source = "git+https://github.com/mitsuhiko/redis-rs?branch=master#0a69346cd36f9df7709423c3106df024d13b92cf"
+version = "0.21.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f23ceed4c0e76b322657c2c3352ea116f9ec60a1a1aefeb3c84ed062c50865b"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -1592,10 +1608,10 @@ dependencies = [
 name = "roblox"
 version = "0.3.1"
 dependencies = [
+ "deadpool-redis",
  "hyper",
  "hyper-rustls",
  "rowifi-models",
- "rowifi-redis",
  "serde",
  "serde_cbor",
  "serde_json",
@@ -1612,6 +1628,7 @@ dependencies = [
  "chacha20poly1305",
  "chrono",
  "dashmap",
+ "deadpool-redis",
  "dotenv",
  "futures-util",
  "hyper",
@@ -1623,13 +1640,13 @@ dependencies = [
  "plotters",
  "prometheus",
  "rand",
+ "redis",
  "regex",
  "roblox",
  "rowifi-cache",
  "rowifi-database",
  "rowifi-framework",
  "rowifi-models",
- "rowifi-redis",
  "sha2",
  "tokio",
  "tokio-stream",
@@ -1654,10 +1671,10 @@ dependencies = [
 name = "rowifi-database"
 version = "3.1.1"
 dependencies = [
+ "deadpool-redis",
  "futures-util",
  "mongodb",
  "rowifi-models",
- "rowifi-redis",
  "tracing",
 ]
 
@@ -1693,26 +1710,17 @@ dependencies = [
 name = "rowifi-models"
 version = "3.1.2"
 dependencies = [
+ "deadpool-redis",
  "itertools",
  "lazy_static",
  "mongodb",
  "prometheus",
  "regex",
- "rowifi-redis",
  "serde",
  "serde_cbor",
  "serde_repr",
  "twilight-http",
  "twilight-model",
-]
-
-[[package]]
-name = "rowifi-redis"
-version = "3.0.0"
-dependencies = [
- "async-trait",
- "deadpool",
- "redis",
 ]
 
 [[package]]

@@ -7,8 +7,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+deadpool-redis = "0"
 futures-util = "0"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
 rowifi-models = { path = "../models" }
-rowifi-redis = { path = "../redis" }
 tracing = "0"

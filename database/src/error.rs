@@ -2,7 +2,7 @@ pub use mongodb::{
     bson::{de::Error as DeserializationError, ser::Error as SerializationError},
     error::Error as MongoError,
 };
-use rowifi_redis::{redis::RedisError, PoolError};
+use deadpool_redis::{redis::RedisError, PoolError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -13,7 +13,7 @@ pub enum DatabaseError {
     Serialization(SerializationError),
     Deserialization(DeserializationError),
     Mongo(Box<MongoError>),
-    Redis(PoolError<RedisError>),
+    Redis(PoolError),
 }
 
 impl Display for DatabaseError {
@@ -51,8 +51,8 @@ impl From<RedisError> for DatabaseError {
     }
 }
 
-impl From<PoolError<RedisError>> for DatabaseError {
-    fn from(err: PoolError<RedisError>) -> Self {
+impl From<PoolError> for DatabaseError {
+    fn from(err: PoolError) -> Self {
         DatabaseError::Redis(err)
     }
 }

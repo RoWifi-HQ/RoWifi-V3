@@ -13,7 +13,6 @@ rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
 rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
-rowifi-redis = { path = "../redis" }
 
 # Main Crates
 dashmap = "4"
@@ -41,9 +40,11 @@ twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twil
 
 # Utilities Crates
 dotenv = "0"
+deadpool-redis = "0"
 futures-util = "0"
 itertools = "0"
 lazy_static = "1"
 mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver", features = ["bson-chrono-0_4"] }
 patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 prometheus = "0"
+redis = { version = "0", default-features = false, features = ["aio", "tokio-comp", "connection-manager"] }

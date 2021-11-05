@@ -1,5 +1,5 @@
 use hyper::StatusCode;
-use rowifi_redis::{redis::RedisError, PoolError};
+use deadpool_redis::{redis::RedisError, PoolError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -79,8 +79,8 @@ impl From<RedisError> for Error {
     }
 }
 
-impl From<PoolError<RedisError>> for Error {
-    fn from(err: PoolError<RedisError>) -> Self {
+impl From<PoolError> for Error {
+    fn from(err: PoolError) -> Self {
         Self {
             source: Some(Box::new(err)),
             kind: ErrorKind::Redis,
