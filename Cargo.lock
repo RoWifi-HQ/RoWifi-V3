@@ -2365,7 +2365,7 @@ dependencies = [
 [[package]]
 name = "twilight-embed-builder"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "twilight-model",
 ]
@@ -2373,7 +2373,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "bitflags",
  "flate2",
@@ -2393,7 +2393,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "tokio",
  "tracing",
@@ -2403,7 +2403,7 @@ dependencies = [
 [[package]]
 name = "twilight-http"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -2419,7 +2419,7 @@ dependencies = [
 [[package]]
 name = "twilight-model"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "bitflags",
  "serde",
@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "dashmap",
  "futures-util",
@@ -2443,7 +2443,7 @@ dependencies = [
 [[package]]
 name = "twilight-util"
 version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#7982e4a061c184c8e93d9b0b92a6f972233d20a5"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#b28fdde4de976c071e7073dead657a17c5d82f78"
 dependencies = [
  "twilight-model",
 ]

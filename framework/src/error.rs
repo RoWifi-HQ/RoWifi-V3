@@ -13,7 +13,7 @@ use twilight_http::{
             create_followup_message::CreateFollowupMessageError,
             update_original_response::UpdateOriginalResponseError,
         },
-        prelude::{create_message::CreateMessageError, update_message::UpdateMessageError},
+        channel::message::{create_message::CreateMessageError, update_message::UpdateMessageError},
     },
     response::DeserializeBodyError,
     Error as DiscordHttpError,

@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 use twilight_http::{
     request::{
         application::interaction::{CreateFollowupMessage, UpdateOriginalResponse},
-        prelude::CreateMessage,
+        channel::message::create_message::CreateMessage,
     },
     response::ResponseFuture,
 };
