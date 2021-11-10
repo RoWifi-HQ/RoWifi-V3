@@ -91,7 +91,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
             }
             for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
-                    execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles),
+                    execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles, true, None),
                     sleep(Duration::from_secs(1))
                 );
             }
@@ -104,31 +104,37 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-async fn execute_chunk(
+pub async fn execute_chunk(
     user_chunk: &[RoGuildUser],
     ctx: &BotContext,
     server: &CachedGuild,
     guild: &RoGuild,
     guild_roles: &HashSet<RoleId>,
+    auto_detection: bool,
+    role_filter: Option<RoleId>
 ) -> Result<(), RoError> {
+    let log = if auto_detection { "Auto Detection" } else { "Mass Update" };
     for user in user_chunk {
         if let Some(member) = ctx
             .cache
             .member(server.id, UserId::new(user.discord_id as u64).unwrap())
         {
-            if let Some(bypass) = server.bypass_role {
-                if member.roles.contains(&bypass) {
+            if let Some(role_filter) = role_filter {
+                if !member.roles.contains(&role_filter) {
                     continue;
                 }
             }
-            tracing::trace!(id = user.discord_id, "Auto Detection for member");
+            if ctx.has_bypass_role(server, &member) {
+                continue;
+            }
+            tracing::trace!("{} for user id: {}", log, user.discord_id);
             let name = member.user.name.clone();
             let res = update_user(&ctx, member, user, server, guild, guild_roles, false).await;
             if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()
                         .default_data()
-                        .title(format!("Auto Detection: {}", name))
+                        .title(format!("{}: {}", log, name))
                         .update_log(&added_roles, &removed_roles, &disc_nick)
                         .build()
                         .unwrap();

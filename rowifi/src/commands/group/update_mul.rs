@@ -2,15 +2,16 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::{
         gateway::payload::outgoing::RequestGuildMembers,
-        id::{RoleId, UserId},
+        id::RoleId,
     },
     guild::GuildType,
     roblox::id::UserId as RobloxUserId,
 };
-use std::sync::atomic::Ordering;
+use tokio::time::sleep;
+use std::{env, sync::atomic::Ordering};
 use twilight_gateway::Event;
 
-use crate::utils::{update_user, UpdateUserResult};
+use crate::services::auto_detection::execute_chunk;
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -31,6 +32,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .content("Updating all members...")?
         .exec()
         .await?;
+    tracing::info!("Update-all queue started in {}", guild_id);
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -83,39 +85,27 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
+
+    let chunk_size = if let Ok(chunk_size) = env::var("CHUNK_SIZE") {
+        chunk_size.parse::<usize>().unwrap_or(5)
+    } else {
+        5
+    };
+
     tokio::spawn(async move {
-        for user_chunk in users.chunks(50) {
+        for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect::<Vec<_>>();
-            let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
-            for user in user_chunk {
-                if let Some(member) = c
-                    .bot
-                    .cache
-                    .member(guild_id, UserId::new(user.discord_id as u64).unwrap())
-                {
-                    if c.bot.has_bypass_role(&server, &member) {
-                        continue;
-                    }
-                    tracing::trace!(id = user.discord_id, "Mass Update for member");
-                    let name = member.user.name.clone();
-                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) =
-                        update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false)
-                            .await
-                    {
-                        if !added_roles.is_empty() || !removed_roles.is_empty() {
-                            let log_embed = EmbedBuilder::new()
-                                .default_data()
-                                .title(format!("Mass Update: {}", name))
-                                .update_log(&added_roles, &removed_roles, &disc_nick)
-                                .build()
-                                .unwrap();
-                            c.log_guild(guild_id, log_embed).await;
-                        }
-                    }
-                }
+            if let Err(err) = c.bot.roblox.get_users(&user_ids).await {
+                tracing::error!(err = ?err);
+            }
+            for user_sec_chunk in user_chunk.chunks(chunk_size) {
+                let (_, _) = tokio::join!(
+                    execute_chunk(user_sec_chunk, &ctx.bot, &server, &guild, &guild_roles, false, None),
+                    sleep(Duration::from_secs(1))
+                );
             }
         }
         let _ = c
@@ -166,6 +156,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .content("Updating all members...")?
         .exec()
         .await?;
+    tracing::info!("Update-all queue started in {}", guild_id);
 
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -218,42 +209,27 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
+
+    let chunk_size = if let Ok(chunk_size) = env::var("CHUNK_SIZE") {
+        chunk_size.parse::<usize>().unwrap_or(5)
+    } else {
+        5
+    };
+
     tokio::spawn(async move {
-        for user_chunk in users.chunks(50) {
+        for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
                 .map(|u| RobloxUserId(u.roblox_id as u64))
                 .collect::<Vec<_>>();
-            let _roblox_ids = c.bot.roblox.get_users(&user_ids).await;
-            for user in user_chunk {
-                if let Some(member) = c
-                    .bot
-                    .cache
-                    .member(guild_id, UserId::new(user.discord_id as u64).unwrap())
-                {
-                    if !member.roles.contains(&role_id) {
-                        continue;
-                    }
-                    if c.bot.has_bypass_role(&server, &member) {
-                        continue;
-                    }
-                    tracing::trace!(id = user.discord_id, "Mass Update for member");
-                    let name = member.user.name.clone();
-                    if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) =
-                        update_user(&ctx.bot, member, user, &server, &guild, &guild_roles, false)
-                            .await
-                    {
-                        if !added_roles.is_empty() || !removed_roles.is_empty() {
-                            let log_embed = EmbedBuilder::new()
-                                .default_data()
-                                .title(format!("Mass Update: {}", name))
-                                .update_log(&added_roles, &removed_roles, &disc_nick)
-                                .build()
-                                .unwrap();
-                            c.log_guild(guild_id, log_embed).await;
-                        }
-                    }
-                }
+            if let Err(err) = c.bot.roblox.get_users(&user_ids).await {
+                tracing::error!(err = ?err);
+            }
+            for user_sec_chunk in user_chunk.chunks(chunk_size) {
+                let (_, _) = tokio::join!(
+                    execute_chunk(user_sec_chunk, &ctx.bot, &server, &guild, &guild_roles, false, Some(role_id)),
+                    sleep(Duration::from_secs(1))
+                );
             }
         }
         let _ = c
