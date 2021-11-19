@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::RoGuild;
@@ -116,10 +117,13 @@ async fn add_roles(
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
-        if let Some(r) = parse_role(r) {
+        if let Some(resolved) = &ctx.resolved {
+            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
     }
+    role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
     let filter = doc! {"_id": guild.id};
     let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
     let update = doc! {"$push": {index_str: {"$each": role_ids.clone()}}};
@@ -135,10 +139,13 @@ async fn remove_roles(
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
-        if let Some(r) = parse_role(r) {
+        if let Some(resolved) = &ctx.resolved {
+            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
     }
+    role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
     let filter = doc! {"_id": guild.id};
     let index_str = format!("GroupBinds.{}.DiscordRoles", bind_index);
     let update = doc! {"$pullAll": {index_str: role_ids.clone()}};

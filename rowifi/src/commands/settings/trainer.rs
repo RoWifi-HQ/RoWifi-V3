@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
@@ -80,20 +81,21 @@ pub async fn trainer_add(
     let roles = discord_roles.split_ascii_whitespace().collect::<Vec<_>>();
     let mut roles_to_add = Vec::new();
     for role in roles {
-        if let Some(role_id) = parse_role(role) {
+        if let Some(resolved) = &ctx.resolved {
+            roles_to_add.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
                 .any(|r| r.id == RoleId::new(role_id).unwrap())
-                && !ctx
-                    .bot
-                    .trainer_roles
-                    .entry(guild_id)
-                    .or_default()
-                    .contains(&RoleId::new(role_id).unwrap())
             {
                 roles_to_add.push(role_id as i64);
             }
         }
+    }
+
+    {
+        let trainer_roles = ctx.bot.trainer_roles.entry(guild_id).or_default();
+        roles_to_add.retain(|r| !trainer_roles.contains(&RoleId::new(*r as u64).unwrap()));
     }
 
     let filter = doc! {"_id": guild.id};
@@ -131,7 +133,9 @@ pub async fn trainer_remove(
     let guild_id = ctx.guild_id.unwrap();
     let mut role_ids = Vec::new();
     for r in discord_roles.split_ascii_whitespace() {
-        if let Some(r) = parse_role(r) {
+        if let Some(resolved) = &ctx.resolved {
+            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
     }
@@ -174,7 +178,9 @@ pub async fn trainer_set(
     let roles = discord_roles.split_ascii_whitespace().collect::<Vec<_>>();
     let mut roles_to_set = Vec::new();
     for role in roles {
-        if let Some(role_id) = parse_role(role) {
+        if let Some(resolved) = &ctx.resolved {
+            roles_to_set.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
                 .any(|r| r.id == RoleId::new(role_id).unwrap())
@@ -183,6 +189,7 @@ pub async fn trainer_set(
             }
         }
     }
+    roles_to_set = roles_to_set.into_iter().unique().collect::<Vec<_>>();
 
     let filter = doc! {"_id": guild.id};
     let update = doc! {"$set": {"Settings.TrainerRoles": &roles_to_set}};
