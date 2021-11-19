@@ -272,11 +272,13 @@ pub async fn custombinds_new_common(
         Some(s) => s.unwrap_or_default(),
         None => await_reply("Enter the roles you wish to set for the bind.\nEnter `N/A` if you would not like to set roles. Please tag the roles to ensure the bot can recognize them.", &ctx).await?
     };
-    let mut discord_roles = Vec::new();
+    let mut roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
-        if let Some(role_id) = parse_role(role_str) {
+        if let Some(resolved) = &ctx.resolved {
+            roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(role_id) = parse_role(role_str) {
             if server_roles.contains(&RoleId::new(role_id).unwrap()) {
-                discord_roles.push(role_id as i64);
+                roles.push(role_id as i64);
             }
         }
     }
@@ -290,7 +292,7 @@ pub async fn custombinds_new_common(
         prefix: None,
         priority,
         command,
-        discord_roles,
+        discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
         template: Some(template),
     };
     let bind_bson = to_bson(&bind)?;

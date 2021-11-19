@@ -4,6 +4,7 @@ use rowifi_models::{
     bind::{AssetBind, AssetType, Template},
     discord::id::RoleId,
 };
+use itertools::Itertools;
 
 #[derive(FromArgs)]
 pub struct NewArguments {
@@ -64,7 +65,9 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let server_roles = ctx.bot.cache.roles(guild_id);
     let mut roles = Vec::new();
     for r in roles_to_add {
-        if let Some(role_id) = parse_role(r) {
+        if let Some(resolved) = &ctx.resolved {
+            roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+        } else if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
             }
@@ -74,7 +77,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let bind = AssetBind {
         id: asset_id,
         asset_type,
-        discord_roles: roles,
+        discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
         priority,
         template: Some(Template(template_str.clone())),
     };

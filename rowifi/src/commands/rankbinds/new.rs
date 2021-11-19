@@ -143,6 +143,8 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                     }
                 };
                 roles.push(role);
+            } else if let Some(resolved) = &ctx.resolved {
+                roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
             } else if let Some(role_id) = parse_role(role_to_add) {
                 if server_roles
                     .iter()
@@ -160,7 +162,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             rbx_rank_id: roblox_rank.id.0 as i64,
             prefix: None,
             priority,
-            discord_roles: roles,
+            discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
             template: Some(Template(template_str)),
         };
 
