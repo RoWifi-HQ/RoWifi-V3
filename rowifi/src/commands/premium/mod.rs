@@ -70,20 +70,20 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
                 (
                     member.user.id,
                     member.user.name.clone(),
-                    member.user.discriminator.clone(),
+                    member.user.discriminator,
                 )
             } else {
                 (
                     ctx.author.id,
                     ctx.author.name.clone(),
-                    ctx.author.discriminator.clone(),
+                    ctx.author.discriminator,
                 )
             }
         } else {
             (
                 ctx.author.id,
                 ctx.author.name.clone(),
-                ctx.author.discriminator.clone(),
+                ctx.author.discriminator,
             )
         }
     };

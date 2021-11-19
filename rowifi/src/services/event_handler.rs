@@ -214,7 +214,7 @@ impl Service<(u64, Event)> for EventHandler {
                             return Ok(());
                         },
                         UpdateUserResult::InvalidNickname(_) => return Ok(()),
-                        UpdateUserResult::Error(err) => return Err(err.into())
+                        UpdateUserResult::Error(err) => return Err(err)
                     };
                     let log_embed = EmbedBuilder::new()
                         .default_data()

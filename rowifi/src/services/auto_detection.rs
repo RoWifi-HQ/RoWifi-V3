@@ -141,7 +141,7 @@ pub async fn execute_chunk(
             }
             tracing::trace!("{} for user id: {}", log, user.discord_id);
             let name = member.user.name.clone();
-            let res = update_user(&ctx, member, user, server, guild, guild_roles, false).await;
+            let res = update_user(ctx, member, user, server, guild, guild_roles, false).await;
             if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()
