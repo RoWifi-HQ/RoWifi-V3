@@ -1,14 +1,11 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::{
-        gateway::payload::outgoing::RequestGuildMembers,
-        id::RoleId,
-    },
+    discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
     guild::GuildType,
     roblox::id::UserId as RobloxUserId,
 };
-use tokio::time::sleep;
 use std::{env, sync::atomic::Ordering};
+use tokio::time::sleep;
 use twilight_gateway::Event;
 
 use crate::services::auto_detection::execute_chunk;
@@ -103,7 +100,15 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             }
             for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
-                    execute_chunk(user_sec_chunk, &ctx.bot, &server, &guild, &guild_roles, false, None),
+                    execute_chunk(
+                        user_sec_chunk,
+                        &ctx.bot,
+                        &server,
+                        &guild,
+                        &guild_roles,
+                        false,
+                        None
+                    ),
                     sleep(Duration::from_secs(1))
                 );
             }
@@ -227,7 +232,15 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             }
             for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
-                    execute_chunk(user_sec_chunk, &ctx.bot, &server, &guild, &guild_roles, false, Some(role_id)),
+                    execute_chunk(
+                        user_sec_chunk,
+                        &ctx.bot,
+                        &server,
+                        &guild,
+                        &guild_roles,
+                        false,
+                        Some(role_id)
+                    ),
                     sleep(Duration::from_secs(1))
                 );
             }

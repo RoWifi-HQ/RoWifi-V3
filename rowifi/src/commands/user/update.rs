@@ -190,6 +190,7 @@ pub async fn update_func(
         {
             UpdateUserResult::Success(a, r, n) => (a, r, n),
             UpdateUserResult::Error(e) => {
+                #[allow(clippy::redundant_closure_for_method_calls)]
                 if let Some(source) = e
                     .source()
                     .and_then(|e| e.downcast_ref::<DiscordHttpError>())

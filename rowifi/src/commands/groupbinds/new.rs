@@ -1,10 +1,10 @@
+use itertools::Itertools;
 use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{GroupBind, Template},
     discord::id::RoleId,
 };
-use itertools::Itertools;
 
 #[derive(FromArgs)]
 pub struct GroupbindsNewArguments {

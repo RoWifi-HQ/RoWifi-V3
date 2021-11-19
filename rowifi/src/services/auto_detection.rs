@@ -91,7 +91,15 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
             }
             for user_sec_chunk in user_chunk.chunks(chunk_size) {
                 let (_, _) = tokio::join!(
-                    execute_chunk(user_sec_chunk, ctx, &server, &guild, &guild_roles, true, None),
+                    execute_chunk(
+                        user_sec_chunk,
+                        ctx,
+                        &server,
+                        &guild,
+                        &guild_roles,
+                        true,
+                        None
+                    ),
                     sleep(Duration::from_secs(1))
                 );
             }
@@ -111,9 +119,13 @@ pub async fn execute_chunk(
     guild: &RoGuild,
     guild_roles: &HashSet<RoleId>,
     auto_detection: bool,
-    role_filter: Option<RoleId>
+    role_filter: Option<RoleId>,
 ) -> Result<(), RoError> {
-    let log = if auto_detection { "Auto Detection" } else { "Mass Update" };
+    let log = if auto_detection {
+        "Auto Detection"
+    } else {
+        "Mass Update"
+    };
     for user in user_chunk {
         if let Some(member) = ctx
             .cache
@@ -129,7 +141,7 @@ pub async fn execute_chunk(
             }
             tracing::trace!("{} for user id: {}", log, user.discord_id);
             let name = member.user.name.clone();
-            let res = update_user(&ctx, member, user, server, guild, guild_roles, false).await;
+            let res = update_user(ctx, member, user, server, guild, guild_roles, false).await;
             if let UpdateUserResult::Success(added_roles, removed_roles, disc_nick) = res {
                 if !added_roles.is_empty() || !removed_roles.is_empty() {
                     let log_embed = EmbedBuilder::new()

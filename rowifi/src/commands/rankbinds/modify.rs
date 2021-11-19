@@ -66,7 +66,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                         .default_data()
                         .color(Color::Red as u32)
                         .title("Rank Bind Modification Failed")
-                        .description(format!("Priority was not found to be a number",))
+                        .description("Priority was not found to be a number")
                         .build()
                         .unwrap();
                     ctx.respond().embeds(&[embed])?.exec().await?;

@@ -53,7 +53,7 @@ pub async fn update_user(
     let user_roles = match ctx.roblox.get_user_roles(user_id).await {
         Ok(user_roles) => user_roles
             .iter()
-            .map(|r| (r.group.id.0 as i64, r.role.rank as i64))
+            .map(|r| (r.group.id.0 as i64, i64::from(r.role.rank)))
             .collect::<HashMap<_, _>>(),
         Err(e) => return UpdateUserResult::Error(e.into()),
     };
@@ -179,7 +179,7 @@ pub async fn update_user(
     let original_nick = member
         .nick
         .as_ref()
-        .map_or_else(|| member.user.name.as_str(), |s| s.as_str());
+        .map_or_else(|| member.user.name.as_str(), String::as_str);
     let nick_bypass = ctx.has_nickname_bypass(server, &member);
     let nickname = if nick_bypass {
         original_nick.to_string()

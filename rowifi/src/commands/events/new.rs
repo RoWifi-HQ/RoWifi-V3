@@ -235,8 +235,8 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .await?;
 
     let value = format!(
-        "Host: {}\nType: {}\nAttendees: {}",
-        format!("<@{}>", ctx.author.id.0),
+        "Host: <@{}>\nType: {}\nAttendees: {}",
+        ctx.author.id.0,
         event_type.name,
         new_event.attendees.len()
     );

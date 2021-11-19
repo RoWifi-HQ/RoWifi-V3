@@ -1,8 +1,8 @@
+use deadpool_redis::{redis::RedisError, PoolError};
 pub use mongodb::{
     bson::{de::Error as DeserializationError, ser::Error as SerializationError},
     error::Error as MongoError,
 };
-use deadpool_redis::{redis::RedisError, PoolError};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

@@ -226,8 +226,8 @@ impl Cache {
 
     fn cache_current_user(&self, mut current_user: CurrentUser) {
         let mut user = self.0.current_user.lock().expect("current user poisoned");
-        if let Some(mut user) = user.as_mut() {
-            if let Some(user) = Arc::get_mut(&mut user) {
+        if let Some(user) = user.as_mut() {
+            if let Some(user) = Arc::get_mut(user) {
                 std::mem::swap(user, &mut current_user);
                 return;
             }

@@ -12,6 +12,7 @@
 
 pub mod error;
 
+use deadpool_redis::{redis::AsyncCommands, Pool};
 use futures_util::stream::StreamExt;
 use mongodb::{
     bson::{self, doc, document::Document},
@@ -27,7 +28,6 @@ use rowifi_models::{
     guild::{BackupGuild, GuildType, RoGuild},
     user::{PremiumUser, QueueUser, RoGuildUser, RoUser},
 };
-use deadpool_redis::{redis::AsyncCommands, Pool};
 use std::{collections::HashMap, result::Result as StdResult};
 
 pub use error::DatabaseError;
