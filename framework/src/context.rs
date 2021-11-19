@@ -6,10 +6,10 @@ use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
 use rowifi_models::{
     discord::{
+        application::interaction::application_command::CommandInteractionDataResolved,
         channel::embed::Embed,
         id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
         user::User,
-        application::interaction::application_command::CommandInteractionDataResolved
     },
     stats::BotStats,
     user::RoGuildUser,
@@ -107,7 +107,7 @@ pub struct CommandContext {
     /// Bool whether callback has been invoked
     pub callback_invoked: Arc<AtomicBool>,
     /// The resolved data sent in an interaction
-    pub resolved: Option<CommandInteractionDataResolved>
+    pub resolved: Option<CommandInteractionDataResolved>,
 }
 
 impl BotContext {

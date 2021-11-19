@@ -21,6 +21,7 @@ use commands::{
     custombinds_config, events_config, group_config, groupbinds_config, premium_config,
     rankbinds_config, settings_config, user_config,
 };
+use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
     Body, Response, Server,
@@ -35,7 +36,6 @@ use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
     stats::BotStats,
 };
-use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use services::EventHandler;
 use std::{
     collections::HashMap,

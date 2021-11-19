@@ -111,7 +111,7 @@ impl Framework {
                     interaction_id: None,
                     interaction_token: None,
                     callback_invoked: Arc::new(AtomicBool::new(false)),
-                    resolved: None
+                    resolved: None,
                 };
                 let req = ServiceRequest::Help(args, embed);
                 return cmd.call((ctx, req));
@@ -261,7 +261,7 @@ impl Service<&Event> for Framework {
                     interaction_id: None,
                     interaction_token: None,
                     callback_invoked: Arc::new(AtomicBool::new(false)),
-                    resolved: None
+                    resolved: None,
                 };
 
                 let request = ServiceRequest::Message(cmd_str);
@@ -321,7 +321,7 @@ impl Service<&Event> for Framework {
                         interaction_id: Some(id),
                         interaction_token: Some(top_command.token.clone()),
                         callback_invoked: Arc::new(AtomicBool::new(false)),
-                        resolved: top_command.data.resolved.clone()
+                        resolved: top_command.data.resolved.clone(),
                     };
 
                     let request = ServiceRequest::Interaction(command_options.clone());

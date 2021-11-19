@@ -1,5 +1,5 @@
-use hyper::StatusCode;
 use deadpool_redis::{redis::RedisError, PoolError};
+use hyper::StatusCode;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

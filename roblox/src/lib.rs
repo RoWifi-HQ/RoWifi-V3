@@ -10,6 +10,7 @@
 pub mod error;
 mod route;
 
+use deadpool_redis::{redis::AsyncCommands, Pool};
 use hyper::{
     body::{self, Buf},
     client::HttpConnector,
@@ -24,9 +25,8 @@ use rowifi_models::roblox::{
     user::{PartialUser, User},
     VecWrapper,
 };
-use deadpool_redis::{redis::AsyncCommands, Pool};
 use serde::de::DeserializeOwned;
-use std::{result::Result as StdResult, env};
+use std::{env, result::Result as StdResult};
 
 use error::{Error, ErrorKind};
 use route::Route;
@@ -37,7 +37,7 @@ type Result<T> = StdResult<T, Error>;
 pub struct Client {
     client: HyperClient<HttpsConnector<HttpConnector>>,
     redis_pool: Pool,
-    proxy: Option<String>
+    proxy: Option<String>,
 }
 
 impl Client {
@@ -47,7 +47,11 @@ impl Client {
         let proxy = env::var("RBX_PROXY").ok();
         let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
         let client = HyperClient::builder().build(connector);
-        Self { client, redis_pool, proxy }
+        Self {
+            client,
+            redis_pool,
+            proxy,
+        }
     }
 
     /// Common method to make requests with the client
@@ -59,8 +63,10 @@ impl Client {
     ) -> Result<T> {
         let route = route.to_string();
         let builder = match &self.proxy {
-            Some(p) => Request::builder().uri(format!("{}?url={}", p, urlencoding::encode(&route))).method(method),
-            None => Request::builder().uri(&route).method(method)
+            Some(p) => Request::builder()
+                .uri(format!("{}?url={}", p, urlencoding::encode(&route)))
+                .method(method),
+            None => Request::builder().uri(&route).method(method),
         };
         let req = if let Some(bytes) = body {
             let len = bytes.len();
