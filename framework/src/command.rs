@@ -239,7 +239,7 @@ impl Debug for Command {
 
 async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
     let (kind, err) = err.parts();
-    
+
     #[allow(clippy::single_match_else)]
     match kind {
         ErrorKind::Command => {
