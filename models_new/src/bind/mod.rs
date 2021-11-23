@@ -1,5 +1,8 @@
 mod rank;
 mod template;
+mod asset;
+mod group;
+mod custom;
 
 pub use rank::Rankbind;
 pub use template::Template;
@@ -14,10 +17,13 @@ pub enum Bind {
     Rank(Rankbind),
 }
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[repr(u8)]
 pub enum BindType {
     Rank = 0,
+    Group = 1,
+    Custom = 2,
+    Asset = 3
 }
 
 impl FromRow for Bind {
@@ -25,6 +31,7 @@ impl FromRow for Bind {
         let kind = row.try_get("type")?;
         match kind {
             BindType::Rank => Ok(Bind::Rank(Rankbind::from_row(row)?)),
+            _ => todo!()
         }
     }
 }
@@ -35,10 +42,7 @@ impl ToSql for BindType {
         ty: &Type,
         out: &mut BytesMut,
     ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
-        let bind_type = match self {
-            BindType::Rank => 0,
-        };
-        i32::to_sql(&bind_type, ty, out)
+        i32::to_sql(&(*self as i32), ty, out)
     }
 
     fn accepts(ty: &Type) -> bool {
