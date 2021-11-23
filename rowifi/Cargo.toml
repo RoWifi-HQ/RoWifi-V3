@@ -11,8 +11,10 @@ edition = "2021"
 roblox = { path = "../roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
+rowifi-database-new = { path = '../database_new' }
 rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
+rowifi-models-new = { path = "../models_new" }
 
 # Main Crates
 dashmap = "4"

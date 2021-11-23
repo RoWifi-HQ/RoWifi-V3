@@ -313,7 +313,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1a816186fa68d9e426e3cb4ae4dff1fcd8e4a2c34b781bf7a822574a0d0aac8"
 dependencies = [
- "sct",
+ "sct 0.6.1",
 ]
 
 [[package]]
@@ -377,6 +377,18 @@ dependencies = [
  "deadpool-runtime",
  "num_cpus",
  "tokio",
+]
+
+[[package]]
+name = "deadpool-postgres"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46ff1451a33b8b31b15eedcf5401dbbb28606caed4fa94d20487eb3fac2ebd04"
+dependencies = [
+ "deadpool",
+ "log",
+ "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]
@@ -500,6 +512,12 @@ dependencies = [
  "cmake",
  "pkg-config",
 ]
+
+[[package]]
+name = "fallible-iterator"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 
 [[package]]
 name = "flate2"
@@ -865,11 +883,11 @@ dependencies = [
  "futures-util",
  "hyper",
  "log",
- "rustls",
+ "rustls 0.19.1",
  "tokio",
- "tokio-rustls",
- "webpki",
- "webpki-roots",
+ "tokio-rustls 0.22.0",
+ "webpki 0.21.4",
+ "webpki-roots 0.21.1",
 ]
 
 [[package]]
@@ -991,9 +1009,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.107"
+version = "0.2.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbe5e23404da5b4f555ef85ebed98fb4083e55a00c317800bc2a50ede9f3d219"
+checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
 
 [[package]]
 name = "libz-sys"
@@ -1141,7 +1159,7 @@ dependencies = [
  "pbkdf2",
  "percent-encoding",
  "rand",
- "rustls",
+ "rustls 0.19.1",
  "serde",
  "serde_bytes",
  "serde_with",
@@ -1153,15 +1171,15 @@ dependencies = [
  "take_mut",
  "thiserror",
  "tokio",
- "tokio-rustls",
+ "tokio-rustls 0.22.0",
  "tokio-util",
  "trust-dns-proto",
  "trust-dns-resolver",
  "typed-builder",
  "uuid",
  "version_check",
- "webpki",
- "webpki-roots",
+ "webpki 0.21.4",
+ "webpki-roots 0.21.1",
 ]
 
 [[package]]
@@ -1335,6 +1353,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "phf"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9fc3db1018c4b59d7d582a739436478b6035138b6aecbce989fc91c3e98409f"
+dependencies = [
+ "phf_shared",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6796ad771acdc0123d2a88dc428b5e38ef24456743ddb1744ed628f9815c096"
+dependencies = [
+ "siphasher",
+]
+
+[[package]]
 name = "pin-project"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1426,6 +1462,47 @@ dependencies = [
  "cpufeatures",
  "opaque-debug",
  "universal-hash",
+]
+
+[[package]]
+name = "postgres-derive"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c857dd221cb0e7d8414b894a0ce29eae44d453dda0baa132447878e75e701477"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "postgres-protocol"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b145e6a4ed52cb316a27787fc20fe8a25221cb476479f61e4e0327c15b98d91a"
+dependencies = [
+ "base64",
+ "byteorder",
+ "bytes",
+ "fallible-iterator",
+ "hmac",
+ "md-5",
+ "memchr",
+ "rand",
+ "sha2",
+ "stringprep",
+]
+
+[[package]]
+name = "postgres-types"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04619f94ba0cc80999f4fc7073607cb825bc739a883cb6d20900fc5e009d6b0d"
+dependencies = [
+ "bytes",
+ "fallible-iterator",
+ "postgres-derive",
+ "postgres-protocol",
 ]
 
 [[package]]
@@ -1663,8 +1740,10 @@ dependencies = [
  "roblox",
  "rowifi-cache",
  "rowifi-database",
+ "rowifi-database-new",
  "rowifi-framework",
  "rowifi-models",
+ "rowifi-models-new",
  "sha2",
  "tokio",
  "tokio-stream",
@@ -1697,6 +1776,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rowifi-database-new"
+version = "0.1.0"
+dependencies = [
+ "deadpool-postgres",
+ "rowifi-models-new",
+ "rustls 0.20.2",
+ "rustls-pemfile",
+ "tokio-postgres",
+ "tokio-postgres-rustls",
+ "tracing",
+ "webpki-roots 0.22.1",
+]
+
+[[package]]
 name = "rowifi-framework"
 version = "3.2.0"
 dependencies = [
@@ -1710,7 +1803,9 @@ dependencies = [
  "roblox",
  "rowifi-cache",
  "rowifi-database",
+ "rowifi-database-new",
  "rowifi-models",
+ "rowifi-models-new",
  "tokio",
  "tokio-stream",
  "tower",
@@ -1742,6 +1837,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rowifi-models-new"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "lazy_static",
+ "postgres-types",
+ "regex",
+ "tokio-postgres",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1759,8 +1865,29 @@ dependencies = [
  "base64",
  "log",
  "ring",
- "sct",
- "webpki",
+ "sct 0.6.1",
+ "webpki 0.21.4",
+]
+
+[[package]]
+name = "rustls"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d37e5e2290f3e040b594b1a9e04377c2c671f1a1cfd9bfdef82106ac1c113f84"
+dependencies = [
+ "log",
+ "ring",
+ "sct 0.7.0",
+ "webpki 0.22.0",
+]
+
+[[package]]
+name = "rustls-pemfile"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5eebeaeb360c87bfb72e84abdb3447159c0eaececf1bef2aecd65a8be949d1c9"
+dependencies = [
+ "base64",
 ]
 
 [[package]]
@@ -1795,6 +1922,16 @@ name = "sct"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
+name = "sct"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d53dcdb7c9f8158937a7981b48accfd39a43af418591a5d008c7b22b5e1b7ca4"
 dependencies = [
  "ring",
  "untrusted",
@@ -1970,6 +2107,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "siphasher"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "533494a8f9b724d33625ab53c6c4800f7cc445895924a8ef649222dcb76e938b"
+
+[[package]]
 name = "slab"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2131,14 +2274,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-postgres"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b6c8b33df661b548dcd8f9bf87debb8c56c05657ed291122e1188698c2ece95"
+dependencies = [
+ "async-trait",
+ "byteorder",
+ "bytes",
+ "fallible-iterator",
+ "futures",
+ "log",
+ "parking_lot",
+ "percent-encoding",
+ "phf",
+ "pin-project-lite",
+ "postgres-protocol",
+ "postgres-types",
+ "socket2 0.4.2",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
+name = "tokio-postgres-rustls"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "606f2b73660439474394432239c82249c0d45eb5f23d91f401be1e33590444a7"
+dependencies = [
+ "futures",
+ "ring",
+ "rustls 0.20.2",
+ "tokio",
+ "tokio-postgres",
+ "tokio-rustls 0.23.1",
+]
+
+[[package]]
 name = "tokio-rustls"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc6844de72e57df1980054b38be3a9f4702aba4858be64dd700181a8a6d0e1b6"
 dependencies = [
- "rustls",
+ "rustls 0.19.1",
  "tokio",
- "webpki",
+ "webpki 0.21.4",
+]
+
+[[package]]
+name = "tokio-rustls"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4baa378e417d780beff82bf54ceb0d195193ea6a00c14e22359e7f39456b5689"
+dependencies = [
+ "rustls 0.20.2",
+ "tokio",
+ "webpki 0.22.0",
 ]
 
 [[package]]
@@ -2161,12 +2352,12 @@ dependencies = [
  "futures-util",
  "log",
  "pin-project",
- "rustls",
+ "rustls 0.19.1",
  "tokio",
- "tokio-rustls",
+ "tokio-rustls 0.22.0",
  "tungstenite",
- "webpki",
- "webpki-roots",
+ "webpki 0.21.4",
+ "webpki-roots 0.21.1",
 ]
 
 [[package]]
@@ -2258,9 +2449,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80a4ddde70311d8da398062ecf6fc2c309337de6b0f77d6c27aff8d53f6fca52"
+checksum = "7507ec620f809cdf07cccb5bc57b13069a88031b795efd4079b1c71b66c1613d"
 dependencies = [
  "ansi_term",
  "lazy_static",
@@ -2353,19 +2544,19 @@ dependencies = [
  "input_buffer",
  "log",
  "rand",
- "rustls",
+ "rustls 0.19.1",
  "sha-1",
  "thiserror",
  "url",
  "utf-8",
- "webpki",
- "webpki-roots",
+ "webpki 0.21.4",
+ "webpki-roots 0.21.1",
 ]
 
 [[package]]
 name = "twilight-embed-builder"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "twilight-model",
 ]
@@ -2373,7 +2564,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "bitflags",
  "flate2",
@@ -2393,7 +2584,7 @@ dependencies = [
 [[package]]
 name = "twilight-gateway-queue"
 version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "tokio",
  "tracing",
@@ -2402,8 +2593,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-http"
-version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+version = "0.7.2"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "hyper",
  "hyper-rustls",
@@ -2418,8 +2609,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-model"
-version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+version = "0.7.2"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "bitflags",
  "serde",
@@ -2431,7 +2622,7 @@ dependencies = [
 [[package]]
 name = "twilight-standby"
 version = "0.7.1"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "dashmap",
  "futures-util",
@@ -2442,8 +2633,8 @@ dependencies = [
 
 [[package]]
 name = "twilight-util"
-version = "0.7.0"
-source = "git+https://github.com/twilight-rs/twilight?branch=main#efb604504f2fe199ef924fd6bfcadd5a63754491"
+version = "0.7.1"
+source = "git+https://github.com/twilight-rs/twilight?branch=main#90df4136a00c1f61f88b1bf02d7a3d9ad5ff6cfa"
 dependencies = [
  "twilight-model",
 ]
@@ -2668,12 +2859,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "webpki"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
 name = "webpki-roots"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aabe153544e473b775453675851ecc86863d2a81d786d741f6b76778f2a48940"
 dependencies = [
- "webpki",
+ "webpki 0.21.4",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c475786c6f47219345717a043a37ec04cb4bc185e28853adcc4fa0a947eba630"
+dependencies = [
+ "webpki 0.22.0",
 ]
 
 [[package]]

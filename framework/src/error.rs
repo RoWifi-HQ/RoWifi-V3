@@ -236,3 +236,18 @@ impl From<EmbedError> for RoError {
         }
     }
 }
+
+impl From<rowifi_database_new::error::DatabaseError> for RoError {
+    fn from(err: rowifi_database_new::error::DatabaseError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Database,
+        }
+    }
+}
+
+impl From<rowifi_database_new::error::PostgresError> for RoError {
+    fn from(err: rowifi_database_new::error::PostgresError) -> Self {
+        rowifi_database_new::error::DatabaseError::from(err).into()
+    }
+}

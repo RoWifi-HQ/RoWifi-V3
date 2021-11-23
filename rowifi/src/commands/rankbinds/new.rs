@@ -8,6 +8,7 @@ use rowifi_models::{
     bind::{RankBind, Template},
     roblox::id::GroupId,
 };
+use rowifi_models_new::bind::BindType;
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {
@@ -182,7 +183,27 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         }
     }
 
-    ctx.bot.database.add_guild(&guild, true).await?;
+    // ctx.bot.database.add_guild(&guild, true).await?;
+
+    let rankbind = added[0].clone();
+    let template = rowifi_models_new::bind::Template(rankbind.template.unwrap().0);
+    ctx.bot.database_new
+        .execute(
+            "INSERT INTO binds (guild_id, bind_type, group_id, discord_roles, group_rank_id, roblox_rank_id, template, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            &[
+                &(guild_id.get() as i64),
+                &BindType::Rank,
+                &rankbind.group_id,
+                &rankbind.discord_roles,
+                &rankbind.rank_id,
+                &rankbind.rbx_rank_id,
+                &template,
+                &(rankbind.priority as i32),
+            ],
+        )
+        .await
+        .unwrap();
+
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")
