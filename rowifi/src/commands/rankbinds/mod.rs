@@ -4,6 +4,7 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
+use rowifi_models_new::bind::Rankbind;
 
 pub use delete::*;
 pub use modify::*;
@@ -48,14 +49,18 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
     cmds.push(rankbinds);
 }
 
-#[derive(FromArgs)]
-pub struct RankbindArguments {}
-
-pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Result<(), RoError> {
+pub async fn rankbinds_view(ctx: CommandContext) -> Result<(), RoError> {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let rankbinds = ctx
+        .bot
+        .database_new
+        .query::<Rankbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = 0",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
-    if guild.rankbinds.is_empty() {
+    if rankbinds.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
@@ -69,26 +74,19 @@ pub async fn rankbinds_view(ctx: CommandContext, _args: RankbindArguments) -> Re
 
     let mut pages = Vec::new();
     let mut page_count: usize = 0;
-    let distinct_groups = guild.rankbinds.iter().group_by(|r| r.group_id);
+    let distinct_groups = rankbinds.iter().group_by(|r| r.group_id);
     for group in &distinct_groups {
         for rbs in &group.1.collect_vec().iter().chunks(12) {
             let mut embed = EmbedBuilder::new()
                 .default_data()
                 .title("Rankbinds")
                 .description(format!("Group {} | Page {}", group.0, page_count + 1));
-            let rbs = rbs.sorted_by_key(|r| r.rank_id);
+            let rbs = rbs.sorted_by_key(|r| r.group_rank_id);
             for rb in rbs {
-                let name = format!("Rank: {}", rb.rank_id);
-                let nick = if let Some(template) = &rb.template {
-                    format!("Template: `{}`\n", template)
-                } else if let Some(prefix) = &rb.prefix {
-                    format!("Prefix: `{}`\n", prefix)
-                } else {
-                    String::default()
-                };
+                let name = format!("Rank: {}", rb.group_rank_id);
                 let desc = format!(
-                    "{}Priority: {}\n Roles: {}",
-                    nick,
+                    "Template: `{}`\nPriority: {}\n Roles: {}",
+                    rb.template,
                     rb.priority,
                     rb.discord_roles
                         .iter()

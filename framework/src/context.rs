@@ -4,6 +4,7 @@ use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
+use rowifi_database_new::Database as DatabaseNew;
 use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
@@ -69,6 +70,7 @@ pub struct BotContextRef {
     // RoWifi Modules
     /// The module handling all connections to Mongo
     pub database: Database,
+    pub database_new: DatabaseNew,
     /// The Roblox API Wrapper struct
     pub roblox: Roblox,
     /// The Patreon API Wrapper struct
@@ -121,6 +123,7 @@ impl BotContext {
         cluster: Arc<Cluster>,
         standby: Standby,
         database: Database,
+        database_new: DatabaseNew,
         roblox: Roblox,
         patreon: Patreon,
         stats: Arc<BotStats>,
@@ -156,6 +159,7 @@ impl BotContext {
                 cluster,
                 standby,
                 database,
+                database_new,
                 roblox,
                 patreon,
                 stats,

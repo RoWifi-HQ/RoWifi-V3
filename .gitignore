@@ -4,3 +4,5 @@ rowifi.iml
 .env
 *.txt
 *.png
+*.pem
+*.sql

@@ -242,6 +242,21 @@ impl FromArg for u64 {
     }
 }
 
+impl FromArg for i32 {
+    type Error = ParseError;
+    fn from_arg(arg: &str) -> Result<Self, Self::Error> {
+        arg.parse::<i32>().map_err(|_| ParseError("a number"))
+    }
+
+    fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
+        match &option.value {
+            CommandOptionValue::Integer(value) => Ok(*value as i32),
+            CommandOptionValue::String(value) => Ok(value.parse::<i32>()?),
+            _ => unreachable!("i64 unreached"),
+        }
+    }
+}
+
 impl FromArg for i64 {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {

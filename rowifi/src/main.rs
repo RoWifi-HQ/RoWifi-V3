@@ -31,6 +31,7 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
+use rowifi_database_new::Database as DatabaseNew;
 use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
@@ -97,6 +98,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
     let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
+    let connection_string = env::var("CONN_STRING").unwrap();
     let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
     let cluster_id = env::var("CLUSTER_ID")
         .expect("Expected the cluster id in the enviornment")
@@ -182,6 +184,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let _res = redis.get().await.expect("Redis Connection failed");
 
     let database = Database::new(&conn_string, redis.clone()).await;
+    let database_new = DatabaseNew::new(&connection_string).await;
     let roblox = RobloxClient::new(redis.clone());
     let patreon = PatreonClient::new(&patreon_key);
 
@@ -203,6 +206,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster.clone(),
         standby,
         database,
+        database_new,
         roblox,
         patreon,
         stats,
