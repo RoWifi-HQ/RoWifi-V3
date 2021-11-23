@@ -1844,7 +1844,9 @@ dependencies = [
  "lazy_static",
  "postgres-types",
  "regex",
+ "serde",
  "tokio-postgres",
+ "twilight-model",
 ]
 
 [[package]]

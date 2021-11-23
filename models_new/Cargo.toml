@@ -10,4 +10,6 @@ bytes = "1"
 lazy_static = "1"
 postgres-types = { version = "0", features = ["derive"] }
 regex = "1"
+serde = "1"
 tokio-postgres = { version = "0" }
+twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
