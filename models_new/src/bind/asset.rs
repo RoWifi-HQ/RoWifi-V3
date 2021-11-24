@@ -6,7 +6,7 @@ use crate::FromRow;
 
 use super::template::Template;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Assetbind {
     /// The ID of the Roblox Asset
     pub asset_id: i64,

@@ -2,6 +2,7 @@ use super::Template;
 
 use crate::{FromRow, rolang::RoCommand};
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Custombind {
     /// The ID of the Custom Bind
     pub custom_bind_id: i32,

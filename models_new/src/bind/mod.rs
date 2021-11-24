@@ -6,6 +6,9 @@ mod custom;
 
 pub use rank::Rankbind;
 pub use template::Template;
+pub use group::Groupbind;
+pub use custom::Custombind;
+pub use asset::{AssetType, Assetbind};
 
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
@@ -15,6 +18,9 @@ use crate::FromRow;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Bind {
     Rank(Rankbind),
+    Group(Groupbind),
+    Custom(Custombind),
+    Asset(Assetbind)
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -31,7 +37,9 @@ impl FromRow for Bind {
         let kind = row.try_get("type")?;
         match kind {
             BindType::Rank => Ok(Bind::Rank(Rankbind::from_row(row)?)),
-            _ => todo!()
+            BindType::Group => Ok(Bind::Group(Groupbind::from_row(row)?)),
+            BindType::Custom => Ok(Bind::Custom(Custombind::from_row(row)?)),
+            BindType::Asset => Ok(Bind::Asset(Assetbind::from_row(row)?)),
         }
     }
 }
@@ -60,6 +68,9 @@ impl<'a> FromSql<'a> for BindType {
         let bind_type = i32::from_sql(ty, raw)?;
         match bind_type {
             0 => Ok(BindType::Rank),
+            1 => Ok(BindType::Group),
+            2 => Ok(BindType::Custom),
+            3 => Ok(BindType::Asset),
             _ => unreachable!(),
         }
     }
