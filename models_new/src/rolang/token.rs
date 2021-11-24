@@ -1,7 +1,7 @@
 use std::{cmp::PartialEq, convert::From, ops::BitXor, str::FromStr};
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Clone, PartialEq, Copy)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -39,7 +39,7 @@ pub enum Literal {
     Bool(bool),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

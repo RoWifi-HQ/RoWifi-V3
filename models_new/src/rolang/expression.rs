@@ -6,7 +6,7 @@ use super::{
     RoCommandUser,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Expression {
     Binary(Box<Expression>, Token, Box<Expression>),
     Unary(Token, Box<Expression>),

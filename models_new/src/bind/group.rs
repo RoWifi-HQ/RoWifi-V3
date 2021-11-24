@@ -2,7 +2,7 @@ use super::Template;
 
 use crate::FromRow;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Groupbind {
     /// The Id of the Roblox Group
     pub group_id: i64,

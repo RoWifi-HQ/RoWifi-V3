@@ -16,7 +16,7 @@ use parser::Parser;
 use scanner::Scanner;
 use token::Literal;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RoCommand {
     pub code: String,
     pub expr: Expression,
