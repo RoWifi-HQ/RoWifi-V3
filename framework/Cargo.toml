@@ -17,9 +17,7 @@ patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
 roblox = { path = "../roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }
-rowifi-database-new = { path = '../database_new' }
 rowifi-models = { path = "../models" }
-rowifi-models-new = { path = "../models_new" }
 tracing = "0"
 tokio = { version = "1", features = ["time"] }
 tokio-stream = { version = "0" }

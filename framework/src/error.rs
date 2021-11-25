@@ -1,6 +1,6 @@
 use patreon::PatreonError;
 use roblox::error::Error as RobloxError;
-use rowifi_database::{error::SerializationError as BsonSerializationError, DatabaseError};
+use rowifi_database::error::DatabaseError;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -180,12 +180,6 @@ impl From<CommandError> for RoError {
     }
 }
 
-impl From<BsonSerializationError> for RoError {
-    fn from(err: BsonSerializationError) -> Self {
-        DatabaseError::Serialization(err).into()
-    }
-}
-
 impl From<PatreonError> for RoError {
     fn from(err: PatreonError) -> Self {
         Self {
@@ -234,20 +228,5 @@ impl From<EmbedError> for RoError {
             source: Some(Box::new(CommandError::Message(MessageError::Embed(err)))),
             kind: ErrorKind::Command,
         }
-    }
-}
-
-impl From<rowifi_database_new::error::DatabaseError> for RoError {
-    fn from(err: rowifi_database_new::error::DatabaseError) -> Self {
-        Self {
-            source: Some(Box::new(err)),
-            kind: ErrorKind::Database,
-        }
-    }
-}
-
-impl From<rowifi_database_new::error::PostgresError> for RoError {
-    fn from(err: rowifi_database_new::error::PostgresError) -> Self {
-        rowifi_database_new::error::DatabaseError::from(err).into()
     }
 }

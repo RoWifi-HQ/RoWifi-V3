@@ -1,88 +1,135 @@
-use crate::rolang::{RoCommand, RoCommandUser};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
-use std::fmt;
+use bytes::BytesMut;
+use postgres_types::{ToSql, Type, IsNull, FromSql, to_sql_checked};
 
-#[derive(Debug, Clone)]
+use crate::rolang::{RoCommand, RoCommandUser};
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Blacklist {
-    pub id: String,
+    pub blacklist_id: i64,
     pub reason: String,
-    pub blacklist_type: BlacklistType,
+    pub data: BlacklistData
 }
 
-#[derive(Clone)]
-pub enum BlacklistType {
-    Name(String),
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BlacklistData {
+    User(i64),
     Group(i64),
-    Custom(RoCommand),
+    Custom(RoCommand)
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub enum BlacklistType {
+    User = 0,
+    Group = 1,
+    Custom = 2
+}
+
+#[derive(Debug, FromSql, ToSql)]
+#[postgres(name = "blacklist")]
+struct BlacklistIntermediary {
+    pub blacklist_id: i64,
+    pub reason: String,
+    pub kind: BlacklistType,
+    pub user_id: Option<i64>,
+    pub group_id: Option<i64>,
+    pub code: Option<String>
 }
 
 impl Blacklist {
+    pub const fn kind(&self) -> BlacklistType {
+        match self.data {
+            BlacklistData::User(_) => BlacklistType::User,
+            BlacklistData::Group(_) => BlacklistType::Group,
+            BlacklistData::Custom(_) => BlacklistType::Custom
+        }
+    }
+
     pub fn evaluate(&self, user: &RoCommandUser) -> Result<bool, String> {
-        match &self.blacklist_type {
-            BlacklistType::Name(name) => Ok(user.user.roblox_id.to_string().eq(name)),
-            BlacklistType::Group(id) => Ok(user.ranks.contains_key(id)),
-            BlacklistType::Custom(cmd) => Ok(cmd.evaluate(user)?),
+        match &self.data {
+            BlacklistData::User(u) => Ok(user.user.roblox_id == *u),
+            BlacklistData::Group(id) => Ok(user.ranks.contains_key(id)),
+            BlacklistData::Custom(cmd) => Ok(cmd.evaluate(user)?),
         }
     }
 }
 
-impl Serialize for Blacklist {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("Blacklist", 3)?;
-        state.serialize_field("_id", &self.id)?;
-        state.serialize_field("Reason", &self.reason)?;
-        let t = match self.blacklist_type {
-            BlacklistType::Name(_) => 0,
-            BlacklistType::Group(_) => 1,
-            BlacklistType::Custom(_) => 2,
+impl ToSql for Blacklist {
+    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        let (user_id, group_id, code) = match &self.data {
+            BlacklistData::User(u) => (Some(*u), None, None),
+            BlacklistData::Group(g) => (None, Some(*g), None),
+            BlacklistData::Custom(c) => (None, None, Some(c.code.clone()))
         };
-        state.serialize_field("Type", &t)?;
-        state.end()
+        let intermediary = BlacklistIntermediary {
+            blacklist_id: self.blacklist_id,
+            reason: self.reason.clone(),
+            kind: self.kind(),
+            user_id,
+            group_id,
+            code
+        };
+        BlacklistIntermediary::to_sql(&intermediary, ty, out)
     }
+
+    fn accepts(ty: &Type) -> bool {
+        <BlacklistIntermediary as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
 }
 
-impl<'de> Deserialize<'de> for Blacklist {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct EncodedBlacklist {
-            #[serde(rename = "_id")]
-            pub id: String,
-
-            #[serde(rename = "Reason")]
-            pub reason: String,
-
-            #[serde(rename = "Type")]
-            pub blacklist_type: i8,
-        }
-
-        let input = EncodedBlacklist::deserialize(deserializer)?;
-        let command = match input.blacklist_type {
-            0 => BlacklistType::Name(input.id.clone()),
-            1 => BlacklistType::Group(input.id.parse::<i64>().unwrap()),
-            2 => BlacklistType::Custom(RoCommand::new(&input.id).unwrap()),
-            _ => return Err(serde::de::Error::custom("Invalid blacklist type")),
+impl<'a> FromSql<'a> for Blacklist {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        let blacklist_intermediary = BlacklistIntermediary::from_sql(ty, raw)?;
+        let data = match blacklist_intermediary.kind {
+            BlacklistType::User => BlacklistData::User(blacklist_intermediary.user_id.unwrap()),
+            BlacklistType::Group => BlacklistData::Group(blacklist_intermediary.group_id.unwrap()),
+            BlacklistType::Custom => BlacklistData::Custom(RoCommand::new(&blacklist_intermediary.code.unwrap()).unwrap())
         };
-
         Ok(Blacklist {
-            id: input.id,
-            reason: input.reason,
-            blacklist_type: command,
+            blacklist_id: blacklist_intermediary.blacklist_id,
+            reason: blacklist_intermediary.reason,
+            data
         })
     }
+
+    fn accepts(ty: &Type) -> bool {
+        <BlacklistIntermediary as FromSql>::accepts(ty)
+    }
 }
 
-impl fmt::Debug for BlacklistType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            BlacklistType::Name(_) => write!(f, "Name"),
-            BlacklistType::Group(_) => write!(f, "Group"),
-            BlacklistType::Custom(_) => write!(f, "Custom"),
+impl ToSql for BlacklistType {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        i32::to_sql(&(*self as i32), ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <i32 as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl<'a> FromSql<'a> for BlacklistType {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        let bind_type = i32::from_sql(ty, raw)?;
+        match bind_type {
+            0 => Ok(BlacklistType::User),
+            1 => Ok(BlacklistType::Group),
+            2 => Ok(BlacklistType::Custom),
+            _ => unreachable!(),
         }
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <i32 as FromSql>::accepts(ty)
     }
 }

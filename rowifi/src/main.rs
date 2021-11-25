@@ -16,11 +16,11 @@ mod services;
 mod utils;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
-use commands::{
-    analytics_config, api_config, assetbinds_config, backup_config, blacklists_config,
-    custombinds_config, events_config, group_config, groupbinds_config, premium_config,
-    rankbinds_config, settings_config, user_config,
-};
+// use commands::{
+//     analytics_config, api_config, assetbinds_config, backup_config, blacklists_config,
+//     custombinds_config, events_config, group_config, groupbinds_config, premium_config,
+//     rankbinds_config, settings_config, user_config,
+// };
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -31,7 +31,6 @@ use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
 use rowifi_cache::Cache;
 use rowifi_database::Database;
-use rowifi_database_new::Database as DatabaseNew;
 use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
@@ -183,8 +182,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .unwrap();
     let _res = redis.get().await.expect("Redis Connection failed");
 
-    let database = Database::new(&conn_string, redis.clone()).await;
-    let database_new = DatabaseNew::new(&connection_string).await;
+    let database = Database::new(&connection_string).await;
     let roblox = RobloxClient::new(redis.clone());
     let patreon = PatreonClient::new(&patreon_key);
 
@@ -206,7 +204,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster.clone(),
         standby,
         database,
-        database_new,
         roblox,
         patreon,
         stats,
@@ -222,20 +219,20 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             | Permissions::EMBED_LINKS
             | Permissions::MANAGE_ROLES
             | Permissions::MANAGE_NICKNAMES,
-    )
-    .configure(user_config)
-    .configure(rankbinds_config)
-    .configure(analytics_config)
-    .configure(assetbinds_config)
-    .configure(backup_config)
-    .configure(blacklists_config)
-    .configure(custombinds_config)
-    .configure(events_config)
-    .configure(group_config)
-    .configure(api_config)
-    .configure(groupbinds_config)
-    .configure(settings_config)
-    .configure(premium_config);
+    );
+    // .configure(user_config)
+    // .configure(rankbinds_config)
+    // .configure(analytics_config)
+    // .configure(assetbinds_config)
+    // .configure(backup_config)
+    // .configure(blacklists_config)
+    // .configure(custombinds_config)
+    // .configure(events_config)
+    // .configure(group_config)
+    // .configure(api_config)
+    // .configure(groupbinds_config)
+    // .configure(settings_config)
+    // .configure(premium_config);
 
     let event_handler = EventHandler::new(&bot);
     let mut rowifi = RoWifi {
