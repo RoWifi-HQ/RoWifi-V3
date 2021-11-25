@@ -28,7 +28,7 @@ pub struct RoGuild {
 
     pub auto_detection: bool,
 
-    pub guild_type: GuildType,
+    pub kind: GuildType,
 
     pub premium_owner: Option<i64>,
 
@@ -73,7 +73,7 @@ impl FromRow for RoGuild {
         let disabled_channels = row.try_get("disabled_channels")?;
         let registered_groups = row.try_get("registered_groups")?;
         let auto_detection = row.try_get("auto_detection")?;
-        let guild_type = row.try_get("guild_type")?;
+        let kind = row.try_get("type")?;
         let premium_owner = row.try_get("premium_owner").ok();
         let blacklist_action = row.try_get("blacklist_action")?;
         let update_on_join = row.try_get("update_on_join")?;
@@ -92,7 +92,7 @@ impl FromRow for RoGuild {
             disabled_channels,
             registered_groups,
             auto_detection,
-            guild_type,
+            kind,
             premium_owner,
             blacklist_action,
             update_on_join,

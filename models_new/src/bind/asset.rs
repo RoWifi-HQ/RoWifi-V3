@@ -1,4 +1,4 @@
-use std::{str::FromStr, error::Error as StdError};
+use std::{str::FromStr, error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
 
@@ -55,6 +55,16 @@ impl FromStr for AssetType {
             "badge" => Ok(AssetType::Badge),
             "gamepass" => Ok(AssetType::Gamepass),
             _ => Err(()),
+        }
+    }
+}
+
+impl Display for AssetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match *self {
+            AssetType::Asset => f.write_str("Asset"),
+            AssetType::Badge => f.write_str("Badge"),
+            AssetType::Gamepass => f.write_str("Gamepass"),
         }
     }
 }
