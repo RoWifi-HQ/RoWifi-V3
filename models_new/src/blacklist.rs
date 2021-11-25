@@ -1,7 +1,7 @@
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, FromSql, to_sql_checked};
 
-use crate::rolang::RoCommand;
+use crate::rolang::{RoCommand, RoCommandUser};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Blacklist {
@@ -42,6 +42,14 @@ impl Blacklist {
             BlacklistData::User(_) => BlacklistType::User,
             BlacklistData::Group(_) => BlacklistType::Group,
             BlacklistData::Custom(_) => BlacklistType::Custom
+        }
+    }
+
+    pub fn evaluate(&self, user: &RoCommandUser) -> Result<bool, String> {
+        match &self.data {
+            BlacklistData::User(u) => Ok(user.user.roblox_id == *u),
+            BlacklistData::Group(id) => Ok(user.ranks.contains_key(id)),
+            BlacklistData::Custom(cmd) => Ok(cmd.evaluate(user)?),
         }
     }
 }

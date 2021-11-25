@@ -13,7 +13,7 @@ pub use asset::{AssetType, Assetbind};
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 
-use crate::FromRow;
+use crate::{FromRow, user::RoGuildUser, roblox::user::PartialUser as RobloxUser};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Bind {
@@ -30,6 +30,34 @@ pub enum BindType {
     Group = 1,
     Custom = 2,
     Asset = 3
+}
+
+impl Bind {
+    pub fn priority(&self) -> i32 {
+        match self {
+            Bind::Rank(r) => r.priority,
+            Bind::Group(g) => g.priority,
+            Bind::Custom(c) => c.priority,
+            Bind::Asset(a) => a.priority,
+        }
+    }
+
+    pub fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_username: &str) -> String {
+        match self {
+            Bind::Rank(r) => {
+                r.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Group(g) => {
+                g.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Custom(c) => {
+                c.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Asset(a) => {
+                a.template.nickname(roblox_user, user, discord_username)
+            }
+        }
+    }
 }
 
 impl FromRow for Bind {

@@ -1840,6 +1840,7 @@ dependencies = [
 name = "rowifi-models-new"
 version = "0.1.0"
 dependencies = [
+ "bitflags",
  "bytes",
  "lazy_static",
  "postgres-types",
