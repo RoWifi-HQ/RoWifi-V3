@@ -1,60 +1,62 @@
-use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{
-    collections::HashMap,
-    fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
-};
-use twilight_model::id::RoleId;
+use std::{str::FromStr, error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
+use bytes::BytesMut;
+use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
 
-use crate::roblox::user::PartialUser as RobloxUser;
-use crate::user::RoGuildUser;
+use crate::FromRow;
 
-use super::{template::Template, Backup, Bind};
+use super::template::Template;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct AssetBind {
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Assetbind {
     /// The ID of the Roblox Asset
-    #[serde(rename = "_id")]
-    pub id: i64,
+    pub asset_id: i64,
     /// The type of the Asset. Can be one of Asset, Badge, Gamepass
-    #[serde(rename = "Type")]
     pub asset_type: AssetType,
     /// The discord roles bounded to the asset
-    #[serde(rename = "DiscordRoles")]
     pub discord_roles: Vec<i64>,
     /// The number that decides whether this bind is chosen for the nickname
-    #[serde(rename = "Priority", default)]
-    pub priority: i64,
+    pub priority: i32,
     /// The format of the nickname if this bind is chosen
-    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>,
+    pub template: Template,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct BackupAssetBind {
-    #[serde(rename = "_id")]
-    pub id: i64,
-
-    #[serde(rename = "Type")]
-    pub asset_type: AssetType,
-
-    #[serde(rename = "DiscordRoles")]
-    pub discord_roles: Vec<String>,
-
-    #[serde(rename = "Priority", default)]
-    pub priority: i64,
-
-    #[serde(rename = "Template", skip_serializing_if = "Option::is_none")]
-    pub template: Option<Template>,
-}
-
-#[derive(Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq, Copy, Clone)]
-#[repr(i8)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+#[repr(u8)]
 pub enum AssetType {
-    Asset,
-    Badge,
-    Gamepass,
+    Asset = 0,
+    Badge = 1,
+    Gamepass = 2,
+}
+
+impl FromRow for Assetbind {
+    fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let asset_id = row.try_get("asset_id")?;
+        let asset_type = row.try_get("asset_type")?;
+        let discord_roles = row.try_get("discord_roles")?;
+        let priority = row.try_get("priority")?;
+        let template = row.try_get("template")?;
+
+        Ok(Self {
+            asset_id,
+            asset_type,
+            discord_roles,
+            priority,
+            template,
+        })
+    }
+}
+
+impl FromStr for AssetType {
+    type Err = ();
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "asset" => Ok(AssetType::Asset),
+            "badge" => Ok(AssetType::Badge),
+            "gamepass" => Ok(AssetType::Gamepass),
+            _ => Err(()),
+        }
+    }
 }
 
 impl Display for AssetType {
@@ -67,70 +69,37 @@ impl Display for AssetType {
     }
 }
 
-impl FromStr for AssetType {
-    type Err = ();
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "asset" => Ok(AssetType::Asset),
-            "badge" => Ok(AssetType::Badge),
-            "gamepass" => Ok(AssetType::Gamepass),
-            _ => Err(()),
-        }
-    }
-}
-
-impl Backup for AssetBind {
-    type BackupBind = BackupAssetBind;
-
-    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind {
-        let mut discord_roles = Vec::new();
-        for role_id in &self.discord_roles {
-            if let Some(role) = roles.get(&RoleId::new(*role_id as u64).unwrap()) {
-                discord_roles.push(role.clone());
-            }
-        }
-
-        BackupAssetBind {
-            id: self.id,
-            asset_type: self.asset_type,
-            discord_roles,
-            priority: self.priority,
-            template: self.template.clone(),
-        }
-    }
-
-    fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self {
-        let mut discord_roles = Vec::new();
-        for role_name in &bind.discord_roles {
-            let role = roles.get(role_name).unwrap().0.get() as i64;
-            discord_roles.push(role);
-        }
-
-        AssetBind {
-            id: bind.id,
-            asset_type: bind.asset_type,
-            discord_roles,
-            priority: bind.priority,
-            template: bind.template.clone(),
-        }
-    }
-}
-
-impl Bind for AssetBind {
-    fn nickname(
+impl ToSql for AssetType {
+    fn to_sql(
         &self,
-        roblox_user: &RobloxUser,
-        user: &RoGuildUser,
-        discord_username: &str,
-        _discord_nick: &Option<String>,
-    ) -> String {
-        if let Some(template) = &self.template {
-            return template.nickname(roblox_user, user, discord_username);
-        }
-        roblox_user.name.clone()
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+        i32::to_sql(&(*self as i32), ty, out)
     }
 
-    fn priority(&self) -> i64 {
-        self.priority
+    fn accepts(ty: &Type) -> bool {
+        <i32 as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl<'a> FromSql<'a> for AssetType {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn StdError + Sync + Send>> {
+        let bind_type = i32::from_sql(ty, raw)?;
+        match bind_type {
+            0 => Ok(AssetType::Asset),
+            1 => Ok(AssetType::Badge),
+            2 => Ok(AssetType::Gamepass),
+            _ => unreachable!(),
+        }
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <i32 as FromSql>::accepts(ty)
     }
 }

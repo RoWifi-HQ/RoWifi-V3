@@ -4,6 +4,7 @@ use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
 };
+use serde_cbor::Error as SerdeCborError;
 
 #[derive(Debug)]
 pub struct Error {
@@ -81,6 +82,15 @@ impl From<RedisError> for Error {
 
 impl From<PoolError> for Error {
     fn from(err: PoolError) -> Self {
+        Self {
+            source: Some(Box::new(err)),
+            kind: ErrorKind::Redis,
+        }
+    }
+}
+
+impl From<SerdeCborError> for Error {
+    fn from(err: SerdeCborError) -> Self {
         Self {
             source: Some(Box::new(err)),
             kind: ErrorKind::Redis,

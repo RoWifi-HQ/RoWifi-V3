@@ -1,20 +1,17 @@
 [package]
 name = "rowifi-models"
-version = "3.1.2"
-authors = ["Gautam.A <gautam.abhyankar@gmail.com>"]
+version = "3.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-itertools = "0"
+bitflags = "1"
+bytes = "1"
 lazy_static = "1"
-mongodb = { branch = "master", git = "https://github.com/mongodb/mongo-rust-driver" }
+postgres-types = { version = "0", features = ["derive"] }
 prometheus = "0"
-deadpool-redis = "0"
 regex = "1"
 serde = "1"
-serde_cbor = "0"
-serde_repr = "0"
-twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
+tokio-postgres = { version = "0" }
 twilight-model = { branch = "main", git = "https://github.com/twilight-rs/twilight" }

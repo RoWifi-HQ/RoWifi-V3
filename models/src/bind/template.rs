@@ -1,6 +1,7 @@
+use bytes::BytesMut;
 use lazy_static::lazy_static;
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::roblox::user::PartialUser as RobloxUser;
@@ -10,7 +11,7 @@ lazy_static! {
     static ref TEMPLATE_REGEX: Regex = Regex::new(r"\{(.*?)\}").unwrap();
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Template(pub String);
 
 impl Template {
@@ -91,5 +92,34 @@ impl Default for Template {
 impl Display for Template {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.0)
+    }
+}
+
+impl ToSql for Template {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        String::to_sql(&self.0, ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <String as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl<'a> FromSql<'a> for Template {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        Ok(Template(String::from_sql(ty, raw)?))
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <String as FromSql>::accepts(ty)
     }
 }

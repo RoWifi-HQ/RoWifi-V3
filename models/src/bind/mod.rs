@@ -1,35 +1,109 @@
-mod asset;
-mod custom;
-mod group;
 mod rank;
 mod template;
+mod asset;
+mod group;
+mod custom;
 
-pub use asset::*;
-pub use custom::*;
-pub use group::*;
-pub use rank::*;
-pub use template::*;
+pub use rank::Rankbind;
+pub use template::Template;
+pub use group::Groupbind;
+pub use custom::Custombind;
+pub use asset::{AssetType, Assetbind};
 
-use std::{collections::HashMap, fmt::Debug};
-use twilight_model::id::RoleId;
+use bytes::BytesMut;
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 
-use crate::roblox::user::PartialUser as RobloxUser;
-use crate::user::RoGuildUser;
+use crate::{FromRow, user::RoGuildUser, roblox::user::PartialUser as RobloxUser};
 
-pub trait Backup {
-    type BackupBind;
-
-    fn to_backup(&self, roles: &HashMap<RoleId, String>) -> Self::BackupBind;
-    fn from_backup(bind: &Self::BackupBind, roles: &HashMap<String, RoleId>) -> Self;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Bind {
+    Rank(Rankbind),
+    Group(Groupbind),
+    Custom(Custombind),
+    Asset(Assetbind)
 }
 
-pub trait Bind: Send + Sync + Debug {
-    fn nickname(
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub enum BindType {
+    Rank = 0,
+    Group = 1,
+    Custom = 2,
+    Asset = 3
+}
+
+impl Bind {
+    pub fn priority(&self) -> i32 {
+        match self {
+            Bind::Rank(r) => r.priority,
+            Bind::Group(g) => g.priority,
+            Bind::Custom(c) => c.priority,
+            Bind::Asset(a) => a.priority,
+        }
+    }
+
+    pub fn nickname(&self, roblox_user: &RobloxUser, user: &RoGuildUser, discord_username: &str) -> String {
+        match self {
+            Bind::Rank(r) => {
+                r.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Group(g) => {
+                g.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Custom(c) => {
+                c.template.nickname(roblox_user, user, discord_username)
+            },
+            Bind::Asset(a) => {
+                a.template.nickname(roblox_user, user, discord_username)
+            }
+        }
+    }
+}
+
+impl FromRow for Bind {
+    fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let kind = row.try_get("type")?;
+        match kind {
+            BindType::Rank => Ok(Bind::Rank(Rankbind::from_row(row)?)),
+            BindType::Group => Ok(Bind::Group(Groupbind::from_row(row)?)),
+            BindType::Custom => Ok(Bind::Custom(Custombind::from_row(row)?)),
+            BindType::Asset => Ok(Bind::Asset(Assetbind::from_row(row)?)),
+        }
+    }
+}
+
+impl ToSql for BindType {
+    fn to_sql(
         &self,
-        roblox_user: &RobloxUser,
-        user: &RoGuildUser,
-        discord_username: &str,
-        discord_nick: &Option<String>,
-    ) -> String;
-    fn priority(&self) -> i64;
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        i32::to_sql(&(*self as i32), ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <i32 as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl<'a> FromSql<'a> for BindType {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        let bind_type = i32::from_sql(ty, raw)?;
+        match bind_type {
+            0 => Ok(BindType::Rank),
+            1 => Ok(BindType::Group),
+            2 => Ok(BindType::Custom),
+            3 => Ok(BindType::Asset),
+            _ => unreachable!(),
+        }
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <i32 as FromSql>::accepts(ty)
+    }
 }

@@ -172,10 +172,11 @@ impl Client {
                         route: Route::UsersById.to_string(),
                     },
                 })?;
-            let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
+            let _: () = conn.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600).await?;
             Ok(user)
         } else {
-            let user: Option<PartialUser> = conn.get(&key).await?;
+            let bytes: Vec<u8> = conn.get(&key).await?;
+            let user: Option<PartialUser> = serde_cbor::from_slice(&bytes)?;
             if let Some(u) = user {
                 Ok(u)
             } else {
@@ -192,7 +193,7 @@ impl Client {
                             route: Route::UsersById.to_string(),
                         },
                     })?;
-                let _: () = conn.set_ex(key, user.clone(), 24 * 3600).await?;
+                let _: () = conn.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600).await?;
                 Ok(user)
             }
         }
@@ -215,7 +216,7 @@ impl Client {
         let mut pipe = pipe.atomic();
         for user in &users.data {
             let key = format!("roblox:u:{}", user.id.0);
-            pipe = pipe.set_ex(key, user.clone(), 24 * 3600);
+            pipe = pipe.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600);
         }
         let _: () = pipe.query_async(&mut conn).await?;
 

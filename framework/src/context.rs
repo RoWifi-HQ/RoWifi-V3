@@ -4,7 +4,6 @@ use patreon::Client as Patreon;
 use roblox::Client as Roblox;
 use rowifi_cache::{Cache, CachedGuild, CachedMember};
 use rowifi_database::Database;
-use rowifi_database_new::Database as DatabaseNew;
 use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
@@ -70,7 +69,6 @@ pub struct BotContextRef {
     // RoWifi Modules
     /// The module handling all connections to Mongo
     pub database: Database,
-    pub database_new: DatabaseNew,
     /// The Roblox API Wrapper struct
     pub roblox: Roblox,
     /// The Patreon API Wrapper struct
@@ -123,7 +121,6 @@ impl BotContext {
         cluster: Arc<Cluster>,
         standby: Standby,
         database: Database,
-        database_new: DatabaseNew,
         roblox: Roblox,
         patreon: Patreon,
         stats: Arc<BotStats>,
@@ -159,7 +156,6 @@ impl BotContext {
                 cluster,
                 standby,
                 database,
-                database_new,
                 roblox,
                 patreon,
                 stats,
@@ -219,13 +215,13 @@ impl CommandContext {
         }
     }
 
-    pub async fn get_linked_user(
-        &self,
-        user_id: UserId,
-        guild_id: GuildId,
-    ) -> Result<Option<RoGuildUser>, RoError> {
-        self.bot.get_linked_user(user_id, guild_id).await
-    }
+    // pub async fn get_linked_user(
+    //     &self,
+    //     user_id: UserId,
+    //     guild_id: GuildId,
+    // ) -> Result<Option<RoGuildUser>, RoError> {
+    //     self.bot.get_linked_user(user_id, guild_id).await
+    // }
 
     pub async fn log_guild(&self, guild_id: GuildId, embed: Embed) {
         self.bot.log_guild(guild_id, embed).await;
@@ -246,27 +242,27 @@ impl CommandContext {
 
 impl BotContext {
     #[allow(clippy::cast_possible_wrap)]
-    pub async fn get_linked_user(
-        &self,
-        user_id: UserId,
-        guild_id: GuildId,
-    ) -> Result<Option<RoGuildUser>, RoError> {
-        let mut linked_user = self
-            .database
-            .get_linked_user(user_id.0.get(), guild_id.0.get())
-            .await?;
-        if linked_user.is_none() {
-            let user = self.database.get_user(user_id.0.get()).await?;
-            if let Some(user) = user {
-                linked_user = Some(RoGuildUser {
-                    guild_id: guild_id.0.get() as i64,
-                    discord_id: user.discord_id,
-                    roblox_id: user.roblox_id,
-                });
-            }
-        }
-        Ok(linked_user)
-    }
+    // pub async fn get_linked_user(
+    //     &self,
+    //     user_id: UserId,
+    //     guild_id: GuildId,
+    // ) -> Result<Option<RoGuildUser>, RoError> {
+    //     let mut linked_user = self
+    //         .database
+    //         .get_linked_user(user_id.0.get(), guild_id.0.get())
+    //         .await?;
+    //     if linked_user.is_none() {
+    //         let user = self.database.get_user(user_id.0.get()).await?;
+    //         if let Some(user) = user {
+    //             linked_user = Some(RoGuildUser {
+    //                 guild_id: guild_id.0.get() as i64,
+    //                 discord_id: user.discord_id,
+    //                 roblox_id: user.roblox_id,
+    //             });
+    //         }
+    //     }
+    //     Ok(linked_user)
+    // }
 
     pub async fn log_debug(&self, embed: Embed) {
         let (id, token) = self.webhooks.get("debug").unwrap();
