@@ -1521,6 +1521,7 @@ name = "rowifi-database"
 version = "3.2.0"
 dependencies = [
  "deadpool-postgres",
+ "itertools",
  "rowifi-models",
  "rustls 0.20.2",
  "rustls-pemfile",

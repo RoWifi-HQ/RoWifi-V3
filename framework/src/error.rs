@@ -1,6 +1,6 @@
 use patreon::PatreonError;
 use roblox::error::Error as RobloxError;
-use rowifi_database::error::DatabaseError;
+use rowifi_database::error::{DatabaseError, PostgresError};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -150,6 +150,12 @@ impl From<RobloxError> for RoError {
             source: Some(Box::new(err)),
             kind: ErrorKind::Roblox,
         }
+    }
+}
+
+impl From<PostgresError> for RoError {
+    fn from(err: PostgresError) -> Self {
+        DatabaseError::from(err).into()
     }
 }
 

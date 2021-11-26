@@ -16,11 +16,7 @@ mod services;
 mod utils;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
-// use commands::{
-//     analytics_config, api_config, assetbinds_config, backup_config, blacklists_config,
-//     custombinds_config, events_config, group_config, groupbinds_config, premium_config,
-//     rankbinds_config, settings_config, user_config,
-// };
+use commands::{rankbinds_config};
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -96,7 +92,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISC_TOKEN").expect("Expected Discord Token in the enviornment");
-    let conn_string = env::var("DB_CONN").expect("Expceted database connection in env");
     let connection_string = env::var("CONN_STRING").unwrap();
     let patreon_key = env::var("PATREON").expect("Expected a Patreon key in the environment");
     let cluster_id = env::var("CLUSTER_ID")
@@ -219,9 +214,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             | Permissions::EMBED_LINKS
             | Permissions::MANAGE_ROLES
             | Permissions::MANAGE_NICKNAMES,
-    );
+    )
     // .configure(user_config)
-    // .configure(rankbinds_config)
+    .configure(rankbinds_config)
     // .configure(analytics_config)
     // .configure(assetbinds_config)
     // .configure(backup_config)
@@ -233,6 +228,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // .configure(groupbinds_config)
     // .configure(settings_config)
     // .configure(premium_config);
+    ;
 
     let event_handler = EventHandler::new(&bot);
     let mut rowifi = RoWifi {

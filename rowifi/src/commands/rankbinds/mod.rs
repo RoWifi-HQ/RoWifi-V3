@@ -4,7 +4,7 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models_new::bind::Rankbind;
+use rowifi_models::bind::{Rankbind, BindType};
 
 pub use delete::*;
 pub use modify::*;
@@ -53,10 +53,10 @@ pub async fn rankbinds_view(ctx: CommandContext) -> Result<(), RoError> {
     let guild_id = ctx.guild_id.unwrap();
     let rankbinds = ctx
         .bot
-        .database_new
+        .database
         .query::<Rankbind>(
-            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = 0",
-            &[&(guild_id.get() as i64)],
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2 ORDER BY group_id ASC, group_rank_id ASC",
+            &[&(guild_id.get() as i64), &BindType::Rank],
         )
         .await?;
 

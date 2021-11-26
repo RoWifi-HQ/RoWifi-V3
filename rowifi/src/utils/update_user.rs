@@ -2,8 +2,9 @@ use std::collections::{HashSet, HashMap};
 use itertools::Itertools;
 use rowifi_cache::{CachedMember, CachedGuild};
 use rowifi_framework::{context::BotContext, error::RoError};
-use rowifi_models::{user::RoGuildUser, guild::{RoGuild, BlacklistActionType}, bind::Bind, discord::id::RoleId, rolang::RoCommandUser, roblox::user::PartialUser as RobloxUser, roblox::id::{UserId as RobloxUserId, AssetId as RobloxAssetId}};
+use rowifi_models::{user::RoGuildUser, guild::{RoGuild, BlacklistActionType}, bind::Bind, discord::id::RoleId, rolang::RoCommandUser, roblox::id::{UserId as RobloxUserId, AssetId as RobloxAssetId}};
 
+#[allow(dead_code)]
 pub struct UpdateUser<'u> {
     ctx: &'u BotContext,
     member: &'u CachedMember,
@@ -16,6 +17,7 @@ pub struct UpdateUser<'u> {
     all_roles: &'u [i64]
 }
 
+#[allow(dead_code)]
 pub enum UpdateUserResult {
     Success(Vec<RoleId>, Vec<RoleId>, String),
     Blacklist(String),
@@ -24,6 +26,7 @@ pub enum UpdateUserResult {
 }
 
 impl UpdateUser<'_> {
+    #[allow(dead_code)]
     pub async fn execute(self) -> UpdateUserResult {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();

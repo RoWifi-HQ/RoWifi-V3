@@ -1,14 +1,13 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use mongodb::bson::doc;
 use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::id::RoleId;
 use rowifi_models::{
-    bind::{RankBind, Template},
+    bind::{Rankbind, Template, BindType},
     roblox::id::GroupId,
 };
-use rowifi_models_new::bind::BindType;
+use rowifi_database::postgres::IsolationLevel;
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {
@@ -23,7 +22,7 @@ pub struct NewRankbind {
     )]
     pub template: String,
     #[arg(help = "The number that tells the bot which bind to choose for the nickname")]
-    pub priority: Option<i64>,
+    pub priority: Option<i32>,
     #[arg(
         help = "The discord roles to add to the bind. To tell the bot to create roles, put `auto` ",
         rest
@@ -37,7 +36,7 @@ lazy_static! {
 
 pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let mut guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let rankbinds = ctx.bot.database.query::<Rankbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2", &[&(guild_id.0.get() as i64), &BindType::Rank]).await?;
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
 
     let group_id = args.group_id;
@@ -105,6 +104,12 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
     let mut added = Vec::new();
     let mut modified = Vec::new();
 
+    let mut database = ctx.bot.database.get().await?;
+    let transaction = database.build_transaction()
+        .isolation_level(IsolationLevel::RepeatableRead)
+        .read_only(false)
+        .start().await?;
+
     for roblox_rank in roblox_ranks {
         let template_str = match template.as_str() {
             "auto" => match PREFIX_REGEX.captures(&roblox_rank.name) {
@@ -157,52 +162,35 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         }
 
         let rank_id = i64::from(roblox_rank.rank);
-        let bind = RankBind {
+        let bind = Rankbind {
+            // Don't care about the bind id here. The struct is only constructed to validate that all bind fields are being collected.
+            bind_id: 0,
             group_id,
-            rank_id,
-            rbx_rank_id: roblox_rank.id.0 as i64,
-            prefix: None,
+            group_rank_id: rank_id,
+            roblox_rank_id: roblox_rank.id.0 as i64,
             priority,
             discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
-            template: Some(Template(template_str)),
+            template: Template(template_str),
         };
 
-        match guild
-            .rankbinds
+        match rankbinds
             .iter()
-            .find_position(|r| r.group_id == group_id && r.rank_id == rank_id)
+            .find(|r| r.group_id == group_id && r.group_rank_id == rank_id)
         {
-            Some((pos, _)) => {
-                guild.rankbinds[pos] = bind.clone();
+            Some(existing) => {
+                let stmt = transaction.prepare_cached("UPDATE binds SET priority = $1, template = $2, discord_roles = $3 WHERE bind_id = $4").await?;
+                transaction.execute(&stmt, &[&bind.priority, &bind.template, &bind.discord_roles, &existing.bind_id]).await?;
                 modified.push(bind);
             }
             None => {
-                guild.rankbinds.push(bind.clone());
+                let stmt = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, group_rank_id, roblox_rank_id, template, priority, discord_roles) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
+                transaction.execute(&stmt, &[&BindType::Rank, &(guild_id.get() as i64), &bind.group_id, &bind.group_rank_id, &bind.roblox_rank_id, &bind.template, &bind.priority, &bind.discord_roles]).await?;
                 added.push(bind);
             }
         }
     }
 
-    // ctx.bot.database.add_guild(&guild, true).await?;
-
-    let rankbind = added[0].clone();
-    let template = rowifi_models_new::bind::Template(rankbind.template.unwrap().0);
-    ctx.bot.database_new
-        .execute(
-            "INSERT INTO binds (guild_id, bind_type, group_id, discord_roles, group_rank_id, roblox_rank_id, template, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-            &[
-                &(guild_id.get() as i64),
-                &BindType::Rank,
-                &rankbind.group_id,
-                &rankbind.discord_roles,
-                &rankbind.rank_id,
-                &rankbind.rbx_rank_id,
-                &template,
-                &(rankbind.priority as i32),
-            ],
-        )
-        .await
-        .unwrap();
+    transaction.commit().await?;
 
     let mut embed = EmbedBuilder::new()
         .default_data()
@@ -219,15 +207,10 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         if count >= 12 {
             break;
         }
-        let name = format!("Rank: {}", rb.rank_id);
-        let nick = if let Some(template) = &rb.template {
-            format!("Template: `{}`\n", template)
-        } else {
-            String::default()
-        };
+        let name = format!("Rank: {}", rb.group_rank_id);
         let desc = format!(
-            "{}Priority: {}\n Roles: {}",
-            nick,
+            "Template: {}\nPriority: {}\n Roles: {}",
+            rb.template,
             rb.priority,
             rb.discord_roles
                 .iter()
@@ -242,15 +225,10 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         if count >= 12 {
             break;
         }
-        let name = format!("Rank: {}", rb.rank_id);
-        let nick = if let Some(template) = &rb.template {
-            format!("Template: `{}`\n", template)
-        } else {
-            String::default()
-        };
+        let name = format!("Rank: {}", rb.group_rank_id);
         let desc = format!(
-            "{}Priority: {}\n Roles: {}",
-            nick,
+            "Template: {}\nPriority: {}\n Roles: {}",
+            rb.template,
             rb.priority,
             rb.discord_roles
                 .iter()
@@ -304,7 +282,7 @@ impl FromArg for CreateType {
     }
 }
 
-pub async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
+pub async fn log_rankbind(ctx: &CommandContext, bind: Rankbind) {
     let name = format!("Group Id: {}", bind.group_id);
     let roles_str = bind
         .discord_roles
@@ -313,8 +291,8 @@ pub async fn log_rankbind(ctx: &CommandContext, bind: RankBind) {
         .collect::<String>();
     let desc = format!(
         "Rank Id: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
-        bind.rank_id,
-        bind.template.unwrap(),
+        bind.group_rank_id,
+        bind.template,
         bind.priority,
         roles_str
     );

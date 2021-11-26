@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 deadpool-postgres = { version = "0" }
+itertools = "0"
 rowifi-models =  { path = "../models" }
 rustls = "0.20"
 rustls-pemfile = "0"

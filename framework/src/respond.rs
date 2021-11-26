@@ -89,6 +89,7 @@ impl<'a> Responder<'a> {
         Ok(self)
     }
 
+    #[allow(deprecated)]
     pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.files(files));
