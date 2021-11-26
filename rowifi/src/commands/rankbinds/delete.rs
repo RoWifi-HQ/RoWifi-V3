@@ -1,6 +1,7 @@
 use itertools::Itertools;
-use mongodb::bson::{self, doc};
+use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{Rankbind, BindType};
 use std::str::FromStr;
 
 #[derive(FromArgs)]
@@ -13,7 +14,14 @@ pub struct RankBindsDelete {
 
 pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let rankbinds = ctx
+        .bot
+        .database
+        .query::<Rankbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
+            &[&(guild_id.get() as i64), &BindType::Rank],
+        )
+        .await?;
 
     let group_id = args.group_id;
 
@@ -28,17 +36,15 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     for rank in rank_ids_to_delete {
         match rank {
             RankId::Range(r1, r2) => {
-                let binds = guild
-                    .rankbinds
+                let binds = rankbinds
                     .iter()
-                    .filter(|r| r.group_id == group_id && r.rank_id >= r1 && r.rank_id <= r2);
+                    .filter(|r| r.group_id == group_id && r.group_rank_id >= r1 && r.group_rank_id <= r2);
                 binds_to_delete.extend(binds);
             }
             RankId::Single(rank) => {
-                if let Some(b) = guild
-                    .rankbinds
+                if let Some(b) = rankbinds
                     .iter()
-                    .find(|r| r.group_id == group_id && r.rank_id == rank)
+                    .find(|r| r.group_id == group_id && r.group_rank_id == rank)
                 {
                     binds_to_delete.push(b);
                 }
@@ -47,7 +53,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     }
     let bind_ids = binds_to_delete
         .iter()
-        .map(|r| r.rbx_rank_id)
+        .map(|r| &r.bind_id)
         .unique()
         .collect::<Vec<_>>();
 
@@ -63,9 +69,9 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pull": {"RankBinds": {"RbxGrpRoleId": {"$in": bind_ids}}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let db = ctx.bot.database.get().await?;
+    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -96,7 +102,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
 
     let ids_str = binds_to_delete
         .iter()
-        .map(|r| format!("`Id`: {}\n", r.rbx_rank_id))
+        .map(|r| format!("`Id`: {}\n", r.roblox_rank_id))
         .collect::<String>();
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -114,7 +120,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         .bot
         .standby
         .wait_for_component_interaction(message_id)
-        .timeout(Duration::from_secs(60));
+        .timeout(Duration::from_secs(30));
     tokio::pin!(stream);
 
     ctx.bot.ignore_message_components.insert(message_id);
@@ -123,10 +129,6 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update =
-                        doc! {"$push": {"RankBinds": {"$each": bson::to_bson(&binds_to_delete)?}}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -143,6 +145,14 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                         )
                         .exec()
                         .await?;
+                    
+                    let mut db = ctx.bot.database.get().await?;
+                    let transaction = db.transaction().await?;
+                    let stmt = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, group_rank_id, roblox_rank_id, template, priority, discord_roles) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
+                    for bind in binds_to_delete {
+                        transaction.execute(&stmt, &[&BindType::Rank, &(guild_id.get() as i64), &bind.group_id, &bind.group_rank_id, &bind.roblox_rank_id, &bind.template, &bind.priority, &bind.discord_roles]).await?;
+                    }
+                    transaction.commit().await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()
@@ -159,7 +169,8 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                         .exec()
                         .await?;
 
-                    break;
+                    ctx.bot.ignore_message_components.remove(&message_id);
+                    return Ok(());
                 }
                 let _ = ctx
                     .bot

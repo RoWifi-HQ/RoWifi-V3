@@ -1,6 +1,7 @@
 pub mod error;
 
 use deadpool_postgres::{Manager, Object, Pool, Runtime};
+use itertools::Itertools;
 use rowifi_models::FromRow;
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;
@@ -9,6 +10,8 @@ use tokio_postgres::{types::ToSql, Config as TokioPostgresConfig};
 use tokio_postgres_rustls::MakeRustlsConnect;
 
 use error::DatabaseError;
+
+pub use tokio_postgres as postgres;
 
 pub struct Database {
     pool: Pool,
@@ -83,4 +86,8 @@ impl Database {
         client.execute(&statement, params).await?;
         Ok(())
     }
+}
+
+pub fn dynamic_args(size: usize) -> String {
+    (0..size).map(|i| format!("${}", i+1)).join(", ")
 }

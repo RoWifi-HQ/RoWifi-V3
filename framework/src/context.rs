@@ -12,7 +12,6 @@ use rowifi_models::{
         user::User,
     },
     stats::BotStats,
-    user::RoGuildUser,
 };
 use std::{
     borrow::ToOwned,

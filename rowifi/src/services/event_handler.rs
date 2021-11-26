@@ -5,9 +5,8 @@ use rowifi_models::{
     discord::{
         channel::GuildChannel,
         guild::Permissions,
-        id::{ChannelId, GuildId, RoleId},
+        id::{GuildId},
     },
-    guild::GuildType,
 };
 use std::{
     pin::Pin,
@@ -166,7 +165,7 @@ impl Service<(u64, Event)> for EventHandler {
                 Event::UnavailableGuild(g) => {
                     eh.unavailable.insert(g.id);
                 }
-                Event::MemberAdd(m) => {
+                Event::MemberAdd(_m) => {
                     // let server = match eh.bot.cache.guild(m.guild_id) {
                     //     Some(s) => s,
                     //     None => return Ok(()),

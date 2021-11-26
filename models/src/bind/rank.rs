@@ -4,6 +4,8 @@ use super::template::Template;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Rankbind {
+    /// The global id of the bind
+    pub bind_id: i64,
     /// The Id of the Group
     pub group_id: i64,
     /// The discord roles bound to the rank
@@ -20,6 +22,7 @@ pub struct Rankbind {
 
 impl FromRow for Rankbind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let bind_id = row.try_get("bind_id")?;
         let group_id = row.try_get("group_id")?;
         let discord_roles = row.try_get("discord_roles")?;
         let group_rank_id = row.try_get("group_rank_id")?;
@@ -28,6 +31,7 @@ impl FromRow for Rankbind {
         let template = row.try_get("template")?;
 
         Ok(Self {
+            bind_id,
             group_id,
             discord_roles,
             group_rank_id,
