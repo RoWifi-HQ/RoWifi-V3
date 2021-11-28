@@ -368,8 +368,7 @@ impl Cache {
         if let Some(channel) = self.channel(channel_id) {
             if let GuildChannel::Text(_) = channel.as_ref() {
                 let user = self.0.current_user.lock().expect("current user poisoned");
-                if let Some(user) = user.as_ref() {
-                    let guild = self.guild(guild_id).unwrap();
+                if let (Some(user), Some(guild)) = (user.as_ref(), self.guild(guild_id)) {
                     let server_roles = self
                         .guild_roles(guild_id)
                         .iter()

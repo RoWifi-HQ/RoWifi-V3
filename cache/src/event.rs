@@ -197,9 +197,10 @@ impl UpdateCache for InteractionCreate {
 impl UpdateCache for MemberAdd {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.cache_member(self.guild_id, self.0.clone());
-        let guild = c.guild(self.guild_id).unwrap();
-        guild.member_count.fetch_add(1, Ordering::SeqCst);
-        c.0.stats.resource_counts.users.inc();
+        if let Some(guild) = c.guild(self.guild_id) {
+            guild.member_count.fetch_add(1, Ordering::SeqCst);
+            c.0.stats.resource_counts.users.inc();
+        }
         Ok(())
     }
 }
@@ -219,9 +220,10 @@ impl UpdateCache for MemberRemove {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         c.0.members.remove(&(self.guild_id, self.user.id));
         if let Some(mut members) = c.0.guild_members.get_mut(&self.guild_id) {
-            let guild = c.guild(self.guild_id).unwrap();
-            guild.member_count.fetch_sub(1, Ordering::SeqCst);
-            members.remove(&self.user.id);
+            if let Some(guild) = c.guild(self.guild_id) {
+                guild.member_count.fetch_sub(1, Ordering::SeqCst);
+                members.remove(&self.user.id);
+            }
         }
         c.0.stats.resource_counts.users.dec();
         Ok(())
