@@ -58,11 +58,20 @@ impl Bind {
             }
         }
     }
+
+    pub fn discord_roles(&self) -> &[i64] {
+        match self {
+            Bind::Rank(r) => &r.discord_roles,
+            Bind::Group(g) => &g.discord_roles,
+            Bind::Custom(c) => &c.discord_roles,
+            Bind::Asset(a) => &a.discord_roles
+        }
+    }
 }
 
 impl FromRow for Bind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
-        let kind = row.try_get("type")?;
+        let kind = row.try_get("bind_type")?;
         match kind {
             BindType::Rank => Ok(Bind::Rank(Rankbind::from_row(row)?)),
             BindType::Group => Ok(Bind::Group(Groupbind::from_row(row)?)),

@@ -5,7 +5,7 @@ use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
 
 use crate::{FromRow, blacklist::Blacklist};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct RoGuild {
     /// The id of the guild
     pub guild_id: i64,
@@ -65,6 +65,28 @@ pub enum BlacklistActionType {
     Ban = 2,
 }
 
+impl RoGuild {
+    pub fn new(guild_id: i64) -> Self {
+        Self {
+            guild_id,
+            command_prefix: "!".into(),
+            ..Default::default()
+        }
+    }
+}
+
+impl Default for GuildType {
+    fn default() -> Self {
+        Self::Free
+    }
+}
+
+impl Default for BlacklistActionType {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 impl FromStr for BlacklistActionType {
     type Err = ();
 
@@ -88,7 +110,7 @@ impl FromRow for RoGuild {
         let disabled_channels = row.try_get("disabled_channels")?;
         let registered_groups = row.try_get("registered_groups")?;
         let auto_detection = row.try_get("auto_detection")?;
-        let kind = row.try_get("type")?;
+        let kind = row.try_get("kind")?;
         let premium_owner = row.try_get("premium_owner").ok();
         let blacklist_action = row.try_get("blacklist_action")?;
         let update_on_join = row.try_get("update_on_join")?;
