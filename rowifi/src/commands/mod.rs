@@ -10,7 +10,7 @@
 // mod premium;
 mod rankbinds;
 // mod settings;
-// mod user;
+mod user;
 
 // pub use analytics::*;
 // pub use api::*;
@@ -24,4 +24,4 @@ mod rankbinds;
 // pub use premium::*;
 pub use rankbinds::*;
 // pub use settings::*;
-// pub use user::*;
+pub use user::*;

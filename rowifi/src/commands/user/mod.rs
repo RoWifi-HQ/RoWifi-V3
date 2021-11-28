@@ -1,15 +1,15 @@
-mod info;
-mod test;
+// mod info;
+// mod test;
 mod update;
-mod verify;
+// mod verify;
 
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::id::MessageId;
 
-pub use info::{botinfo, support, userinfo};
-pub use test::test;
+// pub use info::{botinfo, support, userinfo};
+// pub use test::test;
 pub use update::update;
-pub use verify::{verify, verify_config};
+// pub use verify::{verify, verify_config};
 
 use crate::commands::user::update::{update_func, UpdateArguments};
 
@@ -21,39 +21,39 @@ pub fn user_config(cmds: &mut Vec<Command>) {
         .group("User")
         .handler(update);
 
-    let userinfo_cmd = Command::builder()
-        .level(RoLevel::Normal)
-        .names(&["userinfo"])
-        .description("Command to view information about an user")
-        .group("User")
-        .handler(userinfo);
+    // let userinfo_cmd = Command::builder()
+    //     .level(RoLevel::Normal)
+    //     .names(&["userinfo"])
+    //     .description("Command to view information about an user")
+    //     .group("User")
+    //     .handler(userinfo);
 
-    let botinfo_cmd = Command::builder()
-        .level(RoLevel::Normal)
-        .names(&["botinfo"])
-        .description("Command to view information about the bot")
-        .group("User")
-        .handler(botinfo);
+    // let botinfo_cmd = Command::builder()
+    //     .level(RoLevel::Normal)
+    //     .names(&["botinfo"])
+    //     .description("Command to view information about the bot")
+    //     .group("User")
+    //     .handler(botinfo);
 
-    let support_cmd = Command::builder()
-        .level(RoLevel::Normal)
-        .names(&["support", "invite"])
-        .description("View important links related to the bot")
-        .group("User")
-        .handler(support);
+    // let support_cmd = Command::builder()
+    //     .level(RoLevel::Normal)
+    //     .names(&["support", "invite"])
+    //     .description("View important links related to the bot")
+    //     .group("User")
+    //     .handler(support);
 
-    let test_cmd = Command::builder()
-        .level(RoLevel::Creator)
-        .names(&["test"])
-        .handler(test);
+    // let test_cmd = Command::builder()
+    //     .level(RoLevel::Creator)
+    //     .names(&["test"])
+    //     .handler(test);
 
     cmds.push(update_cmd);
-    cmds.push(userinfo_cmd);
-    cmds.push(botinfo_cmd);
-    cmds.push(support_cmd);
-    cmds.push(test_cmd);
+    // cmds.push(userinfo_cmd);
+    // cmds.push(botinfo_cmd);
+    // cmds.push(support_cmd);
+    // cmds.push(test_cmd);
 
-    verify_config(cmds);
+    // verify_config(cmds);
 }
 
 pub async fn handle_update_button(

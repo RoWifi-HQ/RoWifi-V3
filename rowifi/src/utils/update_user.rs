@@ -6,15 +6,15 @@ use rowifi_models::{user::RoGuildUser, guild::{RoGuild, BlacklistActionType}, bi
 
 #[allow(dead_code)]
 pub struct UpdateUser<'u> {
-    ctx: &'u BotContext,
-    member: &'u CachedMember,
-    user: &'u RoGuildUser,
-    server: &'u CachedGuild,
-    guild: &'u RoGuild,
-    binds: &'u [Bind],
-    guild_roles: &'u HashSet<RoleId>,
-    bypass_roblox_cache: bool,
-    all_roles: &'u [i64]
+    pub ctx: &'u BotContext,
+    pub member: &'u CachedMember,
+    pub user: &'u RoGuildUser,
+    pub server: &'u CachedGuild,
+    pub guild: &'u RoGuild,
+    pub binds: &'u [Bind],
+    pub guild_roles: &'u HashSet<RoleId>,
+    pub bypass_roblox_cache: bool,
+    pub all_roles: &'u [&'u i64]
 }
 
 #[allow(dead_code)]
@@ -163,7 +163,7 @@ impl UpdateUser<'_> {
         }
 
         for bind_role in self.all_roles {
-            let r = RoleId::new(*bind_role as u64).unwrap();
+            let r = RoleId::new(**bind_role as u64).unwrap();
             if self.guild_roles.get(&r).is_some() {
                 if roles_to_add.contains(bind_role) {
                     if !self.member.roles.contains(&r) {

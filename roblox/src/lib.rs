@@ -175,10 +175,10 @@ impl Client {
             let _: () = conn.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600).await?;
             Ok(user)
         } else {
-            let bytes: Vec<u8> = conn.get(&key).await?;
-            let user: Option<PartialUser> = serde_cbor::from_slice(&bytes)?;
-            if let Some(u) = user {
-                Ok(u)
+            let bytes: Option<Vec<u8>> = conn.get(&key).await?;
+            let user = bytes.map(|b| serde_cbor::from_slice(&b));
+            if let Some(Ok(user)) = user {
+                Ok(user)
             } else {
                 let user = self
                     .get_users(&[user_id])

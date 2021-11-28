@@ -2,7 +2,7 @@ pub mod error;
 
 use deadpool_postgres::{Manager, Object, Pool, Runtime};
 use itertools::Itertools;
-use rowifi_models::FromRow;
+use rowifi_models::{FromRow, guild::RoGuild, user::{RoGuildUser, RoUser}};
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;
 use std::{fs::File, io::BufReader, str::FromStr, time::Duration};
@@ -85,6 +85,44 @@ impl Database {
         let statement = client.prepare_cached(statement).await?;
         client.execute(&statement, params).await?;
         Ok(())
+    }
+
+    pub async fn get_guild(&self, guild_id: i64) -> Result<RoGuild, DatabaseError> {
+        let client = self.get().await?;
+        let statement = client.prepare_cached("SELECT * FROM guilds WHERE guild_id = $1").await?;
+        let row = client.query_opt(&statement, &[&guild_id]).await?;
+        if let Some(row) = row {
+            RoGuild::from_row(row).map_err(|e| e.into())
+        } else {
+            let guild = RoGuild::new(guild_id);
+            let statement = client.prepare_cached(
+                "INSERT INTO guilds(guild_id, command_prefix, kind, blacklist_action) VALUES($1, $2, $3, $4)",
+            ).await?;
+            client.execute(&statement, &[&guild_id, &guild.command_prefix, &guild.kind, &guild.blacklist_action]).await?;
+            Ok(guild)
+        }
+    }
+
+    pub async fn get_linked_user(&self, user_id: i64, guild_id: i64) -> Result<Option<RoGuildUser>, DatabaseError> {
+        let client = self.get().await?;
+        let statement = client.prepare_cached("SELECT * FROM linked_users WHERE guild_id = $1 AND discord_id = $2").await?;
+        let row = client.query_opt(&statement, &[&guild_id, &user_id]).await?;
+        if let Some(row) = row {
+            Ok(Some(RoGuildUser::from_row(row)?))
+        } else {
+            let statement = client.prepare_cached("SELECT * FROM users WHERE discord_id = $1").await?;
+            let row = client.query_opt(&statement, &[&user_id]).await?;
+            if let Some(row) = row {
+                let user = RoUser::from_row(row)?;
+                Ok(Some(RoGuildUser {
+                    guild_id,
+                    discord_id: user_id,
+                    roblox_id: user.default_roblox_id
+                }))
+            } else {
+                Ok(None)
+            }
+        }
     }
 }
 
