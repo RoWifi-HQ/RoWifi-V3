@@ -1,10 +1,8 @@
 use itertools::Itertools;
-use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{CustomBind, Template},
+    bind::{Custombind, Template, BindType},
     discord::id::{GuildId, RoleId},
-    guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -14,7 +12,7 @@ use std::collections::HashMap;
 pub struct CustombindsNewArguments {
     pub code: String,
     pub template: Option<String>,
-    pub priority: Option<Option<i64>>,
+    pub priority: Option<Option<i32>>,
     pub discord_roles: Option<Option<String>>,
 }
 
@@ -88,7 +86,7 @@ impl FromArgs for CustombindsNewArguments {
             }
         };
 
-        let priority = match options.get(&"priority").map(|s| i64::from_interaction(*s)) {
+        let priority = match options.get(&"priority").map(|s| i32::from_interaction(*s)) {
             Some(Ok(s)) => Some(Some(s)),
             Some(Err(err)) => {
                 return Err(ArgumentError::ParseError {
@@ -130,18 +128,15 @@ impl FromArgs for CustombindsNewArguments {
 
 pub async fn custombinds_new(ctx: CommandContext, args: CustombindsNewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
-
-    custombinds_new_common(ctx, guild_id, guild, args).await
+    custombinds_new_common(ctx, guild_id, args).await
 }
 
 pub async fn custombinds_new_common(
     ctx: CommandContext,
     guild_id: GuildId,
-    guild: RoGuild,
     args: CustombindsNewArguments,
 ) -> CommandResult {
-    let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
+    let user = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -249,7 +244,7 @@ pub async fn custombinds_new_common(
         None => {
             match await_reply("Enter the priority you wish to set for the bind.", &ctx)
                 .await?
-                .parse::<i64>()
+                .parse::<i32>()
             {
                 Ok(p) => p,
                 Err(_) => {
@@ -283,24 +278,30 @@ pub async fn custombinds_new_common(
         }
     }
 
-    let mut binds = guild.custombinds.iter().map(|c| c.id).collect_vec();
-    binds.sort_unstable();
-    let id = binds.last().unwrap_or(&0) + 1;
-    let bind = CustomBind {
-        id,
+    let bind = Custombind {
+        // 0 is used here since this field is not used in inserting the bind. The struct is only created for thr purpose
+        // of ensuring all fields are collected.
+        bind_id: 0,
+        custom_bind_id: 0,
         code: args.code.clone(),
-        prefix: None,
         priority,
         command,
         discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
-        template: Some(template),
+        template,
     };
-    let bind_bson = to_bson(&bind)?;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"CustomBinds": &bind_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
 
-    let name = format!("Id: {}", bind.id);
+    let db = ctx.bot.database.get().await?;
+    let statement = db.prepare_cached(r#"
+        INSERT INTO binds(bind_type, guild_id, custom_bind_id, discord_roles, code, priority, template) 
+        VALUES($1, $2, (SELECT COALESCE(max(custom_bind_id) + 1, 1) FROM binds WHERE guild_id = $2 AND bind_type = $1), $3, $4, $5, $6)
+        RETURNING custom_bind_id, bind_id
+    "#).await?;
+    let row = db.query_one(&statement, 
+        &[&BindType::Custom, &(guild_id.get() as i64), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
+    ).await?;
+    let bind_id: i64 = row.get("bind_id");
+
+    let name = format!("Id: {}", row.get::<'_, _, i32>("custom_bind_id"));
     let roles_str = bind
         .discord_roles
         .iter()
@@ -309,7 +310,7 @@ pub async fn custombinds_new_common(
     let desc = format!(
         "Code: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
         bind.code,
-        bind.template.unwrap(),
+        bind.template,
         bind.priority,
         roles_str
     );
@@ -365,9 +366,6 @@ pub async fn custombinds_new_common(
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$pull": {"CustomBinds": bind_bson}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -384,6 +382,8 @@ pub async fn custombinds_new_common(
                         )
                         .exec()
                         .await?;
+                    let statement = db.prepare_cached("DELETE FROM binds WHERE bind_id = $1").await?;
+                    db.execute(&statement, &[&bind_id]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

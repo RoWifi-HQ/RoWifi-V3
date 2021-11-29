@@ -5,6 +5,7 @@ pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{BindType, Custombind};
 
 use delete::custombinds_delete;
 use modify::custombinds_modify;
@@ -50,9 +51,9 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let custombinds = ctx.bot.database.query::<Custombind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Custom]).await?;
 
-    if guild.custombinds.is_empty() {
+    if custombinds.is_empty() {
         let e = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
@@ -66,29 +67,22 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for cbs in &guild.custombinds.iter().chunks(12) {
+    for cbs in &custombinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Custombinds")
             .description(format!("Page {}", page_count + 1));
-        let cbs = cbs.sorted_by_key(|c| c.id);
+        let cbs = cbs.sorted_by_key(|c| c.custom_bind_id);
         for cb in cbs {
-            let name = format!("Bind Id: {}", cb.id);
+            let name = format!("Bind Id: {}", cb.custom_bind_id);
             let roles_str = cb
                 .discord_roles
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
-            let nick = if let Some(template) = &cb.template {
-                format!("Template: `{}`\n", template)
-            } else if let Some(prefix) = &cb.prefix {
-                format!("Prefix: `{}`\n", prefix)
-            } else {
-                String::default()
-            };
             let desc = format!(
-                "Code: {}\n{}Priority: {}\nRoles: {}",
-                cb.code, nick, cb.priority, roles_str
+                "Code: {}\nTemplate: {}\nPriority: {}\nRoles: {}",
+                cb.code, cb.template, cb.priority, roles_str
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
