@@ -1,5 +1,6 @@
-use mongodb::bson::{self, doc};
+use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{Custombind, BindType};
 
 #[derive(FromArgs)]
 pub struct CustombindsDeleteArguments {
@@ -12,22 +13,22 @@ pub async fn custombinds_delete(
     args: CustombindsDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let custombinds = ctx.bot.database.query::<Custombind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Custom]).await?;
 
     let mut ids_to_delete = Vec::new();
     for arg in args.id.split_ascii_whitespace() {
-        if let Ok(r) = arg.parse::<i64>() {
+        if let Ok(r) = arg.parse::<i32>() {
             ids_to_delete.push(r);
         }
     }
 
     let mut binds_to_delete = Vec::new();
     for id in ids_to_delete {
-        if let Some(bind) = guild.custombinds.iter().find(|r| r.id == id) {
+        if let Some(bind) = custombinds.iter().find(|r| r.custom_bind_id == id) {
             binds_to_delete.push(bind);
         }
     }
-    let bind_ids = binds_to_delete.iter().map(|a| a.id).collect::<Vec<_>>();
+    let bind_ids = binds_to_delete.iter().map(|c| c.bind_id).collect::<Vec<_>>();
 
     if binds_to_delete.is_empty() {
         let embed = EmbedBuilder::new()
@@ -41,9 +42,9 @@ pub async fn custombinds_delete(
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pull": {"CustomBinds": {"_id": {"$in": bind_ids}}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let db = ctx.bot.database.get().await?;
+    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -74,7 +75,7 @@ pub async fn custombinds_delete(
 
     let ids_str = binds_to_delete
         .iter()
-        .map(|b| format!("`Id`: {}\n", b.id))
+        .map(|b| format!("`Id`: {}\n", b.custom_bind_id))
         .collect::<String>();
     let log_embed = EmbedBuilder::new()
         .default_data()
@@ -101,9 +102,6 @@ pub async fn custombinds_delete(
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$push": {"CustomBinds": {"$each": bson::to_bson(&binds_to_delete)?}}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -120,6 +118,19 @@ pub async fn custombinds_delete(
                         )
                         .exec()
                         .await?;
+
+                    let mut db = ctx.bot.database.get().await?;
+                    let transaction = db.transaction().await?;
+                    let statement = transaction.prepare_cached(r#"
+                        INSERT INTO binds(bind_type, guild_id, custom_bind_id, discord_roles, code, priority, template) 
+                        VALUES($1, $2, (SELECT COALESCE(max(custom_bind_id) + 1, 1) FROM binds WHERE guild_id = $2 AND bind_type = $1), $3, $4, $5, $6)
+                    "#).await?;
+                    for bind in binds_to_delete {
+                        transaction.execute(&statement, 
+                            &[&BindType::Custom, &(guild_id.get() as i64), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
+                        ).await?;
+                    }
+                    transaction.commit().await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

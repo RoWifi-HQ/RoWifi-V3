@@ -3,7 +3,7 @@
 // mod assetbinds;
 // mod backup;
 // mod blacklists;
-// mod custombinds;
+mod custombinds;
 // mod events;
 // mod group;
 // mod groupbinds;
@@ -17,7 +17,7 @@ mod user;
 // pub use assetbinds::*;
 // pub use backup::*;
 // pub use blacklists::*;
-// pub use custombinds::*;
+pub use custombinds::*;
 // pub use events::*;
 // pub use group::*;
 // pub use groupbinds::*;

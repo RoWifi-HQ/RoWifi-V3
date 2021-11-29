@@ -1,11 +1,9 @@
 use itertools::Itertools;
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::id::GuildId,
-    guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
-    rolang::{RoCommand, RoCommandUser},
+    rolang::{RoCommand, RoCommandUser}, bind::{Custombind, BindType},
 };
 use std::collections::HashMap;
 
@@ -16,7 +14,7 @@ pub struct CustombindsModifyArguments {
     )]
     pub option: ModifyOption,
     #[arg(help = "The ID of the bind to modify")]
-    pub id: i64,
+    pub id: i32,
     #[arg(help = "The actual modification to be made", rest)]
     pub change: String,
 }
@@ -34,18 +32,18 @@ pub async fn custombinds_modify(
     args: CustombindsModifyArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let custombinds = ctx.bot.database.query::<Custombind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Custom]).await?;
 
     let field = args.option;
-    let bind_id = args.id;
-    let bind = match guild.custombinds.iter().find(|c| c.id == bind_id) {
+    let id_to_modify = args.id;
+    let bind = match custombinds.iter().find(|c| c.custom_bind_id == id_to_modify) {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
-                .description(format!("There was no bind found with id {}", bind_id))
+                .description(format!("There was no bind found with id {}", id_to_modify))
                 .build()
                 .unwrap();
             ctx.respond().embeds(&[embed])?.exec().await?;
@@ -53,21 +51,21 @@ pub async fn custombinds_modify(
         }
     };
 
-    let name = format!("Id: {}", bind_id);
+    let name = format!("Id: {}", id_to_modify);
     let desc = match field {
         ModifyOption::Code => {
-            let new_code = match modify_code(&ctx, &guild, bind_id, &args.change).await? {
+            let new_code = match modify_code(&ctx, guild_id, &bind, &args.change).await? {
                 Some(n) => n,
                 None => return Ok(()),
             };
             format!("`New Code`: {}", new_code)
         }
         ModifyOption::Priority => {
-            let new_priority = modify_priority(&ctx, &guild, bind_id, &args.change).await?;
+            let new_priority = modify_priority(&ctx, &bind, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::RolesAdd => {
-            let role_ids = add_roles(&ctx, &guild, bind_id, &args.change).await?;
+            let role_ids = add_roles(&ctx, &bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -75,7 +73,7 @@ pub async fn custombinds_modify(
             format!("Added Roles: {}", modification)
         }
         ModifyOption::RolesRemove => {
-            let role_ids = remove_roles(&ctx, &guild, bind_id, &args.change).await?;
+            let role_ids = remove_roles(&ctx, &bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -94,7 +92,7 @@ pub async fn custombinds_modify(
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, &guild, bind_id, &args.change).await?;
+            let template = modify_template(&ctx, &bind, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -122,12 +120,12 @@ pub async fn custombinds_modify(
 
 async fn modify_code<'a>(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
+    guild_id: GuildId,
+    bind: &Custombind,
     code: &'a str,
 ) -> Result<Option<&'a str>, RoError> {
-    let user = match ctx
-        .get_linked_user(ctx.author.id, GuildId::new(guild.id as u64).unwrap())
+    let user = match ctx.bot.database
+        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
         .await?
     {
         Some(u) => u,
@@ -176,16 +174,13 @@ async fn modify_code<'a>(
         ctx.respond().content(&res)?.exec().await?;
         return Ok(None);
     }
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Code": code}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET code = $1 WHERE bind_id = $2", &[&code, &bind.bind_id]).await?;
     Ok(Some(code))
 }
 
 async fn modify_template<'t>(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
+    bind: &Custombind,
     template: &'t str,
 ) -> Result<String, RoError> {
     let template = match template {
@@ -193,16 +188,13 @@ async fn modify_template<'t>(
         "disable" => "{discord-name}".into(),
         _ => template.to_string(),
     };
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Template": template.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET template = $1 WHERE bind_id = $2", &[&template, &bind.bind_id]).await?;
     Ok(template)
 }
 
 async fn modify_priority(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
+    bind: &Custombind,
     priority: &str,
 ) -> Result<i64, RoError> {
     let priority = match priority.parse::<i64>() {
@@ -216,16 +208,13 @@ async fn modify_priority(
             .into());
         }
     };
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$set": {"CustomBinds.$.Priority": priority}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET priority = $1 WHERE bind_id = $2", &[&priority, &bind.bind_id]).await?;
     Ok(priority)
 }
 
 async fn add_roles(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
+    bind: &Custombind,
     roles: &str,
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
@@ -237,16 +226,13 @@ async fn add_roles(
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$push": {"CustomBinds.$.DiscordRoles": {"$each": role_ids.clone()}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET discord_roles = array_cat(discord_roles, $1::BIGINT[]) WHERE bind_id = $2", &[&role_ids, &bind.bind_id]).await?;
     Ok(role_ids)
 }
 
 async fn remove_roles(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    bind_id: i64,
+    bind: &Custombind,
     roles: &str,
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
@@ -258,9 +244,9 @@ async fn remove_roles(
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
-    let filter = doc! {"_id": guild.id, "CustomBinds._id": bind_id};
-    let update = doc! {"$pullAll": {"CustomBinds.$.DiscordRoles": role_ids.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut roles_to_keep = bind.discord_roles.clone();
+    roles_to_keep.retain(|r| !role_ids.contains(r));
+    ctx.bot.database.execute("UPDATE binds SET discord_roles = $1 WHERE bind_id = $2", &[&roles_to_keep, &bind.bind_id]).await?;
     Ok(role_ids)
 }
 
