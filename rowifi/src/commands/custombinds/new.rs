@@ -7,6 +7,7 @@ use rowifi_models::{
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
+use rowifi_database::postgres::Row;
 
 #[allow(clippy::option_option)]
 pub struct CustombindsNewArguments {
@@ -290,14 +291,11 @@ pub async fn custombinds_new_common(
         template,
     };
 
-    let db = ctx.bot.database.get().await?;
-    let statement = db.prepare_cached(r#"
+    let row = ctx.bot.database.query_one::<Row>(r#"
         INSERT INTO binds(bind_type, guild_id, custom_bind_id, discord_roles, code, priority, template) 
         VALUES($1, $2, (SELECT COALESCE(max(custom_bind_id) + 1, 1) FROM binds WHERE guild_id = $2 AND bind_type = $1), $3, $4, $5, $6)
-        RETURNING custom_bind_id, bind_id
-    "#).await?;
-    let row = db.query_one(&statement, 
-        &[&BindType::Custom, &(guild_id.get() as i64), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
+        RETURNING custom_bind_id, bind_id"#,
+     &[&BindType::Custom, &(guild_id.get() as i64), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
     ).await?;
     let bind_id: i64 = row.get("bind_id");
 
@@ -382,8 +380,8 @@ pub async fn custombinds_new_common(
                         )
                         .exec()
                         .await?;
-                    let statement = db.prepare_cached("DELETE FROM binds WHERE bind_id = $1").await?;
-                    db.execute(&statement, &[&bind_id]).await?;
+
+                    ctx.bot.database.execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

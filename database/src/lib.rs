@@ -76,6 +76,13 @@ impl Database {
         Ok(items)
     }
 
+    pub async fn query_one<T: FromRow>(&self, statement: &str, params: &[&(dyn ToSql + Sync)]) -> Result<T, DatabaseError> {
+        let client = self.get().await?;
+        let statement = client.prepare_cached(statement).await?;
+        let row = client.query_one(&statement, params).await?;
+        Ok(T::from_row(row)?)
+    }
+
     pub async fn execute(
         &self,
         statement: &str,

@@ -4,6 +4,7 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{Groupbind, BindType};
 
 pub use delete::groupbinds_delete;
 pub use modify::groupbinds_modify;
@@ -47,14 +48,11 @@ pub fn groupbinds_config(cmds: &mut Vec<Command>) {
     cmds.push(groupbinds_cmd);
 }
 
-#[derive(FromArgs)]
-pub struct GroupbindsViewArguments {}
-
-pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments) -> CommandResult {
+pub async fn groupbinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id", &[&(guild_id.get() as i64), &BindType::Group]).await?;
 
-    if guild.groupbinds.is_empty() {
+    if groupbinds.is_empty() {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
@@ -68,7 +66,7 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
 
     let mut pages = Vec::new();
     let mut page_count = 0;
-    for gbs in &guild.groupbinds.iter().chunks(12) {
+    for gbs in &groupbinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("Groupbinds")
@@ -76,13 +74,9 @@ pub async fn groupbinds_view(ctx: CommandContext, _args: GroupbindsViewArguments
         let gbs = gbs.sorted_by_key(|g| g.group_id);
         for gb in gbs {
             let name = format!("Group Id: {}", gb.group_id);
-            let nick = match &gb.template {
-                Some(template) => format!("Template: {}\n", template),
-                None => String::default(),
-            };
             let desc = format!(
-                "{}Priority: {}\nRoles: {}",
-                nick,
+                "Template: {}\nPriority: {}\nRoles: {}",
+                gb.template,
                 gb.priority,
                 gb.discord_roles
                     .iter()
