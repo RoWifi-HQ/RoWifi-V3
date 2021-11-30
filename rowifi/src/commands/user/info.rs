@@ -32,7 +32,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         }
     };
 
-    let user = match ctx.get_linked_user(author.0, ctx.guild_id.unwrap()).await? {
+    let user = match ctx.bot.database.get_linked_user(author.0.get() as i64, ctx.guild_id.unwrap().get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

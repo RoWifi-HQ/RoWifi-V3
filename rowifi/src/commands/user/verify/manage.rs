@@ -7,7 +7,7 @@ use super::VerifyArguments;
 
 pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -48,7 +48,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     };
     let roblox_id = roblox_id.id.0 as i64;
 
-    if !user.alts.contains(&roblox_id) && user.roblox_id != roblox_id {
+    if !user.alts.contains(&roblox_id) && user.default_roblox_id != roblox_id {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -66,7 +66,10 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         roblox_id,
     };
 
-    ctx.bot.database.add_linked_user(linked_user).await?;
+    ctx.bot.database.execute(
+        "INSERT INTO linked_users(guild_id, discord_id, roblox_id) VALUES($1, $2, $3) ON CONFLICT(guild_id, discord_id) DO UPDATE SET roblox_id = $3", 
+        &[&linked_user.guild_id, &linked_user.discord_id, &linked_user.roblox_id]
+    ).await?;
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
@@ -97,7 +100,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
 }
 
 pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
+    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -154,9 +157,9 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     };
 
     user.alts.remove(account_index);
-    user.alts.push(user.roblox_id);
-    user.roblox_id = roblox_id;
-    ctx.bot.database.add_user(user, true).await?;
+    user.alts.push(user.default_roblox_id);
+    user.default_roblox_id = roblox_id;
+    ctx.bot.database.execute("UPDATE users SET default_roblox_id = $1, alts = $2 WHERE discord_id = $3", &[&user.default_roblox_id, &user.alts, &user.discord_id]).await?;
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
@@ -187,7 +190,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
 }
 
 pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
+    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -243,11 +246,16 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         }
     };
     user.alts.remove(account_index);
-    ctx.bot
-        .database
-        .delete_linked_users(ctx.author.id.0.get(), roblox_id)
-        .await?;
-    ctx.bot.database.add_user(user, true).await?;
+
+    let discord_id = ctx.author.id.get() as i64;
+    let mut db = ctx.bot.database.get().await?;
+    let transaction = db.transaction().await?;
+    let statement1 = transaction.prepare_cached("DELETE FROM linked_users WHERE discord_id = $1 AND roblox_id = $2").await?;
+    transaction.execute(&statement1, &[&discord_id, &roblox_id]).await?;
+    let statement2 = transaction.prepare_cached("UPDATE users SET alts = $1 WHERE discord_id = $2").await?;
+    transaction.execute(&statement2, &[&user.alts, &discord_id]).await?;
+    transaction.commit().await?;
+
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)

@@ -103,6 +103,17 @@ impl Database {
         }
     }
 
+    pub async fn get_user(&self, user_id: i64) -> Result<Option<RoUser>, DatabaseError> {
+        let client = self.get().await?;
+        let statement = client.prepare_cached("SELECT * FROM users WHERE discord_id = $1").await?;
+        let row = client.query_opt(&statement, &[&user_id]).await?;
+        if let Some(row) = row {
+            Ok(Some(RoUser::from_row(row)?))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub async fn get_linked_user(&self, user_id: i64, guild_id: i64) -> Result<Option<RoGuildUser>, DatabaseError> {
         let client = self.get().await?;
         let statement = client.prepare_cached("SELECT * FROM linked_users WHERE guild_id = $1 AND discord_id = $2").await?;

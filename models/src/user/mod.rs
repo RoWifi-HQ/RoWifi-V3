@@ -22,6 +22,13 @@ pub struct RoGuildUser {
     pub roblox_id: i64,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct QueueUser {
+    pub roblox_id: i64,
+    pub discord_id: i64,
+    pub verified: bool
+}
+
 bitflags! {
     pub struct UserFlags: i32 {
         const NONE = 0;
@@ -64,6 +71,20 @@ impl FromRow for RoGuildUser {
             guild_id,
             discord_id,
             roblox_id
+        })
+    }
+}
+
+impl FromRow for QueueUser {
+    fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let verified = row.try_get("verified")?;
+        let discord_id = row.try_get("discord_id")?;
+        let roblox_id = row.try_get("roblox_id")?;
+
+        Ok(Self {
+            discord_id,
+            roblox_id,
+            verified
         })
     }
 }
