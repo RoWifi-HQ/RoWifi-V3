@@ -4,6 +4,8 @@ use crate::FromRow;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Groupbind {
+    /// The global id of the bind
+    pub bind_id: i64,
     /// The Id of the Roblox Group
     pub group_id: i64,
     /// The discord roles bound to the group
@@ -16,12 +18,14 @@ pub struct Groupbind {
 
 impl FromRow for Groupbind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let bind_id = row.try_get("bind_id")?;
         let group_id = row.try_get("group_id")?;
         let discord_roles = row.try_get("discord_roles")?;
         let priority = row.try_get("priority")?;
         let template = row.try_get("template")?;
 
         Ok(Self {
+            bind_id,
             group_id,
             discord_roles,
             priority,

@@ -15,3 +15,9 @@ pub trait FromRow {
     where
         Self: Sized;
 }
+
+impl FromRow for Row {
+    fn from_row(row: Row) -> Result<Self, tokio_postgres::Error> {
+        Ok(row)
+    }
+}

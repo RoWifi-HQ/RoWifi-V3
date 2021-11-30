@@ -1,5 +1,6 @@
-use mongodb::bson::{self, doc};
+use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{Groupbind, BindType};
 
 #[derive(FromArgs)]
 pub struct GroupbindsDeleteArguments {
@@ -12,7 +13,7 @@ pub async fn groupbinds_delete(
     args: GroupbindsDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Group]).await?;
 
     let mut groups_to_delete = Vec::new();
     for arg in args.id.split_ascii_whitespace() {
@@ -23,13 +24,13 @@ pub async fn groupbinds_delete(
 
     let mut binds_to_delete = Vec::new();
     for group in groups_to_delete {
-        if let Some(b) = guild.groupbinds.iter().find(|r| r.group_id == group) {
+        if let Some(b) = groupbinds.iter().find(|r| r.group_id == group) {
             binds_to_delete.push(b);
         }
     }
     let bind_ids = binds_to_delete
         .iter()
-        .map(|b| b.group_id)
+        .map(|b| b.bind_id)
         .collect::<Vec<_>>();
 
     if binds_to_delete.is_empty() {
@@ -44,9 +45,9 @@ pub async fn groupbinds_delete(
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pull": {"GroupBinds": {"GroupId": {"$in": bind_ids}}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let db = ctx.bot.database.get().await?;
+    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -82,7 +83,7 @@ pub async fn groupbinds_delete(
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
-        .description("Custom Bind Deletion")
+        .description("Group Bind Deletion")
         .field(EmbedFieldBuilder::new("Binds Deleted", ids_str))
         .build()
         .unwrap();
@@ -104,10 +105,6 @@ pub async fn groupbinds_delete(
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update =
-                        doc! {"$push": {"GroupBinds": {"$each": bson::to_bson(&binds_to_delete)?}}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -124,6 +121,16 @@ pub async fn groupbinds_delete(
                         )
                         .exec()
                         .await?;
+
+                    let mut db = ctx.bot.database.get().await?;
+                    let transaction = db.transaction().await?;
+                    let statement = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6)").await?;
+                    for bind in binds_to_delete {
+                        transaction.execute(&statement, 
+                            &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
+                        ).await?;
+                    }
+                    transaction.commit().await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

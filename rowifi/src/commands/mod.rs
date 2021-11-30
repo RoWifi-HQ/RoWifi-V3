@@ -6,7 +6,7 @@
 mod custombinds;
 // mod events;
 // mod group;
-// mod groupbinds;
+mod groupbinds;
 // mod premium;
 mod rankbinds;
 // mod settings;
@@ -20,7 +20,7 @@ mod user;
 pub use custombinds::*;
 // pub use events::*;
 // pub use group::*;
-// pub use groupbinds::*;
+pub use groupbinds::*;
 // pub use premium::*;
 pub use rankbinds::*;
 // pub use settings::*;
