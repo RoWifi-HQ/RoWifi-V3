@@ -78,7 +78,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
     if ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get())
+        .get_user(ctx.author.id.0.get() as i64)
         .await?
         .is_some()
     {
@@ -119,7 +119,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
     if ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get())
+        .get_user(ctx.author.id.0.get() as i64)
         .await?
         .is_none()
     {
@@ -221,7 +221,7 @@ pub async fn verify_common(
         discord_id: ctx.author.id.0.get() as i64,
         verified,
     };
-    ctx.bot.database.add_queue_user(q_user).await?;
+    ctx.bot.database.execute("INSERT INTO queue VALUES($1, $2, $3) ON CONFLICT(roblox_id) DO UPDATE SET discord_id = $2, verified = $3", &[&q_user.roblox_id, &q_user.discord_id, &q_user.verified]).await?;
 
     handle_update_button(
         &ctx,
@@ -236,7 +236,7 @@ pub async fn verify_common(
 
 pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0.get()).await? {
+    let user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -253,7 +253,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let linked_user = ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.0.get(), guild_id.0.get())
+        .get_linked_user(ctx.author.id.0.get() as i64, guild_id.0.get() as i64)
         .await?;
 
     let embed = EmbedBuilder::new()
@@ -266,12 +266,12 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let main_user = ctx
         .bot
         .roblox
-        .get_user(RobloxUserId(user.roblox_id as u64), false)
+        .get_user(RobloxUserId(user.default_roblox_id as u64), false)
         .await?;
     acc_string.push_str(&main_user.name);
     acc_string.push_str(" - `Default`");
     if let Some(linked_user) = &linked_user {
-        if linked_user.roblox_id == user.roblox_id {
+        if linked_user.roblox_id == user.default_roblox_id {
             acc_string.push_str(", `This Server`");
         }
     } else {
