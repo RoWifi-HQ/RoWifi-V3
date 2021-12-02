@@ -8,6 +8,8 @@ use super::template::Template;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Assetbind {
+    /// The global id of the bind
+    pub bind_id: i64,
     /// The ID of the Roblox Asset
     pub asset_id: i64,
     /// The type of the Asset. Can be one of Asset, Badge, Gamepass
@@ -30,6 +32,7 @@ pub enum AssetType {
 
 impl FromRow for Assetbind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
+        let bind_id = row.try_get("bind_id")?;
         let asset_id = row.try_get("asset_id")?;
         let asset_type = row.try_get("asset_type")?;
         let discord_roles = row.try_get("discord_roles")?;
@@ -37,6 +40,7 @@ impl FromRow for Assetbind {
         let template = row.try_get("template")?;
 
         Ok(Self {
+            bind_id,
             asset_id,
             asset_type,
             discord_roles,
