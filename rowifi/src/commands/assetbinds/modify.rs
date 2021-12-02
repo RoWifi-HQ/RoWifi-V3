@@ -1,7 +1,6 @@
 use itertools::Itertools;
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::RoGuild;
+use rowifi_models::bind::{Assetbind, BindType};
 
 #[derive(FromArgs)]
 pub struct ModifyArguments {
@@ -24,12 +23,12 @@ pub enum ModifyOption {
 
 pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let assetbinds  = ctx.bot.database.query::<Assetbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id", &[&(guild_id.get() as i64), &BindType::Asset]).await?;
 
     let field = args.option;
     let asset_id = args.asset_id;
 
-    let bind = match guild.assetbinds.iter().find(|a| a.id == asset_id) {
+    let bind = match assetbinds.iter().find(|a| a.asset_id == asset_id) {
         Some(a) => a,
         None => {
             let embed = EmbedBuilder::new()
@@ -57,7 +56,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
 
     let desc = match field {
         ModifyOption::RolesAdd => {
-            let role_ids = add_roles(&ctx, &guild, asset_id, &args.change).await?;
+            let role_ids = add_roles(&ctx, &bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -66,7 +65,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
             desc
         }
         ModifyOption::RolesRemove => {
-            let role_ids = remove_roles(&ctx, &guild, asset_id, &args.change).await?;
+            let role_ids = remove_roles(&ctx, &bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -75,7 +74,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
             desc
         }
         ModifyOption::Priority => {
-            let new_priority = modify_priority(&ctx, &guild, asset_id, &args.change).await?;
+            let new_priority = modify_priority(&ctx, &bind, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::Template => {
@@ -90,7 +89,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, &guild, asset_id, &args.change).await?;
+            let template = modify_template(&ctx, &bind, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -111,8 +110,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
 
 async fn add_roles(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    asset_id: i64,
+    bind: &Assetbind,
     roles: &str,
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
@@ -124,16 +122,13 @@ async fn add_roles(
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
-    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
-    let update = doc! {"$push": {"AssetBinds.$.DiscordRoles": {"$each": role_ids.clone()}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET discord_roles = array_cat(discord_roles, $1::BIGINT[]) WHERE bind_id = $2", &[&role_ids, &bind.bind_id]).await?;
     Ok(role_ids)
 }
 
 async fn remove_roles(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    asset_id: i64,
+    bind: &Assetbind,
     roles: &str,
 ) -> Result<Vec<i64>, RoError> {
     let mut role_ids = Vec::new();
@@ -145,16 +140,15 @@ async fn remove_roles(
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
-    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
-    let update = doc! {"$pullAll": {"AssetBinds.$.DiscordRoles": role_ids.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut roles_to_keep = bind.discord_roles.clone();
+    roles_to_keep.retain(|r| !role_ids.contains(r));
+    ctx.bot.database.execute("UPDATE binds SET discord_roles = $1 WHERE bind_id = $2", &[&roles_to_keep, &bind.bind_id]).await?;
     Ok(role_ids)
 }
 
 async fn modify_template<'t>(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    asset_id: i64,
+    bind: &Assetbind,
     template: &'t str,
 ) -> Result<String, RoError> {
     let template = match template {
@@ -162,19 +156,16 @@ async fn modify_template<'t>(
         "disable" => "{discord-name}".into(),
         _ => template.to_string(),
     };
-    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
-    let update = doc! {"$set": {"AssetBinds.$.Template": template.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET template = $1 WHERE bind_id = $2", &[&template, &bind.bind_id]).await?;
     Ok(template)
 }
 
 async fn modify_priority(
     ctx: &CommandContext,
-    guild: &RoGuild,
-    asset_id: i64,
+    bind: &Assetbind,
     priority: &str,
-) -> Result<i64, RoError> {
-    let priority = match priority.parse::<i64>() {
+) -> Result<i32, RoError> {
+    let priority = match priority.parse::<i32>() {
         Ok(p) => p,
         Err(_) => {
             return Err(ArgumentError::ParseError {
@@ -185,9 +176,7 @@ async fn modify_priority(
             .into());
         }
     };
-    let filter = doc! {"_id": guild.id, "AssetBinds._id": asset_id};
-    let update = doc! {"$set": {"AssetBinds.$.Priority": priority}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE binds SET priority = $1 WHERE bind_id = $2", &[&priority, &bind.bind_id]).await?;
     Ok(priority)
 }
 

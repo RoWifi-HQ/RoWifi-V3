@@ -1,6 +1,6 @@
 // mod analytics;
 // mod api;
-// mod assetbinds;
+mod assetbinds;
 // mod backup;
 // mod blacklists;
 mod custombinds;
@@ -14,7 +14,7 @@ mod user;
 
 // pub use analytics::*;
 // pub use api::*;
-// pub use assetbinds::*;
+pub use assetbinds::*;
 // pub use backup::*;
 // pub use blacklists::*;
 pub use custombinds::*;

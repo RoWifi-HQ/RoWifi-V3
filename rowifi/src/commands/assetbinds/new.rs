@@ -1,8 +1,8 @@
 use itertools::Itertools;
-use mongodb::bson::{doc, to_bson};
+use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{AssetBind, AssetType, Template},
+    bind::{Assetbind, AssetType, Template, BindType},
     discord::id::RoleId,
 };
 
@@ -15,21 +15,20 @@ pub struct NewArguments {
     #[arg(help = "The template to be used for the bind. Can be initialized as `N/A`, `disable`")]
     pub template: String,
     #[arg(help = "The number that tells the bot which bind to choose for the nickname")]
-    pub priority: Option<i64>,
+    pub priority: Option<i32>,
     #[arg(help = "The Discord Roles to add to the bind", rest)]
     pub discord_roles: Option<String>,
 }
 
 pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let assetbinds  = ctx.bot.database.query::<Assetbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id", &[&(guild_id.get() as i64), &BindType::Asset]).await?;
 
     let asset_type = args.option;
     let asset_id = args.asset_id;
-    if guild
-        .assetbinds
+    if assetbinds
         .iter()
-        .any(|a| a.asset_type == asset_type && a.id == asset_id)
+        .any(|a| a.asset_type == asset_type && a.asset_id == asset_id)
     {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -74,18 +73,22 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         }
     }
 
-    let bind = AssetBind {
-        id: asset_id,
+    let bind = Assetbind {
+        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // collected all fields.
+        bind_id: 0,
+        asset_id,
         asset_type,
         discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
         priority,
-        template: Some(Template(template_str.clone())),
+        template: Template(template_str.clone()),
     };
-    let bind_bson = to_bson(&bind)?;
-
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"AssetBinds": &bind_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    
+    let row = ctx.bot.database.query_one::<Row>(
+        "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
+        &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
+    ).await?;
+    let bind_id: i64 = row.get("bind_id");
 
     let name = format!("Id: {}", asset_id);
     let value = format!(
@@ -150,9 +153,6 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$pull": {"AssetBinds": bind_bson}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -169,6 +169,8 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
                         )
                         .exec()
                         .await?;
+
+                    ctx.bot.database.execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

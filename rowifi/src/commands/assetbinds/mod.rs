@@ -1,9 +1,10 @@
-mod delete;
+ mod delete;
 mod modify;
 mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
+use rowifi_models::bind::{Assetbind, BindType};
 
 pub use delete::assetbinds_delete;
 pub use modify::assetbinds_modify;
@@ -49,9 +50,9 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn assetbind(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let assetbinds  = ctx.bot.database.query::<Assetbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id", &[&(guild_id.get() as i64), &BindType::Asset]).await?;
 
-    if guild.assetbinds.is_empty() {
+    if assetbinds.is_empty() {
         let e = EmbedBuilder::new()
             .default_data()
             .title("Bind Viewing Failed")
@@ -66,27 +67,21 @@ pub async fn assetbind(ctx: CommandContext) -> CommandResult {
     let mut pages = Vec::new();
     let mut page_count = 0;
 
-    let mut assetbinds = guild.assetbinds.clone();
-    assetbinds.sort_unstable_by_key(|a| a.id);
-    for abs in &guild.assetbinds.iter().chunks(12) {
+    for abs in &assetbinds.iter().chunks(12) {
         let mut embed = EmbedBuilder::new()
             .default_data()
             .title("AssetBinds")
             .description(format!("Page {}", page_count + 1));
         for ab in abs {
-            let name = format!("Id: {}", ab.id);
+            let name = format!("Id: {}", ab.asset_id);
             let roles_str = ab
                 .discord_roles
                 .iter()
                 .map(|r| format!("<@&{}>", r))
                 .collect::<String>();
-            let nick = match &ab.template {
-                Some(template) => format!("Template: {}\n", template),
-                None => String::default(),
-            };
             let desc = format!(
-                "Type: {}\n{}Priority: {}\nRoles: {}",
-                ab.asset_type, nick, ab.priority, roles_str
+                "Type: {}\nTemplate: {}\nPriority: {}\nRoles: {}",
+                ab.asset_type, ab.template, ab.priority, roles_str
             );
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
