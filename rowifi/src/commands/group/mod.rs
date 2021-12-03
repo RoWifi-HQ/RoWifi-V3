@@ -4,7 +4,6 @@ mod serverinfo;
 mod update_mul;
 
 use std::time::Duration;
-
 use rowifi_framework::{bucket::BucketLayer, handler::CommandHandler, prelude::*};
 use tower::ServiceBuilder;
 

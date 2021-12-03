@@ -7,7 +7,6 @@ use rowifi_models::{
     bind::{Rankbind, Template, BindType},
     roblox::id::GroupId,
 };
-use rowifi_database::postgres::IsolationLevel;
 
 #[derive(Debug, FromArgs)]
 pub struct NewRankbind {
@@ -105,10 +104,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
     let mut modified = Vec::new();
 
     let mut database = ctx.bot.database.get().await?;
-    let transaction = database.build_transaction()
-        .isolation_level(IsolationLevel::RepeatableRead)
-        .read_only(false)
-        .start().await?;
+    let transaction = database.transaction().await?;
 
     for roblox_rank in roblox_ranks {
         let template_str = match template.as_str() {

@@ -1,12 +1,10 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use mongodb::bson::{self, doc};
 use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{AssetBind, AssetType, GroupBind, RankBind, Template},
+    bind::{Assetbind, AssetType, Groupbind, Rankbind, Template, BindType},
     discord::id::{GuildId, RoleId},
-    guild::RoGuild,
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
@@ -21,7 +19,6 @@ lazy_static! {
 
 pub async fn bind(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
 
     let mut select_menu = SelectMenu {
         custom_id: "bind-select".into(),
@@ -134,22 +131,21 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
     };
 
     match bind_type.as_str() {
-        "custom" => bind_custom(ctx, guild_id, guild).await?,
-        "asset" => bind_asset(ctx, guild_id, guild).await?,
-        "group" => bind_group(ctx, guild_id, guild).await?,
+        "custom" => bind_custom(ctx, guild_id).await?,
+        "asset" => bind_asset(ctx, guild_id).await?,
+        "group" => bind_group(ctx, guild_id).await?,
         _ => {}
     }
 
     Ok(())
 }
 
-async fn bind_custom(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
+async fn bind_custom(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     let code = await_reply("Enter the code for this bind.", &ctx).await?;
 
     custombinds_new_common(
         ctx,
         guild_id,
-        guild,
         CustombindsNewArguments {
             code,
             template: None,
@@ -160,7 +156,7 @@ async fn bind_custom(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> 
     .await
 }
 
-async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
+async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     let mut select_menu = SelectMenu {
         custom_id: "bind-select-asset".into(),
         disabled: false,
@@ -347,7 +343,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
     let priority = match await_reply("Enter the priority you wish to set for the bind.", &ctx)
         .await?
-        .parse::<i64>()
+        .parse::<i32>()
     {
         Ok(p) => p,
         Err(_) => {
@@ -374,18 +370,21 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         }
     }
 
-    let bind = AssetBind {
-        id: asset_id,
+    let bind = Assetbind {
+        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // collected all fields.
+        bind_id: 0,
+        asset_id,
         asset_type,
-        discord_roles,
+        discord_roles: discord_roles.into_iter().unique().collect::<Vec<_>>(),
         priority,
-        template: Some(template.clone()),
+        template: template.clone(),
     };
-    let bind_bson = bson::to_bson(&bind)?;
-
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"AssetBinds": &bind_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    
+    ctx.bot.database.execute(
+        "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
+        &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
+    ).await?;
 
     let name = format!("Id: {}", asset_id);
     let value = format!(
@@ -419,10 +418,10 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
     Ok(())
 }
 
-async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> CommandResult {
+async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     let group_id = match await_reply("Enter the group id you would like to bind", &ctx)
         .await?
-        .parse::<u64>()
+        .parse::<i64>()
     {
         Ok(p) => p,
         Err(_) => {
@@ -438,7 +437,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         }
     };
 
-    let roblox_group = match ctx.bot.roblox.get_group_ranks(GroupId(group_id)).await? {
+    let roblox_group = match ctx.bot.roblox.get_group_ranks(GroupId(group_id as u64)).await? {
         Some(r) => r,
         None => {
             let embed = EmbedBuilder::new()
@@ -555,7 +554,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
     let priority = match await_reply("Enter the priority you wish to set for the bind.", &ctx)
         .await?
-        .parse::<i64>()
+        .parse::<i32>()
     {
         Ok(p) => p,
         Err(_) => {
@@ -581,13 +580,14 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
             }
         }
     }
+    discord_roles = discord_roles.into_iter().unique().collect();
 
     let should_groupbind =
         rank_ids.len() == roblox_group.roles.len() - 1 && rank_ids.iter().any(|r| r.rank != 0);
     if !should_groupbind || template.0 == "auto" {
         return bind_rank(
             ctx,
-            guild,
+            guild_id,
             group_id as i64,
             rank_ids,
             template,
@@ -597,22 +597,25 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
         .await;
     }
 
-    let bind = GroupBind {
-        group_id: group_id as i64,
-        discord_roles,
+    let bind = Groupbind {
+        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // collected all fields.
+        bind_id: 0,
+        group_id,
+        discord_roles: discord_roles.into_iter().unique().collect::<Vec<_>>(),
         priority,
-        template: Some(template.clone()),
+        template,
     };
-
-    let bind_bson = bson::to_bson(&bind)?;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"GroupBinds": &bind_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    
+    ctx.bot.database.execute(
+        "INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6) RETURNING bind_id", 
+        &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
+    ).await?;
 
     let name = format!("Group: {}", group_id);
     let value = format!(
         "Template: `{}`\nPriority: {}\nRoles: {}",
-        &template.0,
+        &bind.template,
         priority,
         bind.discord_roles
             .iter()
@@ -642,15 +645,19 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId, guild: RoGuild) -> C
 
 async fn bind_rank(
     ctx: CommandContext,
-    mut guild: RoGuild,
+    guild_id: GuildId,
     group_id: i64,
     rank_ids: Vec<&PartialRank>,
     template: Template,
-    priority: i64,
+    priority: i32,
     discord_roles: Vec<i64>,
 ) -> CommandResult {
     let mut added = Vec::new();
     let mut modified = Vec::new();
+    let rankbinds = ctx.bot.database.query::<Rankbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2", &[&(guild_id.0.get() as i64), &BindType::Rank]).await?;
+
+    let mut database = ctx.bot.database.get().await?;
+    let transaction = database.transaction().await?;
 
     for group_rank in rank_ids {
         let template = if template.0 == "auto" {
@@ -664,32 +671,35 @@ async fn bind_rank(
         };
 
         let rank_id = i64::from(group_rank.rank);
-        let bind = RankBind {
+        let bind = Rankbind {
+            bind_id: 0,
             group_id,
-            rank_id,
-            rbx_rank_id: group_rank.id.0 as i64,
-            prefix: None,
+            group_rank_id: rank_id,
+            roblox_rank_id: group_rank.id.0 as i64,
             priority,
             discord_roles: discord_roles.clone(),
-            template: Some(template),
+            template,
         };
 
-        match guild
-            .rankbinds
+        match rankbinds
             .iter()
-            .find_position(|r| r.group_id == group_id as i64 && r.rank_id == rank_id)
+            .find(|r| r.group_id == group_id && r.group_rank_id == rank_id)
         {
-            Some((pos, _)) => {
-                guild.rankbinds[pos] = bind.clone();
+            Some(existing) => {
+                let stmt = transaction.prepare_cached("UPDATE binds SET priority = $1, template = $2, discord_roles = $3 WHERE bind_id = $4").await?;
+                transaction.execute(&stmt, &[&bind.priority, &bind.template, &bind.discord_roles, &existing.bind_id]).await?;
                 modified.push(bind);
             }
             None => {
-                guild.rankbinds.push(bind.clone());
+                let stmt = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, group_rank_id, roblox_rank_id, template, priority, discord_roles) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
+                transaction.execute(&stmt, &[&BindType::Rank, &(guild_id.get() as i64), &bind.group_id, &bind.group_rank_id, &bind.roblox_rank_id, &bind.template, &bind.priority, &bind.discord_roles]).await?;
                 added.push(bind);
             }
         }
     }
-    ctx.bot.database.add_guild(&guild, true).await?;
+
+    transaction.commit().await?;
+
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Binds Addition Sucessful")

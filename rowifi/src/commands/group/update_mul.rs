@@ -1,19 +1,21 @@
+use itertools::Itertools;
+use rowifi_database::dynamic_args_with_start;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
     guild::GuildType,
-    roblox::id::UserId as RobloxUserId,
+    roblox::id::UserId as RobloxUserId, bind::Bind,
 };
 use std::{env, sync::atomic::Ordering};
 use tokio::time::sleep;
 use twilight_gateway::Event;
 
-use crate::services::auto_detection::execute_chunk;
+use crate::services::auto_detection::{execute_chunk, mass_update_user};
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
-    if guild.settings.guild_type == GuildType::Normal {
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -74,11 +76,30 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
     }
-    let users = ctx
-        .bot
-        .database
-        .get_linked_users(&members, guild_id.0.get())
-        .await?;
+
+    members.insert(0, guild_id.get() as i64);
+    let db = ctx.bot.database.get().await?;
+    let statement = db.prepare_cached(
+        &format!(r#"
+            SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
+            LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
+            ON l.discord_id = users.discord_id
+            WHERE users.discord_id IN ({})
+        "#, dynamic_args_with_start(members.len() - 1, 2)),
+    ).await?;
+    let rows = db.query_raw(&statement, &members).await?;
+    tokio::pin!(rows);
+    let mut users = Vec::new();
+    while let Some(Ok(row)) = rows.next().await {
+        match mass_update_user(row, guild_id.get() as i64) {
+            Ok(u) => users.push(u),
+            Err(e) => tracing::error!("error in update all: {}", e)
+        }
+    }
+    tracing::debug!(users = ?users);
+
+    let binds = ctx.bot.database.query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
@@ -90,6 +111,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
     };
 
     tokio::spawn(async move {
+        let all_roles = binds.iter().map(|b| b.discord_roles()).flatten().unique().collect::<Vec<_>>();
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
@@ -107,7 +129,9 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
                         &guild,
                         &guild_roles,
                         false,
-                        None
+                        None,
+                        &binds,
+                        &all_roles
                     ),
                     sleep(Duration::from_secs(1))
                 );
@@ -133,8 +157,8 @@ pub struct UpdateMultipleArguments {
 
 pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
-    if guild.settings.guild_type == GuildType::Normal {
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -206,11 +230,29 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
     }
-    let users = ctx
-        .bot
-        .database
-        .get_linked_users(&members, guild_id.0.get())
-        .await?;
+    
+    members.insert(0, guild_id.get() as i64);
+    let db = ctx.bot.database.get().await?;
+    let statement = db.prepare_cached(
+        &format!(r#"
+            SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
+            LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
+            ON l.discord_id = users.discord_id
+            WHERE users.discord_id IN ({})
+        "#, dynamic_args_with_start(members.len() - 1, 2)),
+    ).await?;
+    let rows = db.query_raw(&statement, &members).await?;
+    tokio::pin!(rows);
+    let mut users = Vec::new();
+    while let Some(Ok(row)) = rows.next().await {
+        match mass_update_user(row, guild_id.get() as i64) {
+            Ok(u) => users.push(u),
+            Err(e) => tracing::error!("error in update all: {}", e)
+        }
+    }
+    tracing::debug!(users = ?users);
+
+    let binds = ctx.bot.database.query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
@@ -222,6 +264,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     };
 
     tokio::spawn(async move {
+        let all_roles = binds.iter().map(|b| b.discord_roles()).flatten().unique().collect::<Vec<_>>();
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
@@ -239,7 +282,9 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
                         &guild,
                         &guild_roles,
                         false,
-                        Some(role_id)
+                        Some(role_id),
+                        &binds,
+                        &all_roles
                     ),
                     sleep(Duration::from_secs(1))
                 );
