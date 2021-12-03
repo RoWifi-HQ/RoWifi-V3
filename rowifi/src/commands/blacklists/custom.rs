@@ -1,7 +1,6 @@
-use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    blacklist::{Blacklist, BlacklistType},
+    blacklist::{Blacklist, BlacklistData},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -18,7 +17,7 @@ pub async fn blacklist_custom(
     args: BlacklistCustomArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let code = args.code;
     if code.is_empty() {
@@ -32,7 +31,7 @@ pub async fn blacklist_custom(
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
-    let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
+    let user = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -77,18 +76,19 @@ pub async fn blacklist_custom(
     }
     let reason = await_reply("Enter the reason of this blacklist.", &ctx).await?;
 
+    let blacklist_id = guild.blacklists.iter().map(|b| b.blacklist_id).max().unwrap_or_default() + 1;
     let blacklist = Blacklist {
-        id: code.to_string(),
+        blacklist_id,
         reason,
-        blacklist_type: BlacklistType::Custom(command),
+        data: BlacklistData::Custom(command),
     };
-    let blacklist_bson = to_bson(&blacklist)?;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"Blacklists": &blacklist_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute(
+        r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
+        &[&blacklist, &(guild_id.get() as i64)]
+    ).await?;
 
-    let name = format!("Type: {:?}", blacklist.blacklist_type);
-    let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
+    let name = format!("Type: {:?}", blacklist.kind());
+    let desc = format!("Code: {}\nReason: {}", code, blacklist.reason);
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -142,9 +142,6 @@ pub async fn blacklist_custom(
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$pull": {"Blacklists": blacklist_bson}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -161,6 +158,8 @@ pub async fn blacklist_custom(
                         )
                         .exec()
                         .await?;
+
+                    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id.get() as i64)]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

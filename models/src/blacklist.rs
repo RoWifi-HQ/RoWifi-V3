@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, FromSql, to_sql_checked};
 
@@ -19,6 +20,7 @@ pub enum BlacklistData {
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[repr(u8)]
+#[non_exhaustive]
 pub enum BlacklistType {
     User = 0,
     Group = 1,
@@ -99,6 +101,16 @@ impl<'a> FromSql<'a> for Blacklist {
     }
 }
 
+impl Display for BlacklistType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            BlacklistType::User => f.write_str("User"),
+            BlacklistType::Group => f.write_str("Group"),
+            BlacklistType::Custom => f.write_str("Custom")
+        }
+    }
+}
+
 impl ToSql for BlacklistType {
     fn to_sql(
         &self,
@@ -120,8 +132,8 @@ impl<'a> FromSql<'a> for BlacklistType {
         ty: &Type,
         raw: &'a [u8],
     ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-        let bind_type = i32::from_sql(ty, raw)?;
-        match bind_type {
+        let blacklist_type = i32::from_sql(ty, raw)?;
+        match blacklist_type {
             0 => Ok(BlacklistType::User),
             1 => Ok(BlacklistType::Group),
             2 => Ok(BlacklistType::Custom),
