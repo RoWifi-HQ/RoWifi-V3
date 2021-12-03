@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use std::{str::FromStr, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
 
@@ -14,10 +13,10 @@ pub struct RoGuild {
     pub command_prefix: String,
 
     /// The role meant for unverified users in the guild
-    pub verification_role: Option<i64>,
+    pub verification_roles: Vec<i64>,
 
     /// The role meant for verified users in the guild
-    pub verified_role: Option<i64>,
+    pub verified_roles: Vec<i64>,
 
     /// The array containing all the [Blacklist] of the guild
     pub blacklists: Vec<Blacklist>,
@@ -87,6 +86,16 @@ impl Default for BlacklistActionType {
     }
 }
 
+impl Display for GuildType {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            GuildType::Alpha => write!(f, "Alpha"),
+            GuildType::Beta => write!(f, "Beta"),
+            GuildType::Free => write!(f, "Normal"),
+        }
+    }
+}
+
 impl FromStr for BlacklistActionType {
     type Err = ();
 
@@ -104,8 +113,8 @@ impl FromRow for RoGuild {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
         let guild_id = row.try_get("guild_id")?;
         let command_prefix = row.try_get("command_prefix")?;
-        let verification_role = row.try_get("verification_role").ok();
-        let verified_role = row.try_get("verified_role").ok();
+        let verification_roles = row.try_get("verification_roles")?;
+        let verified_roles = row.try_get("verified_roles")?;
         let blacklists = row.try_get("blacklists")?;
         let disabled_channels = row.try_get("disabled_channels")?;
         let registered_groups = row.try_get("registered_groups")?;
@@ -123,8 +132,8 @@ impl FromRow for RoGuild {
         Ok(Self {
             guild_id,
             command_prefix,
-            verification_role,
-            verified_role,
+            verification_roles,
+            verified_roles,
             blacklists,
             disabled_channels,
             registered_groups,

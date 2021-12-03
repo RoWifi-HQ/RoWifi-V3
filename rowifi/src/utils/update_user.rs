@@ -31,8 +31,8 @@ impl UpdateUser<'_> {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();
 
-        if let Some(verification_role) = self.guild.verification_role {
-            let verification_role = RoleId::new(verification_role as u64).unwrap();
+        if let Some(verification_role) = self.guild.verification_roles.get(0) {
+            let verification_role = RoleId::new(*verification_role as u64).unwrap();
             if self.guild_roles.get(&verification_role).is_some()
                 && self.member.roles.contains(&verification_role)
             {
@@ -40,8 +40,8 @@ impl UpdateUser<'_> {
             }
         }
 
-        if let Some(verified_role) = self.guild.verified_role {
-            let verified_role = RoleId::new(verified_role as u64).unwrap();
+        if let Some(verified_role) = self.guild.verified_roles.get(0) {
+            let verified_role = RoleId::new(*verified_role as u64).unwrap();
             if self.guild_roles.get(&verified_role).is_some() && !self.member.roles.contains(&verified_role) {
                 added_roles.push(verified_role);
             }

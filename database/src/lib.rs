@@ -144,6 +144,12 @@ impl Database {
     }
 }
 
+#[inline]
 pub fn dynamic_args(size: usize) -> String {
     (0..size).map(|i| format!("${}", i+1)).join(", ")
+}
+
+#[inline]
+pub fn dynamic_args_with_start(size: usize, start: usize) -> String {
+    (0..size).map(|i| format!("${}", i+start)).join(", ")
 }

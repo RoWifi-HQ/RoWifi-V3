@@ -20,15 +20,16 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
-    let guild = RoGuild {
-        id: guild_id.0.get() as i64,
-        command_prefix: guild.command_prefix,
-        event_counter: guild.event_counter,
-        ..RoGuild::default()
-    };
-
-    ctx.bot.database.add_guild(&guild, true).await?;
+    let mut db = ctx.bot.database.get().await?;
+    let transaction = db.transaction().await?;
+    let delete_statement = transaction.prepare_cached("DELETE FROM guilds WHERE guild_id = $1").await?;
+    transaction.execute(&delete_statement, &[&(guild_id.get() as i64)]).await?;
+    let insert_statement = transaction.prepare_cached("INSERT INTO guilds(guild_id, command_prefix, kind, blacklist_action) VALUES($1, $2, $3, $4)").await?;
+    let guild = RoGuild::new(guild_id.get() as i64);
+    transaction.execute(&insert_statement, &[&(guild_id.get() as i64), &guild.command_prefix, &guild.kind, &guild.blacklist_action]).await?;
+    let delete_binds = transaction.prepare_cached("DELETE FROM binds WHERE guild_id = $1").await?;
+    transaction.execute(&delete_binds, &[&(guild_id.get() as i64)]).await?;
+    transaction.commit().await?;
 
     ctx.bot.admin_roles.remove(&guild_id);
     ctx.bot.trainer_roles.remove(&guild_id);

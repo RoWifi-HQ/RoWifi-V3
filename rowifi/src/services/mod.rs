@@ -1,5 +1,5 @@
 pub mod activity;
-// pub mod auto_detection;
+pub mod auto_detection;
 pub mod event_handler;
 
 pub use activity::activity;
