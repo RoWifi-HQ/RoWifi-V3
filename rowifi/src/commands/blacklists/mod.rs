@@ -5,6 +5,7 @@ mod name;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
+use rowifi_models::blacklist::BlacklistData;
 
 pub use custom::blacklist_custom;
 pub use delete::blacklist_delete;
@@ -58,7 +59,7 @@ pub fn blacklists_config(cmds: &mut Vec<Command>) {
 
 pub async fn blacklist(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     if guild.blacklists.is_empty() {
         let e = EmbedBuilder::new()
@@ -80,8 +81,12 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
             .title("Blacklists")
             .description(format!("Page {}", page_count + 1));
         for bl in bls {
-            let name = format!("Type: {:?}", bl.blacklist_type);
-            let desc = format!("Id: {}\nReason: {}", bl.id, bl.reason);
+            let name = format!("Id: {}", bl.blacklist_id);
+            let desc = match &bl.data {
+                BlacklistData::User(user) => format!("Type: {}\nUser Id: {}\nReason: {}", bl.kind(), user, bl.reason),
+                BlacklistData::Group(group) => format!("Type: {}\nGroup Id: {}\nReason: {}", bl.kind(), group, bl.reason),
+                BlacklistData::Custom(code) => format!("Type: {}\nCode: {}\nReason: {}", bl.kind(), code, bl.reason),
+            };
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }
         pages.push(embed.build()?);

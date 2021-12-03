@@ -1,10 +1,9 @@
-use mongodb::bson::{self, doc};
 use rowifi_framework::prelude::*;
 
 #[derive(FromArgs)]
 pub struct BlacklistDeleteArguments {
     #[arg(help = "The ID of the blacklist to delete", rest)]
-    pub id: String,
+    pub id: i64,
 }
 
 pub async fn blacklist_delete(
@@ -12,10 +11,10 @@ pub async fn blacklist_delete(
     args: BlacklistDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let id = args.id;
-    let blacklist = match guild.blacklists.iter().find(|b| b.id == id) {
+    let blacklist = match guild.blacklists.iter().find(|b| b.blacklist_id == id) {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
@@ -30,9 +29,7 @@ pub async fn blacklist_delete(
         }
     };
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pull": {"Blacklists": {"_id": id}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id.get() as i64)]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -61,8 +58,8 @@ pub async fn blacklist_delete(
         .model()
         .await?;
 
-    let name = format!("Type: {:?}", blacklist.blacklist_type);
-    let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
+    let name = format!("Type: {:?}", blacklist.kind());
+    let desc = format!("Id: {}\nReason: {}", blacklist.blacklist_id, blacklist.reason);
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
@@ -88,9 +85,6 @@ pub async fn blacklist_delete(
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$push": {"Blacklists": bson::to_bson(blacklist)?}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -107,6 +101,11 @@ pub async fn blacklist_delete(
                         )
                         .exec()
                         .await?;
+
+                    ctx.bot.database.execute(
+                        r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
+                        &[&blacklist, &(guild_id.get() as i64)]
+                    ).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

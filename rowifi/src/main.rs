@@ -16,7 +16,7 @@ mod services;
 mod utils;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
-use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config};
+use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config};
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -220,7 +220,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // .configure(analytics_config)
     .configure(assetbinds_config)
     // .configure(backup_config)
-    // .configure(blacklists_config)
+    .configure(blacklists_config)
     .configure(custombinds_config)
     // .configure(events_config)
     .configure(group_config)

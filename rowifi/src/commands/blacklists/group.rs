@@ -1,6 +1,5 @@
-use mongodb::bson::{doc, to_bson};
 use rowifi_framework::prelude::*;
-use rowifi_models::blacklist::{Blacklist, BlacklistType};
+use rowifi_models::blacklist::{Blacklist, BlacklistData};
 
 #[derive(FromArgs)]
 pub struct BlacklistGroupArguments {
@@ -12,25 +11,27 @@ pub struct BlacklistGroupArguments {
 
 pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let group_id = args.group_id;
     let mut reason = args.reason;
     if reason.is_empty() {
         reason = "N/A".into();
     }
-    let blacklist = Blacklist {
-        id: group_id.to_string(),
-        reason,
-        blacklist_type: BlacklistType::Group(group_id),
-    };
-    let blacklist_bson = to_bson(&blacklist)?;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"Blacklists": &blacklist_bson}};
-    ctx.bot.database.modify_guild(filter, update).await?;
 
-    let name = format!("Type: {:?}", blacklist.blacklist_type);
-    let desc = format!("Id: {}\nReason: {}", blacklist.id, blacklist.reason);
+    let blacklist_id = guild.blacklists.iter().map(|b| b.blacklist_id).max().unwrap_or_default() + 1;
+    let blacklist = Blacklist {
+        blacklist_id,
+        reason,
+        data: BlacklistData::Group(group_id)
+    };
+    ctx.bot.database.execute(
+        r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
+        &[&blacklist, &(guild_id.get() as i64)]
+    ).await?;
+
+    let name = format!("Type: {:?}", blacklist.kind());
+    let desc = format!("Group Id: {}\nReason: {}", group_id, blacklist.reason);
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -84,9 +85,6 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
                 let component_interaction_author = message_component.author_id().unwrap();
                 if component_interaction_author == author_id {
-                    let filter = doc! {"_id": guild.id};
-                    let update = doc! {"$pull": {"Blacklists": blacklist_bson}};
-                    ctx.bot.database.modify_guild(filter, update).await?;
                     ctx.bot
                         .http
                         .interaction_callback(
@@ -103,6 +101,8 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
                         )
                         .exec()
                         .await?;
+
+                    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id.get() as i64)]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()
