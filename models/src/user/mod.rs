@@ -1,10 +1,11 @@
 use bitflags::bitflags;
 use postgres_types::{FromSql, Type, ToSql, IsNull, to_sql_checked};
 use bytes::BytesMut;
+use serde::{Deserialize, Serialize, Deserializer, Serializer};
 
 use crate::FromRow;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct RoUser {
     pub discord_id: i64,
     pub default_roblox_id: i64,
@@ -15,14 +16,14 @@ pub struct RoUser {
     pub premium_owner: Option<i64>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct RoGuildUser {
     pub guild_id: i64,
     pub discord_id: i64,
     pub roblox_id: i64,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct QueueUser {
     pub roblox_id: i64,
     pub discord_id: i64,
@@ -30,7 +31,7 @@ pub struct QueueUser {
 }
 
 bitflags! {
-    pub struct UserFlags: i32 {
+    pub struct UserFlags: i64 {
         const NONE = 0;
         const ALPHA = 1;
         const BETA = 1 << 1;
@@ -91,23 +92,35 @@ impl FromRow for QueueUser {
 
 impl<'a> FromSql<'a> for UserFlags {
     fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-        let bits = i32::from_sql(ty, raw)?;
+        let bits = i64::from_sql(ty, raw)?;
         Ok(Self::from_bits_truncate(bits))
     }
 
     fn accepts(ty: &Type) -> bool {
-        <i32 as FromSql>::accepts(ty)
+        <i64 as FromSql>::accepts(ty)
     }
 }
 
 impl ToSql for UserFlags {
     fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
-        i32::to_sql(&self.bits, ty, out)
+        i64::to_sql(&self.bits, ty, out)
     }
 
     fn accepts(ty: &Type) -> bool {
-        <i32 as ToSql>::accepts(ty)
+        <i64 as ToSql>::accepts(ty)
     }
 
     to_sql_checked!();
+}
+
+impl<'de> Deserialize<'de> for UserFlags {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(Self::from_bits_truncate(i64::deserialize(deserializer)?))
+    }
+}
+
+impl Serialize for UserFlags {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_i64(self.bits())
+    }
 }

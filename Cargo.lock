@@ -1274,6 +1274,8 @@ dependencies = [
  "fallible-iterator",
  "postgres-derive",
  "postgres-protocol",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1570,6 +1572,7 @@ dependencies = [
  "prometheus",
  "regex",
  "serde",
+ "serde_repr",
  "tokio-postgres",
  "twilight-model",
 ]

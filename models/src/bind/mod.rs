@@ -5,6 +5,7 @@ mod group;
 mod custom;
 
 pub use rank::Rankbind;
+use serde::{Deserialize, Serialize};
 pub use template::Template;
 pub use group::Groupbind;
 pub use custom::Custombind;
@@ -15,7 +16,8 @@ use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 
 use crate::{FromRow, user::RoGuildUser, roblox::user::PartialUser as RobloxUser};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Bind {
     Rank(Rankbind),
     Group(Groupbind),

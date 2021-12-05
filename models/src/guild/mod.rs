@@ -1,10 +1,14 @@
+mod backup;
+
 use std::{str::FromStr, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::{FromRow, blacklist::Blacklist};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Deserialize, Default, Serialize)]
 pub struct RoGuild {
     /// The id of the guild
     pub guild_id: i64,
@@ -48,7 +52,7 @@ pub struct RoGuild {
     pub log_channel: Option<i64>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum GuildType {
     Free = 0,
@@ -56,7 +60,7 @@ pub enum GuildType {
     Beta = 2,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum BlacklistActionType {
     None = 0,

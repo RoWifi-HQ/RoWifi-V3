@@ -2,6 +2,7 @@ use bytes::BytesMut;
 use lazy_static::lazy_static;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::roblox::user::PartialUser as RobloxUser;
@@ -11,7 +12,7 @@ lazy_static! {
     static ref TEMPLATE_REGEX: Regex = Regex::new(r"\{(.*?)\}").unwrap();
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Template(pub String);
 
 impl Template {

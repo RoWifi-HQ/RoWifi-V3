@@ -1,12 +1,14 @@
 use std::{str::FromStr, error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::FromRow;
 
 use super::template::Template;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Assetbind {
     /// The global id of the bind
     pub bind_id: i64,
@@ -22,7 +24,7 @@ pub struct Assetbind {
     pub template: Template,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum AssetType {
     Asset = 0,

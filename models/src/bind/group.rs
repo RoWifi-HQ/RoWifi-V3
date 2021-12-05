@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use super::Template;
 
 use crate::FromRow;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Groupbind {
     /// The global id of the bind
     pub bind_id: i64,
