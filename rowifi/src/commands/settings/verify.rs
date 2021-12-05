@@ -1,4 +1,3 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::discord::id::RoleId;
 
@@ -13,12 +12,10 @@ pub async fn settings_verification(
     args: VerificationArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    let verification_role = args.role.0;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"VerificationRole": verification_role.get() as i64, "VerificationRoles": [verification_role.get() as i64]}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let verification_roles = vec![args.role.get() as i64];
+    ctx.bot.database.execute("UPDATE guilds SET verification_roles = $1 WHERE guild_id = $2", &[&verification_roles, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -26,7 +23,7 @@ pub async fn settings_verification(
         .title("Settings Modification Successful")
         .description(format!(
             "The Verification Role was successfully set to <@&{}>",
-            verification_role
+            verification_roles[0]
         ))
         .build()
         .unwrap();
@@ -37,7 +34,7 @@ pub async fn settings_verification(
         .title(format!("Action by {}", ctx.author.name))
         .description(format!(
             "Settings Modification: Verification Role set to <@&{}>",
-            verification_role
+            verification_roles[0]
         ))
         .build()
         .unwrap();
@@ -53,12 +50,10 @@ pub struct VerifiedArguments {
 
 pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    let verified_role = args.role.0;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"VerifiedRole": verified_role.get() as i64, "VerifiedRoles": [verified_role.get() as i64]}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let verified_roles = vec![args.role.get() as i64];
+    ctx.bot.database.execute("UPDATE guilds SET verified_roles = $1 WHERE guild_id = $2", &[&verified_roles, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -66,7 +61,7 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
         .title("Settings Modification Successful")
         .description(format!(
             "The Verified Role was successfully set to <@&{}>",
-            verified_role
+            verified_roles[0]
         ))
         .build()
         .unwrap();
@@ -77,7 +72,7 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
         .title(format!("Action by {}", ctx.author.name))
         .description(format!(
             "Settings Modification: Verified Role set to <@&{}>",
-            verified_role
+            verified_roles[0]
         ))
         .build()
         .unwrap();

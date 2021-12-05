@@ -9,7 +9,7 @@ mod group;
 mod groupbinds;
 // mod premium;
 mod rankbinds;
-// mod settings;
+mod settings;
 mod user;
 
 // pub use analytics::*;
@@ -23,5 +23,5 @@ pub use group::*;
 pub use groupbinds::*;
 // pub use premium::*;
 pub use rankbinds::*;
-// pub use settings::*;
+pub use settings::*;
 pub use user::*;

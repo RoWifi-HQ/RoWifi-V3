@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::id::RoleId,
@@ -20,9 +19,9 @@ pub struct NicknameBypassArguments {
 
 pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type == GuildType::Normal {
+    if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -51,7 +50,7 @@ pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments)
 
 pub async fn nickname_bypass_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
     let mut description = String::new();
-    for nick_bypass in guild.settings.nickname_bypass_roles {
+    for nick_bypass in guild.nickname_bypass_roles {
         description.push_str(&format!("- <@&{}>\n", nick_bypass));
     }
 
@@ -95,15 +94,14 @@ pub async fn nickname_bypass_add(
             }
         }
     }
+    roles_to_add = roles_to_add.into_iter().unique().collect();
 
     {
         let nickname_bypass_roles = ctx.bot.nickname_bypass_roles.entry(guild_id).or_default();
         roles_to_add.retain(|r| !nickname_bypass_roles.contains(&RoleId::new(*r as u64).unwrap()));
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"Settings.NicknameBypassRoles": {"$each": roles_to_add.clone()}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET nickname_bypass_roles = array_cat(nickname_bypass_roles, $1::BIGINT[]) WHERE guild_id = $2", &[&roles_to_add, &guild.guild_id]).await?;
 
     ctx.bot
         .nickname_bypass_roles
@@ -144,9 +142,9 @@ pub async fn nickname_bypass_remove(
         }
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pullAll": {"Settings.NicknameBypassRoles": role_ids.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut roles_to_keep = guild.nickname_bypass_roles.clone();
+    roles_to_keep.retain(|r| !role_ids.contains(r));
+    ctx.bot.database.execute("UPDATE guilds SET nickname_bypass_roles = $1 WHERE guild_id = $2", &[&roles_to_keep, &(guild_id.get() as i64)]).await?;
 
     ctx.bot
         .nickname_bypass_roles
@@ -195,9 +193,7 @@ pub async fn nickname_bypass_set(
     }
     roles_to_set = roles_to_set.into_iter().unique().collect::<Vec<_>>();
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"Settings.NicknameBypassRoles": &roles_to_set}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET nickname_bypass_roles = $1 WHERE guild_id = $2", &[&roles_to_set, &guild.guild_id]).await?;
 
     ctx.bot.nickname_bypass_roles.insert(
         guild_id,

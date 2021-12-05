@@ -1,4 +1,3 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{discord::id::ChannelId, guild::GuildType};
 
@@ -10,9 +9,9 @@ pub struct LogChannelArguments {
 
 pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type == GuildType::Normal {
+    if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -37,10 +36,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             return Ok(());
         }
 
-        let filter = doc! {"_id": guild.id};
-        let update = doc! {"$set": {"Settings.LogChannel": channel_id.0.get() as i64}};
-        ctx.bot.database.modify_guild(filter, update).await?;
-
+        ctx.bot.database.execute("UPDATE guilds SET log_channel = $1 WHERE guild_id = $2", &[&(channel_id.get() as i64), &guild.guild_id]).await?;
         ctx.bot.log_channels.insert(guild_id, channel_id);
 
         let embed = EmbedBuilder::new()
@@ -51,7 +47,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             .build()
             .unwrap();
         ctx.respond().embeds(&[embed])?.exec().await?;
-    } else if let Some(channel_id) = guild.settings.log_channel {
+    } else if let Some(channel_id) = guild.log_channel {
         ctx.respond()
             .content(&format!("Current log channel is <#{}>", channel_id))?
             .exec()

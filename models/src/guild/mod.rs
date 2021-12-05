@@ -96,6 +96,16 @@ impl Display for GuildType {
     }
 }
 
+impl Display for BlacklistActionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            BlacklistActionType::None => f.write_str("None"),
+            BlacklistActionType::Kick => f.write_str("Kick"),
+            BlacklistActionType::Ban => f.write_str("Ban")
+        }
+    }
+}
+
 impl FromStr for BlacklistActionType {
     type Err = ();
 
