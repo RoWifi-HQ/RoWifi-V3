@@ -1,4 +1,3 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 
 use super::ToggleOption;
@@ -11,7 +10,7 @@ pub struct UpdateOnJoinArguments {
 
 pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let option = args.option;
     let (option, desc) = match option {
@@ -19,9 +18,7 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         ToggleOption::Disable => (false, "Update on Join has successfully been disabled"),
     };
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"Settings.UpdateOnJoin": option}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET update_on_join = $1 WHERE guild_id = $2", &[&option, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -37,7 +34,7 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         .title(format!("Action by {}", ctx.author.name))
         .description(format!(
             "Settings Modification: Update On Join - {} -> {}",
-            guild.settings.update_on_join, option
+            guild.update_on_join, option
         ))
         .build()
         .unwrap();

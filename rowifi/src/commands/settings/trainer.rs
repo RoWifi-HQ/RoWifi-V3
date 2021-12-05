@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::id::RoleId,
@@ -18,9 +17,9 @@ pub struct TrainerArguments {
 
 pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type == GuildType::Normal {
+    if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -49,7 +48,7 @@ pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResu
 
 pub async fn trainer_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
     let mut description = String::new();
-    for trainer_role in guild.settings.trainer_roles {
+    for trainer_role in guild.trainer_roles {
         description.push_str(&format!("- <@&{}>\n", trainer_role));
     }
 
@@ -92,15 +91,14 @@ pub async fn trainer_add(
             }
         }
     }
+    roles_to_add = roles_to_add.into_iter().unique().collect();
 
     {
         let trainer_roles = ctx.bot.trainer_roles.entry(guild_id).or_default();
         roles_to_add.retain(|r| !trainer_roles.contains(&RoleId::new(*r as u64).unwrap()));
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"Settings.TrainerRoles": {"$each": roles_to_add.clone()}}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET trainer_roles = array_cat(trainer_roles, $1::BIGINT[]) WHERE guild_id = $2", &[&roles_to_add, &guild.guild_id]).await?;
 
     ctx.bot
         .trainer_roles
@@ -140,9 +138,9 @@ pub async fn trainer_remove(
         }
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pullAll": {"Settings.TrainerRoles": role_ids.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut roles_to_keep = guild.admin_roles.clone();
+    roles_to_keep.retain(|r| !role_ids.contains(r));
+    ctx.bot.database.execute("UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2", &[&roles_to_keep, &(guild_id.get() as i64)]).await?;
 
     ctx.bot
         .trainer_roles
@@ -191,9 +189,7 @@ pub async fn trainer_set(
     }
     roles_to_set = roles_to_set.into_iter().unique().collect::<Vec<_>>();
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"Settings.TrainerRoles": &roles_to_set}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2", &[&roles_to_set, &guild.guild_id]).await?;
 
     ctx.bot.trainer_roles.insert(
         guild_id,

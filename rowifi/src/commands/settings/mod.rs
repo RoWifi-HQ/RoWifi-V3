@@ -17,9 +17,8 @@ use log::log_channel;
 use misc::{blacklist_action, settings_prefix, toggle_commands};
 use nickname_bypass::nickname_bypass;
 use trainer::trainer;
-
-pub use update::update_on_join;
-pub use verify::{settings_verification, settings_verified};
+use update::update_on_join;
+use verify::{settings_verification, settings_verified};
 
 pub fn settings_config(cmds: &mut Vec<Command>) {
     let settings_view_cmd = Command::builder()
@@ -124,37 +123,37 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
 
 pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
-        .field(EmbedFieldBuilder::new("Tier", guild.settings.guild_type.to_string()).inline())
+        .field(EmbedFieldBuilder::new("Tier", guild.kind.to_string()).inline())
         .field(
             EmbedFieldBuilder::new(
                 "Prefix",
-                guild.command_prefix.clone().unwrap_or_else(|| "!".into()),
+                &guild.command_prefix,
             )
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Auto Detection", guild.settings.auto_detection.to_string())
+            EmbedFieldBuilder::new("Auto Detection", guild.auto_detection.to_string())
                 .inline(),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Blacklist Action",
-                guild.settings.blacklist_action.to_string(),
+                guild.blacklist_action.to_string(),
             )
             .inline(),
         )
         .field(
-            EmbedFieldBuilder::new("Update On Join", guild.settings.update_on_join.to_string())
+            EmbedFieldBuilder::new("Update On Join", guild.update_on_join.to_string())
                 .inline(),
         )
         .field(
             EmbedFieldBuilder::new(
                 "Verification Role",
-                if let Some(verification_role) = guild.verification_role {
+                if let Some(verification_role) = guild.verification_roles.get(0) {
                     format!("<@&{}>", verification_role)
                 } else {
                     "None".into()
@@ -165,7 +164,7 @@ pub async fn settings_view(ctx: CommandContext) -> CommandResult {
         .field(
             EmbedFieldBuilder::new(
                 "Verified Role",
-                if let Some(verified_role) = guild.verified_role {
+                if let Some(verified_role) = guild.verified_roles.get(0) {
                     format!("<@&{}>", verified_role)
                 } else {
                     "None".into()

@@ -1,4 +1,3 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::BlacklistActionType;
 
@@ -17,12 +16,10 @@ pub async fn blacklist_action(
     args: BlacklistActionArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let bl_type = args.option;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"Settings.BlacklistAction": bl_type as u32}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET blacklist_action = $1 WHERE guild_id = $2", &[&bl_type, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -41,7 +38,7 @@ pub async fn blacklist_action(
         .title(format!("Action by {}", ctx.author.name))
         .description(format!(
             "Settings Modification: Blacklist Action - {} -> {}",
-            guild.settings.blacklist_action, bl_type
+            guild.blacklist_action, bl_type
         ))
         .build()
         .unwrap();
@@ -59,24 +56,23 @@ pub struct ToggleCommandsArguments {
 
 pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let option = args.option;
-    let (update, desc, add) = match option {
+    let (statement, desc, add) = match option {
         ToggleOption::Enable => (
-            doc! {"$pull": {"DisabledChannels": ctx.channel_id.0.get() as i64}},
+            "UPDATE guilds SET disabled_channels = array_remove(disabled_channels, $1) WHERE guild_id = $2",
             "Commands have been successfully enabled in this channel",
             false,
         ),
         ToggleOption::Disable => (
-            doc! {"$push": {"DisabledChannels": ctx.channel_id.0.get() as i64}},
+            "UPDATE guilds SET disabled_channels = array_append(disabled_channels, $1) WHERE guild_id = $2",
             "Commands have been successfully disabled in this channel",
             true,
         ),
     };
 
-    let filter = doc! {"_id": guild.id};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute(statement, &[&(ctx.channel_id.get() as i64), &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -103,12 +99,10 @@ pub struct SettingsPrefixArguments {
 
 pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let prefix = args.prefix;
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"Prefix": prefix.clone()}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET command_prefix = $1 WHERE guild_id = $2", &[&prefix, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
