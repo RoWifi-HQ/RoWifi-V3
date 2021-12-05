@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use bytes::BytesMut;
 use postgres_types::{ToSql, Type, IsNull, FromSql, to_sql_checked};
+use serde::{Deserialize, Serialize, Deserializer, Serializer};
 
 use crate::rolang::{RoCommand, RoCommandUser};
 
@@ -18,7 +19,7 @@ pub enum BlacklistData {
     Custom(RoCommand)
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[repr(u8)]
 #[non_exhaustive]
 pub enum BlacklistType {
@@ -27,7 +28,7 @@ pub enum BlacklistType {
     Custom = 2
 }
 
-#[derive(Debug, FromSql, ToSql)]
+#[derive(Debug, Deserialize, FromSql, Serialize, ToSql)]
 #[postgres(name = "blacklist")]
 struct BlacklistIntermediary {
     pub blacklist_id: i64,
@@ -143,5 +144,40 @@ impl<'a> FromSql<'a> for BlacklistType {
 
     fn accepts(ty: &Type) -> bool {
         <i32 as FromSql>::accepts(ty)
+    }
+}
+
+impl<'de> Deserialize<'de> for Blacklist {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let intermediary = BlacklistIntermediary::deserialize(deserializer)?;
+        let data = match intermediary.kind {
+            BlacklistType::User => BlacklistData::User(intermediary.user_id.unwrap()),
+            BlacklistType::Group => BlacklistData::Group(intermediary.group_id.unwrap()),
+            BlacklistType::Custom => BlacklistData::Custom(RoCommand::new(&intermediary.code.unwrap()).unwrap())
+        };
+        Ok(Blacklist {
+            blacklist_id: intermediary.blacklist_id,
+            reason: intermediary.reason,
+            data
+        })
+    }
+}
+
+impl Serialize for Blacklist {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let (user_id, group_id, code) = match &self.data {
+            BlacklistData::User(u) => (Some(*u), None, None),
+            BlacklistData::Group(g) => (None, Some(*g), None),
+            BlacklistData::Custom(c) => (None, None, Some(c.code.clone()))
+        };
+        let intermediary = BlacklistIntermediary {
+            blacklist_id: self.blacklist_id,
+            reason: self.reason.clone(),
+            kind: self.kind(),
+            user_id,
+            group_id,
+            code
+        };
+        intermediary.serialize(serializer)
     }
 }

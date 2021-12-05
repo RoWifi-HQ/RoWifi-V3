@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use crate::FromRow;
 
 use super::template::Template;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Rankbind {
     /// The global id of the bind
     pub bind_id: i64,
