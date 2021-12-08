@@ -23,6 +23,15 @@ pub struct Custombind {
     pub command: RoCommand,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct CustombindBackup {
+    pub custom_bind_id: i32,
+    pub discord_roles: Vec<String>,
+    pub code: String,
+    pub priority: i32,
+    pub template: Template,
+}
+
 impl FromRow for Custombind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
         let bind_id = row.try_get("bind_id")?;

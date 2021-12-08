@@ -22,6 +22,16 @@ pub struct Rankbind {
     pub template: Template,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct RankbindBackup {
+    pub group_id: i64,
+    pub discord_roles: Vec<String>,
+    pub group_rank_id: i64,
+    pub roblox_rank_id: i64,
+    pub priority: i32,
+    pub template: Template,
+}
+
 impl FromRow for Rankbind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
         let bind_id = row.try_get("bind_id")?;

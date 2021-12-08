@@ -24,6 +24,15 @@ pub struct Assetbind {
     pub template: Template,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct AssetbindBackup {
+    pub asset_id: i64,
+    pub asset_type: AssetType,
+    pub discord_roles: Vec<String>,
+    pub priority: i32,
+    pub template: Template,
+}
+
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum AssetType {

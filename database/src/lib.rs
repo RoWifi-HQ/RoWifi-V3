@@ -83,6 +83,16 @@ impl Database {
         Ok(T::from_row(row)?)
     }
 
+    pub async fn query_opt<T: FromRow>(&self, statement: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Option<T>, DatabaseError> {
+        let client = self.get().await?;
+        let statement = client.prepare_cached(statement).await?;
+        let row = client.query_opt(&statement, params).await?;
+        match row {
+            Some(r) => Ok(Some(T::from_row(r)?)),
+            None => Ok(None)
+        }
+    }
+
     pub async fn execute(
         &self,
         statement: &str,

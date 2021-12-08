@@ -1,4 +1,4 @@
-mod backup;
+pub mod backup;
 
 use std::{str::FromStr, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
