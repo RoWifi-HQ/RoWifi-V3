@@ -1,4 +1,4 @@
-// mod analytics;
+mod analytics;
 // mod api;
 mod assetbinds;
 mod backup;
@@ -12,7 +12,7 @@ mod rankbinds;
 mod settings;
 mod user;
 
-// pub use analytics::*;
+pub use analytics::*;
 // pub use api::*;
 pub use assetbinds::*;
 pub use backup::*;

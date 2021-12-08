@@ -1,4 +1,3 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
@@ -10,9 +9,9 @@ pub struct RegisterArguments {
 
 pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -36,9 +35,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$push": {"RegisteredGroups": group_id}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET registered_groups = array_append(registered_groups, $1) WHERE guild_id = $2", &[&group_id, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -58,9 +55,9 @@ pub struct UnregisterArguments {
 
 pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -84,9 +81,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$pull": {"RegisteredGroups": group_id}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    ctx.bot.database.execute("UPDATE guilds SET registered_groups = array_remove(registered_groups, $1) WHERE guild_id = $2", &[&group_id, &guild.guild_id]).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

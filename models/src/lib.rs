@@ -2,6 +2,7 @@ use tokio_postgres::Row;
 
 pub use twilight_model as discord;
 
+pub mod analytics;
 pub mod bind;
 pub mod roblox;
 pub mod rolang;

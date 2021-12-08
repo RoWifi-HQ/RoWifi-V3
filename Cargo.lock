@@ -155,6 +155,7 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
+ "serde",
  "time",
  "winapi",
 ]
@@ -1271,6 +1272,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04619f94ba0cc80999f4fc7073607cb825bc739a883cb6d20900fc5e009d6b0d"
 dependencies = [
  "bytes",
+ "chrono",
  "fallible-iterator",
  "postgres-derive",
  "postgres-protocol",
@@ -1567,6 +1569,7 @@ version = "3.2.0"
 dependencies = [
  "bitflags",
  "bytes",
+ "chrono",
  "lazy_static",
  "postgres-types",
  "prometheus",
