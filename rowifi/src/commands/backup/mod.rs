@@ -2,6 +2,7 @@ mod new;
 mod restore;
 
 use rowifi_framework::prelude::*;
+use rowifi_models::{user::{RoUser, UserFlags}, guild::backup::GuildBackup, bind::BindType};
 
 pub use new::*;
 pub use restore::*;
@@ -36,8 +37,8 @@ pub struct BackupArguments {
 }
 
 pub async fn backup(ctx: CommandContext) -> CommandResult {
-    match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
-        Some(p) if p.premium_type.has_backup() => {}
+    let user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.get() as i64)]).await? {
+        Some(u) if u.flags.contains(UserFlags::BETA) => u,
         _ => {
             let embed = EmbedBuilder::new()
                 .default_data()
@@ -51,13 +52,18 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    let backups = ctx.bot.database.get_backups(ctx.author.id.0.get()).await?;
+    let backups = ctx.bot.database.query::<GuildBackup>("SELECT * FROM backups WHERE user_id = $1", &[&user.discord_id]).await?;
     let mut embed = EmbedBuilder::new().default_data().title("Backups");
 
     for backup in backups {
-        let val = format!("Prefix: {}\nVerification: {}\nVerified: {}\nRankbinds: {}\nGroupbinds: {}\nCustombinds: {}\nAssetbinds: {}",
-            backup.command_prefix.unwrap_or_else(|| "!".into()), backup.verification_role.unwrap_or_default(), backup.verified_role.unwrap_or_default(),
-            backup.rankbinds.len(), backup.groupbinds.len(), backup.custombinds.len(), backup.assetbinds.len()
+        let data = backup.data.0;
+        let r = data.binds.iter().map(|b| b.kind() == BindType::Rank).count();
+        let g = data.binds.iter().map(|b| b.kind() == BindType::Group).count();
+        let c = data.binds.iter().map(|b| b.kind() == BindType::Custom).count();
+        let a = data.binds.iter().map(|b| b.kind() == BindType::Asset).count();
+        let val = format!("Prefix: {}\nVerification: {:?}\nVerified: {:?}\nRankbinds: {}\nGroupbinds: {}\nCustombinds: {}\nAssetbinds: {}",
+            data.command_prefix, data.verification_roles.get(0), data.verified_roles.get(0),
+            r, g, c, a
         );
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val));
     }

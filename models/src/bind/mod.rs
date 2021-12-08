@@ -4,15 +4,15 @@ mod asset;
 mod group;
 mod custom;
 
-pub use rank::Rankbind;
-use serde::{Deserialize, Serialize};
+pub use rank::{Rankbind, RankbindBackup};
 pub use template::Template;
-pub use group::Groupbind;
-pub use custom::Custombind;
-pub use asset::{AssetType, Assetbind};
+pub use group::{Groupbind, GroupbindBackup};
+pub use custom::{Custombind, CustombindBackup};
+pub use asset::{AssetType, Assetbind, AssetbindBackup};
 
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
+use serde::{Deserialize, Serialize};
 
 use crate::{FromRow, user::RoGuildUser, roblox::user::PartialUser as RobloxUser};
 
@@ -23,6 +23,15 @@ pub enum Bind {
     Group(Groupbind),
     Custom(Custombind),
     Asset(Assetbind)
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum BindBackup {
+    Rank(RankbindBackup),
+    Group(GroupbindBackup),
+    Custom(CustombindBackup),
+    Asset(AssetbindBackup)
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -67,6 +76,35 @@ impl Bind {
             Bind::Group(g) => &g.discord_roles,
             Bind::Custom(c) => &c.discord_roles,
             Bind::Asset(a) => &a.discord_roles
+        }
+    }
+
+    pub const fn kind(&self) -> BindType {
+        match self {
+            Self::Rank(_) => BindType::Rank,
+            Self::Group(_) => BindType::Group,
+            Self::Custom(_) => BindType::Custom,
+            Self::Asset(_) => BindType::Asset
+        }
+    }
+}
+
+impl BindBackup {
+    pub const fn kind(&self) -> BindType {
+        match self {
+            Self::Rank(_) => BindType::Rank,
+            Self::Group(_) => BindType::Group,
+            Self::Custom(_) => BindType::Custom,
+            Self::Asset(_) => BindType::Asset
+        }
+    }
+
+    pub fn discord_roles(&self) -> &[String] {
+        match self {
+            Self::Rank(r) => &r.discord_roles,
+            Self::Group(g) => &g.discord_roles,
+            Self::Custom(c) => &c.discord_roles,
+            Self::Asset(a) => &a.discord_roles
         }
     }
 }

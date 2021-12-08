@@ -18,6 +18,14 @@ pub struct Groupbind {
     pub template: Template,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct GroupbindBackup {
+    pub group_id: i64,
+    pub discord_roles: Vec<String>,
+    pub priority: i32,
+    pub template: Template,
+}
+
 impl FromRow for Groupbind {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
         let bind_id = row.try_get("bind_id")?;
