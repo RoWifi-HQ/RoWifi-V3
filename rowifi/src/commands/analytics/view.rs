@@ -1,9 +1,8 @@
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use image::{png::PngEncoder, ColorType};
-use mongodb::bson::doc;
 use plotters::prelude::*;
 use rowifi_framework::prelude::{Color as DiscordColor, *};
-use rowifi_models::guild::GuildType;
+use rowifi_models::{guild::GuildType, analytics::Group};
 use std::io::Cursor;
 
 #[derive(FromArgs)]
@@ -19,13 +18,14 @@ pub struct ViewArguments {
 pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
     let guild = ctx
         .bot
         .database
-        .get_guild(ctx.guild_id.unwrap().0.get())
+        .get_guild(guild_id.get() as i64)
         .await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(DiscordColor::Red as u32)
@@ -56,8 +56,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         .duration
         .unwrap_or_else(|| ViewDuration(Duration::days(7)));
     let start_time = Utc.timestamp_millis(Utc::now().timestamp_millis()) - view_duration.0;
-    let filter = doc! {"groupId": group_id, "timestamp": {"$gte": start_time}};
-    let group_data = ctx.bot.database.get_analytics_membercount(filter).await?;
+    let group_data = ctx.bot.database.query::<Group>("SELECT * FROM group_analytics WHERE group_id = $1 and timestamp > $2", &[&group_id, &start_time]).await?;
 
     if group_data.len() <= 2 {
         let embed = EmbedBuilder::new()

@@ -51,10 +51,10 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
     let guild = ctx
         .bot
         .database
-        .get_guild(ctx.guild_id.unwrap().0.get())
+        .get_guild(ctx.guild_id.unwrap().0.get() as i64)
         .await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
