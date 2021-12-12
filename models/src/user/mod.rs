@@ -13,7 +13,8 @@ pub struct RoUser {
     pub flags: UserFlags,
     pub patreon_id: Option<i64>,
     pub premium_servers: Vec<i64>,
-    pub premium_owner: Option<i64>,
+    pub transferred_from: Option<i64>,
+    pub transferred_to: Option<i64>
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -48,7 +49,8 @@ impl FromRow for RoUser {
         let flags = row.try_get("flags")?;
         let patreon_id = row.try_get("patreon_id")?;
         let premium_servers = row.try_get("premium_servers")?;
-        let premium_owner = row.try_get("premium_owner")?;
+        let transferred_from = row.try_get("transferred_from").ok();
+        let transferred_to = row.try_get("transferred_to").ok();
 
         Ok(Self {
             discord_id,
@@ -57,7 +59,8 @@ impl FromRow for RoUser {
             flags,
             patreon_id,
             premium_servers,
-            premium_owner
+            transferred_from,
+            transferred_to
         })
     }
 }

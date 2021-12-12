@@ -16,7 +16,7 @@ mod services;
 mod utils;
 
 use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
-use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config, settings_config, backup_config, analytics_config};
+use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config, settings_config, backup_config, analytics_config, premium_config};
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -227,8 +227,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // .configure(api_config)
     .configure(groupbinds_config)
     .configure(settings_config)
-    // .configure(premium_config);
-    ;
+    .configure(premium_config);
 
     let event_handler = EventHandler::new(&bot);
     let mut rowifi = RoWifi {

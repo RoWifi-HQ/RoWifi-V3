@@ -1,14 +1,13 @@
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
-    guild::GuildType,
+    guild::GuildType, user::{RoUser, UserFlags},
 };
 use std::env;
 
 pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
+    let premium_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.0.get() as i64)]).await? {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -19,6 +18,15 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
             return Ok(());
         }
     };
+
+    if premium_user.transferred_to.is_some() {
+        let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
+            .title("Premium Redeem Failed")
+            .description("You seem to have transferred your premium to someone else. Thus, you cannot use it.")
+            .build()?;
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
 
     let server = ctx.bot.cache.guild(guild_id).unwrap();
     if !(server.owner_id == ctx.author.id || ctx.bot.owners.contains(&ctx.author.id)) {
@@ -33,9 +41,8 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let guild_type: GuildType = premium_user.premium_type.into();
-    if let GuildType::Alpha = guild_type {
-        if !premium_user.discord_servers.is_empty() {
+    if premium_user.flags.contains(UserFlags::ALPHA) {
+        if !premium_user.premium_servers.is_empty() {
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
@@ -48,26 +55,29 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         }
     }
 
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    let filter = doc! {"_id": guild_id.0.get() as i64};
-    let update =
-        doc! {"$set": {"Settings.Type": guild_type as i32, "Settings.AutoDetection": true}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut db = ctx.bot.database.get().await?;
+    let transaction = db.transaction().await?;
+
+    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1, premium_owner = $2 WHERE guild_id = $3").await?;
+    let guild_type = if premium_user.flags.contains(UserFlags::ALPHA) { GuildType::Alpha } 
+        else if premium_user.flags.contains(UserFlags::BETA) { GuildType::Beta }
+        else { return Ok(()) };
+    transaction.execute(&guild_change, &[&guild_type, &(ctx.author.id.get() as i64), &guild.guild_id]).await?;
 
     if !premium_user
-        .discord_servers
+        .premium_servers
         .contains(&(guild_id.0.get() as i64))
     {
-        let filter2 = doc! {"_id": ctx.author.id.0.get() as i64};
-        let update2 = doc! {"$push": { "Servers": guild_id.0.get() as i64 }};
-        ctx.bot.database.modify_premium(filter2, update2).await?;
+        let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_append(premium_servers, $1) WHERE discord_id = $2").await?;
+        transaction.execute(&user_change, &[&(guild_id.get() as i64), &(ctx.author.id.get() as i64)]).await?;
     }
+    transaction.commit().await?;
 
     ctx.bot.admin_roles.insert(
         guild_id,
         guild
-            .settings
             .admin_roles
             .iter()
             .map(|r| RoleId::new(*r as u64).unwrap())
@@ -76,7 +86,6 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     ctx.bot.trainer_roles.insert(
         guild_id,
         guild
-            .settings
             .trainer_roles
             .iter()
             .map(|r| RoleId::new(*r as u64).unwrap())
@@ -85,7 +94,6 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     ctx.bot.bypass_roles.insert(
         guild_id,
         guild
-            .settings
             .bypass_roles
             .iter()
             .map(|r| RoleId::new(*r as u64).unwrap())
@@ -94,7 +102,6 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     ctx.bot.nickname_bypass_roles.insert(
         guild_id,
         guild
-            .settings
             .nickname_bypass_roles
             .iter()
             .map(|r| RoleId::new(*r as u64).unwrap())
@@ -119,7 +126,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
 
 pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let premium_user = match ctx.bot.database.get_premium(ctx.author.id.0.get()).await? {
+    let premium_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.0.get() as i64)]).await? {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -132,7 +139,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     };
 
     if !premium_user
-        .discord_servers
+        .premium_servers
         .contains(&(guild_id.0.get() as i64))
     {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -143,16 +150,18 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    let filter = doc! {"_id": guild_id.0.get() as i64};
-    let update =
-        doc! {"$set": {"Settings.Type": GuildType::Normal as i32, "Settings.AutoDetection": false}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut db = ctx.bot.database.get().await?;
+    let transaction = db.transaction().await?;
 
-    let filter2 = doc! {"_id": ctx.author.id.0.get() as i64};
-    let update2 = doc! {"$pull": { "Servers": guild_id.0.get() as i64 }};
-    ctx.bot.database.modify_premium(filter2, update2).await?;
+    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL WHERE guild_id = $2").await?;
+    transaction.execute(&guild_change, &[&GuildType::Free, &guild.guild_id]).await?;
+
+    let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_remove(premium_servers, $1) WHERE discord_id = $2").await?;
+    transaction.execute(&user_change, &[&guild.guild_id, &(ctx.author.id.get() as i64)]).await?;
+
+    transaction.commit().await?;
 
     ctx.bot.admin_roles.remove(&guild_id);
     ctx.bot.trainer_roles.remove(&guild_id);
