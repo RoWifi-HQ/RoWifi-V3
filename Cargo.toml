@@ -8,3 +8,14 @@ members = [
     "models",
     "roblox"
 ]
+
+[profile.dev]
+opt-level = 0
+debug = 1
+debug-assertions = true
+overflow-checks = true
+lto = "off"
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
