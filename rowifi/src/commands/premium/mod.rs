@@ -7,7 +7,7 @@ use rowifi_models::{discord::id::UserId, user::{RoUser, UserFlags}};
 
 use self::patreon::premium_patreon;
 use redeem::{premium_redeem, premium_remove};
-use transfer::premium_transfer;
+use transfer::{premium_transfer, premium_untransfer};
 
 pub fn premium_config(cmds: &mut Vec<Command>) {
     let premium_redeem_cmd = Command::builder()
@@ -34,6 +34,12 @@ pub fn premium_config(cmds: &mut Vec<Command>) {
         .description("Command to transfer your premium to another account")
         .handler(premium_transfer);
 
+    let premium_untransfer_cmd = Command::builder()
+        .level(RoLevel::Normal)
+        .names(&["untransfer"])
+        .description("Command to transfer your premium back")
+        .handler(premium_untransfer);
+
     let premium_view_cmd = Command::builder()
         .level(RoLevel::Normal)
         .names(&["view"])
@@ -49,6 +55,7 @@ pub fn premium_config(cmds: &mut Vec<Command>) {
         .sub_command(premium_redeem_cmd)
         .sub_command(premium_remove_cmd)
         .sub_command(premium_transfer_cmd)
+        .sub_command(premium_untransfer_cmd)
         .sub_command(premium_view_cmd)
         .handler(premium);
 
