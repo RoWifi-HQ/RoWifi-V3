@@ -3,6 +3,7 @@ use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
 use rowifi_framework::prelude::{Color as DiscordColor, *};
 use rowifi_models::{guild::GuildType, analytics::Group};
+use twilight_http::request::AttachmentFile;
 use std::io::Cursor;
 
 #[derive(FromArgs)]
@@ -156,7 +157,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
 
     ctx.respond()
-        .files(&[("analytics.png", &bytes)])
+        .files(&[AttachmentFile::from_bytes("analytics.png", &bytes)])
         .exec()
         .await?;
     Ok(())
