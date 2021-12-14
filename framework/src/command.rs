@@ -96,15 +96,18 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
             }
             ServiceRequest::Interaction(ref top_options) => {
                 for option in top_options {
-                    if let CommandOptionValue::SubCommand(options) = &option.value {
-                        if let Some(sub_cmd) = self
-                            .sub_commands
-                            .iter_mut()
-                            .find(|c| c.names.contains(&option.name.as_str()))
-                        {
-                            req.1 = ServiceRequest::Interaction(options.clone());
-                            return sub_cmd.call(req);
-                        }
+                    match &option.value {
+                        CommandOptionValue::SubCommand(options) | CommandOptionValue::SubCommandGroup(options) => {
+                            if let Some(sub_cmd) = self
+                                .sub_commands
+                                .iter_mut()
+                                .find(|c| c.names.contains(&option.name.as_str()))
+                            {
+                                req.1 = ServiceRequest::Interaction(options.clone());
+                                return sub_cmd.call(req);
+                            }
+                        },
+                        _ => {}
                     }
                 }
                 self.service.call(req)

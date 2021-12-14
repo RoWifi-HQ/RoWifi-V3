@@ -1,13 +1,11 @@
-use mongodb::bson::{doc, Document};
-use rowifi_database::DatabaseError;
 use rowifi_framework::prelude::*;
 use rowifi_models::guild::GuildType;
 
 pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -35,17 +33,16 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let filter = doc! {"_id": guild.id};
-    let update = doc! {"$set": {"EventCounter": 0, "EventTypes": []}};
-    ctx.bot.database.modify_guild(filter, update).await?;
+    let mut db = ctx.bot.database.get().await?;
+    let transaction = db.transaction().await?;
 
-    let client = ctx.bot.database.as_ref();
-    let events = client.database("Events").collection::<Document>("Logs");
-    let filter = doc! {"GuildId": guild.id};
-    let _res = events
-        .delete_many(filter, None)
-        .await
-        .map_err(|d| DatabaseError::Mongo(Box::new(d)))?;
+    let event_types_change = transaction.prepare_cached("DELETE FROM event_types WHERE guild_id = $1").await?;
+    transaction.execute(&event_types_change, &[&(guild_id.get() as i64)]).await?;
+
+    let events_change = transaction.prepare_cached("DELETE FROM events WHERE guild_id = $1").await?;
+    transaction.execute(&events_change, &[&(guild_id.get() as i64)]).await?;
+
+    transaction.commit().await?;
 
     ctx.respond()
         .content("The event system has been reset successfully")?

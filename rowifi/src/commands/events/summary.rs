@@ -1,14 +1,13 @@
 use chrono::{Duration as CDuration, Utc};
 use itertools::Itertools;
-use mongodb::bson::doc;
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::GuildType;
+use rowifi_models::{guild::GuildType, events::{EventLog, EventType}};
 
 pub async fn event_summary(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -20,8 +19,8 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let pipeline = vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64}}];
-    let events = ctx.bot.database.get_events(pipeline).await?;
+    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events Summary");
 
@@ -30,25 +29,24 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         .sorted_unstable_by_key(|e| e.event_type)
         .group_by(|e| e.event_type);
     for event_group in &event_groups {
-        let event_name = guild
-            .event_types
+        let event_name = event_types
             .iter()
-            .find(|e| e.id == event_group.0)
+            .find(|e| e.event_type_guild_id == event_group.0)
             .unwrap();
 
         let all_events = event_group.1.collect::<Vec<_>>();
         let total = all_events.len();
         let last_30_days = all_events
             .iter()
-            .filter(|e| (Utc::now() - e.timestamp.to_chrono()) <= CDuration::days(30))
+            .filter(|e| (Utc::now() - e.timestamp) <= CDuration::days(30))
             .count();
         let last_7_days = all_events
             .iter()
-            .filter(|e| (Utc::now() - e.timestamp.to_chrono()) <= CDuration::weeks(1))
+            .filter(|e| (Utc::now() - e.timestamp) <= CDuration::weeks(1))
             .count();
         let last_24_hours = all_events
             .iter()
-            .filter(|e| (Utc::now() - e.timestamp.to_chrono()) <= CDuration::hours(24))
+            .filter(|e| (Utc::now() - e.timestamp) <= CDuration::hours(24))
             .count();
 
         embed = embed.field(

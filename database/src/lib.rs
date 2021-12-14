@@ -1,5 +1,6 @@
 pub mod error;
 
+use aes_gcm::{Aes256Gcm, Key, NewAead, aead::{generic_array::GenericArray, Aead}};
 use deadpool_postgres::{Manager, Object, Pool, Runtime};
 use itertools::Itertools;
 use rowifi_models::{FromRow, guild::RoGuild, user::{RoGuildUser, RoUser}};
@@ -15,10 +16,11 @@ pub use tokio_postgres as postgres;
 
 pub struct Database {
     pool: Pool,
+    pub cipher: Aes256Gcm
 }
 
 impl Database {
-    pub async fn new(connection_string: &str) -> Self {
+    pub async fn new(connection_string: &str, primary_key: &str) -> Self {
         let postgres_config = TokioPostgresConfig::from_str(connection_string).unwrap();
         let mut cert_store = RootCertStore::empty();
 
@@ -53,7 +55,10 @@ impl Database {
         tracing::debug!("Connecting to postgres...");
         let _ = pool.get().await.unwrap();
 
-        Self { pool }
+        let key = Key::from_slice(primary_key.as_bytes());
+        let cipher = Aes256Gcm::new(key);
+
+        Self { pool, cipher }
     }
 
     pub async fn get(&self) -> Result<Object, DatabaseError> {
@@ -162,4 +167,30 @@ pub fn dynamic_args(size: usize) -> String {
 #[inline]
 pub fn dynamic_args_with_start(size: usize, start: usize) -> String {
     (0..size).map(|i| format!("${}", i+start)).join(", ")
+}
+
+pub fn encrypt_bytes(plaintext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id: u64, timestamp: u64) -> Vec<u8> {
+    let mut nonce = [0u8; 12];
+    let guild_id_bytes = guild_id.to_le_bytes();
+    nonce[..4].copy_from_slice(&guild_id_bytes[4..]);
+    let timestamp_bytes = timestamp.to_be_bytes();
+    nonce[4..8].copy_from_slice(&timestamp_bytes[4..]);
+    let host_id_bytes = host_id.to_be_bytes();
+    nonce[8..].copy_from_slice(&host_id_bytes[4..]);
+
+    let nonce = GenericArray::from_slice(&nonce);
+    aaed.encrypt(&nonce, plaintext).unwrap()
+}
+
+pub fn decrypt_bytes(ciphertext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id: u64, timestamp: u64) -> Vec<u8> {
+    let mut nonce = [0u8; 12];
+    let guild_id_bytes = guild_id.to_le_bytes();
+    nonce[..4].copy_from_slice(&guild_id_bytes[4..]);
+    let timestamp_bytes = timestamp.to_be_bytes();
+    nonce[4..8].copy_from_slice(&timestamp_bytes[4..]);
+    let host_id_bytes = host_id.to_be_bytes();
+    nonce[8..].copy_from_slice(&host_id_bytes[4..]);
+
+    let nonce = GenericArray::from_slice(&nonce);
+    aaed.decrypt(&nonce, ciphertext).unwrap()
 }

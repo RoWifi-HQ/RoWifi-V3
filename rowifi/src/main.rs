@@ -15,8 +15,7 @@ mod commands;
 mod services;
 mod utils;
 
-use chacha20poly1305::{aead::NewAead, ChaCha20Poly1305, Key};
-use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config, settings_config, backup_config, analytics_config, premium_config};
+use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config, settings_config, backup_config, analytics_config, premium_config, events_config};
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -110,7 +109,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .parse::<u64>()
         .unwrap();
     let pod_ip = env::var("POD_IP").expect("Expected the pod ip in the environment");
-    let cipher_key = env::var("CIPHER_KEY").expect("Expected the cipher key in the environment");
+    let primary_key = env::var("PRIMARY_KEY").expect("Expected the cipher key in the environment");
     let redis_conn =
         env::var("REDIS_CONN").expect("Expected the redis connection in the environment");
     let proxy = env::var("PROXY").ok();
@@ -177,12 +176,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .unwrap();
     let _res = redis.get().await.expect("Redis Connection failed");
 
-    let database = Database::new(&connection_string).await;
+    let database = Database::new(&connection_string, &primary_key).await;
     let roblox = RobloxClient::new(redis.clone());
     let patreon = PatreonClient::new(&patreon_key);
-
-    let cipher_key = Key::from_slice(cipher_key.as_bytes());
-    let cipher = ChaCha20Poly1305::new(cipher_key);
 
     let cluster_spawn = cluster.clone();
     tokio::spawn(async move {
@@ -205,8 +201,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         webhooks,
         cluster_id,
         total_shards,
-        shards_per_cluster,
-        cipher,
+        shards_per_cluster
     );
     let framework = Framework::new(
         bot.clone(),
@@ -222,7 +217,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .configure(backup_config)
     .configure(blacklists_config)
     .configure(custombinds_config)
-    // .configure(events_config)
+    .configure(events_config)
     .configure(group_config)
     // .configure(api_config)
     .configure(groupbinds_config)

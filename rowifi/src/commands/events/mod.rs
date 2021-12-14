@@ -109,9 +109,9 @@ pub fn events_config(cmds: &mut Vec<Command>) {
 
 pub async fn events(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
