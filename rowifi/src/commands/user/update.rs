@@ -1,9 +1,12 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{discord::{
-    channel::embed::Embed,
-    id::{RoleId, UserId},
-}, bind::Bind};
+use rowifi_models::{
+    bind::Bind,
+    discord::{
+        channel::embed::Embed,
+        id::{RoleId, UserId},
+    },
+};
 use std::error::Error;
 use twilight_http::error::{Error as DiscordHttpError, ErrorType as DiscordErrorType};
 
@@ -160,7 +163,12 @@ pub async fn update_func(
         return Ok(embed);
     }
 
-    let user = match ctx.bot.database.get_linked_user(user_id.get() as i64, guild_id.get() as i64).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_linked_user(user_id.get() as i64, guild_id.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -175,8 +183,19 @@ pub async fn update_func(
     };
 
     let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
-    let binds = ctx.bot.database.query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let all_roles = binds.iter().map(|b| b.discord_roles()).flatten().unique().collect::<Vec<_>>();
+    let binds = ctx
+        .bot
+        .database
+        .query::<Bind>(
+            "SELECT * FROM binds WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let all_roles = binds
+        .iter()
+        .flat_map(|b| b.discord_roles())
+        .unique()
+        .collect::<Vec<_>>();
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let update_user = UpdateUser {
         ctx: &ctx.bot,
@@ -191,8 +210,7 @@ pub async fn update_func(
     };
 
     let (added_roles, removed_roles, disc_nick): (Vec<RoleId>, Vec<RoleId>, String) =
-        match update_user.execute().await
-        {
+        match update_user.execute().await {
             UpdateUserResult::Success(a, r, n) => (a, r, n),
             UpdateUserResult::Error(e) => {
                 #[allow(clippy::redundant_closure_for_method_calls)]

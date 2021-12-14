@@ -2,9 +2,9 @@ use chrono::{DateTime, Duration, TimeZone, Utc};
 use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
 use rowifi_framework::prelude::{Color as DiscordColor, *};
-use rowifi_models::{guild::GuildType, analytics::Group};
-use twilight_http::request::AttachmentFile;
+use rowifi_models::{analytics::Group, guild::GuildType};
 use std::io::Cursor;
+use twilight_http::request::AttachmentFile;
 
 #[derive(FromArgs)]
 pub struct ViewArguments {
@@ -20,11 +20,7 @@ pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(guild_id.get() as i64)
-        .await?;
+    let guild = ctx.bot.database.get_guild(guild_id.get() as i64).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -57,7 +53,14 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         .duration
         .unwrap_or_else(|| ViewDuration(Duration::days(7)));
     let start_time = Utc.timestamp_millis(Utc::now().timestamp_millis()) - view_duration.0;
-    let group_data = ctx.bot.database.query::<Group>("SELECT * FROM group_analytics WHERE group_id = $1 and timestamp > $2", &[&group_id, &start_time]).await?;
+    let group_data = ctx
+        .bot
+        .database
+        .query::<Group>(
+            "SELECT * FROM group_analytics WHERE group_id = $1 and timestamp > $2",
+            &[&group_id, &start_time],
+        )
+        .await?;
 
     if group_data.len() <= 2 {
         let embed = EmbedBuilder::new()
@@ -71,10 +74,8 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         return Ok(());
     }
 
-    let min_timestamp =
-        DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).min().unwrap());
-    let max_timestamp =
-        DateTime::<Utc>::from(group_data.iter().map(|g| g.timestamp).max().unwrap());
+    let min_timestamp = group_data.iter().map(|g| g.timestamp).min().unwrap();
+    let max_timestamp = group_data.iter().map(|g| g.timestamp).max().unwrap();
 
     #[allow(clippy::option_if_let_else)]
     let (min_members, max_members, iterator) = if let Some(rank_id) = args.rank_id {
@@ -107,7 +108,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .iter()
             .map(|g| {
                 (
-                    DateTime::<Utc>::from(g.timestamp),
+                    g.timestamp,
                     g.roles
                         .iter()
                         .find(|r| r.rank == rank_id)
@@ -125,7 +126,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
         max_members += diff / 10;
         let iterator = group_data
             .iter()
-            .map(|g| (DateTime::<Utc>::from(g.timestamp), g.member_count))
+            .map(|g| (g.timestamp, g.member_count))
             .collect::<Vec<_>>();
         (min_members, max_members, iterator)
     };

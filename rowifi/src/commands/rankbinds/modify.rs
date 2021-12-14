@@ -1,6 +1,9 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{roblox::id::GroupId, bind::{Rankbind, BindType}};
+use rowifi_models::{
+    bind::{BindType, Rankbind},
+    roblox::id::GroupId,
+};
 
 use super::new::PREFIX_REGEX;
 
@@ -108,8 +111,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
-            let template =
-                modify_template(&ctx, group_id, rank_id, bind, &args.change).await?;
+            let template = modify_template(&ctx, group_id, rank_id, bind, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -141,7 +143,13 @@ async fn modify_priority(
     bind: &Rankbind,
     priority: i32,
 ) -> Result<i32, RoError> {
-    ctx.bot.database.execute("UPDATE binds SET priority = $1 WHERE bind_id = $2", &[&priority, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET priority = $1 WHERE bind_id = $2",
+            &[&priority, &bind.bind_id],
+        )
+        .await?;
     Ok(priority)
 }
 
@@ -177,7 +185,13 @@ async fn modify_template<'t>(
         "N/A" => "{roblox-username}".into(),
         _ => template.to_string(),
     };
-    ctx.bot.database.execute("UPDATE binds SET template = $1 WHERE bind_id = $2", &[&template, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET template = $1 WHERE bind_id = $2",
+            &[&template, &bind.bind_id],
+        )
+        .await?;
     Ok(template)
 }
 
@@ -189,7 +203,7 @@ async fn add_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -207,7 +221,7 @@ async fn remove_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -215,7 +229,13 @@ async fn remove_roles(
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
     let mut roles_to_keep = bind.discord_roles.clone();
     roles_to_keep.retain(|r| !role_ids.contains(r));
-    ctx.bot.database.execute("UPDATE binds SET discord_roles = $1 WHERE bind_id = $2", &[&roles_to_keep, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET discord_roles = $1 WHERE bind_id = $2",
+            &[&roles_to_keep, &bind.bind_id],
+        )
+        .await?;
     Ok(role_ids)
 }
 

@@ -94,8 +94,8 @@ impl Expression {
                             "Expected 2 arguments. {Group Id} {Rank Id}".to_string(),
                         ));
                     }
-                    match args[0] {
-                        Literal::Number(_) => {}
+                    match args.get(0) {
+                        Some(Literal::Number(_)) => {}
                         _ => {
                             return Err(ParseError(
                                 token.clone(),
@@ -103,8 +103,8 @@ impl Expression {
                             ))
                         }
                     };
-                    match args[1] {
-                        Literal::Number(_) => {}
+                    match args.get(1) {
+                        Some(Literal::Number(_)) => {}
                         _ => {
                             return Err(ParseError(
                                 token.clone(),
@@ -120,8 +120,8 @@ impl Expression {
                             "Expected 1 argument. {Group Id}".to_string(),
                         ));
                     }
-                    match args[0] {
-                        Literal::Number(_) => {}
+                    match args.get(0) {
+                        Some(Literal::Number(_)) => {}
                         _ => {
                             return Err(ParseError(
                                 token.clone(),
@@ -137,8 +137,8 @@ impl Expression {
                             "Expected 1 argument. {Role Id}".to_string(),
                         ));
                     }
-                    match args[0] {
-                        Literal::Number(_) => {}
+                    match args.get(0) {
+                        Some(Literal::Number(_)) => {}
                         _ => {
                             return Err(ParseError(
                                 token.clone(),
@@ -154,8 +154,8 @@ impl Expression {
                             "Expected 1 argument. {Name}".to_string(),
                         ));
                     }
-                    match args[0] {
-                        Literal::String(_) => {}
+                    match args.get(0) {
+                        Some(Literal::String(_)) => {}
                         _ => {
                             return Err(ParseError(
                                 token.clone(),

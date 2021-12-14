@@ -1,5 +1,9 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{discord::id::UserId, user::{RoUser, UserFlags}, guild::GuildType};
+use rowifi_models::{
+    discord::id::UserId,
+    guild::GuildType,
+    user::{RoUser, UserFlags},
+};
 
 #[derive(FromArgs)]
 pub struct PremiumTransferArguments {
@@ -11,7 +15,15 @@ pub async fn premium_transfer(
     ctx: CommandContext,
     args: PremiumTransferArguments,
 ) -> CommandResult {
-    let user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.get() as i64)]).await? {
+    let user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(ctx.author.id.get() as i64)],
+        )
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -67,17 +79,25 @@ pub async fn premium_transfer(
 
     if to_transfer_id == ctx.author.id {
         let embed = EmbedBuilder::new()
-                .default_data()
-                .color(Color::Red as u32)
-                .title("Premium Transfer Failed")
-                .description("You cannot transfer your premium to yourself.")
-                .build()
-                .unwrap();
-            ctx.respond().embeds(&[embed])?.exec().await?;
-            return Ok(());
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Premium Transfer Failed")
+            .description("You cannot transfer your premium to yourself.")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
     }
 
-    let transfer_to_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(to_transfer_id.get() as i64)]).await? {
+    let transfer_to_user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(to_transfer_id.get() as i64)],
+        )
+        .await?
+    {
         Some(t) => t,
         None => {
             let embed = EmbedBuilder::new()
@@ -92,7 +112,10 @@ pub async fn premium_transfer(
         }
     };
 
-    if transfer_to_user.flags.contains(UserFlags::ALPHA | UserFlags::BETA) {
+    if transfer_to_user
+        .flags
+        .contains(UserFlags::ALPHA | UserFlags::BETA)
+    {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -107,13 +130,30 @@ pub async fn premium_transfer(
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2").await?;
+    let guild_change = transaction
+        .prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2")
+        .await?;
     for server in user.premium_servers {
-        transaction.execute(&guild_change, &[&GuildType::Free, &server]).await?;
+        transaction
+            .execute(&guild_change, &[&GuildType::Free, &server])
+            .await?;
     }
 
-    let transferrer_change = transaction.prepare_cached("UPDATE users SET premium_servers = $1, transferred_to = $2 WHERE discord_id = $3").await?;
-    transaction.execute(&transferrer_change, &[&Vec::<i64>::new(), &transfer_to_user.discord_id, &user.discord_id]).await?;
+    let transferrer_change = transaction
+        .prepare_cached(
+            "UPDATE users SET premium_servers = $1, transferred_to = $2 WHERE discord_id = $3",
+        )
+        .await?;
+    transaction
+        .execute(
+            &transferrer_change,
+            &[
+                &Vec::<i64>::new(),
+                &transfer_to_user.discord_id,
+                &user.discord_id,
+            ],
+        )
+        .await?;
 
     let mut transferee_flags = transfer_to_user.flags;
     if user.flags.contains(UserFlags::ALPHA) {
@@ -121,8 +161,19 @@ pub async fn premium_transfer(
     } else if user.flags.contains(UserFlags::BETA) {
         transferee_flags.insert(UserFlags::BETA);
     }
-    let transferee_change = transaction.prepare_cached("UPDATE users SET flags = $1, transferred_from = $2 WHERE discord_id = $3").await?;
-    transaction.execute(&transferee_change, &[&transferee_flags, &user.discord_id, &transfer_to_user.discord_id]).await?;
+    let transferee_change = transaction
+        .prepare_cached("UPDATE users SET flags = $1, transferred_from = $2 WHERE discord_id = $3")
+        .await?;
+    transaction
+        .execute(
+            &transferee_change,
+            &[
+                &transferee_flags,
+                &user.discord_id,
+                &transfer_to_user.discord_id,
+            ],
+        )
+        .await?;
 
     transaction.commit().await?;
 
@@ -137,7 +188,15 @@ pub async fn premium_transfer(
 }
 
 pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
-    let user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.get() as i64)]).await? {
+    let user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(ctx.author.id.get() as i64)],
+        )
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -164,7 +223,15 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let transfer_to_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&user.transferred_to.unwrap()]).await? {
+    let transfer_to_user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&user.transferred_to.unwrap()],
+        )
+        .await?
+    {
         Some(t) => t,
         None => {
             let embed = EmbedBuilder::new()
@@ -182,19 +249,36 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2").await?;
+    let guild_change = transaction
+        .prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2")
+        .await?;
     for server in transfer_to_user.premium_servers {
-        transaction.execute(&guild_change, &[&GuildType::Free, &server]).await?;
+        transaction
+            .execute(&guild_change, &[&GuildType::Free, &server])
+            .await?;
     }
 
     let mut transferee_flags = transfer_to_user.flags;
     transferee_flags.remove(UserFlags::ALPHA);
     transferee_flags.remove(UserFlags::BETA);
     let transferee_change = transaction.prepare_cached("UPDATE users SET flags = $1, transferred_from = NULL, premium_servers = $2 WHERE discord_id = $3").await?;
-    transaction.execute(&transferee_change, &[&transferee_flags, &Vec::<i64>::new(), &transfer_to_user.discord_id]).await?;
+    transaction
+        .execute(
+            &transferee_change,
+            &[
+                &transferee_flags,
+                &Vec::<i64>::new(),
+                &transfer_to_user.discord_id,
+            ],
+        )
+        .await?;
 
-    let transferrer_change = transaction.prepare_cached("UPDATE users SET transferred_to = NULL WHERE discord_id = $1").await?;
-    transaction.execute(&transferrer_change, &[&user.discord_id]).await?;
+    let transferrer_change = transaction
+        .prepare_cached("UPDATE users SET transferred_to = NULL WHERE discord_id = $1")
+        .await?;
+    transaction
+        .execute(&transferrer_change, &[&user.discord_id])
+        .await?;
 
     transaction.commit().await?;
 

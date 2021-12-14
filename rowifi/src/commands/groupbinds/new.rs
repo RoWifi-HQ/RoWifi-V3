@@ -1,10 +1,10 @@
 use itertools::Itertools;
+use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{Groupbind, Template, BindType},
+    bind::{BindType, Groupbind, Template},
     discord::id::RoleId,
 };
-use rowifi_database::postgres::Row;
 
 #[derive(FromArgs)]
 pub struct GroupbindsNewArguments {
@@ -20,7 +20,14 @@ pub struct GroupbindsNewArguments {
 
 pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id", &[&(guild_id.get() as i64), &BindType::Group]).await?;
+    let groupbinds = ctx
+        .bot
+        .database
+        .query::<Groupbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id",
+            &[&(guild_id.get() as i64), &BindType::Group],
+        )
+        .await?;
 
     let group_id = args.group_id;
     if groupbinds.iter().any(|g| g.group_id == group_id) {
@@ -59,7 +66,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     let mut roles = Vec::new();
     for r in roles_to_add {
         if let Some(resolved) = &ctx.resolved {
-            roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
@@ -76,7 +83,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         priority,
         template: Template(template_str.clone()),
     };
-    
+
     let row = ctx.bot.database.query_one::<Row>(
         "INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6) RETURNING bind_id", 
         &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
@@ -162,7 +169,10 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .exec()
                         .await?;
 
-                    ctx.bot.database.execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id]).await?;
+                    ctx.bot
+                        .database
+                        .execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id])
+                        .await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

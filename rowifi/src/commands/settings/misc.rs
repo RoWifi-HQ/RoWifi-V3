@@ -19,7 +19,13 @@ pub async fn blacklist_action(
     let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let bl_type = args.option;
-    ctx.bot.database.execute("UPDATE guilds SET blacklist_action = $1 WHERE guild_id = $2", &[&bl_type, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET blacklist_action = $1 WHERE guild_id = $2",
+            &[&bl_type, &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -72,7 +78,13 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
         ),
     };
 
-    ctx.bot.database.execute(statement, &[&(ctx.channel_id.get() as i64), &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            statement,
+            &[&(ctx.channel_id.get() as i64), &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -102,7 +114,13 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
     let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let prefix = args.prefix;
-    ctx.bot.database.execute("UPDATE guilds SET command_prefix = $1 WHERE guild_id = $2", &[&prefix, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET command_prefix = $1 WHERE guild_id = $2",
+            &[&prefix, &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

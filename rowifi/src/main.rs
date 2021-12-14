@@ -8,14 +8,20 @@
     clippy::too_many_lines,
     clippy::needless_lifetimes,
     clippy::let_underscore_drop,
-    clippy::non_ascii_literal
+    clippy::non_ascii_literal,
+    clippy::collapsible_if,
+    clippy::redundant_closure_for_method_calls
 )]
 
 mod commands;
 mod services;
 mod utils;
 
-use commands::{rankbinds_config, user_config, custombinds_config, groupbinds_config, assetbinds_config, group_config, blacklists_config, settings_config, backup_config, analytics_config, premium_config, events_config};
+use commands::{
+    analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
+    events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
+    settings_config, user_config,
+};
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
 use hyper::{
     service::{make_service_fn, service_fn},
@@ -201,7 +207,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         webhooks,
         cluster_id,
         total_shards,
-        shards_per_cluster
+        shards_per_cluster,
     );
     let framework = Framework::new(
         bot.clone(),

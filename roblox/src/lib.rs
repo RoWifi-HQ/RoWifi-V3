@@ -45,7 +45,12 @@ impl Client {
     #[must_use]
     pub fn new(redis_pool: Pool) -> Self {
         let proxy = env::var("RBX_PROXY").ok();
-        let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
+        let connector = hyper_rustls::HttpsConnectorBuilder::new()
+            .with_webpki_roots()
+            .https_only()
+            .enable_http1()
+            .enable_http2()
+            .build();
         let client = HyperClient::builder().build(connector);
         Self {
             client,
@@ -172,7 +177,9 @@ impl Client {
                         route: Route::UsersById.to_string(),
                     },
                 })?;
-            let _: () = conn.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600).await?;
+            let _: () = conn
+                .set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600)
+                .await?;
             Ok(user)
         } else {
             let bytes: Option<Vec<u8>> = conn.get(&key).await?;
@@ -193,7 +200,9 @@ impl Client {
                             route: Route::UsersById.to_string(),
                         },
                     })?;
-                let _: () = conn.set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600).await?;
+                let _: () = conn
+                    .set_ex(key, serde_cbor::to_vec(&user)?, 24 * 3600)
+                    .await?;
                 Ok(user)
             }
         }

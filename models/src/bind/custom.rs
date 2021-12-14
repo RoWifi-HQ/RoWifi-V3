@@ -1,9 +1,12 @@
+use serde::{
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 use std::fmt::{Formatter, Result as FmtResult};
-use serde::{Serialize, de::{Error as DeError, IgnoredAny, MapAccess, Visitor}, Deserialize, Deserializer};
 
 use super::Template;
 
-use crate::{FromRow, rolang::RoCommand};
+use crate::{rolang::RoCommand, FromRow};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Custombind {
@@ -49,7 +52,7 @@ impl FromRow for Custombind {
             code,
             priority,
             template,
-            command
+            command,
         })
     }
 }
@@ -135,7 +138,8 @@ impl<'de> Deserialize<'de> for Custombind {
                 }
 
                 let bind_id = bind_id.ok_or_else(|| DeError::missing_field("bind_id"))?;
-                let custom_bind_id = custom_bind_id.ok_or_else(|| DeError::missing_field("custom_bind_id"))?;
+                let custom_bind_id =
+                    custom_bind_id.ok_or_else(|| DeError::missing_field("custom_bind_id"))?;
                 let discord_roles =
                     discord_roles.ok_or_else(|| DeError::missing_field("discord_roles"))?;
                 let priority = priority.ok_or_else(|| DeError::missing_field("priority"))?;

@@ -15,7 +15,13 @@ pub async fn settings_verification(
     let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let verification_roles = vec![args.role.get() as i64];
-    ctx.bot.database.execute("UPDATE guilds SET verification_roles = $1 WHERE guild_id = $2", &[&verification_roles, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET verification_roles = $1 WHERE guild_id = $2",
+            &[&verification_roles, &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -53,7 +59,13 @@ pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> 
     let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
     let verified_roles = vec![args.role.get() as i64];
-    ctx.bot.database.execute("UPDATE guilds SET verified_roles = $1 WHERE guild_id = $2", &[&verified_roles, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET verified_roles = $1 WHERE guild_id = $2",
+            &[&verified_roles, &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

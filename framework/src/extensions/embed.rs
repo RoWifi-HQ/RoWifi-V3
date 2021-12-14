@@ -10,7 +10,7 @@ pub trait EmbedExtensions {
 
 impl EmbedExtensions for EmbedBuilder {
     fn default_data(self) -> Self {
-        self.timestamp(Timestamp::from_secs(chrono::Utc::now().timestamp() as u64).unwrap())
+        self.timestamp(Timestamp::from_secs(chrono::Utc::now().timestamp()).unwrap())
             .color(Color::Blue as u32)
             .footer(EmbedFooterBuilder::new("RoWifi"))
     }

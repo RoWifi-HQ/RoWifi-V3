@@ -2,7 +2,7 @@ use itertools::Itertools;
 use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{Assetbind, AssetType, Template, BindType},
+    bind::{AssetType, Assetbind, BindType, Template},
     discord::id::RoleId,
 };
 
@@ -22,7 +22,14 @@ pub struct NewArguments {
 
 pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let assetbinds  = ctx.bot.database.query::<Assetbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id", &[&(guild_id.get() as i64), &BindType::Asset]).await?;
+    let assetbinds = ctx
+        .bot
+        .database
+        .query::<Assetbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id",
+            &[&(guild_id.get() as i64), &BindType::Asset],
+        )
+        .await?;
 
     let asset_type = args.option;
     let asset_id = args.asset_id;
@@ -65,7 +72,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let mut roles = Vec::new();
     for r in roles_to_add {
         if let Some(resolved) = &ctx.resolved {
-            roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(role_id) = parse_role(r) {
             if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
@@ -83,7 +90,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         priority,
         template: Template(template_str.clone()),
     };
-    
+
     let row = ctx.bot.database.query_one::<Row>(
         "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
         &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
@@ -170,7 +177,10 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
                         .exec()
                         .await?;
 
-                    ctx.bot.database.execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id]).await?;
+                    ctx.bot
+                        .database
+                        .execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id])
+                        .await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

@@ -1,9 +1,10 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
+    bind::{BindType, Custombind},
     discord::id::GuildId,
     roblox::id::UserId as RobloxUserId,
-    rolang::{RoCommand, RoCommandUser}, bind::{Custombind, BindType},
+    rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
 
@@ -32,11 +33,21 @@ pub async fn custombinds_modify(
     args: CustombindsModifyArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let custombinds = ctx.bot.database.query::<Custombind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Custom]).await?;
+    let custombinds = ctx
+        .bot
+        .database
+        .query::<Custombind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id",
+            &[&(guild_id.get() as i64), &BindType::Custom],
+        )
+        .await?;
 
     let field = args.option;
     let id_to_modify = args.id;
-    let bind = match custombinds.iter().find(|c| c.custom_bind_id == id_to_modify) {
+    let bind = match custombinds
+        .iter()
+        .find(|c| c.custom_bind_id == id_to_modify)
+    {
         Some(b) => b,
         None => {
             let embed = EmbedBuilder::new()
@@ -54,18 +65,18 @@ pub async fn custombinds_modify(
     let name = format!("Id: {}", id_to_modify);
     let desc = match field {
         ModifyOption::Code => {
-            let new_code = match modify_code(&ctx, guild_id, &bind, &args.change).await? {
+            let new_code = match modify_code(&ctx, guild_id, bind, &args.change).await? {
                 Some(n) => n,
                 None => return Ok(()),
             };
             format!("`New Code`: {}", new_code)
         }
         ModifyOption::Priority => {
-            let new_priority = modify_priority(&ctx, &bind, &args.change).await?;
+            let new_priority = modify_priority(&ctx, bind, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::RolesAdd => {
-            let role_ids = add_roles(&ctx, &bind, &args.change).await?;
+            let role_ids = add_roles(&ctx, bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -73,7 +84,7 @@ pub async fn custombinds_modify(
             format!("Added Roles: {}", modification)
         }
         ModifyOption::RolesRemove => {
-            let role_ids = remove_roles(&ctx, &bind, &args.change).await?;
+            let role_ids = remove_roles(&ctx, bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -92,7 +103,7 @@ pub async fn custombinds_modify(
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, &bind, &args.change).await?;
+            let template = modify_template(&ctx, bind, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -124,7 +135,9 @@ async fn modify_code<'a>(
     bind: &Custombind,
     code: &'a str,
 ) -> Result<Option<&'a str>, RoError> {
-    let user = match ctx.bot.database
+    let user = match ctx
+        .bot
+        .database
         .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
         .await?
     {
@@ -174,7 +187,13 @@ async fn modify_code<'a>(
         ctx.respond().content(&res)?.exec().await?;
         return Ok(None);
     }
-    ctx.bot.database.execute("UPDATE binds SET code = $1 WHERE bind_id = $2", &[&code, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET code = $1 WHERE bind_id = $2",
+            &[&code, &bind.bind_id],
+        )
+        .await?;
     Ok(Some(code))
 }
 
@@ -188,7 +207,13 @@ async fn modify_template<'t>(
         "disable" => "{discord-name}".into(),
         _ => template.to_string(),
     };
-    ctx.bot.database.execute("UPDATE binds SET template = $1 WHERE bind_id = $2", &[&template, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET template = $1 WHERE bind_id = $2",
+            &[&template, &bind.bind_id],
+        )
+        .await?;
     Ok(template)
 }
 
@@ -208,7 +233,13 @@ async fn modify_priority(
             .into());
         }
     };
-    ctx.bot.database.execute("UPDATE binds SET priority = $1 WHERE bind_id = $2", &[&priority, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET priority = $1 WHERE bind_id = $2",
+            &[&priority, &bind.bind_id],
+        )
+        .await?;
     Ok(priority)
 }
 
@@ -220,7 +251,7 @@ async fn add_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -238,7 +269,7 @@ async fn remove_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -246,7 +277,13 @@ async fn remove_roles(
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
     let mut roles_to_keep = bind.discord_roles.clone();
     roles_to_keep.retain(|r| !role_ids.contains(r));
-    ctx.bot.database.execute("UPDATE binds SET discord_roles = $1 WHERE bind_id = $2", &[&roles_to_keep, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET discord_roles = $1 WHERE bind_id = $2",
+            &[&roles_to_keep, &bind.bind_id],
+        )
+        .await?;
     Ok(role_ids)
 }
 

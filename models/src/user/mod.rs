@@ -15,7 +15,7 @@ pub struct RoUser {
     pub patreon_id: Option<i64>,
     pub premium_servers: Vec<i64>,
     pub transferred_from: Option<i64>,
-    pub transferred_to: Option<i64>
+    pub transferred_to: Option<i64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -29,14 +29,12 @@ pub struct RoGuildUser {
 pub struct QueueUser {
     pub roblox_id: i64,
     pub discord_id: i64,
-    pub verified: bool
+    pub verified: bool,
 }
-
-
 
 impl FromRow for RoUser {
     fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_postgres::Error> {
-        let discord_id  = row.try_get("discord_id")?;
+        let discord_id = row.try_get("discord_id")?;
         let default_roblox_id = row.try_get("default_roblox_id")?;
         let alts = row.try_get("alts")?;
         let flags = row.try_get("flags")?;
@@ -53,7 +51,7 @@ impl FromRow for RoUser {
             patreon_id,
             premium_servers,
             transferred_from,
-            transferred_to
+            transferred_to,
         })
     }
 }
@@ -67,7 +65,7 @@ impl FromRow for RoGuildUser {
         Ok(Self {
             guild_id,
             discord_id,
-            roblox_id
+            roblox_id,
         })
     }
 }
@@ -79,9 +77,9 @@ impl FromRow for QueueUser {
         let roblox_id = row.try_get("roblox_id")?;
 
         Ok(Self {
-            discord_id,
             roblox_id,
-            verified
+            discord_id,
+            verified,
         })
     }
 }

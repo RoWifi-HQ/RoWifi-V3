@@ -7,6 +7,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dashmap = "4"
+dashmap = "5"
 rowifi-models = { path = "../models" }
 tracing = "0"

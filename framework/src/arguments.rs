@@ -250,6 +250,7 @@ impl FromArg for i32 {
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match &option.value {
+            #[allow(clippy::cast_possible_truncation)]
             CommandOptionValue::Integer(value) => Ok(*value as i32),
             CommandOptionValue::String(value) => Ok(value.parse::<i32>()?),
             _ => unreachable!("i64 unreached"),

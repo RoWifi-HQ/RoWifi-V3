@@ -17,7 +17,14 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Event Types");
     for event_type in &event_types {
@@ -56,9 +63,19 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     let event_id = args.event_id;
     let event_name = args.event_name;
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
-    if event_types.iter().any(|e| e.event_type_guild_id == event_id) {
+    if event_types
+        .iter()
+        .any(|e| e.event_type_guild_id == event_id)
+    {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Event Type Addition Failed")
             .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id))
@@ -74,7 +91,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         name: event_name.to_string(),
         disabled: false,
     };
-    
+
     ctx.bot.database.execute("INSERT INTO event_types(event_type_guild_id, guild_id, name, disabled) VALUES($1, $2, $3, $4)", &[&event_type.event_type_guild_id, &event_type.guild_id, &event_type.name, &event_type.disabled]).await?;
 
     let embed = EmbedBuilder::new()
@@ -110,22 +127,41 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
     let event_type_guild_id = args.event_id;
     let event_name = args.event_name;
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let event = match event_types.iter().find(|e| e.event_type_guild_id == event_type_guild_id) {
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let event = match event_types
+        .iter()
+        .find(|e| e.event_type_guild_id == event_type_guild_id)
+    {
         Some(e) => e,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Event Type Modification Failed")
-                .description(format!("An event type with id {} does not exist", event_type_guild_id))
+                .description(format!(
+                    "An event type with id {} does not exist",
+                    event_type_guild_id
+                ))
                 .build()
                 .unwrap();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
-    ctx.bot.database.execute("UPDATE event_types SET name = $1 WHERE event_type_id = $2", &[&event_name, &event.event_type_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE event_types SET name = $1 WHERE event_type_id = $2",
+            &[&event_name, &event.event_type_id],
+        )
+        .await?;
 
     let name = format!("Event Type Id: {}", event.event_type_id);
     let desc = format!("Name: {} -> {}", &event.name, event_name);
@@ -162,17 +198,30 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
         return Ok(());
     }
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
     let event_type_guild_id = args.event_id;
-    let event = match event_types.iter().find(|e| e.event_type_guild_id == event_type_guild_id) {
+    let event = match event_types
+        .iter()
+        .find(|e| e.event_type_guild_id == event_type_guild_id)
+    {
         Some(i) => i,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Event Type Modification Failed")
-                .description(format!("An event type with id {} does not exist", event_type_guild_id))
+                .description(format!(
+                    "An event type with id {} does not exist",
+                    event_type_guild_id
+                ))
                 .build()
                 .unwrap();
             ctx.respond().embeds(&[embed])?.exec().await?;
@@ -180,7 +229,13 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
         }
     };
 
-    ctx.bot.database.execute("UPDATE event_types SET disabled = $1 WHERE event_type_id = $2", &[&true, &event.event_type_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE event_types SET disabled = $1 WHERE event_type_id = $2",
+            &[&true, &event.event_type_id],
+        )
+        .await?;
 
     let name = format!("Event Type Id: {}", event.event_type_guild_id);
     let desc = format!("Disabled: {} -> {}", event.disabled, true);
@@ -217,25 +272,44 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
         return Ok(());
     }
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
     let event_type_guild_id = args.event_id;
-    let event = match event_types.iter().find(|e| e.event_type_guild_id == event_type_guild_id) {
+    let event = match event_types
+        .iter()
+        .find(|e| e.event_type_guild_id == event_type_guild_id)
+    {
         Some(e) => e,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
                 .color(Color::Red as u32)
                 .title("Event Type Modification Failed")
-                .description(format!("An event type with id {} does not exist", event_type_guild_id))
+                .description(format!(
+                    "An event type with id {} does not exist",
+                    event_type_guild_id
+                ))
                 .build()
                 .unwrap();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
     };
-    
-    ctx.bot.database.execute("UPDATE event_types SET disabled = $1 WHERE event_type_id = $2", &[&false, &event.event_type_id]).await?;
+
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE event_types SET disabled = $1 WHERE event_type_id = $2",
+            &[&false, &event.event_type_id],
+        )
+        .await?;
 
     let name = format!("Event Type Id: {}", event.event_type_guild_id);
     let desc = format!("Disabled: {} -> {}", event.disabled, false);

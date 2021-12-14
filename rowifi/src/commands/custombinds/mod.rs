@@ -51,7 +51,14 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let custombinds = ctx.bot.database.query::<Custombind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id", &[&(guild_id.get() as i64), &BindType::Custom]).await?;
+    let custombinds = ctx
+        .bot
+        .database
+        .query::<Custombind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id",
+            &[&(guild_id.get() as i64), &BindType::Custom],
+        )
+        .await?;
 
     if custombinds.is_empty() {
         let e = EmbedBuilder::new()

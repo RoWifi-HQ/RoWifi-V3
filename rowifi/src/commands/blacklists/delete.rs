@@ -29,7 +29,13 @@ pub async fn blacklist_delete(
         }
     };
 
-    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id.get() as i64)]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2",
+            &[&blacklist, &(guild_id.get() as i64)],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -59,7 +65,10 @@ pub async fn blacklist_delete(
         .await?;
 
     let name = format!("Type: {:?}", blacklist.kind());
-    let desc = format!("Id: {}\nReason: {}", blacklist.blacklist_id, blacklist.reason);
+    let desc = format!(
+        "Id: {}\nReason: {}",
+        blacklist.blacklist_id, blacklist.reason
+    );
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title(format!("Action by {}", ctx.author.name))

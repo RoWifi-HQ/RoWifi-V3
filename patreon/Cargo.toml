@@ -1,0 +1,12 @@
+[package]
+name = "patreon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hyper = { version = "0", default-features = false, features = ["client", "http2", "runtime"] }
+hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
+serde = "1"
+serde_json = "1"

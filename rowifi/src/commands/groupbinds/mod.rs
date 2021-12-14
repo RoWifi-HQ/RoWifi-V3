@@ -4,7 +4,7 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{Groupbind, BindType};
+use rowifi_models::bind::{BindType, Groupbind};
 
 pub use delete::groupbinds_delete;
 pub use modify::groupbinds_modify;
@@ -50,7 +50,14 @@ pub fn groupbinds_config(cmds: &mut Vec<Command>) {
 
 pub async fn groupbinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id", &[&(guild_id.get() as i64), &BindType::Group]).await?;
+    let groupbinds = ctx
+        .bot
+        .database
+        .query::<Groupbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id",
+            &[&(guild_id.get() as i64), &BindType::Group],
+        )
+        .await?;
 
     if groupbinds.is_empty() {
         let embed = EmbedBuilder::new()

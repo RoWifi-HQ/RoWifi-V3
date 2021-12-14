@@ -3,7 +3,10 @@ mod redeem;
 mod transfer;
 
 use rowifi_framework::prelude::*;
-use rowifi_models::{discord::id::UserId, user::{RoUser, UserFlags}};
+use rowifi_models::{
+    discord::id::UserId,
+    user::{RoUser, UserFlags},
+};
 
 use self::patreon::premium_patreon;
 use redeem::{premium_redeem, premium_remove};
@@ -98,7 +101,14 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
     let mut embed = EmbedBuilder::new()
         .default_data()
         .title(format!("{}#{}", author.1, author.2));
-    let premium_user = ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.get() as i64)]).await?;
+    let premium_user = ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(ctx.author.id.get() as i64)],
+        )
+        .await?;
     if let Some(premium_user) = premium_user {
         embed = if premium_user.flags.contains(UserFlags::PARTNER) {
             embed
@@ -112,7 +122,9 @@ pub async fn premium(ctx: CommandContext, args: PremiumViewArguments) -> Command
             embed
                 .field(EmbedFieldBuilder::new("Tier", "Beta"))
                 .field(EmbedFieldBuilder::new("Perks", "Auto Detection for all owned servers\nUpdate All/Update Role (3 times per 12 hours)\nBackups\nAnalytics\nEvent Logging System"))
-        } else { embed }
+        } else {
+            embed
+        }
     } else {
         embed = embed
             .field(EmbedFieldBuilder::new("Tier", "Normal"))

@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 use bytes::BytesMut;
-use postgres_types::{FromSql, Type, ToSql, IsNull, to_sql_checked};
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 bitflags! {
@@ -14,7 +14,10 @@ bitflags! {
 }
 
 impl<'a> FromSql<'a> for UserFlags {
-    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
         let bits = i64::from_sql(ty, raw)?;
         Ok(Self::from_bits_truncate(bits))
     }
@@ -25,7 +28,11 @@ impl<'a> FromSql<'a> for UserFlags {
 }
 
 impl ToSql for UserFlags {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
         i64::to_sql(&self.bits, ty, out)
     }
 

@@ -83,9 +83,21 @@ pub async fn blacklist(ctx: CommandContext) -> CommandResult {
         for bl in bls {
             let name = format!("Id: {}", bl.blacklist_id);
             let desc = match &bl.data {
-                BlacklistData::User(user) => format!("Type: {}\nUser Id: {}\nReason: {}", bl.kind(), user, bl.reason),
-                BlacklistData::Group(group) => format!("Type: {}\nGroup Id: {}\nReason: {}", bl.kind(), group, bl.reason),
-                BlacklistData::Custom(code) => format!("Type: {}\nCode: {}\nReason: {}", bl.kind(), code, bl.reason),
+                BlacklistData::User(user) => format!(
+                    "Type: {}\nUser Id: {}\nReason: {}",
+                    bl.kind(),
+                    user,
+                    bl.reason
+                ),
+                BlacklistData::Group(group) => format!(
+                    "Type: {}\nGroup Id: {}\nReason: {}",
+                    bl.kind(),
+                    group,
+                    bl.reason
+                ),
+                BlacklistData::Custom(code) => {
+                    format!("Type: {}\nCode: {}\nReason: {}", bl.kind(), code, bl.reason)
+                }
             };
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
         }

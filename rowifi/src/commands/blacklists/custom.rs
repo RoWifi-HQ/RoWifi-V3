@@ -31,7 +31,12 @@ pub async fn blacklist_custom(
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
-    let user = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -76,16 +81,25 @@ pub async fn blacklist_custom(
     }
     let reason = await_reply("Enter the reason of this blacklist.", &ctx).await?;
 
-    let blacklist_id = guild.blacklists.iter().map(|b| b.blacklist_id).max().unwrap_or_default() + 1;
+    let blacklist_id = guild
+        .blacklists
+        .iter()
+        .map(|b| b.blacklist_id)
+        .max()
+        .unwrap_or_default()
+        + 1;
     let blacklist = Blacklist {
         blacklist_id,
         reason,
         data: BlacklistData::Custom(command),
     };
-    ctx.bot.database.execute(
-        r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
-        &[&blacklist, &(guild_id.get() as i64)]
-    ).await?;
+    ctx.bot
+        .database
+        .execute(
+            r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
+            &[&blacklist, &(guild_id.get() as i64)],
+        )
+        .await?;
 
     let name = format!("Type: {:?}", blacklist.kind());
     let desc = format!("Code: {}\nReason: {}", code, blacklist.reason);

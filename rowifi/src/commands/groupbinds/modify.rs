@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{Groupbind, BindType};
+use rowifi_models::bind::{BindType, Groupbind};
 
 #[derive(FromArgs)]
 pub struct GroupbindsModifyArguments {
@@ -26,7 +26,14 @@ pub async fn groupbinds_modify(
     args: GroupbindsModifyArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id", &[&(guild_id.get() as i64), &BindType::Group]).await?;
+    let groupbinds = ctx
+        .bot
+        .database
+        .query::<Groupbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id",
+            &[&(guild_id.get() as i64), &BindType::Group],
+        )
+        .await?;
 
     let field = args.option;
     let group_id = args.group_id;
@@ -48,7 +55,7 @@ pub async fn groupbinds_modify(
     let name = format!("Id: {}", group_id);
     let desc = match field {
         ModifyOption::RolesAdd => {
-            let role_ids = add_roles(&ctx, &bind, &args.change).await?;
+            let role_ids = add_roles(&ctx, bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -57,7 +64,7 @@ pub async fn groupbinds_modify(
             desc
         }
         ModifyOption::RolesRemove => {
-            let role_ids = remove_roles(&ctx, &bind, &args.change).await?;
+            let role_ids = remove_roles(&ctx, bind, &args.change).await?;
             let modification = role_ids
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
@@ -66,7 +73,7 @@ pub async fn groupbinds_modify(
             desc
         }
         ModifyOption::Priority => {
-            let new_priority = modify_priority(&ctx, &bind, &args.change).await?;
+            let new_priority = modify_priority(&ctx, bind, &args.change).await?;
             format!("`Priority`: {} -> {}", bind.priority, new_priority)
         }
         ModifyOption::Template => {
@@ -81,7 +88,7 @@ pub async fn groupbinds_modify(
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
-            let template = modify_template(&ctx, &bind, &args.change).await?;
+            let template = modify_template(&ctx, bind, &args.change).await?;
             format!("`New Template`: {}", template)
         }
     };
@@ -115,7 +122,7 @@ async fn add_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -133,7 +140,7 @@ async fn remove_roles(
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -141,7 +148,13 @@ async fn remove_roles(
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
     let mut roles_to_keep = bind.discord_roles.clone();
     roles_to_keep.retain(|r| !role_ids.contains(r));
-    ctx.bot.database.execute("UPDATE binds SET discord_roles = $1 WHERE bind_id = $2", &[&roles_to_keep, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET discord_roles = $1 WHERE bind_id = $2",
+            &[&roles_to_keep, &bind.bind_id],
+        )
+        .await?;
     Ok(role_ids)
 }
 
@@ -155,7 +168,13 @@ async fn modify_template<'t>(
         "disable" => "{discord-name}".into(),
         _ => template.to_string(),
     };
-    ctx.bot.database.execute("UPDATE binds SET template = $1 WHERE bind_id = $2", &[&template, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET template = $1 WHERE bind_id = $2",
+            &[&template, &bind.bind_id],
+        )
+        .await?;
     Ok(template)
 }
 
@@ -175,7 +194,13 @@ async fn modify_priority(
             .into());
         }
     };
-    ctx.bot.database.execute("UPDATE binds SET priority = $1 WHERE bind_id = $2", &[&priority, &bind.bind_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE binds SET priority = $1 WHERE bind_id = $2",
+            &[&priority, &bind.bind_id],
+        )
+        .await?;
     Ok(priority)
 }
 

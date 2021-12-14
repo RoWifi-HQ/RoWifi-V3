@@ -8,11 +8,11 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0", default-features = false, features = ["std"] }
-dashmap = "4"
+dashmap = "5"
 framework-derive = { path = "./framework-derive" }
 futures-util = "0"
 itertools = "0"
-patreon = { branch = "main", git = "https://github.com/AsianIntel/patreon" }
+patreon = { path = "../patreon" }
 roblox = { path = "../roblox" }
 rowifi-cache = { path = "../cache" }
 rowifi-database = { path = '../database' }

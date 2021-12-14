@@ -1,10 +1,10 @@
 use deadpool_redis::{redis::RedisError, PoolError};
 use hyper::StatusCode;
+use serde_cbor::Error as SerdeCborError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use serde_cbor::Error as SerdeCborError;
 
 #[derive(Debug)]
 pub struct Error {

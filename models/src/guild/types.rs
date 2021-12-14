@@ -1,7 +1,10 @@
-use std::{fmt::{Display, Formatter, Result as FmtResult}, str::FromStr};
 use bytes::BytesMut;
-use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
@@ -46,7 +49,7 @@ impl Display for BlacklistActionType {
         match self {
             BlacklistActionType::None => f.write_str("None"),
             BlacklistActionType::Kick => f.write_str("Kick"),
-            BlacklistActionType::Ban => f.write_str("Ban")
+            BlacklistActionType::Ban => f.write_str("Ban"),
         }
     }
 }

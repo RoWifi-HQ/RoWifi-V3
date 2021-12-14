@@ -36,11 +36,19 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let event_types_change = transaction.prepare_cached("DELETE FROM event_types WHERE guild_id = $1").await?;
-    transaction.execute(&event_types_change, &[&(guild_id.get() as i64)]).await?;
+    let event_types_change = transaction
+        .prepare_cached("DELETE FROM event_types WHERE guild_id = $1")
+        .await?;
+    transaction
+        .execute(&event_types_change, &[&(guild_id.get() as i64)])
+        .await?;
 
-    let events_change = transaction.prepare_cached("DELETE FROM events WHERE guild_id = $1").await?;
-    transaction.execute(&events_change, &[&(guild_id.get() as i64)]).await?;
+    let events_change = transaction
+        .prepare_cached("DELETE FROM events WHERE guild_id = $1")
+        .await?;
+    transaction
+        .execute(&events_change, &[&(guild_id.get() as i64)])
+        .await?;
 
     transaction.commit().await?;
 

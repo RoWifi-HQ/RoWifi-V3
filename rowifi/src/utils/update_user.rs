@@ -1,8 +1,15 @@
-use std::collections::{HashSet, HashMap};
 use itertools::Itertools;
-use rowifi_cache::{CachedMember, CachedGuild};
+use rowifi_cache::{CachedGuild, CachedMember};
 use rowifi_framework::{context::BotContext, error::RoError};
-use rowifi_models::{user::RoGuildUser, guild::{RoGuild, BlacklistActionType}, bind::Bind, discord::id::RoleId, rolang::RoCommandUser, roblox::id::{UserId as RobloxUserId, AssetId as RobloxAssetId}};
+use rowifi_models::{
+    bind::Bind,
+    discord::id::RoleId,
+    guild::{BlacklistActionType, RoGuild},
+    roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
+    rolang::RoCommandUser,
+    user::RoGuildUser,
+};
+use std::collections::{HashMap, HashSet};
 
 #[allow(dead_code)]
 pub struct UpdateUser<'u> {
@@ -14,7 +21,7 @@ pub struct UpdateUser<'u> {
     pub binds: &'u [Bind],
     pub guild_roles: &'u HashSet<RoleId>,
     pub bypass_roblox_cache: bool,
-    pub all_roles: &'u [&'u i64]
+    pub all_roles: &'u [&'u i64],
 }
 
 #[allow(dead_code)]
@@ -42,7 +49,9 @@ impl UpdateUser<'_> {
 
         if let Some(verified_role) = self.guild.verified_roles.get(0) {
             let verified_role = RoleId::new(*verified_role as u64).unwrap();
-            if self.guild_roles.get(&verified_role).is_some() && !self.member.roles.contains(&verified_role) {
+            if self.guild_roles.get(&verified_role).is_some()
+                && !self.member.roles.contains(&verified_role)
+            {
                 added_roles.push(verified_role);
             }
         }
@@ -56,7 +65,12 @@ impl UpdateUser<'_> {
             Err(e) => return UpdateUserResult::Error(e.into()),
         };
 
-        let roblox_user = match self.ctx.roblox.get_user(user_id, self.bypass_roblox_cache).await {
+        let roblox_user = match self
+            .ctx
+            .roblox
+            .get_user(user_id, self.bypass_roblox_cache)
+            .await
+        {
             Ok(r) => r,
             Err(err) => return UpdateUserResult::Error(err.into()),
         };
@@ -68,7 +82,8 @@ impl UpdateUser<'_> {
         };
 
         if !self.guild.blacklists.is_empty() {
-            let success = self.guild
+            let success = self
+                .guild
                 .blacklists
                 .iter()
                 .find(|b| b.evaluate(&command_user).unwrap());
@@ -76,14 +91,20 @@ impl UpdateUser<'_> {
                 match self.guild.blacklist_action {
                     BlacklistActionType::None => {}
                     BlacklistActionType::Kick => {
-                        let _ = self.ctx
+                        let _ = self
+                            .ctx
                             .http
                             .remove_guild_member(self.server.id, self.member.user.id)
                             .exec()
                             .await;
                     }
                     BlacklistActionType::Ban => {
-                        let _ = self.ctx.http.create_ban(self.server.id, self.member.user.id).exec().await;
+                        let _ = self
+                            .ctx
+                            .http
+                            .create_ban(self.server.id, self.member.user.id)
+                            .exec()
+                            .await;
                     }
                 };
                 return UpdateUserResult::Blacklist(success.reason.clone());
@@ -110,7 +131,7 @@ impl UpdateUser<'_> {
                         }
                         roles_to_add.extend(r.discord_roles.iter().copied());
                     }
-                },
+                }
                 Bind::Group(g) => {
                     if user_roles.contains_key(&g.group_id) {
                         if let Some(highest) = nick_bind {
@@ -122,7 +143,7 @@ impl UpdateUser<'_> {
                         }
                         roles_to_add.extend(g.discord_roles.iter().copied());
                     }
-                },
+                }
                 Bind::Custom(c) => {
                     if c.command.evaluate(&command_user).unwrap() {
                         if let Some(highest) = nick_bind {
@@ -134,9 +155,10 @@ impl UpdateUser<'_> {
                         }
                         roles_to_add.extend(c.discord_roles.iter().copied());
                     }
-                },
+                }
                 Bind::Asset(a) => {
-                    match self.ctx
+                    match self
+                        .ctx
                         .roblox
                         .get_asset(
                             user_id,
@@ -175,11 +197,12 @@ impl UpdateUser<'_> {
             }
         }
 
-        let original_nick = self.member
+        let original_nick = self
+            .member
             .nick
             .as_ref()
             .map_or_else(|| self.member.user.name.as_str(), String::as_str);
-        let nick_bypass = self.ctx.has_nickname_bypass(self.server, &self.member);
+        let nick_bypass = self.ctx.has_nickname_bypass(self.server, self.member);
         let nickname = if nick_bypass {
             original_nick.to_string()
         } else {
@@ -193,7 +216,10 @@ impl UpdateUser<'_> {
             return UpdateUserResult::InvalidNickname(nickname);
         }
 
-        let update = self.ctx.http.update_guild_member(self.server.id, self.member.user.id);
+        let update = self
+            .ctx
+            .http
+            .update_guild_member(self.server.id, self.member.user.id);
         let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = self.member.roles.clone();
         roles.extend_from_slice(&added_roles);

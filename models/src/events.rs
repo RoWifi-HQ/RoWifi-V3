@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::FromRow;
 
@@ -12,7 +12,7 @@ pub struct EventLog {
     pub host_id: i64,
     pub timestamp: DateTime<Utc>,
     pub attendees: Vec<i64>,
-    pub notes: Option<Vec<u8>>
+    pub notes: Option<Vec<u8>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -21,7 +21,7 @@ pub struct EventType {
     pub event_type_guild_id: i32,
     pub guild_id: i64,
     pub name: String,
-    pub disabled: bool
+    pub disabled: bool,
 }
 
 impl FromRow for EventLog {
@@ -43,7 +43,7 @@ impl FromRow for EventLog {
             host_id,
             timestamp,
             attendees,
-            notes
+            notes,
         })
     }
 }
@@ -61,7 +61,7 @@ impl FromRow for EventType {
             event_type_guild_id,
             guild_id,
             name,
-            disabled
+            disabled,
         })
     }
 }

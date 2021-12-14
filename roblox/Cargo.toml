@@ -8,8 +8,8 @@ edition = "2021"
 
 [dependencies]
 deadpool-redis = "0"
-hyper = { version = "0.14", default-features = false, features = ["client", "http2", "runtime"] }
-hyper-rustls = { version = "0.22", default-features = false, features = ["webpki-tokio"] }
+hyper = { version = "0", default-features = false, features = ["client", "http2", "runtime"] }
+hyper-rustls = { version = "0", default-features = false, features = ["webpki-tokio"] }
 rowifi-models = { path = "../models" }
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde_cbor = "0"

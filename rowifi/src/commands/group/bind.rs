@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{Assetbind, AssetType, Groupbind, Rankbind, Template, BindType},
+    bind::{AssetType, Assetbind, BindType, Groupbind, Rankbind, Template},
     discord::id::{GuildId, RoleId},
     roblox::{group::PartialRank, id::GroupId},
 };
@@ -380,7 +380,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         priority,
         template: template.clone(),
     };
-    
+
     ctx.bot.database.execute(
         "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
         &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
@@ -437,7 +437,12 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         }
     };
 
-    let roblox_group = match ctx.bot.roblox.get_group_ranks(GroupId(group_id as u64)).await? {
+    let roblox_group = match ctx
+        .bot
+        .roblox
+        .get_group_ranks(GroupId(group_id as u64))
+        .await?
+    {
         Some(r) => r,
         None => {
             let embed = EmbedBuilder::new()
@@ -606,7 +611,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         priority,
         template,
     };
-    
+
     ctx.bot.database.execute(
         "INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6) RETURNING bind_id", 
         &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
@@ -654,7 +659,14 @@ async fn bind_rank(
 ) -> CommandResult {
     let mut added = Vec::new();
     let mut modified = Vec::new();
-    let rankbinds = ctx.bot.database.query::<Rankbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2", &[&(guild_id.0.get() as i64), &BindType::Rank]).await?;
+    let rankbinds = ctx
+        .bot
+        .database
+        .query::<Rankbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
+            &[&(guild_id.0.get() as i64), &BindType::Rank],
+        )
+        .await?;
 
     let mut database = ctx.bot.database.get().await?;
     let transaction = database.transaction().await?;
@@ -687,12 +699,36 @@ async fn bind_rank(
         {
             Some(existing) => {
                 let stmt = transaction.prepare_cached("UPDATE binds SET priority = $1, template = $2, discord_roles = $3 WHERE bind_id = $4").await?;
-                transaction.execute(&stmt, &[&bind.priority, &bind.template, &bind.discord_roles, &existing.bind_id]).await?;
+                transaction
+                    .execute(
+                        &stmt,
+                        &[
+                            &bind.priority,
+                            &bind.template,
+                            &bind.discord_roles,
+                            &existing.bind_id,
+                        ],
+                    )
+                    .await?;
                 modified.push(bind);
             }
             None => {
                 let stmt = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, group_rank_id, roblox_rank_id, template, priority, discord_roles) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
-                transaction.execute(&stmt, &[&BindType::Rank, &(guild_id.get() as i64), &bind.group_id, &bind.group_rank_id, &bind.roblox_rank_id, &bind.template, &bind.priority, &bind.discord_roles]).await?;
+                transaction
+                    .execute(
+                        &stmt,
+                        &[
+                            &BindType::Rank,
+                            &(guild_id.get() as i64),
+                            &bind.group_id,
+                            &bind.group_rank_id,
+                            &bind.roblox_rank_id,
+                            &bind.template,
+                            &bind.priority,
+                            &bind.discord_roles,
+                        ],
+                    )
+                    .await?;
                 added.push(bind);
             }
         }

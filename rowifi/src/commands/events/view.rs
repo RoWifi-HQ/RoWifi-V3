@@ -2,7 +2,10 @@ use itertools::Itertools;
 use rowifi_database::decrypt_bytes;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::datetime::Timestamp, guild::GuildType, roblox::id::UserId as RobloxUserId, events::{EventLog, EventType}
+    discord::datetime::Timestamp,
+    events::{EventLog, EventType},
+    guild::GuildType,
+    roblox::id::UserId as RobloxUserId,
 };
 
 #[derive(FromArgs)]
@@ -43,7 +46,11 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             }
         },
         None => {
-            let user = ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await?;
+            let user = ctx
+                .bot
+                .database
+                .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+                .await?;
             match user {
                 Some(u) => u.roblox_id,
                 None => {
@@ -60,8 +67,22 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             }
         }
     };
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND $2 = ANY(attendees)", &[&(guild_id.get() as i64), &roblox_id]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let events = ctx
+        .bot
+        .database
+        .query::<EventLog>(
+            "SELECT * FROM events WHERE guild_id = $1 AND $2 = ANY(attendees)",
+            &[&(guild_id.get() as i64), &roblox_id],
+        )
+        .await?;
 
     let mut pages = Vec::new();
     let mut page_count = 0;
@@ -139,7 +160,11 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             }
         },
         None => {
-            let user = ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await?;
+            let user = ctx
+                .bot
+                .database
+                .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+                .await?;
             match user {
                 Some(u) => u.roblox_id,
                 None => {
@@ -157,8 +182,22 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         }
     };
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND host_id = $2", &[&(guild_id.get() as i64), &roblox_id]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let events = ctx
+        .bot
+        .database
+        .query::<EventLog>(
+            "SELECT * FROM events WHERE guild_id = $1 AND host_id = $2",
+            &[&(guild_id.get() as i64), &roblox_id],
+        )
+        .await?;
 
     let mut pages = Vec::new();
     let mut page_count = 0;
@@ -221,8 +260,22 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let event = ctx.bot.database.query_opt::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND guild_event_id = $2", &[&(guild_id.get() as i64), &event_id]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let event = ctx
+        .bot
+        .database
+        .query_opt::<EventLog>(
+            "SELECT * FROM events WHERE guild_id = $1 AND guild_event_id = $2",
+            &[&(guild_id.get() as i64), &event_id],
+        )
+        .await?;
 
     let event = match event {
         Some(e) => e,
@@ -266,7 +319,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             event_type.name.clone(),
         ))
         .field(EmbedFieldBuilder::new("Host", host.name))
-        .timestamp(Timestamp::from_secs(event.timestamp.timestamp() as u64).unwrap());
+        .timestamp(Timestamp::from_secs(event.timestamp.timestamp()).unwrap());
 
     if !event.attendees.is_empty() {
         embed = embed.field(EmbedFieldBuilder::new(
@@ -276,7 +329,13 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     if let Some(notes_bytes) = &event.notes {
-        let notes = decrypt_bytes(&notes_bytes, &ctx.bot.database.cipher, guild_id.get(), event.host_id as u64, event.timestamp.timestamp() as u64);
+        let notes = decrypt_bytes(
+            notes_bytes,
+            &ctx.bot.database.cipher,
+            guild_id.get(),
+            event.host_id as u64,
+            event.timestamp.timestamp() as u64,
+        );
         embed = embed.field(EmbedFieldBuilder::new(
             "Notes",
             String::from_utf8(notes).unwrap(),

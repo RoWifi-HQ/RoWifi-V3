@@ -1,6 +1,6 @@
 use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{Groupbind, BindType};
+use rowifi_models::bind::{BindType, Groupbind};
 
 #[derive(FromArgs)]
 pub struct GroupbindsDeleteArguments {
@@ -13,7 +13,14 @@ pub async fn groupbinds_delete(
     args: GroupbindsDeleteArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let groupbinds = ctx.bot.database.query::<Groupbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2", &[&(guild_id.get() as i64), &BindType::Group]).await?;
+    let groupbinds = ctx
+        .bot
+        .database
+        .query::<Groupbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2",
+            &[&(guild_id.get() as i64), &BindType::Group],
+        )
+        .await?;
 
     let mut groups_to_delete = Vec::new();
     for arg in args.id.split_ascii_whitespace() {
@@ -46,7 +53,12 @@ pub async fn groupbinds_delete(
     }
 
     let db = ctx.bot.database.get().await?;
-    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    let stmt = db
+        .prepare_cached(&format!(
+            "DELETE FROM binds WHERE bind_id IN ({})",
+            dynamic_args(bind_ids.len())
+        ))
+        .await?;
     db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
@@ -126,9 +138,19 @@ pub async fn groupbinds_delete(
                     let transaction = db.transaction().await?;
                     let statement = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6)").await?;
                     for bind in binds_to_delete {
-                        transaction.execute(&statement, 
-                            &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
-                        ).await?;
+                        transaction
+                            .execute(
+                                &statement,
+                                &[
+                                    &BindType::Group,
+                                    &(guild_id.get() as i64),
+                                    &bind.group_id,
+                                    &bind.discord_roles,
+                                    &bind.priority,
+                                    &bind.template,
+                                ],
+                            )
+                            .await?;
                     }
                     transaction.commit().await?;
 

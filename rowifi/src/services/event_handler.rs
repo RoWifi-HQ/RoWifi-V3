@@ -1,13 +1,7 @@
 use dashmap::DashSet;
 use futures_util::future::{Future, FutureExt};
 use rowifi_framework::{context::BotContext, prelude::*};
-use rowifi_models::{
-    discord::{
-        channel::GuildChannel,
-        guild::Permissions,
-        id::{GuildId},
-    },
-};
+use rowifi_models::discord::{channel::GuildChannel, guild::Permissions, id::GuildId};
 use std::{
     pin::Pin,
     sync::{
@@ -19,7 +13,7 @@ use std::{
 use tower::Service;
 use twilight_gateway::Event;
 
-use super::{activity};
+use super::activity;
 
 pub struct EventHandlerRef {
     unavailable: DashSet<GuildId>,

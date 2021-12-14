@@ -1,7 +1,7 @@
 use postgres_types::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, bind::BindBackup, FromRow};
+use crate::{bind::BindBackup, blacklist::Blacklist, FromRow};
 
 use super::BlacklistActionType;
 
@@ -10,7 +10,7 @@ pub struct GuildBackup {
     pub backup_id: i64,
     pub discord_id: i64,
     pub name: String,
-    pub data: Json<GuildBackupData>
+    pub data: Json<GuildBackupData>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -21,7 +21,7 @@ pub struct GuildBackupData {
     pub blacklists: Vec<Blacklist>,
     pub blacklist_action: BlacklistActionType,
     pub update_on_join: bool,
-    pub binds: Vec<BindBackup>
+    pub binds: Vec<BindBackup>,
 }
 
 impl FromRow for GuildBackup {
@@ -35,7 +35,7 @@ impl FromRow for GuildBackup {
             backup_id,
             discord_id,
             name,
-            data
+            data,
         })
     }
 }

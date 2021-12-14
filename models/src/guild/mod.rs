@@ -3,7 +3,7 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{FromRow, blacklist::Blacklist};
+use crate::{blacklist::Blacklist, FromRow};
 
 pub use types::{BlacklistActionType, GuildType};
 
@@ -52,11 +52,12 @@ pub struct RoGuild {
 }
 
 impl RoGuild {
+    #[must_use]
     pub fn new(guild_id: i64) -> Self {
         Self {
             guild_id,
             command_prefix: "!".into(),
-            ..Default::default()
+            ..RoGuild::default()
         }
     }
 }
@@ -98,7 +99,7 @@ impl FromRow for RoGuild {
             trainer_roles,
             bypass_roles,
             nickname_bypass_roles,
-            log_channel
+            log_channel,
         })
     }
 }

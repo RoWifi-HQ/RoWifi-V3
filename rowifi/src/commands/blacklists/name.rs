@@ -37,17 +37,26 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         reason = "N/A".into();
     }
 
-    let blacklist_id = guild.blacklists.iter().map(|b| b.blacklist_id).max().unwrap_or_default() + 1;
+    let blacklist_id = guild
+        .blacklists
+        .iter()
+        .map(|b| b.blacklist_id)
+        .max()
+        .unwrap_or_default()
+        + 1;
     let blacklist = Blacklist {
         blacklist_id,
         reason,
-        data: BlacklistData::User(user.id.0 as i64)
+        data: BlacklistData::User(user.id.0 as i64),
     };
-    
-    ctx.bot.database.execute(
-        r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
-        &[&blacklist, &(guild_id.get() as i64)]
-    ).await?;
+
+    ctx.bot
+        .database
+        .execute(
+            r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
+            &[&blacklist, &(guild_id.get() as i64)],
+        )
+        .await?;
 
     let name = format!("Type: {:?}", blacklist.kind());
     let desc = format!("User Id: {}\nReason: {}", user.id.0, blacklist.reason);

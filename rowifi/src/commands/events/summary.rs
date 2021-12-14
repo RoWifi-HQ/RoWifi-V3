@@ -1,7 +1,10 @@
 use chrono::{Duration as CDuration, Utc};
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{guild::GuildType, events::{EventLog, EventType}};
+use rowifi_models::{
+    events::{EventLog, EventType},
+    guild::GuildType,
+};
 
 pub async fn event_summary(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -19,8 +22,22 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+    let events = ctx
+        .bot
+        .database
+        .query::<EventLog>(
+            "SELECT * FROM events WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events Summary");
 

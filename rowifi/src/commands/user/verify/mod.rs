@@ -236,7 +236,12 @@ pub async fn verify_common(
 
 pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()

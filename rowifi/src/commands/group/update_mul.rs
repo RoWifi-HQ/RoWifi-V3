@@ -2,9 +2,10 @@ use itertools::Itertools;
 use rowifi_database::dynamic_args_with_start;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
+    bind::Bind,
     discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
     guild::GuildType,
-    roblox::id::UserId as RobloxUserId, bind::Bind,
+    roblox::id::UserId as RobloxUserId,
 };
 use std::{env, sync::atomic::Ordering};
 use tokio::time::sleep;
@@ -79,27 +80,37 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
 
     members.insert(0, guild_id.get() as i64);
     let db = ctx.bot.database.get().await?;
-    let statement = db.prepare_cached(
-        &format!(r#"
+    let statement = db
+        .prepare_cached(&format!(
+            r#"
             SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
             LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
             ON l.discord_id = users.discord_id
             WHERE users.discord_id IN ({})
-        "#, dynamic_args_with_start(members.len() - 1, 2)),
-    ).await?;
+        "#,
+            dynamic_args_with_start(members.len() - 1, 2)
+        ))
+        .await?;
     let rows = db.query_raw(&statement, &members).await?;
     tokio::pin!(rows);
     let mut users = Vec::new();
     while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(row, guild_id.get() as i64) {
+        match mass_update_user(&row, guild_id.get() as i64) {
             Ok(u) => users.push(u),
-            Err(e) => tracing::error!("error in update all: {}", e)
+            Err(e) => tracing::error!("error in update all: {}", e),
         }
     }
     tracing::debug!(users = ?users);
 
-    let binds = ctx.bot.database.query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
-    
+    let binds = ctx
+        .bot
+        .database
+        .query::<Bind>(
+            "SELECT * FROM binds WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
+
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
@@ -111,7 +122,11 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
     };
 
     tokio::spawn(async move {
-        let all_roles = binds.iter().map(|b| b.discord_roles()).flatten().unique().collect::<Vec<_>>();
+        let all_roles = binds
+            .iter()
+            .flat_map(|b| b.discord_roles())
+            .unique()
+            .collect::<Vec<_>>();
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()
@@ -230,29 +245,39 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
     }
-    
+
     members.insert(0, guild_id.get() as i64);
     let db = ctx.bot.database.get().await?;
-    let statement = db.prepare_cached(
-        &format!(r#"
+    let statement = db
+        .prepare_cached(&format!(
+            r#"
             SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
             LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
             ON l.discord_id = users.discord_id
             WHERE users.discord_id IN ({})
-        "#, dynamic_args_with_start(members.len() - 1, 2)),
-    ).await?;
+        "#,
+            dynamic_args_with_start(members.len() - 1, 2)
+        ))
+        .await?;
     let rows = db.query_raw(&statement, &members).await?;
     tokio::pin!(rows);
     let mut users = Vec::new();
     while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(row, guild_id.get() as i64) {
+        match mass_update_user(&row, guild_id.get() as i64) {
             Ok(u) => users.push(u),
-            Err(e) => tracing::error!("error in update all: {}", e)
+            Err(e) => tracing::error!("error in update all: {}", e),
         }
     }
     tracing::debug!(users = ?users);
 
-    let binds = ctx.bot.database.query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let binds = ctx
+        .bot
+        .database
+        .query::<Bind>(
+            "SELECT * FROM binds WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();
     let channel_id = ctx.channel_id;
@@ -264,7 +289,11 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     };
 
     tokio::spawn(async move {
-        let all_roles = binds.iter().map(|b| b.discord_roles()).flatten().unique().collect::<Vec<_>>();
+        let all_roles = binds
+            .iter()
+            .flat_map(|b| b.discord_roles())
+            .unique()
+            .collect::<Vec<_>>();
         for user_chunk in users.chunks(100) {
             let user_ids = user_chunk
                 .iter()

@@ -36,7 +36,13 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             return Ok(());
         }
 
-        ctx.bot.database.execute("UPDATE guilds SET log_channel = $1 WHERE guild_id = $2", &[&(channel_id.get() as i64), &guild.guild_id]).await?;
+        ctx.bot
+            .database
+            .execute(
+                "UPDATE guilds SET log_channel = $1 WHERE guild_id = $2",
+                &[&(channel_id.get() as i64), &guild.guild_id],
+            )
+            .await?;
         ctx.bot.log_channels.insert(guild_id, channel_id);
 
         let embed = EmbedBuilder::new()

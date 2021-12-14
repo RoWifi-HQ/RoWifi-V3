@@ -81,7 +81,7 @@ pub async fn trainer_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
-            roles_to_add.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            roles_to_add.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
@@ -132,7 +132,7 @@ pub async fn trainer_remove(
     let mut role_ids = Vec::new();
     for r in discord_roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(r) = parse_role(r) {
             role_ids.push(r as i64);
         }
@@ -140,7 +140,13 @@ pub async fn trainer_remove(
 
     let mut roles_to_keep = guild.admin_roles.clone();
     roles_to_keep.retain(|r| !role_ids.contains(r));
-    ctx.bot.database.execute("UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2", &[&roles_to_keep, &(guild_id.get() as i64)]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2",
+            &[&roles_to_keep, &(guild_id.get() as i64)],
+        )
+        .await?;
 
     ctx.bot
         .trainer_roles
@@ -177,7 +183,7 @@ pub async fn trainer_set(
     let mut roles_to_set = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
-            roles_to_set.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            roles_to_set.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
@@ -189,7 +195,13 @@ pub async fn trainer_set(
     }
     roles_to_set = roles_to_set.into_iter().unique().collect::<Vec<_>>();
 
-    ctx.bot.database.execute("UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2", &[&roles_to_set, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET trainer_roles = $1 WHERE guild_id = $2",
+            &[&roles_to_set, &guild.guild_id],
+        )
+        .await?;
 
     ctx.bot.trainer_roles.insert(
         guild_id,

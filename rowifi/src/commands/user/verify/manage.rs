@@ -7,7 +7,12 @@ use super::VerifyArguments;
 
 pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -100,7 +105,12 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
 }
 
 pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
+    let mut user = match ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -159,7 +169,13 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     user.alts.remove(account_index);
     user.alts.push(user.default_roblox_id);
     user.default_roblox_id = roblox_id;
-    ctx.bot.database.execute("UPDATE users SET default_roblox_id = $1, alts = $2 WHERE discord_id = $3", &[&user.default_roblox_id, &user.alts, &user.discord_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE users SET default_roblox_id = $1, alts = $2 WHERE discord_id = $3",
+            &[&user.default_roblox_id, &user.alts, &user.discord_id],
+        )
+        .await?;
     let embed = EmbedBuilder::new()
         .default_data()
         .color(Color::DarkGreen as u32)
@@ -190,7 +206,12 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
 }
 
 pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> CommandResult {
-    let mut user = match ctx.bot.database.get_user(ctx.author.id.0.get() as i64).await? {
+    let mut user = match ctx
+        .bot
+        .database
+        .get_user(ctx.author.id.0.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -250,10 +271,18 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     let discord_id = ctx.author.id.get() as i64;
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
-    let statement1 = transaction.prepare_cached("DELETE FROM linked_users WHERE discord_id = $1 AND roblox_id = $2").await?;
-    transaction.execute(&statement1, &[&discord_id, &roblox_id]).await?;
-    let statement2 = transaction.prepare_cached("UPDATE users SET alts = $1 WHERE discord_id = $2").await?;
-    transaction.execute(&statement2, &[&user.alts, &discord_id]).await?;
+    let statement1 = transaction
+        .prepare_cached("DELETE FROM linked_users WHERE discord_id = $1 AND roblox_id = $2")
+        .await?;
+    transaction
+        .execute(&statement1, &[&discord_id, &roblox_id])
+        .await?;
+    let statement2 = transaction
+        .prepare_cached("UPDATE users SET alts = $1 WHERE discord_id = $2")
+        .await?;
+    transaction
+        .execute(&statement2, &[&user.alts, &discord_id])
+        .await?;
     transaction.commit().await?;
 
     let embed = EmbedBuilder::new()

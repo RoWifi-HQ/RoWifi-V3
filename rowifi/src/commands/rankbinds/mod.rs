@@ -4,7 +4,7 @@ mod new;
 
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{Rankbind, BindType};
+use rowifi_models::bind::{BindType, Rankbind};
 
 pub use delete::*;
 pub use modify::*;

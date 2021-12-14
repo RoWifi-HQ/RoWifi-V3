@@ -128,28 +128,12 @@ pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let embed = EmbedBuilder::new()
         .default_data()
         .field(EmbedFieldBuilder::new("Tier", guild.kind.to_string()).inline())
+        .field(EmbedFieldBuilder::new("Prefix", &guild.command_prefix).inline())
+        .field(EmbedFieldBuilder::new("Auto Detection", guild.auto_detection.to_string()).inline())
         .field(
-            EmbedFieldBuilder::new(
-                "Prefix",
-                &guild.command_prefix,
-            )
-            .inline(),
+            EmbedFieldBuilder::new("Blacklist Action", guild.blacklist_action.to_string()).inline(),
         )
-        .field(
-            EmbedFieldBuilder::new("Auto Detection", guild.auto_detection.to_string())
-                .inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Blacklist Action",
-                guild.blacklist_action.to_string(),
-            )
-            .inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new("Update On Join", guild.update_on_join.to_string())
-                .inline(),
-        )
+        .field(EmbedFieldBuilder::new("Update On Join", guild.update_on_join.to_string()).inline())
         .field(
             EmbedFieldBuilder::new(
                 "Verification Role",

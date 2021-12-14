@@ -1,13 +1,22 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
-    guild::GuildType, user::{RoUser, UserFlags},
+    guild::GuildType,
+    user::{RoUser, UserFlags},
 };
 use std::env;
 
 pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let premium_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.0.get() as i64)]).await? {
+    let premium_user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(ctx.author.id.0.get() as i64)],
+        )
+        .await?
+    {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -60,18 +69,34 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1, premium_owner = $2 WHERE guild_id = $3").await?;
-    let guild_type = if premium_user.flags.contains(UserFlags::ALPHA) { GuildType::Alpha } 
-        else if premium_user.flags.contains(UserFlags::BETA) { GuildType::Beta }
-        else { return Ok(()) };
-    transaction.execute(&guild_change, &[&guild_type, &(ctx.author.id.get() as i64), &guild.guild_id]).await?;
+    let guild_change = transaction
+        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = $2 WHERE guild_id = $3")
+        .await?;
+    let guild_type = if premium_user.flags.contains(UserFlags::ALPHA) {
+        GuildType::Alpha
+    } else if premium_user.flags.contains(UserFlags::BETA) {
+        GuildType::Beta
+    } else {
+        return Ok(());
+    };
+    transaction
+        .execute(
+            &guild_change,
+            &[&guild_type, &(ctx.author.id.get() as i64), &guild.guild_id],
+        )
+        .await?;
 
     if !premium_user
         .premium_servers
         .contains(&(guild_id.0.get() as i64))
     {
         let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_append(premium_servers, $1) WHERE discord_id = $2").await?;
-        transaction.execute(&user_change, &[&(guild_id.get() as i64), &(ctx.author.id.get() as i64)]).await?;
+        transaction
+            .execute(
+                &user_change,
+                &[&(guild_id.get() as i64), &(ctx.author.id.get() as i64)],
+            )
+            .await?;
     }
     transaction.commit().await?;
 
@@ -126,7 +151,15 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
 
 pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let premium_user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(ctx.author.id.0.get() as i64)]).await? {
+    let premium_user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(ctx.author.id.0.get() as i64)],
+        )
+        .await?
+    {
         Some(p) => p,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -155,11 +188,20 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL WHERE guild_id = $2").await?;
-    transaction.execute(&guild_change, &[&GuildType::Free, &guild.guild_id]).await?;
+    let guild_change = transaction
+        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL WHERE guild_id = $2")
+        .await?;
+    transaction
+        .execute(&guild_change, &[&GuildType::Free, &guild.guild_id])
+        .await?;
 
     let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_remove(premium_servers, $1) WHERE discord_id = $2").await?;
-    transaction.execute(&user_change, &[&guild.guild_id, &(ctx.author.id.get() as i64)]).await?;
+    transaction
+        .execute(
+            &user_change,
+            &[&guild.guild_id, &(ctx.author.id.get() as i64)],
+        )
+        .await?;
 
     transaction.commit().await?;
 

@@ -1,6 +1,9 @@
 use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
-use rowifi_models::{discord::{application::interaction::Interaction, gateway::event::Event}, bind::{Assetbind, BindType}};
+use rowifi_models::{
+    bind::{Assetbind, BindType},
+    discord::{application::interaction::Interaction, gateway::event::Event},
+};
 use std::time::Duration;
 use tokio_stream::StreamExt;
 
@@ -12,7 +15,14 @@ pub struct DeleteArguments {
 
 pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let assetbinds  = ctx.bot.database.query::<Assetbind>("SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id", &[&(guild_id.get() as i64), &BindType::Asset]).await?;
+    let assetbinds = ctx
+        .bot
+        .database
+        .query::<Assetbind>(
+            "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id",
+            &[&(guild_id.get() as i64), &BindType::Asset],
+        )
+        .await?;
 
     let mut assets_to_delete = Vec::new();
     for arg in args.asset_id.split_ascii_whitespace() {
@@ -27,7 +37,10 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
             binds_to_delete.push(b);
         }
     }
-    let bind_ids = binds_to_delete.iter().map(|a| a.bind_id).collect::<Vec<_>>();
+    let bind_ids = binds_to_delete
+        .iter()
+        .map(|a| a.bind_id)
+        .collect::<Vec<_>>();
 
     if binds_to_delete.is_empty() {
         let embed = EmbedBuilder::new()
@@ -42,7 +55,12 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
     }
 
     let db = ctx.bot.database.get().await?;
-    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    let stmt = db
+        .prepare_cached(&format!(
+            "DELETE FROM binds WHERE bind_id IN ({})",
+            dynamic_args(bind_ids.len())
+        ))
+        .await?;
     db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
@@ -122,9 +140,20 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
                     let transaction = db.transaction().await?;
                     let statement = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7)").await?;
                     for bind in binds_to_delete {
-                        transaction.execute(&statement, 
-                            &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
-                        ).await?;
+                        transaction
+                            .execute(
+                                &statement,
+                                &[
+                                    &BindType::Asset,
+                                    &(guild_id.get() as i64),
+                                    &bind.asset_id,
+                                    &bind.asset_type,
+                                    &bind.discord_roles,
+                                    &bind.priority,
+                                    &bind.template,
+                                ],
+                            )
+                            .await?;
                     }
 
                     let embed = EmbedBuilder::new()

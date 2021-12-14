@@ -7,7 +7,7 @@ use twilight_http::{
     request::{
         application::interaction::{CreateFollowupMessage, UpdateOriginalResponse},
         channel::message::create_message::CreateMessage,
-        AttachmentFile
+        AttachmentFile,
     },
     response::ResponseFuture,
 };
@@ -92,11 +92,11 @@ impl<'a> Responder<'a> {
 
     pub fn files(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.attach(&files));
+            self.interaction = Some(interaction.attach(files));
         } else if let Some(message) = self.message {
-            self.message = Some(message.attach(&files));
+            self.message = Some(message.attach(files));
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.attach(&files));
+            self.followup = Some(followup.attach(files));
         }
         self
     }

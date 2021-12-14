@@ -1,13 +1,13 @@
 use itertools::Itertools;
+use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::{Custombind, Template, BindType},
+    bind::{BindType, Custombind, Template},
     discord::id::{GuildId, RoleId},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
 use std::collections::HashMap;
-use rowifi_database::postgres::Row;
 
 #[allow(clippy::option_option)]
 pub struct CustombindsNewArguments {
@@ -137,7 +137,12 @@ pub async fn custombinds_new_common(
     guild_id: GuildId,
     args: CustombindsNewArguments,
 ) -> CommandResult {
-    let user = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
+    let user = match ctx
+        .bot
+        .database
+        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -271,7 +276,7 @@ pub async fn custombinds_new_common(
     let mut roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            roles.extend(resolved.roles.iter().map(|r| r.id.get() as i64));
+            roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
         } else if let Some(role_id) = parse_role(role_str) {
             if server_roles.contains(&RoleId::new(role_id).unwrap()) {
                 roles.push(role_id as i64);
@@ -307,10 +312,7 @@ pub async fn custombinds_new_common(
         .collect::<String>();
     let desc = format!(
         "Code: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
-        bind.code,
-        bind.template,
-        bind.priority,
-        roles_str
+        bind.code, bind.template, bind.priority, roles_str
     );
     let embed = EmbedBuilder::new()
         .default_data()
@@ -381,7 +383,10 @@ pub async fn custombinds_new_common(
                         .exec()
                         .await?;
 
-                    ctx.bot.database.execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id]).await?;
+                    ctx.bot
+                        .database
+                        .execute("DELETE FROM binds WHERE bind_id = $1", &[&bind_id])
+                        .await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

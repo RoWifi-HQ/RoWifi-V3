@@ -18,7 +18,13 @@ pub async fn update_on_join(ctx: CommandContext, args: UpdateOnJoinArguments) ->
         ToggleOption::Disable => (false, "Update on Join has successfully been disabled"),
     };
 
-    ctx.bot.database.execute("UPDATE guilds SET update_on_join = $1 WHERE guild_id = $2", &[&option, &guild.guild_id]).await?;
+    ctx.bot
+        .database
+        .execute(
+            "UPDATE guilds SET update_on_join = $1 WHERE guild_id = $2",
+            &[&option, &guild.guild_id],
+        )
+        .await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

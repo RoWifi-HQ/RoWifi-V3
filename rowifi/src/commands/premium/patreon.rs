@@ -1,9 +1,20 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{user::{RoUser, UserFlags}, guild::GuildType};
+use rowifi_models::{
+    guild::GuildType,
+    user::{RoUser, UserFlags},
+};
 
 pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     let author = ctx.author.id.0;
-    let user = match ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&(author.get() as i64)]).await? {
+    let user = match ctx
+        .bot
+        .database
+        .query_opt::<RoUser>(
+            "SELECT * FROM users WHERE discord_id = $1",
+            &[&(author.get() as i64)],
+        )
+        .await?
+    {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
@@ -14,7 +25,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             return Ok(());
         }
     };
-    
+
     let (premium_id, tier) = ctx.bot.patreon.get_patron(author.get()).await?;
     let premium_id = match premium_id.map(|p| p.parse::<i64>()) {
         Some(Ok(p)) => p,
@@ -41,10 +52,15 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             return Ok(());
         }
     };
-    
+
     let transferred_user = match user.transferred_to {
-        Some(t) => ctx.bot.database.query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&t]).await?,
-        None => None
+        Some(t) => {
+            ctx.bot
+                .database
+                .query_opt::<RoUser>("SELECT * FROM users WHERE discord_id = $1", &[&t])
+                .await?
+        }
+        None => None,
     };
 
     // At this point, there's only two things that have happened, premium_id changed or tier changed
@@ -54,25 +70,35 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     // If the premium id has changed
     if let Some(patreon_id) = user.patreon_id {
         if patreon_id != premium_id {
-            let premium_changed = transaction.prepare_cached("UPDATE users SET patreon_id = $1 WHERE discord_id = $2").await?;
-            transaction.execute(&premium_changed,  &[&premium_id, &(author.get() as i64)]).await?;
+            let premium_changed = transaction
+                .prepare_cached("UPDATE users SET patreon_id = $1 WHERE discord_id = $2")
+                .await?;
+            transaction
+                .execute(&premium_changed, &[&premium_id, &(author.get() as i64)])
+                .await?;
         }
     }
 
-    let tier_changed = transaction.prepare_cached("UPDATE users SET flags = $1 WHERE discord_id = $2").await?;
+    let tier_changed = transaction
+        .prepare_cached("UPDATE users SET flags = $1 WHERE discord_id = $2")
+        .await?;
 
     if tier == 4_014_582 {
-        if !user.flags.contains(UserFlags::ALPHA) {        
+        if !user.flags.contains(UserFlags::ALPHA) {
             let mut new_flags = user.flags;
             new_flags.remove(UserFlags::BETA);
             new_flags.insert(UserFlags::ALPHA);
-            transaction.execute(&tier_changed, &[&new_flags, &(author.get() as i64)]).await?;
+            transaction
+                .execute(&tier_changed, &[&new_flags, &(author.get() as i64)])
+                .await?;
 
             if let Some(transferred_to) = &transferred_user {
                 let mut new_flags = transferred_to.flags;
                 new_flags.remove(UserFlags::BETA);
                 new_flags.insert(UserFlags::ALPHA);
-                transaction.execute(&tier_changed, &[&new_flags, &transferred_to.discord_id]).await?;
+                transaction
+                    .execute(&tier_changed, &[&new_flags, &transferred_to.discord_id])
+                    .await?;
             }
         }
     } else if tier == 4_656_839 {
@@ -80,19 +106,28 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             let mut new_flags = user.flags;
             new_flags.remove(UserFlags::ALPHA);
             new_flags.insert(UserFlags::BETA);
-            transaction.execute(&tier_changed, &[&new_flags, &(author.get() as i64)]).await?;
+            transaction
+                .execute(&tier_changed, &[&new_flags, &(author.get() as i64)])
+                .await?;
 
             if let Some(transferred_to) = &transferred_user {
                 let mut new_flags = transferred_to.flags;
                 new_flags.remove(UserFlags::ALPHA);
                 new_flags.insert(UserFlags::BETA);
-                transaction.execute(&tier_changed, &[&new_flags, &transferred_to.discord_id]).await?;
+                transaction
+                    .execute(&tier_changed, &[&new_flags, &transferred_to.discord_id])
+                    .await?;
             }
 
-            let servers = transferred_user.map(|t| t.premium_servers.clone()).unwrap_or_else(|| user.premium_servers.clone());
-            let guild_change = transaction.prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2").await?;
+            let servers = transferred_user
+                .map_or_else(|| user.premium_servers.clone(), |t| t.premium_servers);
+            let guild_change = transaction
+                .prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2")
+                .await?;
             for server in servers {
-                transaction.execute(&guild_change, &[&GuildType::Beta, &server]).await?;
+                transaction
+                    .execute(&guild_change, &[&GuildType::Beta, &server])
+                    .await?;
             }
         }
     } else {

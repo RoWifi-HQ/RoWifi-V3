@@ -1,7 +1,7 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
 use bytes::BytesMut;
-use postgres_types::{ToSql, Type, IsNull, FromSql, to_sql_checked};
-use serde::{Deserialize, Serialize, Deserializer, Serializer};
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::rolang::{RoCommand, RoCommandUser};
 
@@ -9,14 +9,14 @@ use crate::rolang::{RoCommand, RoCommandUser};
 pub struct Blacklist {
     pub blacklist_id: i64,
     pub reason: String,
-    pub data: BlacklistData
+    pub data: BlacklistData,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BlacklistData {
     User(i64),
     Group(i64),
-    Custom(RoCommand)
+    Custom(RoCommand),
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -25,7 +25,7 @@ pub enum BlacklistData {
 pub enum BlacklistType {
     User = 0,
     Group = 1,
-    Custom = 2
+    Custom = 2,
 }
 
 #[derive(Debug, Deserialize, FromSql, Serialize, ToSql)]
@@ -36,15 +36,16 @@ struct BlacklistIntermediary {
     pub kind: BlacklistType,
     pub user_id: Option<i64>,
     pub group_id: Option<i64>,
-    pub code: Option<String>
+    pub code: Option<String>,
 }
 
 impl Blacklist {
+    #[must_use]
     pub const fn kind(&self) -> BlacklistType {
         match self.data {
             BlacklistData::User(_) => BlacklistType::User,
             BlacklistData::Group(_) => BlacklistType::Group,
-            BlacklistData::Custom(_) => BlacklistType::Custom
+            BlacklistData::Custom(_) => BlacklistType::Custom,
         }
     }
 
@@ -58,11 +59,15 @@ impl Blacklist {
 }
 
 impl ToSql for Blacklist {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
         let (user_id, group_id, code) = match &self.data {
             BlacklistData::User(u) => (Some(*u), None, None),
             BlacklistData::Group(g) => (None, Some(*g), None),
-            BlacklistData::Custom(c) => (None, None, Some(c.code.clone()))
+            BlacklistData::Custom(c) => (None, None, Some(c.code.clone())),
         };
         let intermediary = BlacklistIntermediary {
             blacklist_id: self.blacklist_id,
@@ -70,7 +75,7 @@ impl ToSql for Blacklist {
             kind: self.kind(),
             user_id,
             group_id,
-            code
+            code,
         };
         BlacklistIntermediary::to_sql(&intermediary, ty, out)
     }
@@ -83,17 +88,22 @@ impl ToSql for Blacklist {
 }
 
 impl<'a> FromSql<'a> for Blacklist {
-    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+    fn from_sql(
+        ty: &Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
         let blacklist_intermediary = BlacklistIntermediary::from_sql(ty, raw)?;
         let data = match blacklist_intermediary.kind {
             BlacklistType::User => BlacklistData::User(blacklist_intermediary.user_id.unwrap()),
             BlacklistType::Group => BlacklistData::Group(blacklist_intermediary.group_id.unwrap()),
-            BlacklistType::Custom => BlacklistData::Custom(RoCommand::new(&blacklist_intermediary.code.unwrap()).unwrap())
+            BlacklistType::Custom => BlacklistData::Custom(
+                RoCommand::new(&blacklist_intermediary.code.unwrap()).unwrap(),
+            ),
         };
         Ok(Blacklist {
             blacklist_id: blacklist_intermediary.blacklist_id,
             reason: blacklist_intermediary.reason,
-            data
+            data,
         })
     }
 
@@ -107,7 +117,7 @@ impl Display for BlacklistType {
         match self {
             BlacklistType::User => f.write_str("User"),
             BlacklistType::Group => f.write_str("Group"),
-            BlacklistType::Custom => f.write_str("Custom")
+            BlacklistType::Custom => f.write_str("Custom"),
         }
     }
 }
@@ -153,12 +163,14 @@ impl<'de> Deserialize<'de> for Blacklist {
         let data = match intermediary.kind {
             BlacklistType::User => BlacklistData::User(intermediary.user_id.unwrap()),
             BlacklistType::Group => BlacklistData::Group(intermediary.group_id.unwrap()),
-            BlacklistType::Custom => BlacklistData::Custom(RoCommand::new(&intermediary.code.unwrap()).unwrap())
+            BlacklistType::Custom => {
+                BlacklistData::Custom(RoCommand::new(&intermediary.code.unwrap()).unwrap())
+            }
         };
         Ok(Blacklist {
             blacklist_id: intermediary.blacklist_id,
             reason: intermediary.reason,
-            data
+            data,
         })
     }
 }
@@ -168,7 +180,7 @@ impl Serialize for Blacklist {
         let (user_id, group_id, code) = match &self.data {
             BlacklistData::User(u) => (Some(*u), None, None),
             BlacklistData::Group(g) => (None, Some(*g), None),
-            BlacklistData::Custom(c) => (None, None, Some(c.code.clone()))
+            BlacklistData::Custom(c) => (None, None, Some(c.code.clone())),
         };
         let intermediary = BlacklistIntermediary {
             blacklist_id: self.blacklist_id,
@@ -176,7 +188,7 @@ impl Serialize for Blacklist {
             kind: self.kind(),
             user_id,
             group_id,
-            code
+            code,
         };
         intermediary.serialize(serializer)
     }

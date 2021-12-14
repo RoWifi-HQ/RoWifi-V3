@@ -1,6 +1,9 @@
 use rowifi_database::{encrypt_bytes, postgres::Row};
 use rowifi_framework::prelude::*;
-use rowifi_models::{events::{EventLog, EventType}, guild::GuildType};
+use rowifi_models::{
+    events::{EventLog, EventType},
+    guild::GuildType,
+};
 use std::time::Duration;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
@@ -19,7 +22,12 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let roblox_id = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
+    let roblox_id = match ctx
+        .bot
+        .database
+        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .await?
+    {
         Some(r) => r.roblox_id,
         None => {
             let embed = EmbedBuilder::new()
@@ -34,7 +42,14 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event_types = ctx
+        .bot
+        .database
+        .query::<EventType>(
+            "SELECT * FROM event_types WHERE guild_id = $1",
+            &[&(guild_id.get() as i64)],
+        )
+        .await?;
 
     let mut options = Vec::new();
     for event_type in &event_types {
@@ -204,7 +219,13 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
         None
     } else {
-        Some(encrypt_bytes(notes_raw.as_bytes(), &ctx.bot.database.cipher, guild_id.get(), roblox_id as u64, timestamp.timestamp() as u64))
+        Some(encrypt_bytes(
+            notes_raw.as_bytes(),
+            &ctx.bot.database.cipher,
+            guild_id.get(),
+            roblox_id as u64,
+            timestamp.timestamp() as u64,
+        ))
     };
 
     let new_event = EventLog {

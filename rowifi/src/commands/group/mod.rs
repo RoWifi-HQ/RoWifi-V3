@@ -3,8 +3,8 @@ mod reset;
 mod serverinfo;
 mod update_mul;
 
-use std::time::Duration;
 use rowifi_framework::{bucket::BucketLayer, handler::CommandHandler, prelude::*};
+use std::time::Duration;
 use tower::ServiceBuilder;
 
 use bind::bind;

@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use rowifi_database::dynamic_args;
 use rowifi_framework::prelude::*;
-use rowifi_models::bind::{Rankbind, BindType};
+use rowifi_models::bind::{BindType, Rankbind};
 use std::str::FromStr;
 
 #[derive(FromArgs)]
@@ -36,9 +36,9 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     for rank in rank_ids_to_delete {
         match rank {
             RankId::Range(r1, r2) => {
-                let binds = rankbinds
-                    .iter()
-                    .filter(|r| r.group_id == group_id && r.group_rank_id >= r1 && r.group_rank_id <= r2);
+                let binds = rankbinds.iter().filter(|r| {
+                    r.group_id == group_id && r.group_rank_id >= r1 && r.group_rank_id <= r2
+                });
                 binds_to_delete.extend(binds);
             }
             RankId::Single(rank) => {
@@ -70,7 +70,12 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
     }
 
     let db = ctx.bot.database.get().await?;
-    let stmt = db.prepare_cached(&format!("DELETE FROM binds WHERE bind_id IN ({})", dynamic_args(bind_ids.len()))).await?;
+    let stmt = db
+        .prepare_cached(&format!(
+            "DELETE FROM binds WHERE bind_id IN ({})",
+            dynamic_args(bind_ids.len())
+        ))
+        .await?;
     db.execute_raw(&stmt, bind_ids).await?;
 
     let embed = EmbedBuilder::new()
@@ -145,12 +150,26 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                         )
                         .exec()
                         .await?;
-                    
+
                     let mut db = ctx.bot.database.get().await?;
                     let transaction = db.transaction().await?;
                     let stmt = transaction.prepare_cached("INSERT INTO binds(bind_type, guild_id, group_id, group_rank_id, roblox_rank_id, template, priority, discord_roles) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
                     for bind in binds_to_delete {
-                        transaction.execute(&stmt, &[&BindType::Rank, &(guild_id.get() as i64), &bind.group_id, &bind.group_rank_id, &bind.roblox_rank_id, &bind.template, &bind.priority, &bind.discord_roles]).await?;
+                        transaction
+                            .execute(
+                                &stmt,
+                                &[
+                                    &BindType::Rank,
+                                    &(guild_id.get() as i64),
+                                    &bind.group_id,
+                                    &bind.group_rank_id,
+                                    &bind.roblox_rank_id,
+                                    &bind.template,
+                                    &bind.priority,
+                                    &bind.discord_roles,
+                                ],
+                            )
+                            .await?;
                     }
                     transaction.commit().await?;
 

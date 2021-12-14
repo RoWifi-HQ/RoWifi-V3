@@ -44,6 +44,7 @@ pub struct BotStats {
 }
 
 impl BotStats {
+    #[must_use]
     pub fn new(cluster_id: u64) -> Self {
         let event_counter = IntCounterVec::new(
             Opts::new("discord_events", "Events given by discord"),

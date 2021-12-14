@@ -16,6 +16,7 @@ lazy_static! {
 pub struct Template(pub String);
 
 impl Template {
+    #[must_use]
     pub fn nickname(
         &self,
         roblox_user: &RobloxUser,
@@ -69,6 +70,7 @@ impl Template {
         parts.join("")
     }
 
+    #[must_use]
     pub fn has_slug(template_str: &str) -> bool {
         let matches = TEMPLATE_REGEX.find_iter(template_str);
         for m in matches {

@@ -1,9 +1,16 @@
 pub mod error;
 
-use aes_gcm::{Aes256Gcm, Key, NewAead, aead::{generic_array::GenericArray, Aead}};
+use aes_gcm::{
+    aead::{generic_array::GenericArray, Aead},
+    Aes256Gcm, Key, NewAead,
+};
 use deadpool_postgres::{Manager, Object, Pool, Runtime};
 use itertools::Itertools;
-use rowifi_models::{FromRow, guild::RoGuild, user::{RoGuildUser, RoUser}};
+use rowifi_models::{
+    guild::RoGuild,
+    user::{RoGuildUser, RoUser},
+    FromRow,
+};
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;
 use std::{fs::File, io::BufReader, str::FromStr, time::Duration};
@@ -16,7 +23,7 @@ pub use tokio_postgres as postgres;
 
 pub struct Database {
     pool: Pool,
-    pub cipher: Aes256Gcm
+    pub cipher: Aes256Gcm,
 }
 
 impl Database {
@@ -81,20 +88,28 @@ impl Database {
         Ok(items)
     }
 
-    pub async fn query_one<T: FromRow>(&self, statement: &str, params: &[&(dyn ToSql + Sync)]) -> Result<T, DatabaseError> {
+    pub async fn query_one<T: FromRow>(
+        &self,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<T, DatabaseError> {
         let client = self.get().await?;
         let statement = client.prepare_cached(statement).await?;
         let row = client.query_one(&statement, params).await?;
         Ok(T::from_row(row)?)
     }
 
-    pub async fn query_opt<T: FromRow>(&self, statement: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Option<T>, DatabaseError> {
+    pub async fn query_opt<T: FromRow>(
+        &self,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Option<T>, DatabaseError> {
         let client = self.get().await?;
         let statement = client.prepare_cached(statement).await?;
         let row = client.query_opt(&statement, params).await?;
         match row {
             Some(r) => Ok(Some(T::from_row(r)?)),
-            None => Ok(None)
+            None => Ok(None),
         }
     }
 
@@ -111,7 +126,9 @@ impl Database {
 
     pub async fn get_guild(&self, guild_id: i64) -> Result<RoGuild, DatabaseError> {
         let client = self.get().await?;
-        let statement = client.prepare_cached("SELECT * FROM guilds WHERE guild_id = $1").await?;
+        let statement = client
+            .prepare_cached("SELECT * FROM guilds WHERE guild_id = $1")
+            .await?;
         let row = client.query_opt(&statement, &[&guild_id]).await?;
         if let Some(row) = row {
             RoGuild::from_row(row).map_err(|e| e.into())
@@ -120,14 +137,26 @@ impl Database {
             let statement = client.prepare_cached(
                 "INSERT INTO guilds(guild_id, command_prefix, kind, blacklist_action) VALUES($1, $2, $3, $4)",
             ).await?;
-            client.execute(&statement, &[&guild_id, &guild.command_prefix, &guild.kind, &guild.blacklist_action]).await?;
+            client
+                .execute(
+                    &statement,
+                    &[
+                        &guild_id,
+                        &guild.command_prefix,
+                        &guild.kind,
+                        &guild.blacklist_action,
+                    ],
+                )
+                .await?;
             Ok(guild)
         }
     }
 
     pub async fn get_user(&self, user_id: i64) -> Result<Option<RoUser>, DatabaseError> {
         let client = self.get().await?;
-        let statement = client.prepare_cached("SELECT * FROM users WHERE discord_id = $1").await?;
+        let statement = client
+            .prepare_cached("SELECT * FROM users WHERE discord_id = $1")
+            .await?;
         let row = client.query_opt(&statement, &[&user_id]).await?;
         if let Some(row) = row {
             Ok(Some(RoUser::from_row(row)?))
@@ -136,21 +165,29 @@ impl Database {
         }
     }
 
-    pub async fn get_linked_user(&self, user_id: i64, guild_id: i64) -> Result<Option<RoGuildUser>, DatabaseError> {
+    pub async fn get_linked_user(
+        &self,
+        user_id: i64,
+        guild_id: i64,
+    ) -> Result<Option<RoGuildUser>, DatabaseError> {
         let client = self.get().await?;
-        let statement = client.prepare_cached("SELECT * FROM linked_users WHERE guild_id = $1 AND discord_id = $2").await?;
+        let statement = client
+            .prepare_cached("SELECT * FROM linked_users WHERE guild_id = $1 AND discord_id = $2")
+            .await?;
         let row = client.query_opt(&statement, &[&guild_id, &user_id]).await?;
         if let Some(row) = row {
             Ok(Some(RoGuildUser::from_row(row)?))
         } else {
-            let statement = client.prepare_cached("SELECT * FROM users WHERE discord_id = $1").await?;
+            let statement = client
+                .prepare_cached("SELECT * FROM users WHERE discord_id = $1")
+                .await?;
             let row = client.query_opt(&statement, &[&user_id]).await?;
             if let Some(row) = row {
                 let user = RoUser::from_row(row)?;
                 Ok(Some(RoGuildUser {
                     guild_id,
                     discord_id: user_id,
-                    roblox_id: user.default_roblox_id
+                    roblox_id: user.default_roblox_id,
                 }))
             } else {
                 Ok(None)
@@ -161,15 +198,21 @@ impl Database {
 
 #[inline]
 pub fn dynamic_args(size: usize) -> String {
-    (0..size).map(|i| format!("${}", i+1)).join(", ")
+    (0..size).map(|i| format!("${}", i + 1)).join(", ")
 }
 
 #[inline]
 pub fn dynamic_args_with_start(size: usize, start: usize) -> String {
-    (0..size).map(|i| format!("${}", i+start)).join(", ")
+    (0..size).map(|i| format!("${}", i + start)).join(", ")
 }
 
-pub fn encrypt_bytes(plaintext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id: u64, timestamp: u64) -> Vec<u8> {
+pub fn encrypt_bytes(
+    plaintext: &[u8],
+    aaed: &Aes256Gcm,
+    guild_id: u64,
+    host_id: u64,
+    timestamp: u64,
+) -> Vec<u8> {
     let mut nonce = [0u8; 12];
     let guild_id_bytes = guild_id.to_le_bytes();
     nonce[..4].copy_from_slice(&guild_id_bytes[4..]);
@@ -179,10 +222,16 @@ pub fn encrypt_bytes(plaintext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id:
     nonce[8..].copy_from_slice(&host_id_bytes[4..]);
 
     let nonce = GenericArray::from_slice(&nonce);
-    aaed.encrypt(&nonce, plaintext).unwrap()
+    aaed.encrypt(nonce, plaintext).unwrap()
 }
 
-pub fn decrypt_bytes(ciphertext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id: u64, timestamp: u64) -> Vec<u8> {
+pub fn decrypt_bytes(
+    ciphertext: &[u8],
+    aaed: &Aes256Gcm,
+    guild_id: u64,
+    host_id: u64,
+    timestamp: u64,
+) -> Vec<u8> {
     let mut nonce = [0u8; 12];
     let guild_id_bytes = guild_id.to_le_bytes();
     nonce[..4].copy_from_slice(&guild_id_bytes[4..]);
@@ -192,5 +241,5 @@ pub fn decrypt_bytes(ciphertext: &[u8], aaed: &Aes256Gcm, guild_id: u64, host_id
     nonce[8..].copy_from_slice(&host_id_bytes[4..]);
 
     let nonce = GenericArray::from_slice(&nonce);
-    aaed.decrypt(&nonce, ciphertext).unwrap()
+    aaed.decrypt(nonce, ciphertext).unwrap()
 }

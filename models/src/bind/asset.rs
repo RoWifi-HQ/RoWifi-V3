@@ -1,8 +1,12 @@
-use std::{str::FromStr, error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
-use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 use crate::FromRow;
 
@@ -63,7 +67,7 @@ impl FromRow for Assetbind {
 
 impl FromStr for AssetType {
     type Err = ();
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "asset" => Ok(AssetType::Asset),
@@ -101,10 +105,7 @@ impl ToSql for AssetType {
 }
 
 impl<'a> FromSql<'a> for AssetType {
-    fn from_sql(
-        ty: &Type,
-        raw: &'a [u8],
-    ) -> Result<Self, Box<dyn StdError + Sync + Send>> {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
         let bind_type = i32::from_sql(ty, raw)?;
         match bind_type {
             0 => Ok(AssetType::Asset),

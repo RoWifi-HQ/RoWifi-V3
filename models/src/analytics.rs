@@ -1,6 +1,6 @@
-use postgres_types::{ToSql, FromSql};
-use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
+use postgres_types::{FromSql, ToSql};
+use serde::{Deserialize, Serialize};
 
 use crate::FromRow;
 
@@ -9,7 +9,7 @@ pub struct Group {
     pub group_id: i64,
     pub roles: Vec<Role>,
     pub member_count: i64,
-    pub timestamp: DateTime<Utc>
+    pub timestamp: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, FromSql, PartialEq, Serialize, ToSql)]
@@ -17,7 +17,7 @@ pub struct Group {
 pub struct Role {
     pub id: i64,
     pub rank: i64,
-    pub member_count: i64
+    pub member_count: i64,
 }
 
 impl FromRow for Group {
@@ -31,7 +31,7 @@ impl FromRow for Group {
             group_id,
             roles,
             member_count,
-            timestamp
+            timestamp,
         })
     }
 }

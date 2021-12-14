@@ -5,13 +5,15 @@ use rowifi_cache::CachedGuild;
 use rowifi_database::postgres::Row;
 use rowifi_framework::{context::BotContext, prelude::*};
 use rowifi_models::{
+    bind::Bind,
     discord::{
         gateway::{event::Event, payload::outgoing::RequestGuildMembers},
         id::{GuildId, RoleId, UserId},
     },
     guild::RoGuild,
     roblox::id::UserId as RobloxUserId,
-    user::RoGuildUser, bind::Bind, FromRow,
+    user::RoGuildUser,
+    FromRow,
 };
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
@@ -115,6 +117,7 @@ use crate::utils::{UpdateUser, UpdateUserResult};
 //     Ok(())
 // }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn execute_chunk(
     user_chunk: &[RoGuildUser],
     ctx: &BotContext,
@@ -124,7 +127,7 @@ pub async fn execute_chunk(
     auto_detection: bool,
     role_filter: Option<RoleId>,
     binds: &[Bind],
-    all_roles: &[&i64]
+    all_roles: &[&i64],
 ) -> Result<(), RoError> {
     let log = if auto_detection {
         "Auto Detection"
@@ -148,15 +151,15 @@ pub async fn execute_chunk(
             let name = member.user.name.clone();
 
             let update_user = UpdateUser {
-                ctx: &ctx,
+                ctx,
                 member: &member,
-                user: &user,
-                server: &server,
-                guild: &guild,
-                binds: &binds,
-                guild_roles: &guild_roles,
+                user,
+                server,
+                guild,
+                binds,
+                guild_roles,
                 bypass_roblox_cache: false,
-                all_roles: &all_roles,
+                all_roles,
             };
 
             let res = update_user.execute().await;
@@ -178,7 +181,7 @@ pub async fn execute_chunk(
     Ok(())
 }
 
-pub fn mass_update_user(row: Row, guild_id: i64) -> Result<RoGuildUser, Box<dyn Error>> {
+pub fn mass_update_user(row: &Row, guild_id: i64) -> Result<RoGuildUser, Box<dyn Error>> {
     let guild_id = row.try_get("guild_id").unwrap_or(guild_id);
     let discord_id = row.try_get("discord_id")?;
     let roblox_id = row.try_get("roblox_id").ok();
@@ -187,6 +190,6 @@ pub fn mass_update_user(row: Row, guild_id: i64) -> Result<RoGuildUser, Box<dyn 
     Ok(RoGuildUser {
         guild_id,
         discord_id,
-        roblox_id: roblox_id.unwrap_or(default_roblox_id)
+        roblox_id: roblox_id.unwrap_or(default_roblox_id),
     })
 }
