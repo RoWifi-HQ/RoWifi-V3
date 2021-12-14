@@ -236,29 +236,6 @@ impl CommandContext {
 }
 
 impl BotContext {
-    #[allow(clippy::cast_possible_wrap)]
-    // pub async fn get_linked_user(
-    //     &self,
-    //     user_id: UserId,
-    //     guild_id: GuildId,
-    // ) -> Result<Option<RoGuildUser>, RoError> {
-    //     let mut linked_user = self
-    //         .database
-    //         .get_linked_user(user_id.0.get(), guild_id.0.get())
-    //         .await?;
-    //     if linked_user.is_none() {
-    //         let user = self.database.get_user(user_id.0.get()).await?;
-    //         if let Some(user) = user {
-    //             linked_user = Some(RoGuildUser {
-    //                 guild_id: guild_id.0.get() as i64,
-    //                 discord_id: user.discord_id,
-    //                 roblox_id: user.roblox_id,
-    //             });
-    //         }
-    //     }
-    //     Ok(linked_user)
-    // }
-
     pub async fn log_debug(&self, embed: Embed) {
         let (id, token) = self.webhooks.get("debug").unwrap();
         let _ = self
