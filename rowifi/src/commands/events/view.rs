@@ -1,9 +1,8 @@
-use chacha20poly1305::{aead::Aead, Nonce};
 use itertools::Itertools;
-use mongodb::bson::doc;
+use rowifi_database::decrypt_bytes;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::datetime::Timestamp, guild::GuildType, roblox::id::UserId as RobloxUserId,
+    discord::datetime::Timestamp, guild::GuildType, roblox::id::UserId as RobloxUserId, events::{EventLog, EventType}
 };
 
 #[derive(FromArgs)]
@@ -14,9 +13,9 @@ pub struct EventAttendeeArguments {
 
 pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -44,7 +43,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             }
         },
         None => {
-            let user = ctx.get_linked_user(ctx.author.id, guild_id).await?;
+            let user = ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await?;
             match user {
                 Some(u) => u.roblox_id,
                 None => {
@@ -61,15 +60,8 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             }
         }
     };
-
-    let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0.get() as i64}},
-        doc! {"$sort": {"Timestamp": -1}},
-        doc! {"$unwind": "$Attendees"},
-        doc! {"$match": {"Attendees": roblox_id}},
-        doc! {"$unset": "Attendees"},
-    ];
-    let events = ctx.bot.database.get_events(pipeline).await?;
+    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND $2 = ANY(attendees)", &[&(guild_id.get() as i64), &roblox_id]).await?;
 
     let mut pages = Vec::new();
     let mut page_count = 0;
@@ -83,10 +75,9 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         for event in events {
             let name = format!("Id: {}", event.guild_event_id);
 
-            let event_type = guild
-                .event_types
+            let event_type = event_types
                 .iter()
-                .find(|e| e.id == event.event_type)
+                .find(|e| e.event_type_guild_id == event.event_type)
                 .unwrap();
             let host = ctx
                 .bot
@@ -97,7 +88,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                 "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
                 event_type.name,
                 host.name,
-                event.timestamp.to_chrono().timestamp()
+                event.timestamp.timestamp()
             );
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
@@ -118,9 +109,9 @@ pub struct EventHostArguments {
 
 pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -148,7 +139,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             }
         },
         None => {
-            let user = ctx.get_linked_user(ctx.author.id, guild_id).await?;
+            let user = ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await?;
             match user {
                 Some(u) => u.roblox_id,
                 None => {
@@ -166,12 +157,8 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         }
     };
 
-    let pipeline = vec![
-        doc! {"$match": {"GuildId": guild_id.0.get() as i64}},
-        doc! {"$match": {"HostId": roblox_id}},
-        doc! {"$sort": {"Timestamp": -1}},
-    ];
-    let events = ctx.bot.database.get_events(pipeline).await?;
+    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let events = ctx.bot.database.query::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND host_id = $2", &[&(guild_id.get() as i64), &roblox_id]).await?;
 
     let mut pages = Vec::new();
     let mut page_count = 0;
@@ -185,10 +172,9 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         for event in events {
             let name = format!("Id: {}", event.guild_event_id);
 
-            let event_type = guild
-                .event_types
+            let event_type = event_types
                 .iter()
-                .find(|e| e.id == event.event_type)
+                .find(|e| e.event_type_guild_id == event.event_type)
                 .unwrap();
             let host = ctx
                 .bot
@@ -199,7 +185,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                 "Event Type: {}\nHost: {}\nTimestamp: <t:{}:f>",
                 event_type.name,
                 host.name,
-                event.timestamp.to_chrono().timestamp()
+                event.timestamp.timestamp()
             );
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
@@ -220,9 +206,9 @@ pub struct EventViewArguments {
 
 pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -235,27 +221,27 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
     }
 
     let event_id = args.event_id;
-    let pipeline =
-        vec![doc! {"$match": {"GuildId": guild_id.0.get() as i64, "GuildEventId": event_id}}];
-    let events = ctx.bot.database.get_events(pipeline).await?;
-    if events.is_empty() {
-        let embed = EmbedBuilder::new()
-            .default_data()
-            .color(Color::Red as u32)
-            .title("Event Viewing Failed")
-            .description(format!("An event with id {} does not exist", event_id))
-            .build()
-            .unwrap();
-        ctx.respond().embeds(&[embed])?.exec().await?;
-        return Ok(());
-    }
+    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+    let event = ctx.bot.database.query_opt::<EventLog>("SELECT * FROM events WHERE guild_id = $1 AND guild_event_id = $2", &[&(guild_id.get() as i64), &event_id]).await?;
 
-    let event = &events[0];
+    let event = match event {
+        Some(e) => e,
+        None => {
+            let embed = EmbedBuilder::new()
+                .default_data()
+                .color(Color::Red as u32)
+                .title("Event Viewing Failed")
+                .description(format!("An event with id {} does not exist", event_id))
+                .build()
+                .unwrap();
+            ctx.respond().embeds(&[embed])?.exec().await?;
+            return Ok(());
+        }
+    };
 
-    let event_type = guild
-        .event_types
+    let event_type = event_types
         .iter()
-        .find(|e| e.id == event.event_type)
+        .find(|e| e.event_type_guild_id == event.event_type)
         .unwrap();
     let host = ctx
         .bot
@@ -280,7 +266,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             event_type.name.clone(),
         ))
         .field(EmbedFieldBuilder::new("Host", host.name))
-        .timestamp(Timestamp::from_secs(event.timestamp.to_chrono().timestamp() as u64).unwrap());
+        .timestamp(Timestamp::from_secs(event.timestamp.timestamp() as u64).unwrap());
 
     if !event.attendees.is_empty() {
         embed = embed.field(EmbedFieldBuilder::new(
@@ -289,13 +275,11 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         ));
     }
 
-    if let Some((nonce, notes)) = &event.notes {
-        let notes = base64::decode(notes).unwrap();
-        let nonce = Nonce::from_slice(nonce.as_bytes());
-        let plaintext = ctx.bot.cipher.decrypt(nonce, notes.as_slice()).unwrap();
+    if let Some(notes_bytes) = &event.notes {
+        let notes = decrypt_bytes(&notes_bytes, &ctx.bot.database.cipher, guild_id.get(), event.host_id as u64, event.timestamp.timestamp() as u64);
         embed = embed.field(EmbedFieldBuilder::new(
             "Notes",
-            String::from_utf8(plaintext).unwrap(),
+            String::from_utf8(notes).unwrap(),
         ));
     }
 

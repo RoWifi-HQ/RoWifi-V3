@@ -1,4 +1,3 @@
-use chacha20poly1305::ChaCha20Poly1305;
 use dashmap::{DashMap, DashSet};
 use patreon::Client as Patreon;
 use roblox::Client as Roblox;
@@ -63,7 +62,6 @@ pub struct BotContextRef {
     pub standby: Standby,
     /// The pre-configured webhooks that we write to for logging purposes
     pub webhooks: HashMap<&'static str, (WebhookId, String)>,
-    pub cipher: ChaCha20Poly1305,
 
     // RoWifi Modules
     /// The module handling all connections to Mongo
@@ -127,7 +125,6 @@ impl BotContext {
         cluster_id: u64,
         total_shards: u64,
         shards_per_cluster: u64,
-        cipher: ChaCha20Poly1305,
     ) -> Self {
         let mut owners_set = DashSet::new();
         owners_set.extend(owners.iter().map(ToOwned::to_owned));
@@ -162,7 +159,6 @@ impl BotContext {
                 cluster_id,
                 total_shards,
                 shards_per_cluster,
-                cipher,
             }),
         }
     }

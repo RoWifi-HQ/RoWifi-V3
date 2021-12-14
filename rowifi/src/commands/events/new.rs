@@ -1,15 +1,13 @@
-use chacha20poly1305::{aead::Aead, Nonce};
-use mongodb::bson::{oid::ObjectId, DateTime};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rowifi_database::{encrypt_bytes, postgres::Row};
 use rowifi_framework::prelude::*;
-use rowifi_models::{events::EventLog, guild::GuildType};
+use rowifi_models::{events::{EventLog, EventType}, guild::GuildType};
 use std::time::Duration;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get()).await?;
+    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
 
-    if guild.settings.guild_type != GuildType::Beta {
+    if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
@@ -21,14 +19,14 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let user = match ctx.get_linked_user(ctx.author.id, guild_id).await? {
-        Some(u) => u,
+    let roblox_id = match ctx.bot.database.get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64).await? {
+        Some(r) => r.roblox_id,
         None => {
             let embed = EmbedBuilder::new()
                 .default_data()
-                .title("Event Addition Failed")
-                .description("This command may only be used by verified users")
                 .color(Color::Red as u32)
+                .title("Event Addition Failed")
+                .description("You need to be verified to use this command")
                 .build()
                 .unwrap();
             ctx.respond().embeds(&[embed])?.exec().await?;
@@ -36,15 +34,17 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         }
     };
 
+    let event_types = ctx.bot.database.query::<EventType>("SELECT * FROM event_types WHERE guild_id = $1", &[&(guild_id.get() as i64)]).await?;
+
     let mut options = Vec::new();
-    for event_type in &guild.event_types {
+    for event_type in &event_types {
         if !event_type.disabled {
             options.push(SelectMenuOption {
                 default: false,
                 description: None,
                 emoji: None,
                 label: event_type.name.clone(),
-                value: event_type.id.to_string(),
+                value: event_type.event_type_guild_id.to_string(),
             });
         }
     }
@@ -105,7 +105,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     tokio::pin!(stream);
 
     ctx.bot.ignore_message_components.insert(message_id);
-    let mut event_type_id = None;
+    let mut event_guild_id = None;
     while let Some(Ok(event)) = stream.next().await {
         if let Event::InteractionCreate(interaction) = &event {
             if let Interaction::MessageComponent(message_component) = &interaction.0 {
@@ -138,7 +138,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                             .exec()
                             .await?;
                     } else if message_component.data.custom_id == "event-new-select" {
-                        event_type_id = Some(message_component.data.values[0].clone());
+                        event_guild_id = Some(message_component.data.values[0].clone());
                     }
                     break;
                 }
@@ -165,15 +165,14 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         }
     }
 
-    let event_type_id = match event_type_id {
-        Some(e) => e.parse().unwrap(),
+    let event_guild_id = match event_guild_id {
+        Some(e) => e.parse::<i32>().unwrap(),
         None => return Ok(()),
     };
 
-    let event_type = guild
-        .event_types
+    let event_type = event_types
         .iter()
-        .find(|e| e.id == event_type_id)
+        .find(|e| e.event_type_guild_id == event_guild_id)
         .unwrap();
 
     let attendees_str = await_reply(
@@ -199,40 +198,32 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
+    let timestamp = chrono::Utc::now();
 
     let notes_raw = await_reply("Would you like to add any notes to this event log? Say N/A if you would like to not add any notes", &ctx).await?;
     let notes = if notes_raw.eq_ignore_ascii_case("N/A") {
         None
     } else {
-        let nonce_str = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(12)
-            .map(char::from)
-            .collect::<String>();
-        let nonce = Nonce::from_slice(nonce_str.as_bytes());
-        let ciphertext = ctx.bot.cipher.encrypt(nonce, notes_raw.as_bytes()).unwrap();
-        let notes = base64::encode(ciphertext);
-        Some((nonce_str, notes))
+        Some(encrypt_bytes(notes_raw.as_bytes(), &ctx.bot.database.cipher, guild_id.get(), roblox_id as u64, timestamp.timestamp() as u64))
     };
 
-    let event_id = ObjectId::new();
-    let guild_id = guild_id.0;
-
     let new_event = EventLog {
-        id: event_id,
+        event_id: 0,
         guild_id: guild_id.get() as i64,
-        event_type: event_type_id,
-        guild_event_id: guild.event_counter + 1,
-        host_id: user.roblox_id,
+        event_type: event_type.event_type_guild_id,
+        guild_event_id: 0,
+        host_id: roblox_id,
         attendees: attendees.iter().map(|a| a.id.0 as i64).collect(),
-        timestamp: DateTime::from(chrono::Utc::now()),
+        timestamp,
         notes,
     };
 
-    ctx.bot
-        .database
-        .add_event(guild_id.get(), &new_event)
-        .await?;
+    let row = ctx.bot.database.query_one::<Row>(
+        r#"INSERT INTO events(guild_id, event_type, guild_event_id, host_id, timestamp, attendees, notes)
+        VALUES($1, $2, (SELECT COALESCE(max(guild_event_id) + 1, 1) FROM events WHERE guild_id = $1), $3, $4, $5, $6)
+        RETURNING guild_event_id"#,
+        &[&new_event.guild_id, &new_event.event_type, &new_event.host_id, &new_event.timestamp, &new_event.attendees, &new_event.notes]
+    ).await?;
 
     let value = format!(
         "Host: <@{}>\nType: {}\nAttendees: {}",
@@ -245,7 +236,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .color(Color::DarkGreen as u32)
         .title("Event Addition Successful")
         .field(EmbedFieldBuilder::new(
-            format!("Event Id: {}", guild.event_counter + 1),
+            format!("Event Id: {}", row.get::<'_, _, i64>("guild_event_id")),
             value,
         ))
         .build()

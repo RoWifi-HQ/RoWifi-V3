@@ -10,6 +10,7 @@ pub mod user;
 pub mod guild;
 pub mod blacklist;
 pub mod stats;
+pub mod events;
 
 pub trait FromRow {
     fn from_row(row: Row) -> Result<Self, tokio_postgres::Error>
