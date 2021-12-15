@@ -1,7 +1,16 @@
 use dashmap::DashSet;
 use futures_util::future::{Future, FutureExt};
+use itertools::Itertools;
 use rowifi_framework::{context::BotContext, prelude::*};
-use rowifi_models::discord::{channel::GuildChannel, guild::Permissions, id::GuildId};
+use rowifi_models::{
+    bind::Bind,
+    discord::{
+        channel::GuildChannel,
+        guild::Permissions,
+        id::{ChannelId, GuildId, RoleId},
+    },
+    guild::{GuildType, RoGuild},
+};
 use std::{
     pin::Pin,
     sync::{
@@ -12,6 +21,11 @@ use std::{
 };
 use tower::Service;
 use twilight_gateway::Event;
+
+use crate::{
+    services::auto_detection,
+    utils::{UpdateUser, UpdateUserResult},
+};
 
 use super::activity;
 
@@ -116,104 +130,125 @@ impl Service<(u64, Event)> for EventHandler {
                             == eh.bot.shards_per_cluster - 1
                     {
                         eh.auto_detection_started.store(true, Ordering::SeqCst);
-                        // let context_ad = eh.bot.clone();
-                        // tokio::spawn(async move {
-                        //     tokio::time::sleep(Duration::from_secs(3 * 60)).await;
-                        //     auto_detection(context_ad).await;
-                        // });
+                        let context_ad = eh.bot.clone();
+                        tokio::spawn(async move {
+                            tokio::time::sleep(Duration::from_secs(30)).await;
+                            auto_detection::auto_detection(context_ad).await;
+                        });
                         let context_ac = eh.bot.clone();
                         tokio::spawn(async move {
                             tokio::time::sleep(Duration::from_secs(3 * 60)).await;
                             activity(context_ac).await;
                         });
                     }
-                    // let guild_ids = ready
-                    //     .guilds
-                    //     .iter()
-                    //     .map(|k| k.id.0.get() as i64)
-                    //     .collect::<Vec<_>>();
-                    // let guilds = eh.bot.database.get_guilds(&guild_ids, false).await?;
-                    // for guild in guilds {
-                    //     let guild_id = GuildId::new(guild.id as u64).unwrap();
-                    //     if let Some(command_prefix) = guild.command_prefix {
-                    //         eh.bot.prefixes
-                    //             .insert(guild_id, command_prefix);
-                    //     }
-                    //     for channel in guild.disabled_channels {
-                    //         eh.bot.disabled_channels
-                    //             .insert(ChannelId::new(channel as u64).unwrap());
-                    //     }
+                    let guild_ids = ready
+                        .guilds
+                        .iter()
+                        .map(|k| k.id.0.get() as i64)
+                        .collect::<Vec<_>>();
+                    let guilds = eh.bot.database.query::<RoGuild>("SELECT * FROM guilds WHERE guild_id = ANY($1)", &[&guild_ids]).await?;
+                    for guild in guilds {
+                        let guild_id = GuildId::new(guild.guild_id as u64).unwrap();
+                        eh.bot.prefixes.insert(guild_id, guild.command_prefix);
+                        for channel in guild.disabled_channels {
+                            eh.bot.disabled_channels
+                                .insert(ChannelId::new(channel as u64).unwrap());
+                        }
 
-                    //     if guild.kind != GuildType::Free {
-                    //         eh.bot.admin_roles.insert(guild_id, guild.settings.admin_roles.into_iter().map(|a| RoleId::new(a as u64).unwrap()).collect());
-                    //         eh.bot.trainer_roles.insert(guild_id, guild.settings.trainer_roles.into_iter().map(|t| RoleId::new(t as u64).unwrap()).collect());
-                    //         eh.bot.bypass_roles.insert(guild_id, guild.settings.bypass_roles.into_iter().map(|b| RoleId::new(b as u64).unwrap()).collect());
-                    //         eh.bot.nickname_bypass_roles.insert(guild_id, guild.settings.nickname_bypass_roles.into_iter().map(|nb| RoleId::new(nb as u64).unwrap()).collect());
-                    //     }
+                        if guild.kind != GuildType::Free {
+                            eh.bot.admin_roles.insert(guild_id, guild.admin_roles.into_iter().map(|a| RoleId::new(a as u64).unwrap()).collect());
+                            eh.bot.trainer_roles.insert(guild_id, guild.trainer_roles.into_iter().map(|t| RoleId::new(t as u64).unwrap()).collect());
+                            eh.bot.bypass_roles.insert(guild_id, guild.bypass_roles.into_iter().map(|b| RoleId::new(b as u64).unwrap()).collect());
+                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.nickname_bypass_roles.into_iter().map(|nb| RoleId::new(nb as u64).unwrap()).collect());
+                        }
 
-                    //     if let Some(log_channel) = guild.settings.log_channel {
-                    //         eh.bot.log_channels.insert(guild_id, ChannelId::new(log_channel as u64).unwrap());
-                    //     }
-                    // }
+                        if let Some(log_channel) = guild.log_channel {
+                            eh.bot.log_channels.insert(guild_id, ChannelId::new(log_channel as u64).unwrap());
+                        }
+                    }
                 }
                 Event::UnavailableGuild(g) => {
                     eh.unavailable.insert(g.id);
                 }
-                Event::MemberAdd(_m) => {
-                    // let server = match eh.bot.cache.guild(m.guild_id) {
-                    //     Some(s) => s,
-                    //     None => return Ok(()),
-                    // };
-                    // let member = match eh.bot.cache.member(m.guild_id, m.user.id) {
-                    //     Some(m) => m,
-                    //     None => return Ok(()),
-                    // };
-                    // let guild = eh.bot.database.get_guild(m.guild_id.0.get()).await?;
-                    // if !guild.settings.update_on_join {
-                    //     return Ok(());
-                    // }
-                    // let user = match eh.bot.get_linked_user(m.user.id, m.guild_id).await? {
-                    //     Some(u) => u,
-                    //     None => {
-                    //         if let Some(verification_role) = guild.verification_role {
-                    //             if let Some(role) = eh.bot.cache.role(RoleId::new(verification_role as u64).unwrap()) {
-                    //                 eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).exec().await?;
-                    //             }
-                    //         }
-                    //         return Ok(());
-                    //     },
-                    // };
+                Event::MemberAdd(m) => {
+                    let server = match eh.bot.cache.guild(m.guild_id) {
+                        Some(s) => s,
+                        None => return Ok(()),
+                    };
+                    let member = match eh.bot.cache.member(m.guild_id, m.user.id) {
+                        Some(m) => m,
+                        None => return Ok(()),
+                    };
+                    let guild = eh.bot.database.get_guild(m.guild_id.0.get() as i64).await?;
+                    if !guild.update_on_join {
+                        return Ok(());
+                    }
+                    let user = match eh.bot.database.get_linked_user(m.user.id.get() as i64, m.guild_id.get() as i64).await? {
+                        Some(u) => u,
+                        None => {
+                            if let Some(verification_role) = guild.verification_roles.get(0) {
+                                if let Some(role) = eh.bot.cache.role(RoleId::new(*verification_role as u64).unwrap()) {
+                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).exec().await?;
+                                }
+                            }
+                            return Ok(());
+                        },
+                    };
 
-                    // let guild_roles = eh.bot.cache.roles(m.guild_id);
-                    // let (added_roles, removed_roles, disc_nick) = match update_user(&eh.bot, member, &user, &server, &guild, &guild_roles, false)
-                    //     .await
-                    // {
-                    //     UpdateUserResult::Success(a, r, n) => (a, r, n),
-                    //     UpdateUserResult::Blacklist(reason) => {
-                    //         if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).exec().await?.model().await {
-                    //             let _ = eh.bot
-                    //                 .http
-                    //                 .create_message(channel.id)
-                    //                 .content(&format!(
-                    //                     "You were found on the server blacklist. Reason: {}",
-                    //                     reason
-                    //                 ))
-                    //                 .unwrap()
-                    //                 .exec()
-                    //                 .await;
-                    //         }
-                    //         return Ok(());
-                    //     },
-                    //     UpdateUserResult::InvalidNickname(_) => return Ok(()),
-                    //     UpdateUserResult::Error(err) => return Err(err)
-                    // };
-                    // let log_embed = EmbedBuilder::new()
-                    //     .default_data()
-                    //     .title("Update On Join")
-                    //     .update_log(&added_roles, &removed_roles, &disc_nick)
-                    //     .build()
-                    //     .unwrap();
-                    // eh.bot.log_guild(m.guild_id, log_embed).await;
+                    let guild_roles = eh.bot.cache.roles(m.guild_id);
+
+                    let binds = eh.bot
+                        .database
+                        .query::<Bind>(
+                            "SELECT * FROM binds WHERE guild_id = $1",
+                            &[&guild.guild_id],
+                        )
+                        .await?;
+                    let all_roles = binds
+                        .iter()
+                        .flat_map(|b| b.discord_roles())
+                        .unique()
+                        .collect::<Vec<_>>();
+
+                    let update_user = UpdateUser {
+                        ctx: &eh.bot,
+                        member: &member,
+                        user: &user,
+                        server: &server,
+                        guild: &guild,
+                        binds: &binds,
+                        guild_roles: &guild_roles,
+                        bypass_roblox_cache: false,
+                        all_roles: &all_roles,
+                    };
+                    let (added_roles, removed_roles, disc_nick) = match update_user.execute().await
+                    {
+                        UpdateUserResult::Success(a, r, n) => (a, r, n),
+                        UpdateUserResult::Blacklist(reason) => {
+                            if let Ok(channel) = eh.bot.http.create_private_channel(m.user.id).exec().await?.model().await {
+                                let _ = eh.bot
+                                    .http
+                                    .create_message(channel.id)
+                                    .content(&format!(
+                                        "You were found on the server blacklist. Reason: {}",
+                                        reason
+                                    ))
+                                    .unwrap()
+                                    .exec()
+                                    .await;
+                            }
+                            return Ok(());
+                        },
+                        UpdateUserResult::InvalidNickname(_) => return Ok(()),
+                        UpdateUserResult::Error(err) => return Err(err)
+                    };
+                    let log_embed = EmbedBuilder::new()
+                        .default_data()
+                        .title("Update On Join")
+                        .update_log(&added_roles, &removed_roles, &disc_nick)
+                        .build()
+                        .unwrap();
+                    eh.bot.log_guild(m.guild_id, log_embed).await;
                 }
                 _ => {}
             }
