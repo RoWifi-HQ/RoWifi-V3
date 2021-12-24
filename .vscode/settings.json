@@ -1,5 +1,5 @@
 {
     "rust-analyzer.server.extraEnv": {
-        "RUSTFLAGS": "-Clinker=clang-13 -Clink-arg=-fuse-ld=lld"
+        "RUSTFLAGS": "-Clinker=clang-13 -Clink-arg=--ld-path=/usr/local/bin/mold"
     }
 }
