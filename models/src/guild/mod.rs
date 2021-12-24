@@ -3,51 +3,62 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, FromRow};
+use crate::{blacklist::Blacklist, FromRow, serialize_i64_as_string, serialize_vec_as_string, serialize_option_as_string};
 
 pub use types::{BlacklistActionType, GuildType};
 
 #[derive(Clone, Debug, Deserialize, Default, Serialize)]
 pub struct RoGuild {
     /// The id of the guild
+    #[serde(serialize_with = "serialize_i64_as_string")]
     pub guild_id: i64,
 
     /// The prefix that is to be used by every command run in the guild
     pub command_prefix: String,
 
     /// The role meant for unverified users in the guild
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub verification_roles: Vec<i64>,
 
     /// The role meant for verified users in the guild
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub verified_roles: Vec<i64>,
 
     /// The array containing all the [Blacklist] of the guild
     pub blacklists: Vec<Blacklist>,
 
     /// The list of channels where commands are disabled
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub disabled_channels: Vec<i64>,
 
     /// The list of groups that the guild uses for analytics
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub registered_groups: Vec<i64>,
 
     pub auto_detection: bool,
 
     pub kind: GuildType,
 
+    #[serde(serialize_with = "serialize_option_as_string")]
     pub premium_owner: Option<i64>,
 
     pub blacklist_action: BlacklistActionType,
 
     pub update_on_join: bool,
 
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub admin_roles: Vec<i64>,
 
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub trainer_roles: Vec<i64>,
 
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub bypass_roles: Vec<i64>,
 
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub nickname_bypass_roles: Vec<i64>,
 
+    #[serde(serialize_with = "serialize_option_as_string")]
     pub log_channel: Option<i64>,
 }
 
