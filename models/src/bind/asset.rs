@@ -8,19 +8,22 @@ use std::{
     str::FromStr,
 };
 
-use crate::FromRow;
+use crate::{FromRow, serialize_i64_as_string, serialize_vec_as_string};
 
 use super::template::Template;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Assetbind {
     /// The global id of the bind
+    #[serde(serialize_with = "serialize_i64_as_string")]
     pub bind_id: i64,
     /// The ID of the Roblox Asset
+    #[serde(serialize_with = "serialize_i64_as_string")]
     pub asset_id: i64,
     /// The type of the Asset. Can be one of Asset, Badge, Gamepass
     pub asset_type: AssetType,
     /// The discord roles bounded to the asset
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub discord_roles: Vec<i64>,
     /// The number that decides whether this bind is chosen for the nickname
     pub priority: i32,

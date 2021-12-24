@@ -2,15 +2,18 @@ use serde::{Deserialize, Serialize};
 
 use super::Template;
 
-use crate::FromRow;
+use crate::{FromRow, serialize_i64_as_string, serialize_vec_as_string};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Groupbind {
     /// The global id of the bind
+    #[serde(serialize_with = "serialize_i64_as_string")]
     pub bind_id: i64,
     /// The Id of the Roblox Group
+    #[serde(serialize_with = "serialize_i64_as_string")]
     pub group_id: i64,
     /// The discord roles bound to the group
+    #[serde(serialize_with = "serialize_vec_as_string")]
     pub discord_roles: Vec<i64>,
     /// The number that decides whether this bind is chosen for the nickname
     pub priority: i32,
