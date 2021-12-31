@@ -1,6 +1,9 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{bind::{Assetbind, BindType}, id::RoleId};
+use rowifi_models::{
+    bind::{Assetbind, BindType},
+    id::RoleId,
+};
 
 #[derive(FromArgs)]
 pub struct ModifyArguments {

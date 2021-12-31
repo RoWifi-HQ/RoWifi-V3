@@ -28,15 +28,18 @@ pub mod utils;
 use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
-use rowifi_models::{discord::{
-    application::{
-        callback::{CallbackData, InteractionResponse},
-        interaction::{application_command::CommandDataOption, Interaction},
+use rowifi_models::{
+    discord::{
+        application::{
+            callback::{CallbackData, InteractionResponse},
+            interaction::{application_command::CommandDataOption, Interaction},
+        },
+        channel::{message::MessageFlags, Message},
+        gateway::event::Event,
+        guild::Permissions,
     },
-    channel::{message::MessageFlags, Message},
-    gateway::event::Event,
-    guild::Permissions,
-}, id::{GuildId, ChannelId, UserId}};
+    id::{ChannelId, GuildId, UserId},
+};
 use std::{
     future::Future,
     pin::Pin,
@@ -318,7 +321,7 @@ impl Service<&Event> for Framework {
                     let ctx = CommandContext {
                         bot: self.bot.clone(),
                         channel_id: ChannelId(top_command.channel_id),
-                        guild_id: guild_id,
+                        guild_id,
                         author: Arc::new(user),
                         message_id: None,
                         interaction_id: Some(id),

@@ -14,7 +14,7 @@ use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Serialize};
 
-use crate::{roblox::user::PartialUser as RobloxUser, user::RoGuildUser, FromRow, id::RoleId};
+use crate::{id::RoleId, roblox::user::PartialUser as RobloxUser, user::RoGuildUser, FromRow};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]

@@ -4,8 +4,8 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Rankbind, Template},
-    roblox::id::GroupId,
     id::RoleId,
+    roblox::id::GroupId,
 };
 
 #[derive(Debug, FromArgs)]
@@ -155,10 +155,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             } else if let Some(resolved) = &ctx.resolved {
                 roles.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
             } else if let Some(role_id) = parse_role(role_to_add) {
-                if server_roles
-                    .iter()
-                    .any(|r| r.id == role_id)
-                {
+                if server_roles.iter().any(|r| r.id == role_id) {
                     roles.push(role_id);
                 }
             }

@@ -1,7 +1,7 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    roblox::id::UserId as RobloxUserId,
     id::{GuildId, UserId},
+    roblox::id::UserId as RobloxUserId,
 };
 
 #[derive(FromArgs)]

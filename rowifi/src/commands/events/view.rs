@@ -5,8 +5,8 @@ use rowifi_models::{
     discord::datetime::Timestamp,
     events::{EventLog, EventType},
     guild::GuildType,
+    id::UserId,
     roblox::id::UserId as RobloxUserId,
-    id::UserId
 };
 
 #[derive(FromArgs)]

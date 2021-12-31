@@ -1,6 +1,9 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{bind::{BindType, Groupbind}, id::RoleId};
+use rowifi_models::{
+    bind::{BindType, Groupbind},
+    id::RoleId,
+};
 
 #[derive(FromArgs)]
 pub struct GroupbindsModifyArguments {

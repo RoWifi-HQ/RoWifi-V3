@@ -36,10 +36,16 @@ impl FromRow for Row {
     }
 }
 
-pub(crate) fn serialize_i64_as_string<S: Serializer>(x: &i64, serializer: S) -> Result<S::Ok, S::Error> {
+pub(crate) fn serialize_i64_as_string<S: Serializer>(
+    x: &i64,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
     serializer.serialize_str(&x.to_string())
 }
 
-pub(crate) fn serialize_vec_as_string<S: Serializer>(x: &Vec<i64>, serializer: S) -> Result<S::Ok, S::Error> {
+pub(crate) fn serialize_vec_as_string<S: Serializer>(
+    x: &Vec<i64>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
     serializer.collect_seq(x.iter().map(|n| n.to_string()).collect::<Vec<_>>())
 }

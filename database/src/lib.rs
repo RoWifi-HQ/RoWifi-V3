@@ -8,8 +8,9 @@ use deadpool_postgres::{Manager, Object, Pool, Runtime};
 use itertools::Itertools;
 use rowifi_models::{
     guild::RoGuild,
+    id::{GuildId, UserId},
     user::{RoGuildUser, RoUser},
-    FromRow, id::{GuildId, UserId},
+    FromRow,
 };
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;

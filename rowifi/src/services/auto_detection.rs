@@ -8,13 +8,13 @@ use rowifi_models::{
     bind::Bind,
     discord::{
         gateway::{event::Event, payload::outgoing::RequestGuildMembers},
-        id::{UserId},
+        id::UserId,
     },
     guild::{GuildType, RoGuild},
+    id::{GuildId, RoleId},
     roblox::id::UserId as RobloxUserId,
     user::RoGuildUser,
     FromRow,
-    id::{GuildId, RoleId},
 };
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
@@ -169,10 +169,7 @@ pub async fn execute_chunk(
         "Mass Update"
     };
     for user in user_chunk {
-        if let Some(member) = ctx
-            .cache
-            .member(server.id, user.discord_id)
-        {
+        if let Some(member) = ctx.cache.member(server.id, user.discord_id) {
             if let Some(role_filter) = role_filter {
                 if !member.roles.contains(&role_filter) {
                     continue;

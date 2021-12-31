@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{user::RoGuildUser, id::UserId};
+use rowifi_models::{id::UserId, user::RoGuildUser};
 
 use crate::commands::handle_update_button;
 
@@ -66,7 +66,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     }
 
     let linked_user = RoGuildUser {
-        guild_id: guild_id,
+        guild_id,
         discord_id: UserId(ctx.author.id),
         roblox_id,
     };

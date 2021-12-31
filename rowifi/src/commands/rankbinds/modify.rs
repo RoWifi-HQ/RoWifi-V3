@@ -2,8 +2,8 @@ use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Rankbind},
-    roblox::id::GroupId,
     id::RoleId,
+    roblox::id::GroupId,
 };
 
 use super::new::PREFIX_REGEX;

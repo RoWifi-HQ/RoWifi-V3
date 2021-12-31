@@ -48,11 +48,7 @@ pub fn analytics_config(cmds: &mut Vec<Command>) {
 }
 
 pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
-    let guild = ctx
-        .bot
-        .database
-        .get_guild(ctx.guild_id.unwrap())
-        .await?;
+    let guild = ctx.bot.database.get_guild(ctx.guild_id.unwrap()).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()

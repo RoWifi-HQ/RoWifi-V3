@@ -231,7 +231,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let new_event = EventLog {
         event_id: 0,
-        guild_id: guild_id,
+        guild_id,
         event_type: event_type.event_type_guild_id,
         guild_event_id: 0,
         host_id: roblox_id,

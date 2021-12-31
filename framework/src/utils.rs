@@ -18,7 +18,8 @@ use rowifi_models::{
         },
         channel::{embed::Embed, ReactionType},
         gateway::event::Event,
-    }, id::{RoleId, UserId, ChannelId},
+    },
+    id::{ChannelId, RoleId, UserId},
 };
 use std::{
     cmp::{max, min},

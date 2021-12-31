@@ -20,7 +20,7 @@ use rowifi_models::{
         guild::{Guild, Member, Permissions, Role},
         user::{CurrentUser, User},
     },
-    id::{GuildId, RoleId, ChannelId, UserId},
+    id::{ChannelId, GuildId, RoleId, UserId},
     stats::BotStats,
 };
 use std::{
@@ -353,7 +353,8 @@ impl Cache {
                 .collect::<HashMap<RoleId, Arc<CachedRole>>>();
             let member = self.member(guild_id, UserId(user.id)).unwrap();
             let new_permissions =
-                match guild_wide_permissions(&guild, &server_roles, UserId(user.id), &member.roles) {
+                match guild_wide_permissions(&guild, &server_roles, UserId(user.id), &member.roles)
+                {
                     Ok(p) => p,
                     Err(why) => {
                         tracing::error!(guild = ?guild_id, reason = ?why);
@@ -468,7 +469,11 @@ impl Cache {
     }
 
     fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
-        let channel = self.0.channels.remove(&ChannelId(tc.id())).map(|(_, c)| c)?;
+        let channel = self
+            .0
+            .channels
+            .remove(&ChannelId(tc.id()))
+            .map(|(_, c)| c)?;
         let guild_id = GuildId(tc.guild_id().unwrap());
         if let Some(mut channels) = self.0.guild_channels.get_mut(&guild_id) {
             channels.remove(&ChannelId(tc.id()));

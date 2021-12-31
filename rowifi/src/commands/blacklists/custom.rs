@@ -1,9 +1,9 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     blacklist::{Blacklist, BlacklistData},
+    id::UserId,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
-    id::UserId,
 };
 use std::collections::HashMap;
 

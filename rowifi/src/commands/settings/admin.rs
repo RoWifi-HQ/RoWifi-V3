@@ -1,8 +1,8 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    id::RoleId,
     guild::{GuildType, RoGuild},
+    id::RoleId,
 };
 
 use super::FunctionOption;
@@ -76,10 +76,7 @@ pub async fn admin_add(
         if let Some(resolved) = &ctx.resolved {
             roles_to_add.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
-            if server_roles
-                .iter()
-                .any(|r| r.id == role_id)
-            {
+            if server_roles.iter().any(|r| r.id == role_id) {
                 roles_to_add.push(role_id);
             }
         }
@@ -178,10 +175,7 @@ pub async fn admin_set(
         if let Some(resolved) = &ctx.resolved {
             roles_to_set.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
-            if server_roles
-                .iter()
-                .any(|r| r.id == role_id)
-            {
+            if server_roles.iter().any(|r| r.id == role_id) {
                 roles_to_set.push(role_id);
             }
         }
@@ -196,10 +190,9 @@ pub async fn admin_set(
         )
         .await?;
 
-    ctx.bot.admin_roles.insert(
-        guild_id,
-        roles_to_set.iter().cloned().collect(),
-    );
+    ctx.bot
+        .admin_roles
+        .insert(guild_id, roles_to_set.iter().cloned().collect());
 
     let mut description = "Set Admin Roles:\n".to_string();
     for role in roles_to_set {

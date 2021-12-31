@@ -1,8 +1,8 @@
 use rowifi_database::postgres::types::ToSql;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    id::RoleId,
     guild::{GuildType, RoGuild},
+    id::RoleId,
 };
 
 #[derive(FromArgs)]

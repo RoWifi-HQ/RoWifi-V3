@@ -4,12 +4,9 @@ use itertools::Itertools;
 use rowifi_framework::{context::BotContext, prelude::*};
 use rowifi_models::{
     bind::Bind,
-    discord::{
-        channel::GuildChannel,
-        guild::Permissions,
-    },
-    id::{GuildId, ChannelId, UserId},
+    discord::{channel::GuildChannel, guild::Permissions},
     guild::{GuildType, RoGuild},
+    id::{ChannelId, GuildId, UserId},
 };
 use std::{
     pin::Pin,

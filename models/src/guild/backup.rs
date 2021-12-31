@@ -1,7 +1,7 @@
 use postgres_types::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::{bind::BindBackup, blacklist::Blacklist, FromRow, id::UserId};
+use crate::{bind::BindBackup, blacklist::Blacklist, id::UserId, FromRow};
 
 use super::BlacklistActionType;
 

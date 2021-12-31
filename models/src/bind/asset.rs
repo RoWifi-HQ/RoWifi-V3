@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{FromRow, serialize_i64_as_string, id::RoleId};
+use crate::{id::RoleId, serialize_i64_as_string, FromRow};
 
 use super::template::Template;
 

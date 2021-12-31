@@ -3,8 +3,8 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetbindBackup, Bind, BindBackup, CustombindBackup, GroupbindBackup, RankbindBackup},
     guild::backup::{GuildBackup, GuildBackupData},
-    user::{RoUser, UserFlags},
     id::UserId,
+    user::{RoUser, UserFlags},
 };
 use std::collections::HashMap;
 
@@ -39,10 +39,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     let binds = ctx
         .bot
         .database
-        .query::<Bind>(
-            "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id)],
-        )
+        .query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id)])
         .await?;
 
     let name = args.name;

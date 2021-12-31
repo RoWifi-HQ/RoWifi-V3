@@ -3,7 +3,7 @@ mod parser;
 mod scanner;
 mod token;
 
-use crate::{user::RoGuildUser, id::RoleId};
+use crate::{id::RoleId, user::RoGuildUser};
 
 use std::{
     collections::HashMap,

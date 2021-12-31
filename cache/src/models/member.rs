@@ -1,7 +1,10 @@
-use rowifi_models::{discord::{
-    guild::{Member, PartialMember},
-    user::User,
-}, id::RoleId};
+use rowifi_models::{
+    discord::{
+        guild::{Member, PartialMember},
+        user::User,
+    },
+    id::RoleId,
+};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
