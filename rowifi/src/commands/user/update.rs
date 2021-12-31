@@ -2,11 +2,8 @@ use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::Bind,
-    discord::{
-        channel::embed::Embed,
-        id::{UserId},
-    },
-    id::RoleId,
+    discord::channel::embed::Embed,
+    id::{RoleId, UserId},
 };
 use std::error::Error;
 use twilight_http::error::{Error as DiscordHttpError, ErrorType as DiscordErrorType};
@@ -121,7 +118,7 @@ pub async fn update_func(
 
     let user_id = match args.user_id {
         Some(s) => s,
-        None => ctx.author.id,
+        None => UserId(ctx.author.id),
     };
 
     let member = match ctx.member(guild_id, user_id).await? {
@@ -139,7 +136,7 @@ pub async fn update_func(
     };
 
     //Check for server owner
-    if server.owner_id.0 == member.user.id.0 {
+    if server.owner_id.0 == member.user.id {
         let embed = EmbedBuilder::new()
             .default_data()
             .title("Update Failed")
@@ -167,7 +164,7 @@ pub async fn update_func(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(user_id.get() as i64, guild_id)
+        .get_linked_user(user_id, guild_id)
         .await?
     {
         Some(u) => u,
@@ -257,7 +254,7 @@ pub async fn update_func(
                 if let Ok(channel) = ctx
                     .bot
                     .http
-                    .create_private_channel(user_id)
+                    .create_private_channel(user_id.0)
                     .exec()
                     .await?
                     .model()

@@ -3,6 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     events::{EventLog, EventType},
     guild::GuildType,
+    id::UserId,
 };
 use std::time::Duration;
 
@@ -25,7 +26,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let roblox_id = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id)
+        .get_linked_user(UserId(ctx.author.id), guild_id)
         .await?
     {
         Some(r) => r.roblox_id,

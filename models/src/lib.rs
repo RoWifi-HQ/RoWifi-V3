@@ -43,10 +43,3 @@ pub(crate) fn serialize_i64_as_string<S: Serializer>(x: &i64, serializer: S) -> 
 pub(crate) fn serialize_vec_as_string<S: Serializer>(x: &Vec<i64>, serializer: S) -> Result<S::Ok, S::Error> {
     serializer.collect_seq(x.iter().map(|n| n.to_string()).collect::<Vec<_>>())
 }
-
-pub(crate) fn serialize_option_as_string<S: Serializer, T: ToString>(x: &Option<T>, serializer: S) -> Result<S::Ok, S::Error> {
-    match x {
-        Some(x) => serializer.serialize_some(&x.to_string()),
-        None => serializer.serialize_none()
-    }
-}

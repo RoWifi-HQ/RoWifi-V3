@@ -36,6 +36,7 @@ use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
     stats::BotStats,
+    id::UserId,
 };
 use services::EventHandler;
 use std::{
@@ -151,7 +152,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .await?
         .model()
         .await?;
-    let owner = current_user.owner.id;
+    let owner = UserId(current_user.owner.id);
     http.set_application_id(current_user.id);
     owners.push(owner);
 

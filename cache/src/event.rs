@@ -9,7 +9,7 @@ use rowifi_models::{discord::{
             Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         },
     },
-}, id::{GuildId, RoleId}};
+}, id::{GuildId, RoleId, UserId, ChannelId}};
 use std::{
     ops::Deref,
     sync::{atomic::Ordering, Arc},
@@ -59,7 +59,7 @@ impl UpdateCache for ChannelCreate {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(GuildId(guild_id), gc);
-            c.cache_channel_permissions(GuildId(guild_id), self.id());
+            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id()));
         }
 
         Ok(())
@@ -70,7 +70,7 @@ impl UpdateCache for ChannelDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             c.delete_guild_channel(&gc);
-            c.0.channel_permissions.remove(&self.id());
+            c.0.channel_permissions.remove(&ChannelId(self.id()));
         }
         Ok(())
     }
@@ -81,7 +81,7 @@ impl UpdateCache for ChannelUpdate {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
             c.cache_guild_channel(GuildId(guild_id), gc);
-            c.cache_channel_permissions(GuildId(guild_id), self.id());
+            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id()));
         }
 
         Ok(())
@@ -98,7 +98,7 @@ impl UpdateCache for GuildCreate {
             .store(self.member_count.unwrap() as i64, Ordering::SeqCst);
         c.cache_guild_permissions(guild_id);
         for channel in &self.channels {
-            c.cache_channel_permissions(guild_id, channel.id());
+            c.cache_channel_permissions(guild_id, ChannelId(channel.id()));
         }
         if old_guild.is_none() {
             c.0.stats.resource_counts.guilds.inc();
@@ -154,7 +154,7 @@ impl UpdateCache for GuildUpdate {
             guild.description = self.description.clone();
             guild.icon = self.icon.clone();
             guild.name = self.name.clone();
-            guild.owner_id = self.owner_id;
+            guild.owner_id = UserId(self.owner_id);
             guild.permissions = self.permissions;
             guild.preferred_locale = self.preferred_locale.clone();
         }
@@ -171,7 +171,7 @@ impl UpdateCache for InteractionCreate {
                     if let Some(guild_id) = inner.guild_id {
                         let guild_id = GuildId(guild_id);
                         let user = c.cache_user(user.clone());
-                        let id = (guild_id, user.id);
+                        let id = (guild_id, UserId(user.id));
                         match c.0.members.get(&id) {
                             Some(m) if **m == member => return Ok(()),
                             _ => {}
@@ -180,7 +180,7 @@ impl UpdateCache for InteractionCreate {
                         c.0.guild_members
                             .entry(guild_id)
                             .or_default()
-                            .insert(user.id);
+                            .insert(UserId(user.id));
 
                         let cached = Arc::new(CachedMember {
                             nick: member.nick.clone(),
@@ -223,11 +223,12 @@ impl UpdateCache for MemberChunk {
 impl UpdateCache for MemberRemove {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {            
         let guild_id = GuildId(self.guild_id);
-        c.0.members.remove(&(guild_id, self.user.id));
+        let user_id  = UserId(self.user.id);
+        c.0.members.remove(&(guild_id, user_id));
         if let Some(mut members) = c.0.guild_members.get_mut(&guild_id) {
-            if let Some(guild) = c.guild(self.guild_id) {
+            if let Some(guild) = c.guild(guild_id) {
                 guild.member_count.fetch_sub(1, Ordering::SeqCst);
-                members.remove(&self.user.id);
+                members.remove(&user_id);
             }
         }
         c.0.stats.resource_counts.users.dec();
@@ -239,8 +240,9 @@ impl UpdateCache for MemberUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
         let guild_id = GuildId(self.guild_id);
+        let user_id = UserId(self.user.id);
         {
-            if let Some(mut member) = c.0.members.get_mut(&(guild_id, self.user.id)) {
+            if let Some(mut member) = c.0.members.get_mut(&(guild_id, user_id)) {
                 let mut member = Arc::make_mut(&mut member);
 
                 member.nick = self.nick.clone();
@@ -268,7 +270,8 @@ impl UpdateCache for MessageCreate {
 
         if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
             let guild_id = GuildId(guild_id);
-            let id = (guild_id, user.id);
+            let user_id = UserId(user.id);
+            let id = (guild_id, user_id);
             match c.0.members.get(&id) {
                 Some(m) if **m == member => return Ok(()),
                 _ => {}
@@ -277,7 +280,7 @@ impl UpdateCache for MessageCreate {
             c.0.guild_members
                 .entry(guild_id)
                 .or_default()
-                .insert(user.id);
+                .insert(user_id);
 
             let cached = Arc::new(CachedMember {
                 nick: member.nick.clone(),

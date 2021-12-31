@@ -4,7 +4,7 @@ mod transfer;
 
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::UserId,
+    id::UserId,
     user::{RoUser, UserFlags},
 };
 

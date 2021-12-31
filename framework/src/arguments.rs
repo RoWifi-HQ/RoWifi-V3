@@ -2,9 +2,8 @@ use rowifi_models::{
     bind::AssetType,
     discord::{
         application::interaction::application_command::{CommandDataOption, CommandOptionValue},
-        id::{ChannelId, UserId},
     },
-    id::RoleId,
+    id::{RoleId, ChannelId, UserId},
     guild::BlacklistActionType,
 };
 use std::{num::ParseIntError, str::FromStr};
@@ -175,16 +174,16 @@ impl FromArg for UserId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_username(arg) {
-            Some(id) => Ok(UserId::new(id).unwrap()),
+            Some(id) => Ok(id),
             None => Err(ParseError("an User")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match &option.value {
-            CommandOptionValue::Integer(value) => Ok(UserId::new(*value as u64).unwrap()),
+            CommandOptionValue::Integer(value) => Ok(UserId::new(*value as u64)),
             CommandOptionValue::String(value) => Self::from_arg(value),
-            CommandOptionValue::User(value) => Ok(*value),
+            CommandOptionValue::User(value) => Ok(UserId(*value)),
             _ => unreachable!("UserId unreached"),
         }
     }
@@ -213,16 +212,16 @@ impl FromArg for ChannelId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_channel(arg) {
-            Some(id) => Ok(ChannelId::new(id).unwrap()),
+            Some(id) => Ok(id),
             None => Err(ParseError("a Channel")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match &option.value {
-            CommandOptionValue::Integer(value) => Ok(ChannelId::new(*value as u64).unwrap()),
+            CommandOptionValue::Integer(value) => Ok(ChannelId::new(*value as u64)),
             CommandOptionValue::String(value) => Self::from_arg(value),
-            CommandOptionValue::Channel(value) => Ok(*value),
+            CommandOptionValue::Channel(value) => Ok(ChannelId(*value)),
             _ => unreachable!("ChannelId unreached"),
         }
     }

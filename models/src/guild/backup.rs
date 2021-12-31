@@ -1,14 +1,14 @@
 use postgres_types::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::{bind::BindBackup, blacklist::Blacklist, FromRow};
+use crate::{bind::BindBackup, blacklist::Blacklist, FromRow, id::UserId};
 
 use super::BlacklistActionType;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GuildBackup {
     pub backup_id: i64,
-    pub discord_id: i64,
+    pub discord_id: UserId,
     pub name: String,
     pub data: Json<GuildBackupData>,
 }

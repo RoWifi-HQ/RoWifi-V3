@@ -2,7 +2,7 @@ use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Custombind},
-    id::{GuildId, RoleId},
+    id::{GuildId, RoleId, UserId},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -138,7 +138,7 @@ async fn modify_code<'a>(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id)
+        .get_linked_user(UserId(ctx.author.id), guild_id)
         .await?
     {
         Some(u) => u,
@@ -157,7 +157,7 @@ async fn modify_code<'a>(
 
     let user_id = RobloxUserId(user.roblox_id as u64);
     let member = ctx
-        .member(ctx.guild_id.unwrap(), ctx.author.id.0)
+        .member(ctx.guild_id.unwrap(), UserId(ctx.author.id))
         .await?
         .unwrap();
     let ranks = ctx

@@ -4,6 +4,7 @@ use rowifi_models::{
     bind::{AssetbindBackup, Bind, BindBackup, CustombindBackup, GroupbindBackup, RankbindBackup},
     guild::backup::{GuildBackup, GuildBackupData},
     user::{RoUser, UserFlags},
+    id::UserId,
 };
 use std::collections::HashMap;
 
@@ -117,7 +118,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
 
     let backup = GuildBackup {
         backup_id: 0,
-        discord_id: ctx.author.id.get() as i64,
+        discord_id: UserId(ctx.author.id),
         name: name.clone(),
         data: Json(GuildBackupData {
             command_prefix: guild.command_prefix,

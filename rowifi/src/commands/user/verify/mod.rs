@@ -7,6 +7,7 @@ use rowifi_models::{
         button::{Button, ButtonStyle},
         Component,
     },
+    id::UserId,
     roblox::id::UserId as RobloxUserId,
     user::QueueUser,
 };
@@ -218,7 +219,7 @@ pub async fn verify_common(
         .await?;
     let q_user = QueueUser {
         roblox_id,
-        discord_id: ctx.author.id.0.get() as i64,
+        discord_id: UserId(ctx.author.id),
         verified,
     };
     ctx.bot.database.execute("INSERT INTO queue VALUES($1, $2, $3) ON CONFLICT(roblox_id) DO UPDATE SET discord_id = $2, verified = $3", &[&q_user.roblox_id, &q_user.discord_id, &q_user.verified]).await?;
@@ -258,7 +259,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let linked_user = ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.0.get() as i64, guild_id)
+        .get_linked_user(UserId(ctx.author.id), guild_id)
         .await?;
 
     let embed = EmbedBuilder::new()

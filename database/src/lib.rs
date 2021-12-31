@@ -9,7 +9,7 @@ use itertools::Itertools;
 use rowifi_models::{
     guild::RoGuild,
     user::{RoGuildUser, RoUser},
-    FromRow, id::GuildId,
+    FromRow, id::{GuildId, UserId},
 };
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;
@@ -167,7 +167,7 @@ impl Database {
 
     pub async fn get_linked_user(
         &self,
-        user_id: i64,
+        user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<RoGuildUser>, DatabaseError> {
         let client = self.get().await?;

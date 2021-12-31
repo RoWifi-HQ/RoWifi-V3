@@ -1,8 +1,7 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::{UserId},
     roblox::id::UserId as RobloxUserId,
-    id::GuildId,
+    id::{GuildId, UserId},
 };
 
 #[derive(FromArgs)]
@@ -17,7 +16,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
         if let Some(u) = u {
             (u.user.id, u.user.name.clone())
         } else {
-            let author_user = ctx.member(guild_id, ctx.author.id).await?;
+            let author_user = ctx.member(guild_id, UserId(ctx.author.id)).await?;
             if let Some(a) = author_user {
                 (a.user.id, a.user.name.clone())
             } else {
@@ -25,7 +24,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
             }
         }
     } else {
-        let author_user = ctx.member(guild_id, ctx.author.id).await?;
+        let author_user = ctx.member(guild_id, UserId(ctx.author.id)).await?;
         if let Some(a) = author_user {
             (a.user.id, a.user.name.clone())
         } else {
@@ -36,7 +35,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     let user = match ctx
         .bot
         .database
-        .get_linked_user(author.0.get() as i64, ctx.guild_id.unwrap())
+        .get_linked_user(UserId(author.0), ctx.guild_id.unwrap())
         .await?
     {
         Some(u) => u,
