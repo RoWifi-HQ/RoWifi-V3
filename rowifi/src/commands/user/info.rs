@@ -1,7 +1,8 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::{GuildId, UserId},
+    discord::id::{UserId},
     roblox::id::UserId as RobloxUserId,
+    id::GuildId,
 };
 
 #[derive(FromArgs)]
@@ -35,7 +36,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
     let user = match ctx
         .bot
         .database
-        .get_linked_user(author.0.get() as i64, ctx.guild_id.unwrap().get() as i64)
+        .get_linked_user(author.0.get() as i64, ctx.guild_id.unwrap())
         .await?
     {
         Some(u) => u,
@@ -89,7 +90,7 @@ pub async fn botinfo(ctx: CommandContext) -> CommandResult {
     let guilds = ctx.bot.cache.guilds();
     let member_count: i64 = guilds
         .iter()
-        .map(|g| ctx.bot.cache.member_count(GuildId::new(*g).unwrap()))
+        .map(|g| ctx.bot.cache.member_count(GuildId::new(*g)))
         .sum();
 
     let embed = EmbedBuilder::new()

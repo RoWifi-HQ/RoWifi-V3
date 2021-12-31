@@ -1,4 +1,4 @@
-use rowifi_models::discord::id::GuildId;
+use rowifi_models::id::GuildId;
 use uwl::Stream;
 
 use crate::context::BotContext;

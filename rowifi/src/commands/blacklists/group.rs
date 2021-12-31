@@ -11,7 +11,7 @@ pub struct BlacklistGroupArguments {
 
 pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let group_id = args.group_id;
     let mut reason = args.reason;
@@ -35,7 +35,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
         .database
         .execute(
             r#"UPDATE guilds SET blacklists = array_append(blacklists, $1) WHERE guild_id = $2"#,
-            &[&blacklist, &(guild_id.get() as i64)],
+            &[&blacklist, &(guild_id)],
         )
         .await?;
 
@@ -111,7 +111,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
                         .exec()
                         .await?;
 
-                    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id.get() as i64)]).await?;
+                    ctx.bot.database.execute("UPDATE guilds SET blacklists = array_remove(blacklists, $1) WHERE guild_id = $2", &[&blacklist, &(guild_id)]).await?;
 
                     let embed = EmbedBuilder::new()
                         .default_data()

@@ -28,7 +28,7 @@ pub mod utils;
 use futures_util::future::{ready, Either, Ready};
 use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
-use rowifi_models::discord::{
+use rowifi_models::{discord::{
     application::{
         callback::{CallbackData, InteractionResponse},
         interaction::{application_command::CommandDataOption, Interaction},
@@ -36,8 +36,8 @@ use rowifi_models::discord::{
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
     guild::Permissions,
-    id::{GuildId, UserId},
-};
+    id::{UserId},
+}, id::GuildId};
 use std::{
     future::Future,
     pin::Pin,
@@ -105,7 +105,7 @@ impl Framework {
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
                     channel_id: msg.channel_id,
-                    guild_id: msg.guild_id,
+                    guild_id: msg.guild_id.map(|g| GuildId(g)),
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
                     interaction_id: None,
@@ -172,9 +172,10 @@ impl Service<&Event> for Framework {
                 let mut stream = Stream::new(&msg.content);
                 stream.take_while_char(char::is_whitespace);
 
-                let prefix = parser::find_prefix(&mut stream, &self.bot, msg.guild_id);
+                let guild_id = msg.guild_id.map(|g| GuildId(g));
+                let prefix = parser::find_prefix(&mut stream, &self.bot, guild_id);
                 if let Some(PrefixType::Mention) = prefix {
-                    if let Some(guild_id) = msg.guild_id {
+                    if let Some(guild_id) = guild_id {
                         if stream.rest().is_empty()
                             && !self.bot.disabled_channels.contains(&msg.channel_id)
                         {
@@ -248,14 +249,15 @@ impl Service<&Event> for Framework {
                     None => return Either::Left(ready(Ok(()))),
                 }
 
-                if !run_checks(&self.bot, command, msg.guild_id, msg.author.id) {
+                let guild_id = msg.guild_id.map(|g| GuildId(g));
+                if !run_checks(&self.bot, command, guild_id, msg.author.id) {
                     return Either::Left(ready(Ok(())));
                 }
 
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
                     channel_id: msg.channel_id,
-                    guild_id: msg.guild_id,
+                    guild_id,
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
                     interaction_id: None,
@@ -286,7 +288,8 @@ impl Service<&Event> for Framework {
                     let id = top_command.id;
                     let token = top_command.token.clone();
 
-                    if !run_checks(&self.bot, command, top_command.guild_id, user.id) {
+                    let guild_id = top_command.guild_id.map(|g| GuildId(g));
+                    if !run_checks(&self.bot, command, guild_id, user.id) {
                         let http = self.bot.http.clone();
                         let fut = async move {
                             let _ = http
@@ -315,7 +318,7 @@ impl Service<&Event> for Framework {
                     let ctx = CommandContext {
                         bot: self.bot.clone(),
                         channel_id: top_command.channel_id,
-                        guild_id: top_command.guild_id,
+                        guild_id: guild_id,
                         author: Arc::new(user),
                         message_id: None,
                         interaction_id: Some(id),

@@ -7,8 +7,9 @@ use rowifi_models::{
     discord::{
         channel::GuildChannel,
         guild::Permissions,
-        id::{ChannelId, GuildId, RoleId},
+        id::{ChannelId, RoleId},
     },
+    id::GuildId,
     guild::{GuildType, RoGuild},
 };
 use std::{
@@ -66,8 +67,8 @@ impl Service<(u64, Event)> for EventHandler {
         async move {
             match &event {
                 Event::GuildCreate(guild) => {
-                    if eh.unavailable.contains(&guild.id) {
-                        eh.unavailable.remove(&guild.id);
+                    if eh.unavailable.contains(&GuildId(guild.id)) {
+                        eh.unavailable.remove(&GuildId(guild.id));
                     } else {
                         let content = "Thank you for adding RoWifi! To view our setup guide, check out our post: https://rowifi.link/blog/setup
                             \nTo get more information about announcements & updates, please join our support server: https://www.discord.gg/h4BGGyR
@@ -109,7 +110,7 @@ impl Service<(u64, Event)> for EventHandler {
                 }
                 Event::GuildDelete(guild) => {
                     if guild.unavailable {
-                        eh.unavailable.insert(guild.id);
+                        eh.unavailable.insert(GuildId(guild.id));
                     } else {
                         let log_embed = EmbedBuilder::new()
                             .default_data()
@@ -123,7 +124,7 @@ impl Service<(u64, Event)> for EventHandler {
                 Event::Ready(ready) => {
                     tracing::info!("RoWifi ready for service!");
                     for ug in &ready.guilds {
-                        eh.unavailable.insert(ug.id);
+                        eh.unavailable.insert(GuildId(ug.id));
                     }
                     if !eh.auto_detection_started.load(Ordering::SeqCst)
                         && shard_id % eh.bot.shards_per_cluster
@@ -148,7 +149,7 @@ impl Service<(u64, Event)> for EventHandler {
                         .collect::<Vec<_>>();
                     let guilds = eh.bot.database.query::<RoGuild>("SELECT * FROM guilds WHERE guild_id = ANY($1)", &[&guild_ids]).await?;
                     for guild in guilds {
-                        let guild_id = GuildId::new(guild.guild_id as u64).unwrap();
+                        let guild_id = guild.guild_id;
                         eh.bot.prefixes.insert(guild_id, guild.command_prefix);
                         for channel in guild.disabled_channels {
                             eh.bot.disabled_channels
@@ -168,22 +169,23 @@ impl Service<(u64, Event)> for EventHandler {
                     }
                 }
                 Event::UnavailableGuild(g) => {
-                    eh.unavailable.insert(g.id);
+                    eh.unavailable.insert(GuildId(g.id));
                 }
                 Event::MemberAdd(m) => {
-                    let server = match eh.bot.cache.guild(m.guild_id) {
+                    let guild_id = GuildId(m.guild_id);
+                    let server = match eh.bot.cache.guild(guild_id) {
                         Some(s) => s,
                         None => return Ok(()),
                     };
-                    let member = match eh.bot.cache.member(m.guild_id, m.user.id) {
+                    let member = match eh.bot.cache.member(guild_id, m.user.id) {
                         Some(m) => m,
                         None => return Ok(()),
                     };
-                    let guild = eh.bot.database.get_guild(m.guild_id.0.get() as i64).await?;
+                    let guild = eh.bot.database.get_guild(guild_id).await?;
                     if !guild.update_on_join {
                         return Ok(());
                     }
-                    let user = match eh.bot.database.get_linked_user(m.user.id.get() as i64, m.guild_id.get() as i64).await? {
+                    let user = match eh.bot.database.get_linked_user(m.user.id.get() as i64, guild_id).await? {
                         Some(u) => u,
                         None => {
                             if let Some(verification_role) = guild.verification_roles.get(0) {
@@ -195,7 +197,7 @@ impl Service<(u64, Event)> for EventHandler {
                         },
                     };
 
-                    let guild_roles = eh.bot.cache.roles(m.guild_id);
+                    let guild_roles = eh.bot.cache.roles(guild_id);
 
                     let binds = eh.bot
                         .database
@@ -248,7 +250,7 @@ impl Service<(u64, Event)> for EventHandler {
                         .update_log(&added_roles, &removed_roles, &disc_nick)
                         .build()
                         .unwrap();
-                    eh.bot.log_guild(m.guild_id, log_embed).await;
+                    eh.bot.log_guild(guild_id, log_embed).await;
                 }
                 _ => {}
             }

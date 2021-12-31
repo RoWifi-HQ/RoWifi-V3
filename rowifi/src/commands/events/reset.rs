@@ -3,7 +3,7 @@ use rowifi_models::guild::GuildType;
 
 pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -40,14 +40,14 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
         .prepare_cached("DELETE FROM event_types WHERE guild_id = $1")
         .await?;
     transaction
-        .execute(&event_types_change, &[&(guild_id.get() as i64)])
+        .execute(&event_types_change, &[&(guild_id)])
         .await?;
 
     let events_change = transaction
         .prepare_cached("DELETE FROM events WHERE guild_id = $1")
         .await?;
     transaction
-        .execute(&events_change, &[&(guild_id.get() as i64)])
+        .execute(&events_change, &[&(guild_id)])
         .await?;
 
     transaction.commit().await?;

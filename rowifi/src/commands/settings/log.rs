@@ -9,7 +9,7 @@ pub struct LogChannelArguments {
 
 pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()

@@ -56,7 +56,7 @@ pub async fn rankbinds_view(ctx: CommandContext) -> Result<(), RoError> {
         .database
         .query::<Rankbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2 ORDER BY group_id ASC, group_rank_id ASC",
-            &[&(guild_id.get() as i64), &BindType::Rank],
+            &[&(guild_id), &BindType::Rank],
         )
         .await?;
 

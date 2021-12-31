@@ -16,7 +16,7 @@ pub struct EventAttendeeArguments {
 
 pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -49,7 +49,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             let user = ctx
                 .bot
                 .database
-                .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+                .get_linked_user(ctx.author.id.get() as i64, guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id,
@@ -72,7 +72,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let events = ctx
@@ -80,7 +80,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
         .database
         .query::<EventLog>(
             "SELECT * FROM events WHERE guild_id = $1 AND $2 = ANY(attendees)",
-            &[&(guild_id.get() as i64), &roblox_id],
+            &[&(guild_id), &roblox_id],
         )
         .await?;
 
@@ -130,7 +130,7 @@ pub struct EventHostArguments {
 
 pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -163,7 +163,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             let user = ctx
                 .bot
                 .database
-                .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+                .get_linked_user(ctx.author.id.get() as i64, guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id,
@@ -187,7 +187,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let events = ctx
@@ -195,7 +195,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
         .database
         .query::<EventLog>(
             "SELECT * FROM events WHERE guild_id = $1 AND host_id = $2",
-            &[&(guild_id.get() as i64), &roblox_id],
+            &[&(guild_id), &roblox_id],
         )
         .await?;
 
@@ -245,7 +245,7 @@ pub struct EventViewArguments {
 
 pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -265,7 +265,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let event = ctx
@@ -273,7 +273,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         .database
         .query_opt::<EventLog>(
             "SELECT * FROM events WHERE guild_id = $1 AND guild_event_id = $2",
-            &[&(guild_id.get() as i64), &event_id],
+            &[&(guild_id), &event_id],
         )
         .await?;
 

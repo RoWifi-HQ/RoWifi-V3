@@ -55,7 +55,7 @@ pub async fn groupbinds_view(ctx: CommandContext) -> CommandResult {
         .database
         .query::<Groupbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id",
-            &[&(guild_id.get() as i64), &BindType::Group],
+            &[&(guild_id), &BindType::Group],
         )
         .await?;
 

@@ -18,7 +18,7 @@ pub async fn groupbinds_delete(
         .database
         .query::<Groupbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2",
-            &[&(guild_id.get() as i64), &BindType::Group],
+            &[&(guild_id), &BindType::Group],
         )
         .await?;
 
@@ -143,7 +143,7 @@ pub async fn groupbinds_delete(
                                 &statement,
                                 &[
                                     &BindType::Group,
-                                    &(guild_id.get() as i64),
+                                    &(guild_id),
                                     &bind.group_id,
                                     &bind.discord_roles,
                                     &bind.priority,

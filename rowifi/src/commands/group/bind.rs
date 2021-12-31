@@ -4,7 +4,8 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetType, Assetbind, BindType, Groupbind, Rankbind, Template},
-    discord::id::{GuildId, RoleId},
+    discord::id::{RoleId},
+    id::GuildId,
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
@@ -383,7 +384,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
 
     ctx.bot.database.execute(
         "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
-        &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
+        &[&BindType::Asset, &(guild_id), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
     ).await?;
 
     let name = format!("Id: {}", asset_id);
@@ -614,7 +615,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
 
     ctx.bot.database.execute(
         "INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6) RETURNING bind_id", 
-        &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
+        &[&BindType::Group, &(guild_id), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
     ).await?;
 
     let name = format!("Group: {}", group_id);
@@ -664,7 +665,7 @@ async fn bind_rank(
         .database
         .query::<Rankbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
-            &[&(guild_id.0.get() as i64), &BindType::Rank],
+            &[&(guild_id), &BindType::Rank],
         )
         .await?;
 
@@ -719,7 +720,7 @@ async fn bind_rank(
                         &stmt,
                         &[
                             &BindType::Rank,
-                            &(guild_id.get() as i64),
+                            &(guild_id),
                             &bind.group_id,
                             &bind.group_rank_id,
                             &bind.roblox_rank_id,

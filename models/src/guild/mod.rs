@@ -3,15 +3,14 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, FromRow, serialize_i64_as_string, serialize_vec_as_string, serialize_option_as_string};
+use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, serialize_option_as_string, id::GuildId};
 
 pub use types::{BlacklistActionType, GuildType};
 
-#[derive(Clone, Debug, Deserialize, Default, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoGuild {
     /// The id of the guild
-    #[serde(serialize_with = "serialize_i64_as_string")]
-    pub guild_id: i64,
+    pub guild_id: GuildId,
 
     /// The prefix that is to be used by every command run in the guild
     pub command_prefix: String,
@@ -64,11 +63,25 @@ pub struct RoGuild {
 
 impl RoGuild {
     #[must_use]
-    pub fn new(guild_id: i64) -> Self {
+    pub fn new(guild_id: GuildId) -> Self {
         Self {
             guild_id,
             command_prefix: "!".into(),
-            ..RoGuild::default()
+            verification_roles: Vec::new(),
+            verified_roles: Vec::new(),
+            blacklists: Vec::new(),
+            disabled_channels: Vec::new(),
+            registered_groups: Vec::new(),
+            auto_detection: false,
+            kind: GuildType::Free,
+            premium_owner: None,
+            blacklist_action: BlacklistActionType::None,
+            update_on_join: false,
+            admin_roles: Vec::new(),
+            trainer_roles: Vec::new(),
+            bypass_roles: Vec::new(),
+            nickname_bypass_roles: Vec::new(),
+            log_channel: None,
         }
     }
 }

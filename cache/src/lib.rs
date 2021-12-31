@@ -18,9 +18,10 @@ use rowifi_models::{
     discord::{
         channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
         guild::{Guild, Member, Permissions, Role},
-        id::{ChannelId, GuildId, RoleId, UserId},
+        id::{ChannelId, RoleId, UserId},
         user::{CurrentUser, User},
     },
+    id::GuildId,
     stats::BotStats,
 };
 use std::{
@@ -397,10 +398,11 @@ impl Cache {
     }
 
     fn cache_guild(&self, guild: Guild) -> Option<Arc<CachedGuild>> {
-        self.0.guild_roles.insert(guild.id, HashSet::new());
-        self.0.guild_channels.insert(guild.id, HashSet::new());
-        if !self.0.guild_members.contains_key(&guild.id) {
-            self.0.guild_members.insert(guild.id, HashSet::new());
+        let guild_id = GuildId(guild.id);
+        self.0.guild_roles.insert(guild_id, HashSet::new());
+        self.0.guild_channels.insert(guild_id, HashSet::new());
+        if !self.0.guild_members.contains_key(&guild_id) {
+            self.0.guild_members.insert(guild_id, HashSet::new());
         }
 
         let bypass_role = guild
@@ -429,12 +431,12 @@ impl Cache {
             .find(|r| r.name.eq_ignore_ascii_case(TRAINER))
             .map(|r| r.id);
 
-        self.cache_guild_channels(guild.id, guild.channels.into_iter());
-        self.cache_roles(guild.id, guild.roles.into_iter());
-        self.cache_members(guild.id, guild.members.into_iter());
+        self.cache_guild_channels(guild_id, guild.channels.into_iter());
+        self.cache_roles(guild_id, guild.roles.into_iter());
+        self.cache_members(guild_id, guild.members.into_iter());
 
         let cached = CachedGuild {
-            id: guild.id,
+            id: guild_id,
             description: guild.description,
             icon: guild.icon,
             joined_at: guild.joined_at,
@@ -451,8 +453,8 @@ impl Cache {
             trainer_role,
         };
 
-        self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, Arc::new(cached))
+        self.0.unavailable_guilds.remove(&guild_id);
+        self.0.guilds.insert(guild_id, Arc::new(cached))
     }
 
     fn cache_user(&self, user: User) -> Arc<User> {
@@ -468,11 +470,12 @@ impl Cache {
 
     fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
         let channel = self.0.channels.remove(&tc.id()).map(|(_, c)| c)?;
-        if let Some(mut channels) = self.0.guild_channels.get_mut(&tc.guild_id().unwrap()) {
+        let guild_id = GuildId(tc.guild_id().unwrap());
+        if let Some(mut channels) = self.0.guild_channels.get_mut(&guild_id) {
             channels.remove(&tc.id());
         }
         if channel.name().eq_ignore_ascii_case(LOG_CHANNEL) {
-            if let Some(mut guild) = self.0.guilds.get_mut(&tc.guild_id().unwrap()) {
+            if let Some(mut guild) = self.0.guilds.get_mut(&guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.log_channel = None;
             }
@@ -524,7 +527,7 @@ pub fn guild_wide_permissions(
         return Ok(Permissions::all());
     }
 
-    let mut permissions = match roles.get(&RoleId(guild.id.0)) {
+    let mut permissions = match roles.get(&RoleId(guild.id.0.0)) {
         Some(r) => r.permissions,
         None => return Err("`@everyone` role is missing from the cache.".into()),
     };
@@ -547,7 +550,7 @@ pub fn channel_permissions(
     member_roles: &[RoleId],
     channel: &Arc<GuildChannel>,
 ) -> Result<Permissions, String> {
-    let guild_id = guild.id;
+    let guild_id = guild.id.0;
     let mut permissions = guild_wide_permissions(guild, roles, member_id, member_roles)?;
     let mut member_allow = Permissions::empty();
     let mut member_deny = Permissions::empty();

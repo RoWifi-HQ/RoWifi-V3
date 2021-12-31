@@ -27,7 +27,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         .database
         .query::<Assetbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id",
-            &[&(guild_id.get() as i64), &BindType::Asset],
+            &[&(guild_id), &BindType::Asset],
         )
         .await?;
 
@@ -93,7 +93,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
 
     let row = ctx.bot.database.query_one::<Row>(
         "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
-        &[&BindType::Asset, &(guild_id.get() as i64), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
+        &[&BindType::Asset, &(guild_id), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
     ).await?;
     let bind_id: i64 = row.get("bind_id");
 

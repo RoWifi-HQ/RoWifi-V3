@@ -8,7 +8,7 @@ use std::time::Duration;
 
 pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -25,7 +25,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     let roblox_id = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .get_linked_user(ctx.author.id.get() as i64, guild_id)
         .await?
     {
         Some(r) => r.roblox_id,
@@ -47,7 +47,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 
@@ -230,7 +230,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let new_event = EventLog {
         event_id: 0,
-        guild_id: guild_id.get() as i64,
+        guild_id: guild_id,
         event_type: event_type.event_type_guild_id,
         guild_event_id: 0,
         host_id: roblox_id,

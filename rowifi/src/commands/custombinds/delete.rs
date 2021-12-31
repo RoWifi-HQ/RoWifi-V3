@@ -18,7 +18,7 @@ pub async fn custombinds_delete(
         .database
         .query::<Custombind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id",
-            &[&(guild_id.get() as i64), &BindType::Custom],
+            &[&(guild_id), &BindType::Custom],
         )
         .await?;
 
@@ -146,7 +146,7 @@ pub async fn custombinds_delete(
                                 &statement,
                                 &[
                                     &BindType::Custom,
-                                    &(guild_id.get() as i64),
+                                    &(guild_id),
                                     &bind.discord_roles,
                                     &bind.code,
                                     &bind.priority,

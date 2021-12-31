@@ -258,7 +258,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let linked_user = ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.0.get() as i64, guild_id.0.get() as i64)
+        .get_linked_user(ctx.author.id.0.get() as i64, guild_id)
         .await?;
 
     let embed = EmbedBuilder::new()

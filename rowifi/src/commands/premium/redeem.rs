@@ -64,7 +64,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         }
     }
 
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
@@ -88,13 +88,13 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
 
     if !premium_user
         .premium_servers
-        .contains(&(guild_id.0.get() as i64))
+        .contains(&(guild_id))
     {
         let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_append(premium_servers, $1) WHERE discord_id = $2").await?;
         transaction
             .execute(
                 &user_change,
-                &[&(guild_id.get() as i64), &(ctx.author.id.get() as i64)],
+                &[&(guild_id), &(ctx.author.id.get() as i64)],
             )
             .await?;
     }
@@ -142,7 +142,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         .unwrap();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
-    let req = RequestGuildMembers::builder(server.id).query("", None);
+    let req = RequestGuildMembers::builder(server.id.0).query("", None);
     let total_shards = env::var("TOTAL_SHARDS").unwrap().parse::<u64>().unwrap();
     let shard_id = (guild_id.0.get() >> 22) % total_shards;
     let _res = ctx.bot.cluster.command(shard_id, &req).await;
@@ -173,7 +173,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
 
     if !premium_user
         .premium_servers
-        .contains(&(guild_id.0.get() as i64))
+        .contains(&(guild_id))
     {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Premium Disable Failed")
@@ -183,7 +183,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;

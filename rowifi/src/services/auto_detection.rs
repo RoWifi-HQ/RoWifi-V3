@@ -8,12 +8,13 @@ use rowifi_models::{
     bind::Bind,
     discord::{
         gateway::{event::Event, payload::outgoing::RequestGuildMembers},
-        id::{GuildId, RoleId, UserId},
+        id::{RoleId, UserId},
     },
     guild::{GuildType, RoGuild},
     roblox::id::UserId as RobloxUserId,
     user::RoGuildUser,
     FromRow,
+    id::GuildId,
 };
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
@@ -48,7 +49,7 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
     guilds.sort_by_key(|g| g.guild_id);
     for guild in guilds {
         let start = chrono::Utc::now().timestamp_millis();
-        let guild_id = GuildId::new(guild.guild_id as u64).unwrap();
+        let guild_id = guild.guild_id;
         let server = match ctx.cache.guild(guild_id) {
             Some(g) => g,
             None => continue,
@@ -67,13 +68,13 @@ async fn execute(ctx: &BotContext, chunk_size: usize) -> Result<(), Box<dyn Erro
             .map(|m| m.0.get() as i64)
             .collect::<Vec<_>>();
         if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
-            let req = RequestGuildMembers::builder(server.id).query("", None);
+            let req = RequestGuildMembers::builder(server.id.0).query("", None);
             let shard_id = (guild_id.0.get() >> 22) % ctx.total_shards;
             let fut = timeout(
                 Duration::from_secs(30),
                 ctx.standby.wait_for_event(move |event: &Event| {
                     if let Event::MemberChunk(mc) = event {
-                        if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                        if mc.guild_id == guild_id.0 && mc.chunk_index == mc.chunk_count - 1 {
                             return true;
                         }
                     }
@@ -214,7 +215,7 @@ pub async fn execute_chunk(
     Ok(())
 }
 
-pub fn mass_update_user(row: &Row, guild_id: i64) -> Result<RoGuildUser, Box<dyn Error>> {
+pub fn mass_update_user(row: &Row, guild_id: GuildId) -> Result<RoGuildUser, Box<dyn Error>> {
     let guild_id = row.try_get("guild_id").unwrap_or(guild_id);
     let discord_id = row.try_get("discord_id")?;
     let roblox_id = row.try_get("roblox_id").ok();

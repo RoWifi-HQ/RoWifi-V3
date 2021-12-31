@@ -51,7 +51,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
     let guild = ctx
         .bot
         .database
-        .get_guild(ctx.guild_id.unwrap().0.get() as i64)
+        .get_guild(ctx.guild_id.unwrap())
         .await?;
 
     if guild.kind != GuildType::Beta {

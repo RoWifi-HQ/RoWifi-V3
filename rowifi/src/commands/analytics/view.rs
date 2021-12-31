@@ -20,7 +20,7 @@ pub struct ViewDuration(pub Duration);
 
 pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()

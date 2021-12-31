@@ -7,9 +7,10 @@ use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
         channel::embed::Embed,
-        id::{ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+        id::{ChannelId, InteractionId, MessageId, RoleId, UserId, WebhookId},
         user::User,
     },
+    id::GuildId,
     stats::BotStats,
 };
 use std::{
@@ -187,7 +188,7 @@ impl CommandContext {
         if let Some(member) = self.bot.cache.member(guild_id, user_id) {
             return Ok(Some(member));
         }
-        let res = self.bot.http.guild_member(guild_id, user_id).exec().await;
+        let res = self.bot.http.guild_member(guild_id.0, user_id).exec().await;
         match res {
             Err(e) => {
                 if let DiscordErrorType::Response {

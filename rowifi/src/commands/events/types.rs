@@ -3,7 +3,7 @@ use rowifi_models::{events::EventType, guild::GuildType};
 
 pub async fn event_type(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -22,7 +22,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 
@@ -46,7 +46,7 @@ pub struct EventTypeArguments {
 
 pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -68,7 +68,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 
@@ -87,7 +87,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     let event_type = EventType {
         event_type_id: 0,
         event_type_guild_id: event_id,
-        guild_id: guild_id.get() as i64,
+        guild_id: guild_id,
         name: event_name.to_string(),
         disabled: false,
     };
@@ -110,7 +110,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
 
 pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -132,7 +132,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let event = match event_types
@@ -184,7 +184,7 @@ pub struct DisableArguments {
 
 pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -203,7 +203,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 
@@ -258,7 +258,7 @@ pub struct EnableArguments {
 
 pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind != GuildType::Beta {
         let embed = EmbedBuilder::new()
@@ -277,7 +277,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
         .database
         .query::<EventType>(
             "SELECT * FROM event_types WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 

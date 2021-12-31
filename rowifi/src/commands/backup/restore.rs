@@ -36,7 +36,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
     let guild_id = ctx.guild_id.unwrap();
     let name = args.name;
-    ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    ctx.bot.database.get_guild(guild_id).await?;
 
     let backup = match ctx
         .bot
@@ -91,7 +91,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
             let role = ctx
                 .bot
                 .http
-                .create_role(guild_id)
+                .create_role(guild_id.0)
                 .name(&r)
                 .exec()
                 .await?
@@ -172,7 +172,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
         .collect::<Vec<_>>();
 
     let guild = RoGuild {
-        guild_id: ctx.guild_id.unwrap().get() as i64,
+        guild_id: ctx.guild_id.unwrap(),
         command_prefix: data.command_prefix,
         verification_roles,
         verified_roles,
