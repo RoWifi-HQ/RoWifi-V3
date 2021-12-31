@@ -19,7 +19,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
         .database
         .query::<Rankbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
-            &[&(guild_id.get() as i64), &BindType::Rank],
+            &[&(guild_id), &BindType::Rank],
         )
         .await?;
 
@@ -160,7 +160,7 @@ pub async fn rankbinds_delete(ctx: CommandContext, args: RankBindsDelete) -> Com
                                 &stmt,
                                 &[
                                     &BindType::Rank,
-                                    &(guild_id.get() as i64),
+                                    &(guild_id),
                                     &bind.group_id,
                                     &bind.group_rank_id,
                                     &bind.roblox_rank_id,

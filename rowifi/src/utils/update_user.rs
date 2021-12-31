@@ -94,7 +94,7 @@ impl UpdateUser<'_> {
                         let _ = self
                             .ctx
                             .http
-                            .remove_guild_member(self.server.id, self.member.user.id)
+                            .remove_guild_member(self.server.id.0, self.member.user.id)
                             .exec()
                             .await;
                     }
@@ -102,7 +102,7 @@ impl UpdateUser<'_> {
                         let _ = self
                             .ctx
                             .http
-                            .create_ban(self.server.id, self.member.user.id)
+                            .create_ban(self.server.id.0, self.member.user.id)
                             .exec()
                             .await;
                     }
@@ -219,7 +219,7 @@ impl UpdateUser<'_> {
         let update = self
             .ctx
             .http
-            .update_guild_member(self.server.id, self.member.user.id);
+            .update_guild_member(self.server.id.0, self.member.user.id);
         let role_changes = !added_roles.is_empty() || !removed_roles.is_empty();
         let mut roles = self.member.roles.clone();
         roles.extend_from_slice(&added_roles);

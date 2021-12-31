@@ -9,7 +9,7 @@ use itertools::Itertools;
 use rowifi_models::{
     guild::RoGuild,
     user::{RoGuildUser, RoUser},
-    FromRow,
+    FromRow, id::GuildId,
 };
 use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
 use rustls_pemfile::certs;
@@ -124,7 +124,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn get_guild(&self, guild_id: i64) -> Result<RoGuild, DatabaseError> {
+    pub async fn get_guild(&self, guild_id: GuildId) -> Result<RoGuild, DatabaseError> {
         let client = self.get().await?;
         let statement = client
             .prepare_cached("SELECT * FROM guilds WHERE guild_id = $1")
@@ -168,7 +168,7 @@ impl Database {
     pub async fn get_linked_user(
         &self,
         user_id: i64,
-        guild_id: i64,
+        guild_id: GuildId,
     ) -> Result<Option<RoGuildUser>, DatabaseError> {
         let client = self.get().await?;
         let statement = client

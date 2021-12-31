@@ -12,7 +12,7 @@ pub async fn settings_verification(
     args: VerificationArguments,
 ) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let verification_roles = vec![args.role.get() as i64];
     ctx.bot
@@ -56,7 +56,7 @@ pub struct VerifiedArguments {
 
 pub async fn settings_verified(ctx: CommandContext, args: VerifiedArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let verified_roles = vec![args.role.get() as i64];
     ctx.bot

@@ -26,15 +26,15 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         .prepare_cached("DELETE FROM guilds WHERE guild_id = $1")
         .await?;
     transaction
-        .execute(&delete_statement, &[&(guild_id.get() as i64)])
+        .execute(&delete_statement, &[&(guild_id)])
         .await?;
     let insert_statement = transaction.prepare_cached("INSERT INTO guilds(guild_id, command_prefix, kind, blacklist_action) VALUES($1, $2, $3, $4)").await?;
-    let guild = RoGuild::new(guild_id.get() as i64);
+    let guild = RoGuild::new(guild_id);
     transaction
         .execute(
             &insert_statement,
             &[
-                &(guild_id.get() as i64),
+                &(guild_id),
                 &guild.command_prefix,
                 &guild.kind,
                 &guild.blacklist_action,
@@ -45,7 +45,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         .prepare_cached("DELETE FROM binds WHERE guild_id = $1")
         .await?;
     transaction
-        .execute(&delete_binds, &[&(guild_id.get() as i64)])
+        .execute(&delete_binds, &[&(guild_id)])
         .await?;
     transaction.commit().await?;
 

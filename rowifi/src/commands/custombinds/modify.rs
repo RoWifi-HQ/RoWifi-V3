@@ -2,7 +2,7 @@ use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Custombind},
-    discord::id::GuildId,
+    id::GuildId,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -38,7 +38,7 @@ pub async fn custombinds_modify(
         .database
         .query::<Custombind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY custom_bind_id",
-            &[&(guild_id.get() as i64), &BindType::Custom],
+            &[&(guild_id), &BindType::Custom],
         )
         .await?;
 
@@ -138,7 +138,7 @@ async fn modify_code<'a>(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .get_linked_user(ctx.author.id.get() as i64, guild_id)
         .await?
     {
         Some(u) => u,

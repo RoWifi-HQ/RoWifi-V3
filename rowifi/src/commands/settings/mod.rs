@@ -123,7 +123,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
 
 pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     let embed = EmbedBuilder::new()
         .default_data()

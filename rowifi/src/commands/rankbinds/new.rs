@@ -40,7 +40,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         .database
         .query::<Rankbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
-            &[&(guild_id.0.get() as i64), &BindType::Rank],
+            &[&(guild_id), &BindType::Rank],
         )
         .await?;
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
@@ -142,7 +142,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                         let new_role = ctx
                             .bot
                             .http
-                            .create_role(ctx.guild_id.unwrap())
+                            .create_role(ctx.guild_id.unwrap().0)
                             .name(&roblox_rank.name)
                             .exec()
                             .await?
@@ -202,7 +202,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                         &stmt,
                         &[
                             &BindType::Rank,
-                            &(guild_id.get() as i64),
+                            &(guild_id),
                             &bind.group_id,
                             &bind.group_rank_id,
                             &bind.roblox_rank_id,

@@ -19,7 +19,7 @@ pub struct NicknameBypassArguments {
 
 pub async fn nickname_bypass(ctx: CommandContext, args: NicknameBypassArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
@@ -148,7 +148,7 @@ pub async fn nickname_bypass_remove(
         .database
         .execute(
             "UPDATE guilds SET nickname_bypass_roles = $1 WHERE guild_id = $2",
-            &[&roles_to_keep, &(guild_id.get() as i64)],
+            &[&roles_to_keep, &(guild_id)],
         )
         .await?;
 

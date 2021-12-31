@@ -59,7 +59,7 @@ pub fn blacklists_config(cmds: &mut Vec<Command>) {
 
 pub async fn blacklist(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.blacklists.is_empty() {
         let e = EmbedBuilder::new()

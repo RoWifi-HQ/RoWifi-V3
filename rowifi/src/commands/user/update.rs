@@ -166,7 +166,7 @@ pub async fn update_func(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(user_id.get() as i64, guild_id.get() as i64)
+        .get_linked_user(user_id.get() as i64, guild_id)
         .await?
     {
         Some(u) => u,
@@ -182,13 +182,13 @@ pub async fn update_func(
         }
     };
 
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
     let binds = ctx
         .bot
         .database
         .query::<Bind>(
             "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let all_roles = binds

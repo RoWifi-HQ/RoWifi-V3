@@ -25,7 +25,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .database
         .query::<Groupbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY group_id",
-            &[&(guild_id.get() as i64), &BindType::Group],
+            &[&(guild_id), &BindType::Group],
         )
         .await?;
 
@@ -86,7 +86,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
 
     let row = ctx.bot.database.query_one::<Row>(
         "INSERT INTO binds(bind_type, guild_id, group_id, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6) RETURNING bind_id", 
-        &[&BindType::Group, &(guild_id.get() as i64), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
+        &[&BindType::Group, &(guild_id), &bind.group_id, &bind.discord_roles, &bind.priority, &bind.template]
     ).await?;
     let bind_id: i64 = row.get("bind_id");
 

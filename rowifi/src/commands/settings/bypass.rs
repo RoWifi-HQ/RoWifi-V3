@@ -17,7 +17,7 @@ pub struct BypassArguments {
 
 pub async fn bypass(ctx: CommandContext, args: BypassArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
@@ -141,7 +141,7 @@ pub async fn bypass_remove(
         .database
         .execute(
             "UPDATE guilds SET bypass_roles = $1 WHERE guild_id = $2",
-            &[&roles_to_keep, &(guild_id.get() as i64)],
+            &[&roles_to_keep, &(guild_id)],
         )
         .await?;
 

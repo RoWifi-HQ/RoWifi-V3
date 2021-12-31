@@ -20,7 +20,7 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
         .database
         .query::<Assetbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id",
-            &[&(guild_id.get() as i64), &BindType::Asset],
+            &[&(guild_id), &BindType::Asset],
         )
         .await?;
 
@@ -145,7 +145,7 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
                                 &statement,
                                 &[
                                     &BindType::Asset,
-                                    &(guild_id.get() as i64),
+                                    &(guild_id),
                                     &bind.asset_id,
                                     &bind.asset_type,
                                     &bind.discord_roles,

@@ -3,7 +3,8 @@ use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Custombind, Template},
-    discord::id::{GuildId, RoleId},
+    id::{GuildId},
+    discord::id::RoleId,
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -140,7 +141,7 @@ pub async fn custombinds_new_common(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id.get() as i64)
+        .get_linked_user(ctx.author.id.get() as i64, guild_id)
         .await?
     {
         Some(u) => u,
@@ -300,7 +301,7 @@ pub async fn custombinds_new_common(
         INSERT INTO binds(bind_type, guild_id, custom_bind_id, discord_roles, code, priority, template) 
         VALUES($1, $2, (SELECT COALESCE(max(custom_bind_id) + 1, 1) FROM binds WHERE guild_id = $2 AND bind_type = $1), $3, $4, $5, $6)
         RETURNING custom_bind_id, bind_id"#,
-     &[&BindType::Custom, &(guild_id.get() as i64), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
+     &[&BindType::Custom, &(guild_id), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
     ).await?;
     let bind_id: i64 = row.get("bind_id");
 

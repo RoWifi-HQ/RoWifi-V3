@@ -35,7 +35,7 @@ pub async fn rankbinds_modify(ctx: CommandContext, args: ModifyRankbind) -> Comm
         .database
         .query::<Rankbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type = $2",
-            &[&(guild_id.get() as i64), &BindType::Rank],
+            &[&(guild_id), &BindType::Rank],
         )
         .await?;
 

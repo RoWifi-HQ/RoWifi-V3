@@ -28,7 +28,7 @@ pub async fn assetbinds_modify(ctx: CommandContext, args: ModifyArguments) -> Co
         .database
         .query::<Assetbind>(
             "SELECT * FROM binds WHERE guild_id = $1 AND bind_type  = $2 ORDER BY asset_id",
-            &[&(guild_id.get() as i64), &BindType::Asset],
+            &[&(guild_id), &BindType::Asset],
         )
         .await?;
 

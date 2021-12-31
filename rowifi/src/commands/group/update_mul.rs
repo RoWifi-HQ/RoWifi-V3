@@ -15,7 +15,7 @@ use crate::services::auto_detection::{execute_chunk, mass_update_user};
 
 pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -51,7 +51,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .map(|m| m.0.get() as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
-        let req = RequestGuildMembers::builder(server.id).query("", None);
+        let req = RequestGuildMembers::builder(server.id.0).query("", None);
         let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
             ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.")?.exec().await?;
@@ -62,7 +62,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .standby
             .wait_for_event(move |event: &Event| {
                 if let Event::MemberChunk(mc) = event {
-                    if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                    if mc.guild_id == guild_id.0 && mc.chunk_index == mc.chunk_count - 1 {
                         return true;
                     }
                 }
@@ -95,7 +95,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
     tokio::pin!(rows);
     let mut users = Vec::new();
     while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(&row, guild_id.get() as i64) {
+        match mass_update_user(&row, guild_id) {
             Ok(u) => users.push(u),
             Err(e) => tracing::error!("error in update all: {}", e),
         }
@@ -107,7 +107,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         .database
         .query::<Bind>(
             "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 
@@ -172,7 +172,7 @@ pub struct UpdateMultipleArguments {
 
 pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()
             .default_data()
@@ -219,7 +219,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .map(|m| m.0.get() as i64)
         .collect::<Vec<_>>();
     if (members.len() as i64) < server.member_count.load(Ordering::SeqCst) / 2 {
-        let req = RequestGuildMembers::builder(server.id).query("", None);
+        let req = RequestGuildMembers::builder(server.id.0).query("", None);
         let shard_id = (guild_id.0.get() >> 22) % ctx.bot.total_shards;
         if ctx.bot.cluster.command(shard_id, &req).await.is_err() {
             ctx.respond().content("There was an issue in requesting the server members. Please try again. If the issue persists, please contact our support server.")?.exec().await?;
@@ -230,7 +230,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .standby
             .wait_for_event(move |event: &Event| {
                 if let Event::MemberChunk(mc) = event {
-                    if mc.guild_id == guild_id && mc.chunk_index == mc.chunk_count - 1 {
+                    if mc.guild_id == guild_id.0 && mc.chunk_index == mc.chunk_count - 1 {
                         return true;
                     }
                 }
@@ -263,7 +263,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     tokio::pin!(rows);
     let mut users = Vec::new();
     while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(&row, guild_id.get() as i64) {
+        match mass_update_user(&row, guild_id) {
             Ok(u) => users.push(u),
             Err(e) => tracing::error!("error in update all: {}", e),
         }
@@ -275,7 +275,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         .database
         .query::<Bind>(
             "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);

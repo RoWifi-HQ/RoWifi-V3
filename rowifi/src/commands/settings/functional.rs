@@ -13,7 +13,7 @@ pub struct FunctionalArguments {
 
 pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
-    let mut guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let mut guild = ctx.bot.database.get_guild(guild_id).await?;
 
     if guild.kind == GuildType::Free {
         let embed = EmbedBuilder::new()

@@ -35,13 +35,13 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     };
 
     let guild_id = ctx.guild_id.unwrap();
-    let guild = ctx.bot.database.get_guild(guild_id.0.get() as i64).await?;
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
     let binds = ctx
         .bot
         .database
         .query::<Bind>(
             "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id.get() as i64)],
+            &[&(guild_id)],
         )
         .await?;
 

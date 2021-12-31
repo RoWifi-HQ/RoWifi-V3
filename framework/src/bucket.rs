@@ -1,5 +1,5 @@
 use futures_util::future::{Future, FutureExt};
-use rowifi_models::discord::id::GuildId;
+use rowifi_models::id::GuildId;
 use std::{
     pin::Pin,
     sync::Arc,

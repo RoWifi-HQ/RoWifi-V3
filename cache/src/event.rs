@@ -1,4 +1,4 @@
-use rowifi_models::discord::{
+use rowifi_models::{discord::{
     application::interaction::Interaction,
     channel::Channel,
     gateway::{
@@ -9,7 +9,7 @@ use rowifi_models::discord::{
             Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         },
     },
-};
+}, id::GuildId};
 use std::{
     ops::Deref,
     sync::{atomic::Ordering, Arc},
@@ -58,8 +58,8 @@ impl UpdateCache for ChannelCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(guild_id, gc);
-            c.cache_channel_permissions(guild_id, self.id());
+            c.cache_guild_channel(GuildId(guild_id), gc);
+            c.cache_channel_permissions(GuildId(guild_id), self.id());
         }
 
         Ok(())
@@ -80,8 +80,8 @@ impl UpdateCache for ChannelUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         if let Channel::Guild(gc) = self.0.clone() {
             let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(guild_id, gc);
-            c.cache_channel_permissions(guild_id, self.id());
+            c.cache_guild_channel(GuildId(guild_id), gc);
+            c.cache_channel_permissions(GuildId(guild_id), self.id());
         }
 
         Ok(())
@@ -91,13 +91,14 @@ impl UpdateCache for ChannelUpdate {
 impl UpdateCache for GuildCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let old_guild = c.cache_guild(self.0.clone());
-        let guild = c.guild(self.id).unwrap();
+        let guild_id = GuildId(self.id);
+        let guild = c.guild(guild_id).unwrap();
         guild
             .member_count
             .store(self.member_count.unwrap() as i64, Ordering::SeqCst);
-        c.cache_guild_permissions(self.id);
+        c.cache_guild_permissions(guild_id);
         for channel in &self.channels {
-            c.cache_channel_permissions(self.id, channel.id());
+            c.cache_channel_permissions(guild_id, channel.id());
         }
         if old_guild.is_none() {
             c.0.stats.resource_counts.guilds.inc();
@@ -112,22 +113,23 @@ impl UpdateCache for GuildCreate {
 
 impl UpdateCache for GuildDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        let guild = c.0.guilds.remove(&self.id);
-        c.0.guild_permissions.remove(&self.id);
-        if let Some((_, ids)) = c.0.guild_channels.remove(&self.id) {
+        let guild_id = GuildId(self.id);
+        let guild = c.0.guilds.remove(&guild_id);
+        c.0.guild_permissions.remove(&guild_id);
+        if let Some((_, ids)) = c.0.guild_channels.remove(&guild_id) {
             for id in ids {
                 c.0.channels.remove(&id);
                 c.0.channel_permissions.remove(&id);
             }
         }
-        if let Some((_, ids)) = c.0.guild_roles.remove(&self.id) {
+        if let Some((_, ids)) = c.0.guild_roles.remove(&guild_id) {
             for id in ids {
                 c.0.roles.remove(&id);
             }
         }
-        if let Some((_, ids)) = c.0.guild_members.remove(&self.id) {
+        if let Some((_, ids)) = c.0.guild_members.remove(&guild_id) {
             for id in ids {
-                c.0.members.remove(&(self.id, id));
+                c.0.members.remove(&(guild_id, id));
             }
         }
 
@@ -147,7 +149,7 @@ impl UpdateCache for GuildUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.id, "Received event for Guild Update for");
 
-        if let Some(mut guild) = c.0.guilds.get_mut(&self.0.id) {
+        if let Some(mut guild) = c.0.guilds.get_mut(&GuildId(self.0.id)) {
             let mut guild = Arc::make_mut(&mut guild);
             guild.description = self.description.clone();
             guild.icon = self.icon.clone();
@@ -167,6 +169,7 @@ impl UpdateCache for InteractionCreate {
             if let Some(member) = &inner.member {
                 if let Some(user) = &member.user {
                     if let Some(guild_id) = inner.guild_id {
+                        let guild_id = GuildId(guild_id);
                         let user = c.cache_user(user.clone());
                         let id = (guild_id, user.id);
                         match c.0.members.get(&id) {
@@ -196,6 +199,7 @@ impl UpdateCache for InteractionCreate {
 
 impl UpdateCache for MemberAdd {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        let guild_id = GuildId(self.guild_id);
         c.cache_member(self.guild_id, self.0.clone());
         if let Some(guild) = c.guild(self.guild_id) {
             guild.member_count.fetch_add(1, Ordering::SeqCst);
@@ -211,15 +215,16 @@ impl UpdateCache for MemberChunk {
             return Ok(());
         }
         info!(id = ?self.guild_id, "Received event for Guild Members Chunk for");
-        c.cache_members(self.guild_id, self.members.clone());
+        c.cache_members(GuildId(self.guild_id), self.members.clone());
         Ok(())
     }
 }
 
 impl UpdateCache for MemberRemove {
-    fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.0.members.remove(&(self.guild_id, self.user.id));
-        if let Some(mut members) = c.0.guild_members.get_mut(&self.guild_id) {
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {            
+        let guild_id = GuildId(self.guild_id);
+        c.0.members.remove(&(guild_id, self.user.id));
+        if let Some(mut members) = c.0.guild_members.get_mut(&guild_id) {
             if let Some(guild) = c.guild(self.guild_id) {
                 guild.member_count.fetch_sub(1, Ordering::SeqCst);
                 members.remove(&self.user.id);
@@ -233,8 +238,9 @@ impl UpdateCache for MemberRemove {
 impl UpdateCache for MemberUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         debug!(id = ?self.user.id, "Received event for Member Update for");
+        let guild_id = GuildId(self.guild_id);
         {
-            if let Some(mut member) = c.0.members.get_mut(&(self.guild_id, self.user.id)) {
+            if let Some(mut member) = c.0.members.get_mut(&(guild_id, self.user.id)) {
                 let mut member = Arc::make_mut(&mut member);
 
                 member.nick = self.nick.clone();
@@ -244,10 +250,10 @@ impl UpdateCache for MemberUpdate {
 
         if let Some(current_user) = c.current_user() {
             if self.user.id == current_user.id {
-                c.cache_guild_permissions(self.guild_id);
-                let channels = c.guild_channels(self.guild_id);
+                c.cache_guild_permissions(guild_id);
+                let channels = c.guild_channels(guild_id);
                 for channel in channels {
-                    c.cache_channel_permissions(self.guild_id, channel);
+                    c.cache_channel_permissions(guild_id, channel);
                 }
             }
         }
@@ -261,6 +267,7 @@ impl UpdateCache for MessageCreate {
         let user = c.cache_user(self.author.clone());
 
         if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
+            let guild_id = GuildId(guild_id);
             let id = (guild_id, user.id);
             match c.0.members.get(&id) {
                 Some(m) if **m == member => return Ok(()),
@@ -290,7 +297,7 @@ impl UpdateCache for Ready {
         c.cache_current_user(self.user.clone());
 
         for ug in &self.guilds {
-            c.unavailable_guild(ug.id);
+            c.unavailable_guild(GuildId(ug.id));
         }
 
         Ok(())
@@ -299,18 +306,19 @@ impl UpdateCache for Ready {
 
 impl UpdateCache for RoleCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_role(self.guild_id, self.role.clone());
+        c.cache_role(GuildId(self.guild_id), self.role.clone());
         Ok(())
     }
 }
 
 impl UpdateCache for RoleDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
+        let guild_id = GuildId(self.guild_id);
         c.delete_role(self.role_id);
-        c.cache_guild_permissions(self.guild_id);
-        let channels = c.guild_channels(self.guild_id);
+        c.cache_guild_permissions(guild_id);
+        let channels = c.guild_channels(guild_id);
         for channel in channels {
-            c.cache_channel_permissions(self.guild_id, channel);
+            c.cache_channel_permissions(guild_id, channel);
         }
         Ok(())
     }
@@ -318,11 +326,12 @@ impl UpdateCache for RoleDelete {
 
 impl UpdateCache for RoleUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.cache_role(self.guild_id, self.role.clone());
-        c.cache_guild_permissions(self.guild_id);
-        let channels = c.guild_channels(self.guild_id);
+        let guild_id = GuildId(self.guild_id);
+        c.cache_role(guild_id, self.role.clone());
+        c.cache_guild_permissions(guild_id);
+        let channels = c.guild_channels(guild_id);
         for channel in channels {
-            c.cache_channel_permissions(self.guild_id, channel);
+            c.cache_channel_permissions(guild_id, channel);
         }
         Ok(())
     }
@@ -330,8 +339,9 @@ impl UpdateCache for RoleUpdate {
 
 impl UpdateCache for UnavailableGuild {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.0.guilds.remove(&self.id);
-        c.0.unavailable_guilds.insert(self.id);
+        let id = GuildId(self.id);
+        c.0.guilds.remove(&id);
+        c.0.unavailable_guilds.insert(id);
         Ok(())
     }
 }

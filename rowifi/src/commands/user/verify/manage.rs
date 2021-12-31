@@ -66,7 +66,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     }
 
     let linked_user = RoGuildUser {
-        guild_id: guild_id.0.get() as i64,
+        guild_id: guild_id,
         discord_id: ctx.author.id.0.get() as i64,
         roblox_id,
     };
