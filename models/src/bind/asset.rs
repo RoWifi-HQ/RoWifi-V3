@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{FromRow, serialize_i64_as_string, serialize_vec_as_string};
+use crate::{FromRow, serialize_i64_as_string, id::RoleId};
 
 use super::template::Template;
 
@@ -23,8 +23,7 @@ pub struct Assetbind {
     /// The type of the Asset. Can be one of Asset, Badge, Gamepass
     pub asset_type: AssetType,
     /// The discord roles bounded to the asset
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub discord_roles: Vec<i64>,
+    pub discord_roles: Vec<RoleId>,
     /// The number that decides whether this bind is chosen for the nickname
     pub priority: i32,
     /// The format of the nickname if this bind is chosen

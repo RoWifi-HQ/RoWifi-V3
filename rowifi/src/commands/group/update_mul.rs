@@ -3,8 +3,9 @@ use rowifi_database::dynamic_args_with_start;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::Bind,
-    discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
+    discord::{gateway::payload::outgoing::RequestGuildMembers},
     guild::GuildType,
+    id::RoleId,
     roblox::id::UserId as RobloxUserId,
 };
 use std::{env, sync::atomic::Ordering};

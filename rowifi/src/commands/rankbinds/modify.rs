@@ -3,6 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Rankbind},
     roblox::id::GroupId,
+    id::RoleId,
 };
 
 use super::new::PREFIX_REGEX;
@@ -199,13 +200,13 @@ async fn add_roles(
     ctx: &CommandContext,
     bind: &Rankbind,
     roles: &str,
-) -> Result<Vec<i64>, RoError> {
+) -> Result<Vec<RoleId>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(r) = parse_role(r) {
-            role_ids.push(r as i64);
+            role_ids.push(r);
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();
@@ -217,13 +218,13 @@ async fn remove_roles(
     ctx: &CommandContext,
     bind: &Rankbind,
     roles: &str,
-) -> Result<Vec<i64>, RoError> {
+) -> Result<Vec<RoleId>, RoError> {
     let mut role_ids = Vec::new();
     for r in roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(r) = parse_role(r) {
-            role_ids.push(r as i64);
+            role_ids.push(r);
         }
     }
     role_ids = role_ids.into_iter().unique().collect::<Vec<_>>();

@@ -3,13 +3,12 @@ mod parser;
 mod scanner;
 mod token;
 
-use crate::user::RoGuildUser;
+use crate::{user::RoGuildUser, id::RoleId};
 
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::RoleId;
 
 use expression::Expression;
 use parser::Parser;

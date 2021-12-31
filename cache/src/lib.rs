@@ -18,10 +18,10 @@ use rowifi_models::{
     discord::{
         channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
         guild::{Guild, Member, Permissions, Role},
-        id::{ChannelId, RoleId, UserId},
+        id::{ChannelId, UserId},
         user::{CurrentUser, User},
     },
-    id::GuildId,
+    id::{GuildId, RoleId},
     stats::BotStats,
 };
 use std::{
@@ -288,7 +288,7 @@ impl Cache {
 
         let user = self.cache_user(member.user);
         let cached = Arc::new(CachedMember {
-            roles: member.roles,
+            roles: member.roles.into_iter().map(|r| RoleId(r)).collect(),
             nick: member.nick,
             user,
             pending: member.pending,
@@ -307,7 +307,7 @@ impl Cache {
         for role in roles {
             let id = role.id;
             self.cache_role(guild, role);
-            r.insert(id);
+            r.insert(RoleId(id));
         }
         r
     }
@@ -316,7 +316,7 @@ impl Cache {
         self.cache_extra_roles(guild, &role);
 
         let role = CachedRole {
-            id: role.id,
+            id: RoleId(role.id),
             guild_id: guild,
             name: role.name,
             position: role.position,
@@ -330,16 +330,16 @@ impl Cache {
         if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
             if role.name.eq_ignore_ascii_case(BYPASS) {
                 let mut guild = Arc::make_mut(&mut guild);
-                guild.bypass_role = Some(role.id);
+                guild.bypass_role = Some(RoleId(role.id));
             } else if role.name.eq_ignore_ascii_case(NICKNAME_BYPASS) {
                 let mut guild = Arc::make_mut(&mut guild);
-                guild.nickname_bypass = Some(role.id);
+                guild.nickname_bypass = Some(RoleId(role.id));
             } else if role.name.eq_ignore_ascii_case(ADMIN) {
                 let mut guild = Arc::make_mut(&mut guild);
-                guild.admin_role = Some(role.id);
+                guild.admin_role = Some(RoleId(role.id));
             } else if role.name.eq_ignore_ascii_case(TRAINER) {
                 let mut guild = Arc::make_mut(&mut guild);
-                guild.trainer_role = Some(role.id);
+                guild.trainer_role = Some(RoleId(role.id));
             }
         }
     }
@@ -409,12 +409,12 @@ impl Cache {
             .roles
             .iter()
             .find(|r| r.name.eq_ignore_ascii_case(BYPASS))
-            .map(|r| r.id);
+            .map(|r| RoleId(r.id));
         let nickname_bypass = guild
             .roles
             .iter()
             .find(|r| r.name.eq_ignore_ascii_case(NICKNAME_BYPASS))
-            .map(|r| r.id);
+            .map(|r| RoleId(r.id));
         let log_channel = guild
             .channels
             .iter()
@@ -424,12 +424,12 @@ impl Cache {
             .roles
             .iter()
             .find(|r| r.name.eq_ignore_ascii_case(ADMIN))
-            .map(|r| r.id);
+            .map(|r| RoleId(r.id));
         let trainer_role = guild
             .roles
             .iter()
             .find(|r| r.name.eq_ignore_ascii_case(TRAINER))
-            .map(|r| r.id);
+            .map(|r| RoleId(r.id));
 
         self.cache_guild_channels(guild_id, guild.channels.into_iter());
         self.cache_roles(guild_id, guild.roles.into_iter());
@@ -527,7 +527,7 @@ pub fn guild_wide_permissions(
         return Ok(Permissions::all());
     }
 
-    let mut permissions = match roles.get(&RoleId(guild.id.0.0)) {
+    let mut permissions = match roles.get(&RoleId::new(guild.id.get())) {
         Some(r) => r.permissions,
         None => return Err("`@everyone` role is missing from the cache.".into()),
     };
@@ -567,7 +567,7 @@ pub fn channel_permissions(
                         continue;
                     }
 
-                    if !member_roles.contains(&role) {
+                    if !member_roles.contains(&RoleId(role)) {
                         continue;
                     }
 

@@ -1,7 +1,7 @@
 use rowifi_database::postgres::types::ToSql;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::RoleId,
+    id::RoleId,
     guild::{GuildType, RoGuild},
 };
 
@@ -101,7 +101,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
 
     let message_id = message.id;
     let author_id = ctx.author.id;
-    let role_id = args.role.0.get() as i64;
+    let role_id = args.role;
 
     let stream = ctx
         .bot
@@ -143,14 +143,14 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                             .admin_roles
                             .entry(guild_id)
                             .or_default()
-                            .push(RoleId::new(role_id as u64).unwrap());
+                            .push(role_id);
                     } else if guild.admin_roles.contains(&role_id) {
                         updates.push(format!(
                             "admin_roles = array_remove(admin_roles, ${})",
                             updates.len() + 1
                         ));
                         if let Some(mut admin_roles) = ctx.bot.admin_roles.get_mut(&guild_id) {
-                            admin_roles.retain(|a| !a.eq(&args.role));
+                            admin_roles.retain(|a| !a.eq(&role_id));
                         }
                     }
 
@@ -169,14 +169,14 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                             .trainer_roles
                             .entry(guild_id)
                             .or_default()
-                            .push(RoleId::new(role_id as u64).unwrap());
+                            .push(role_id);
                     } else if guild.trainer_roles.contains(&role_id) {
                         updates.push(format!(
                             "trainer_roles = array_remove(trainer_roles, ${})",
                             updates.len() + 1
                         ));
                         if let Some(mut trainer_roles) = ctx.bot.trainer_roles.get_mut(&guild_id) {
-                            trainer_roles.retain(|a| !a.eq(&args.role));
+                            trainer_roles.retain(|a| !a.eq(&role_id));
                         }
                     }
 
@@ -195,14 +195,14 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                             .bypass_roles
                             .entry(guild_id)
                             .or_default()
-                            .push(RoleId::new(role_id as u64).unwrap());
+                            .push(role_id);
                     } else if guild.bypass_roles.contains(&role_id) {
                         updates.push(format!(
                             "bypass_roles = array_remove(bypass_roles, ${})",
                             updates.len() + 1
                         ));
                         if let Some(mut bypass_roles) = ctx.bot.bypass_roles.get_mut(&guild_id) {
-                            bypass_roles.retain(|a| !a.eq(&args.role));
+                            bypass_roles.retain(|a| !a.eq(&role_id));
                         }
                     }
 
@@ -221,7 +221,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                             .nickname_bypass_roles
                             .entry(guild_id)
                             .or_default()
-                            .push(RoleId::new(role_id as u64).unwrap());
+                            .push(role_id);
                     } else if guild.nickname_bypass_roles.contains(&role_id) {
                         updates.push(format!(
                             "nickname_bypass_roles = array_remove(nickname_bypass_roles, ${})",
@@ -230,7 +230,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         if let Some(mut nickname_bypass_roles) =
                             ctx.bot.nickname_bypass_roles.get_mut(&guild_id)
                         {
-                            nickname_bypass_roles.retain(|a| !a.eq(&args.role));
+                            nickname_bypass_roles.retain(|a| !a.eq(&role_id));
                         }
                     }
 

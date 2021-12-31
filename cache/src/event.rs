@@ -9,7 +9,7 @@ use rowifi_models::{discord::{
             Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
         },
     },
-}, id::GuildId};
+}, id::{GuildId, RoleId}};
 use std::{
     ops::Deref,
     sync::{atomic::Ordering, Arc},
@@ -185,7 +185,7 @@ impl UpdateCache for InteractionCreate {
                         let cached = Arc::new(CachedMember {
                             nick: member.nick.clone(),
                             pending: false,
-                            roles: member.roles.clone(),
+                            roles: member.roles.iter().map(|r| RoleId(*r)).collect(),
                             user,
                         });
                         c.0.members.insert(id, Arc::clone(&cached));
@@ -244,7 +244,7 @@ impl UpdateCache for MemberUpdate {
                 let mut member = Arc::make_mut(&mut member);
 
                 member.nick = self.nick.clone();
-                member.roles = self.roles.clone();
+                member.roles = self.roles.iter().map(|r| RoleId(*r)).collect();
             }
         }
 
@@ -282,7 +282,7 @@ impl UpdateCache for MessageCreate {
             let cached = Arc::new(CachedMember {
                 nick: member.nick.clone(),
                 pending: false,
-                roles: member.roles.clone(),
+                roles: member.roles.iter().map(|r| RoleId(*r)).collect(),
                 user,
             });
             c.0.members.insert(id, Arc::clone(&cached));
@@ -314,7 +314,7 @@ impl UpdateCache for RoleCreate {
 impl UpdateCache for RoleDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let guild_id = GuildId(self.guild_id);
-        c.delete_role(self.role_id);
+        c.delete_role(RoleId(self.role_id));
         c.cache_guild_permissions(guild_id);
         let channels = c.guild_channels(guild_id);
         for channel in channels {

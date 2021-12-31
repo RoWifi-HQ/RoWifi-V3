@@ -3,7 +3,7 @@ use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetType, Assetbind, BindType, Template},
-    discord::id::RoleId,
+    id::RoleId,
 };
 
 #[derive(FromArgs)]
@@ -72,10 +72,10 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
     let mut roles = Vec::new();
     for r in roles_to_add {
         if let Some(resolved) = &ctx.resolved {
-            roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            roles.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(r) {
-            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
-                roles.push(role_id as i64);
+            if server_roles.contains(&role_id) {
+                roles.push(role_id);
             }
         }
     }

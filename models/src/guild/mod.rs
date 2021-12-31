@@ -3,7 +3,7 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, serialize_option_as_string, id::GuildId};
+use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, serialize_option_as_string, id::{GuildId, RoleId}};
 
 pub use types::{BlacklistActionType, GuildType};
 
@@ -16,12 +16,10 @@ pub struct RoGuild {
     pub command_prefix: String,
 
     /// The role meant for unverified users in the guild
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub verification_roles: Vec<i64>,
+    pub verification_roles: Vec<RoleId>,
 
     /// The role meant for verified users in the guild
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub verified_roles: Vec<i64>,
+    pub verified_roles: Vec<RoleId>,
 
     /// The array containing all the [Blacklist] of the guild
     pub blacklists: Vec<Blacklist>,
@@ -45,17 +43,13 @@ pub struct RoGuild {
 
     pub update_on_join: bool,
 
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub admin_roles: Vec<i64>,
+    pub admin_roles: Vec<RoleId>,
 
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub trainer_roles: Vec<i64>,
+    pub trainer_roles: Vec<RoleId>,
 
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub bypass_roles: Vec<i64>,
+    pub bypass_roles: Vec<RoleId>,
 
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub nickname_bypass_roles: Vec<i64>,
+    pub nickname_bypass_roles: Vec<RoleId>,
 
     #[serde(serialize_with = "serialize_option_as_string")]
     pub log_channel: Option<i64>,

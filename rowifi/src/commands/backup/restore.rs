@@ -5,6 +5,7 @@ use rowifi_models::{
     guild::{backup::GuildBackup, GuildType, RoGuild},
     rolang::RoCommand,
     user::{RoUser, UserFlags},
+    id::RoleId,
 };
 use std::collections::HashMap;
 
@@ -97,7 +98,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .await?
                 .model()
                 .await?;
-            roles_map.insert(role.name, role.id);
+            roles_map.insert(role.name, RoleId(role.id));
         }
     }
 
@@ -115,12 +116,12 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let verification_roles = data
         .verification_roles
         .iter()
-        .filter_map(|v| roles_map.get(v).map(|r| r.get() as i64))
+        .filter_map(|v| roles_map.get(v).cloned())
         .collect();
     let verified_roles = data
         .verified_roles
         .iter()
-        .filter_map(|v| roles_map.get(v).map(|r| r.get() as i64))
+        .filter_map(|v| roles_map.get(v).cloned())
         .collect();
 
     let binds = data
@@ -130,7 +131,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
             let discord_roles = b
                 .discord_roles()
                 .iter()
-                .filter_map(|v| roles_map.get(v).map(|r| r.get() as i64))
+                .filter_map(|v| roles_map.get(v).cloned())
                 .collect();
 
             match b {

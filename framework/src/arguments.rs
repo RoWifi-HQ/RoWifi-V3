@@ -2,8 +2,9 @@ use rowifi_models::{
     bind::AssetType,
     discord::{
         application::interaction::application_command::{CommandDataOption, CommandOptionValue},
-        id::{ChannelId, RoleId, UserId},
+        id::{ChannelId, UserId},
     },
+    id::RoleId,
     guild::BlacklistActionType,
 };
 use std::{num::ParseIntError, str::FromStr};
@@ -193,16 +194,16 @@ impl FromArg for RoleId {
     type Error = ParseError;
     fn from_arg(arg: &str) -> Result<Self, Self::Error> {
         match parse_role(arg) {
-            Some(id) => Ok(RoleId::new(id).unwrap()),
+            Some(id) => Ok(id),
             None => Err(ParseError("a Role")),
         }
     }
 
     fn from_interaction(option: &CommandDataOption) -> Result<Self, Self::Error> {
         match &option.value {
-            CommandOptionValue::Integer(value) => Ok(RoleId::new(*value as u64).unwrap()),
+            CommandOptionValue::Integer(value) => Ok(RoleId::new(*value as u64)),
             CommandOptionValue::String(value) => Self::from_arg(value),
-            CommandOptionValue::Role(value) => Ok(*value),
+            CommandOptionValue::Role(value) => Ok(RoleId(*value)),
             _ => unreachable!("RoleId unreached"),
         }
     }

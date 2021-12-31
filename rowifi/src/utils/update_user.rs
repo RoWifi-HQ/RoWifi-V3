@@ -3,7 +3,7 @@ use rowifi_cache::{CachedGuild, CachedMember};
 use rowifi_framework::{context::BotContext, error::RoError};
 use rowifi_models::{
     bind::Bind,
-    discord::id::RoleId,
+    id::RoleId,
     guild::{BlacklistActionType, RoGuild},
     roblox::id::{AssetId as RobloxAssetId, UserId as RobloxUserId},
     rolang::RoCommandUser,
@@ -21,7 +21,7 @@ pub struct UpdateUser<'u> {
     pub binds: &'u [Bind],
     pub guild_roles: &'u HashSet<RoleId>,
     pub bypass_roblox_cache: bool,
-    pub all_roles: &'u [&'u i64],
+    pub all_roles: &'u [&'u RoleId],
 }
 
 #[allow(dead_code)]
@@ -39,20 +39,18 @@ impl UpdateUser<'_> {
         let mut removed_roles = Vec::<RoleId>::new();
 
         if let Some(verification_role) = self.guild.verification_roles.get(0) {
-            let verification_role = RoleId::new(*verification_role as u64).unwrap();
-            if self.guild_roles.get(&verification_role).is_some()
-                && self.member.roles.contains(&verification_role)
+            if self.guild_roles.get(verification_role).is_some()
+                && self.member.roles.contains(verification_role)
             {
-                removed_roles.push(verification_role);
+                removed_roles.push(*verification_role);
             }
         }
 
         if let Some(verified_role) = self.guild.verified_roles.get(0) {
-            let verified_role = RoleId::new(*verified_role as u64).unwrap();
-            if self.guild_roles.get(&verified_role).is_some()
-                && !self.member.roles.contains(&verified_role)
+            if self.guild_roles.get(verified_role).is_some()
+                && !self.member.roles.contains(verified_role)
             {
-                added_roles.push(verified_role);
+                added_roles.push(*verified_role);
             }
         }
 
@@ -185,14 +183,13 @@ impl UpdateUser<'_> {
         }
 
         for bind_role in self.all_roles {
-            let r = RoleId::new(**bind_role as u64).unwrap();
-            if self.guild_roles.get(&r).is_some() {
+            if self.guild_roles.get(&bind_role).is_some() {
                 if roles_to_add.contains(bind_role) {
-                    if !self.member.roles.contains(&r) {
-                        added_roles.push(r);
+                    if !self.member.roles.contains(&bind_role) {
+                        added_roles.push(**bind_role);
                     }
-                } else if self.member.roles.contains(&r) {
-                    removed_roles.push(r);
+                } else if self.member.roles.contains(&bind_role) {
+                    removed_roles.push(**bind_role);
                 }
             }
         }
@@ -224,7 +221,7 @@ impl UpdateUser<'_> {
         let mut roles = self.member.roles.clone();
         roles.extend_from_slice(&added_roles);
         roles.retain(|r| !removed_roles.contains(r));
-        roles = roles.into_iter().unique().collect::<Vec<RoleId>>();
+        let roles = roles.into_iter().unique().map(|r| r.0).collect::<Vec<_>>();
 
         let nick_changes = nickname != original_nick;
 

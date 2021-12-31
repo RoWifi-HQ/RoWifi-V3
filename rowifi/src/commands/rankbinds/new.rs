@@ -2,10 +2,10 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 use rowifi_framework::prelude::*;
-use rowifi_models::discord::id::RoleId;
 use rowifi_models::{
     bind::{BindType, Rankbind, Template},
     roblox::id::GroupId,
+    id::RoleId,
 };
 
 #[derive(Debug, FromArgs)]
@@ -137,7 +137,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                     .iter()
                     .find(|r| r.name.eq_ignore_ascii_case(&roblox_rank.name))
                 {
-                    Some(r) => r.id.0.get() as i64,
+                    Some(r) => r.id,
                     None => {
                         let new_role = ctx
                             .bot
@@ -148,18 +148,18 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                             .await?
                             .model()
                             .await?;
-                        new_role.id.0.get() as i64
+                        RoleId(new_role.id)
                     }
                 };
                 roles.push(role);
             } else if let Some(resolved) = &ctx.resolved {
-                roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+                roles.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
             } else if let Some(role_id) = parse_role(role_to_add) {
                 if server_roles
                     .iter()
-                    .any(|r| r.id == RoleId::new(role_id).unwrap())
+                    .any(|r| r.id == role_id)
                 {
-                    roles.push(role_id as i64);
+                    roles.push(role_id);
                 }
             }
         }
