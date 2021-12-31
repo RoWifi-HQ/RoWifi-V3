@@ -171,7 +171,7 @@ pub async fn execute_chunk(
     for user in user_chunk {
         if let Some(member) = ctx
             .cache
-            .member(server.id, UserId::new(user.discord_id as u64).unwrap())
+            .member(server.id, user.discord_id)
         {
             if let Some(role_filter) = role_filter {
                 if !member.roles.contains(&role_filter) {

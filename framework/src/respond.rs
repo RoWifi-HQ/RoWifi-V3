@@ -24,7 +24,7 @@ impl<'a> Responder<'a> {
     pub fn new(ctx: &'a CommandContext) -> Self {
         ctx.interaction_token.as_ref().map_or_else(
             || Self {
-                message: Some(ctx.bot.http.create_message(ctx.channel_id)),
+                message: Some(ctx.bot.http.create_message(ctx.channel_id.0)),
                 interaction: None,
                 followup: None,
             },

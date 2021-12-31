@@ -36,8 +36,7 @@ use rowifi_models::{discord::{
     channel::{message::MessageFlags, Message},
     gateway::event::Event,
     guild::Permissions,
-    id::{UserId},
-}, id::GuildId};
+}, id::{GuildId, ChannelId, UserId}};
 use std::{
     future::Future,
     pin::Pin,
@@ -104,7 +103,7 @@ impl Framework {
             if let Some(cmd) = self.cmds.iter_mut().find(|c| c.names.contains(&arg)) {
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
-                    channel_id: msg.channel_id,
+                    channel_id: ChannelId(msg.channel_id),
                     guild_id: msg.guild_id.map(|g| GuildId(g)),
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
@@ -173,11 +172,12 @@ impl Service<&Event> for Framework {
                 stream.take_while_char(char::is_whitespace);
 
                 let guild_id = msg.guild_id.map(|g| GuildId(g));
+                let channel_id = ChannelId(msg.channel_id);
                 let prefix = parser::find_prefix(&mut stream, &self.bot, guild_id);
                 if let Some(PrefixType::Mention) = prefix {
                     if let Some(guild_id) = guild_id {
                         if stream.rest().is_empty()
-                            && !self.bot.disabled_channels.contains(&msg.channel_id)
+                            && !self.bot.disabled_channels.contains(&channel_id)
                         {
                             let actual_prefix = self
                                 .bot
@@ -208,7 +208,7 @@ impl Service<&Event> for Framework {
 
                 let command = if let Some(arg) = cmd_str.next() {
                     if arg.eq_ignore_ascii_case("help")
-                        && !self.bot.disabled_channels.contains(&msg.channel_id)
+                        && !self.bot.disabled_channels.contains(&channel_id)
                     {
                         return Either::Right(self.help(msg, cmd_str));
                     }
@@ -224,7 +224,7 @@ impl Service<&Event> for Framework {
                     None => return Either::Left(ready(Ok(()))),
                 };
 
-                match self.bot.cache.channel_permissions(msg.channel_id) {
+                match self.bot.cache.channel_permissions(channel_id) {
                     Some(p) => {
                         if !p.contains(self.default_perms)
                             && !p.contains(Permissions::ADMINISTRATOR)
@@ -250,13 +250,13 @@ impl Service<&Event> for Framework {
                 }
 
                 let guild_id = msg.guild_id.map(|g| GuildId(g));
-                if !run_checks(&self.bot, command, guild_id, msg.author.id) {
+                if !run_checks(&self.bot, command, guild_id, UserId(msg.author.id)) {
                     return Either::Left(ready(Ok(())));
                 }
 
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
-                    channel_id: msg.channel_id,
+                    channel_id,
                     guild_id,
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
@@ -289,7 +289,7 @@ impl Service<&Event> for Framework {
                     let token = top_command.token.clone();
 
                     let guild_id = top_command.guild_id.map(|g| GuildId(g));
-                    if !run_checks(&self.bot, command, guild_id, user.id) {
+                    if !run_checks(&self.bot, command, guild_id, UserId(user.id)) {
                         let http = self.bot.http.clone();
                         let fut = async move {
                             let _ = http
@@ -317,7 +317,7 @@ impl Service<&Event> for Framework {
 
                     let ctx = CommandContext {
                         bot: self.bot.clone(),
-                        channel_id: top_command.channel_id,
+                        channel_id: ChannelId(top_command.channel_id),
                         guild_id: guild_id,
                         author: Arc::new(user),
                         message_id: None,
@@ -386,11 +386,11 @@ fn run_checks(bot: &BotContext, cmd: &Command, guild_id: Option<GuildId>, author
 }
 
 fn get_perm_level(bot: &BotContext, guild: &CachedGuild, member: &CachedMember) -> RoLevel {
-    if bot.owners.contains(&member.user.id) {
+    if bot.owners.contains(&UserId(member.user.id)) {
         return RoLevel::Creator;
     }
 
-    if member.user.id == guild.owner_id {
+    if UserId(member.user.id) == guild.owner_id {
         return RoLevel::Admin;
     }
 

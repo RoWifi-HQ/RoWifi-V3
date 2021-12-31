@@ -108,7 +108,7 @@ where
                     let _ = &ctx;
                     ctx.bot
                         .http
-                        .create_message(ctx.channel_id)
+                        .create_message(ctx.channel_id.0)
                         .embeds(&[embed])
                         .unwrap()
                         .exec()

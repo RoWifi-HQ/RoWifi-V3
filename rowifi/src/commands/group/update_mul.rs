@@ -156,7 +156,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
         let _ = c
             .bot
             .http
-            .create_message(channel_id)
+            .create_message(channel_id.0)
             .content("Finished updating all members")
             .unwrap()
             .exec()
@@ -323,7 +323,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
         let _ = c
             .bot
             .http
-            .create_message(channel_id)
+            .create_message(channel_id.0)
             .content("Finished updating all members")
             .unwrap()
             .exec()

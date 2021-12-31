@@ -6,6 +6,7 @@ use rowifi_models::{
     events::{EventLog, EventType},
     guild::GuildType,
     roblox::id::UserId as RobloxUserId,
+    id::UserId
 };
 
 #[derive(FromArgs)]
@@ -49,7 +50,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             let user = ctx
                 .bot
                 .database
-                .get_linked_user(ctx.author.id.get() as i64, guild_id)
+                .get_linked_user(UserId(ctx.author.id), guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id,
@@ -163,7 +164,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             let user = ctx
                 .bot
                 .database
-                .get_linked_user(ctx.author.id.get() as i64, guild_id)
+                .get_linked_user(UserId(ctx.author.id), guild_id)
                 .await?;
             match user {
                 Some(u) => u.roblox_id,

@@ -3,6 +3,7 @@ use rowifi_models::{
     discord::gateway::payload::outgoing::RequestGuildMembers,
     guild::GuildType,
     user::{RoUser, UserFlags},
+    id::UserId
 };
 use std::env;
 
@@ -38,7 +39,8 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
     }
 
     let server = ctx.bot.cache.guild(guild_id).unwrap();
-    if !(server.owner_id == ctx.author.id || ctx.bot.owners.contains(&ctx.author.id)) {
+    let author_id = UserId(ctx.author.id);
+    if !(server.owner_id == author_id || ctx.bot.owners.contains(&author_id)) {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)

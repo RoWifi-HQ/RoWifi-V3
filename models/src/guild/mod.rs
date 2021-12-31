@@ -3,7 +3,7 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, serialize_option_as_string, id::{GuildId, RoleId}};
+use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, id::{GuildId, RoleId, ChannelId, UserId}};
 
 pub use types::{BlacklistActionType, GuildType};
 
@@ -25,8 +25,7 @@ pub struct RoGuild {
     pub blacklists: Vec<Blacklist>,
 
     /// The list of channels where commands are disabled
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub disabled_channels: Vec<i64>,
+    pub disabled_channels: Vec<ChannelId>,
 
     /// The list of groups that the guild uses for analytics
     #[serde(serialize_with = "serialize_vec_as_string")]
@@ -36,8 +35,7 @@ pub struct RoGuild {
 
     pub kind: GuildType,
 
-    #[serde(serialize_with = "serialize_option_as_string")]
-    pub premium_owner: Option<i64>,
+    pub premium_owner: Option<UserId>,
 
     pub blacklist_action: BlacklistActionType,
 
@@ -51,8 +49,7 @@ pub struct RoGuild {
 
     pub nickname_bypass_roles: Vec<RoleId>,
 
-    #[serde(serialize_with = "serialize_option_as_string")]
-    pub log_channel: Option<i64>,
+    pub log_channel: Option<ChannelId>,
 }
 
 impl RoGuild {

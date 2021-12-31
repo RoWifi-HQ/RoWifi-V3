@@ -1,6 +1,6 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::UserId,
+    id::UserId,
     guild::GuildType,
     user::{RoUser, UserFlags},
 };
@@ -77,7 +77,7 @@ pub async fn premium_transfer(
         }
     };
 
-    if to_transfer_id == ctx.author.id {
+    if to_transfer_id.0 == ctx.author.id {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)

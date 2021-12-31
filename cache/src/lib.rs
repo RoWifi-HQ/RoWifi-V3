@@ -18,10 +18,9 @@ use rowifi_models::{
     discord::{
         channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
         guild::{Guild, Member, Permissions, Role},
-        id::{ChannelId, UserId},
         user::{CurrentUser, User},
     },
-    id::{GuildId, RoleId},
+    id::{GuildId, RoleId, ChannelId, UserId},
     stats::BotStats,
 };
 use std::{
@@ -246,7 +245,7 @@ impl Cache {
         for channel in channels {
             let id = channel.id();
             self.cache_guild_channel(guild, channel);
-            c.insert(id);
+            c.insert(ChannelId(id));
         }
         c
     }
@@ -256,11 +255,11 @@ impl Cache {
             if tc.name.eq_ignore_ascii_case(LOG_CHANNEL) {
                 if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
                     let mut guild = Arc::make_mut(&mut guild);
-                    guild.log_channel = Some(channel.id());
+                    guild.log_channel = Some(ChannelId(channel.id()));
                 }
             }
         }
-        let id = channel.id();
+        let id = ChannelId(channel.id());
         upsert_guild_item(&self.0.guild_channels, guild, id);
         upsert_item(&self.0.channels, id, channel)
     }
@@ -274,13 +273,13 @@ impl Cache {
         for member in members {
             let id = member.user.id;
             self.cache_member(guild, member);
-            m.insert(id);
+            m.insert(UserId(id));
         }
         m
     }
 
     pub fn cache_member(&self, guild: GuildId, member: Member) -> Arc<CachedMember> {
-        let key = (guild, member.user.id);
+        let key = (guild, UserId(member.user.id));
         match self.0.members.get(&key) {
             Some(m) if **m == member => return Arc::clone(&m),
             _ => {}
@@ -293,7 +292,7 @@ impl Cache {
             user,
             pending: member.pending,
         });
-        upsert_guild_item(&self.0.guild_members, guild, cached.user.id);
+        upsert_guild_item(&self.0.guild_members, guild, UserId(cached.user.id));
         self.0.members.insert(key, Arc::clone(&cached));
         cached
     }
@@ -352,9 +351,9 @@ impl Cache {
                 .iter()
                 .map(|r| (r.id, r.clone()))
                 .collect::<HashMap<RoleId, Arc<CachedRole>>>();
-            let member = self.member(guild_id, user.id).unwrap();
+            let member = self.member(guild_id, UserId(user.id)).unwrap();
             let new_permissions =
-                match guild_wide_permissions(&guild, &server_roles, user.id, &member.roles) {
+                match guild_wide_permissions(&guild, &server_roles, UserId(user.id), &member.roles) {
                     Ok(p) => p,
                     Err(why) => {
                         tracing::error!(guild = ?guild_id, reason = ?why);
@@ -375,11 +374,11 @@ impl Cache {
                         .iter()
                         .map(|r| (r.id, r.clone()))
                         .collect::<HashMap<RoleId, Arc<CachedRole>>>();
-                    let member = self.member(guild_id, user.id).unwrap();
+                    let member = self.member(guild_id, UserId(user.id)).unwrap();
                     let new_permissions = match channel_permissions(
                         &guild,
                         &server_roles,
-                        user.id,
+                        UserId(user.id),
                         &member.roles,
                         &channel,
                     ) {
@@ -419,7 +418,7 @@ impl Cache {
             .channels
             .iter()
             .find(|c| c.name().eq_ignore_ascii_case(LOG_CHANNEL))
-            .map(GuildChannel::id);
+            .map(|c| ChannelId(c.id()));
         let admin_role = guild
             .roles
             .iter()
@@ -442,7 +441,7 @@ impl Cache {
             joined_at: guild.joined_at,
             member_count: Arc::new(AtomicI64::new(0)),
             name: guild.name,
-            owner_id: guild.owner_id,
+            owner_id: UserId(guild.owner_id),
             permissions: guild.permissions,
             preferred_locale: guild.preferred_locale,
             unavailable: guild.unavailable,
@@ -458,21 +457,21 @@ impl Cache {
     }
 
     fn cache_user(&self, user: User) -> Arc<User> {
-        match self.0.users.get(&user.id) {
+        match self.0.users.get(&UserId(user.id)) {
             Some(u) if **u == user => return Arc::clone(&u),
             _ => {}
         }
 
         let user = Arc::new(user);
-        self.0.users.insert(user.id, Arc::clone(&user));
+        self.0.users.insert(UserId(user.id), Arc::clone(&user));
         user
     }
 
     fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
-        let channel = self.0.channels.remove(&tc.id()).map(|(_, c)| c)?;
+        let channel = self.0.channels.remove(&ChannelId(tc.id())).map(|(_, c)| c)?;
         let guild_id = GuildId(tc.guild_id().unwrap());
         if let Some(mut channels) = self.0.guild_channels.get_mut(&guild_id) {
-            channels.remove(&tc.id());
+            channels.remove(&ChannelId(tc.id()));
         }
         if channel.name().eq_ignore_ascii_case(LOG_CHANNEL) {
             if let Some(mut guild) = self.0.guilds.get_mut(&guild_id) {
@@ -574,7 +573,7 @@ pub fn channel_permissions(
                     roles_allow.insert(overwrite.allow);
                     roles_deny.insert(overwrite.deny);
                 }
-                PermissionOverwriteType::Member(user) if user == member_id => {
+                PermissionOverwriteType::Member(user) if UserId(user) == member_id => {
                     member_allow.insert(overwrite.allow);
                     member_deny.insert(overwrite.deny);
                 }

@@ -3,6 +3,7 @@ use rowifi_models::{
     blacklist::{Blacklist, BlacklistData},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
+    id::UserId,
 };
 use std::collections::HashMap;
 
@@ -34,7 +35,7 @@ pub async fn blacklist_custom(
     let user = match ctx
         .bot
         .database
-        .get_linked_user(ctx.author.id.get() as i64, guild_id)
+        .get_linked_user(UserId(ctx.author.id), guild_id)
         .await?
     {
         Some(u) => u,
@@ -51,7 +52,7 @@ pub async fn blacklist_custom(
         }
     };
     let user_id = RobloxUserId(user.roblox_id as u64);
-    let member = ctx.member(guild_id, ctx.author.id.0).await?.unwrap();
+    let member = ctx.member(guild_id, UserId(ctx.author.id)).await?.unwrap();
     let ranks = ctx
         .bot
         .roblox

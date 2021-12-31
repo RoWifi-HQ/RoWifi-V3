@@ -2,33 +2,33 @@ mod flags;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{FromRow, id::GuildId};
+use crate::{FromRow, id::{GuildId, UserId}};
 
 pub use flags::UserFlags;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct RoUser {
-    pub discord_id: i64,
+    pub discord_id: UserId,
     pub default_roblox_id: i64,
     pub alts: Vec<i64>,
     pub flags: UserFlags,
     pub patreon_id: Option<i64>,
     pub premium_servers: Vec<GuildId>,
-    pub transferred_from: Option<i64>,
-    pub transferred_to: Option<i64>,
+    pub transferred_from: Option<UserId>,
+    pub transferred_to: Option<UserId>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct RoGuildUser {
     pub guild_id: GuildId,
-    pub discord_id: i64,
+    pub discord_id: UserId,
     pub roblox_id: i64,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct QueueUser {
     pub roblox_id: i64,
-    pub discord_id: i64,
+    pub discord_id: UserId,
     pub verified: bool,
 }
 

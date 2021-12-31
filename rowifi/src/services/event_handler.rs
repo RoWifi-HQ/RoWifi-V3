@@ -7,9 +7,8 @@ use rowifi_models::{
     discord::{
         channel::GuildChannel,
         guild::Permissions,
-        id::{ChannelId},
     },
-    id::GuildId,
+    id::{GuildId, ChannelId, UserId},
     guild::{GuildType, RoGuild},
 };
 use std::{
@@ -76,7 +75,7 @@ impl Service<(u64, Event)> for EventHandler {
                         let mut channel = None;
                         for c in &guild.channels {
                             if let GuildChannel::Text(tc) = c {
-                                if let Some(permissions) = eh.bot.cache.channel_permissions(tc.id) {
+                                if let Some(permissions) = eh.bot.cache.channel_permissions(ChannelId(tc.id)) {
                                     if permissions.contains(Permissions::SEND_MESSAGES) {
                                         channel = Some(c);
                                         break;
@@ -153,7 +152,7 @@ impl Service<(u64, Event)> for EventHandler {
                         eh.bot.prefixes.insert(guild_id, guild.command_prefix);
                         for channel in guild.disabled_channels {
                             eh.bot.disabled_channels
-                                .insert(ChannelId::new(channel as u64).unwrap());
+                                .insert(channel);
                         }
 
                         if guild.kind != GuildType::Free {
@@ -164,7 +163,7 @@ impl Service<(u64, Event)> for EventHandler {
                         }
 
                         if let Some(log_channel) = guild.log_channel {
-                            eh.bot.log_channels.insert(guild_id, ChannelId::new(log_channel as u64).unwrap());
+                            eh.bot.log_channels.insert(guild_id, log_channel);
                         }
                     }
                 }
@@ -173,11 +172,12 @@ impl Service<(u64, Event)> for EventHandler {
                 }
                 Event::MemberAdd(m) => {
                     let guild_id = GuildId(m.guild_id);
+                    let user_id = UserId(m.user.id);
                     let server = match eh.bot.cache.guild(guild_id) {
                         Some(s) => s,
                         None => return Ok(()),
                     };
-                    let member = match eh.bot.cache.member(guild_id, m.user.id) {
+                    let member = match eh.bot.cache.member(guild_id, user_id) {
                         Some(m) => m,
                         None => return Ok(()),
                     };
@@ -185,12 +185,12 @@ impl Service<(u64, Event)> for EventHandler {
                     if !guild.update_on_join {
                         return Ok(());
                     }
-                    let user = match eh.bot.database.get_linked_user(m.user.id.get() as i64, guild_id).await? {
+                    let user = match eh.bot.database.get_linked_user(user_id, guild_id).await? {
                         Some(u) => u,
                         None => {
                             if let Some(verification_role) = guild.verification_roles.get(0) {
                                 if let Some(role) = eh.bot.cache.role(*verification_role) {
-                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id.0).exec().await?;
+                                    eh.bot.http.add_guild_member_role(m.guild_id, user_id.0, role.id.0).exec().await?;
                                 }
                             }
                             return Ok(());
