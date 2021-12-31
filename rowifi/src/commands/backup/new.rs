@@ -2,7 +2,6 @@ use rowifi_database::postgres::types::Json;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetbindBackup, Bind, BindBackup, CustombindBackup, GroupbindBackup, RankbindBackup},
-    discord::id::RoleId,
     guild::backup::{GuildBackup, GuildBackupData},
     user::{RoUser, UserFlags},
 };
@@ -67,12 +66,12 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     let verification_roles = guild
         .verification_roles
         .iter()
-        .filter_map(|r| roles.get(&RoleId::new(*r as u64).unwrap()).cloned())
+        .filter_map(|r| roles.get(r).cloned())
         .collect();
     let verified_roles = guild
         .verified_roles
         .iter()
-        .filter_map(|r| roles.get(&RoleId::new(*r as u64).unwrap()).cloned())
+        .filter_map(|r| roles.get(r).cloned())
         .collect();
     let binds = binds
         .into_iter()
@@ -80,7 +79,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
             let discord_roles = b
                 .discord_roles()
                 .iter()
-                .filter_map(|r| roles.get(&RoleId::new(*r as u64).unwrap()).cloned())
+                .filter_map(|r| roles.get(&r).cloned())
                 .collect();
 
             match b {

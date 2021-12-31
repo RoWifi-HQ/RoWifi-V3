@@ -4,8 +4,7 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetType, Assetbind, BindType, Groupbind, Rankbind, Template},
-    discord::id::{RoleId},
-    id::GuildId,
+    id::{GuildId, RoleId},
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
@@ -365,8 +364,8 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     let mut discord_roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(role_str) {
-            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
-                discord_roles.push(role_id as i64);
+            if server_roles.contains(&role_id) {
+                discord_roles.push(role_id);
             }
         }
     }
@@ -581,8 +580,8 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     let mut discord_roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(role_id) = parse_role(role_str) {
-            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
-                discord_roles.push(role_id as i64);
+            if server_roles.contains(&role_id) {
+                discord_roles.push(role_id);
             }
         }
     }
@@ -656,7 +655,7 @@ async fn bind_rank(
     rank_ids: Vec<&PartialRank>,
     template: Template,
     priority: i32,
-    discord_roles: Vec<i64>,
+    discord_roles: Vec<RoleId>,
 ) -> CommandResult {
     let mut added = Vec::new();
     let mut modified = Vec::new();

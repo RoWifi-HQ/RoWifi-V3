@@ -1,8 +1,7 @@
-use rowifi_models::discord::{
+use rowifi_models::{discord::{
     guild::{Member, PartialMember},
-    id::RoleId,
     user::User,
-};
+}, id::RoleId};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -15,12 +14,12 @@ pub struct CachedMember {
 
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
-        (&self.roles, &self.nick) == (&other.roles, &other.nick)
+        (&self.roles.iter().map(|r| r.0).collect(), &self.nick) == (&other.roles, &other.nick)
     }
 }
 
 impl PartialEq<&PartialMember> for CachedMember {
     fn eq(&self, other: &&PartialMember) -> bool {
-        (&self.nick, &self.roles) == (&other.nick, &other.roles)
+        (&self.nick, &self.roles.iter().map(|r| r.0).collect()) == (&other.nick, &other.roles)
     }
 }

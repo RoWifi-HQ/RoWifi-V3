@@ -1,4 +1,4 @@
-use twilight_model::id::RoleId;
+use crate::id::RoleId;
 
 use super::{
     parser::ParseError,
@@ -58,7 +58,7 @@ impl Expression {
                 }
                 TokenType::HasRole => {
                     if let Literal::Number(num) = &args[0] {
-                        let id = RoleId::new(*num as u64).unwrap();
+                        let id = RoleId::new(*num as u64);
                         let success = user.roles.contains(&id);
                         return Ok(Literal::Bool(success));
                     }

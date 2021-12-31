@@ -14,7 +14,7 @@ use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Serialize};
 
-use crate::{roblox::user::PartialUser as RobloxUser, user::RoGuildUser, FromRow};
+use crate::{roblox::user::PartialUser as RobloxUser, user::RoGuildUser, FromRow, id::RoleId};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -70,7 +70,7 @@ impl Bind {
     }
 
     #[must_use]
-    pub fn discord_roles(&self) -> &[i64] {
+    pub fn discord_roles(&self) -> &[RoleId] {
         match self {
             Bind::Rank(r) => &r.discord_roles,
             Bind::Group(g) => &g.discord_roles,

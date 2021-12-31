@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::discord::id::RoleId;
+use rowifi_models::id::RoleId;
 
 #[derive(FromArgs)]
 pub struct VerificationArguments {

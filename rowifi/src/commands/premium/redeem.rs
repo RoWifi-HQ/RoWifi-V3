@@ -1,6 +1,6 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::{gateway::payload::outgoing::RequestGuildMembers, id::RoleId},
+    discord::gateway::payload::outgoing::RequestGuildMembers,
     guild::GuildType,
     user::{RoUser, UserFlags},
 };
@@ -104,33 +104,25 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         guild_id,
         guild
             .admin_roles
-            .iter()
-            .map(|r| RoleId::new(*r as u64).unwrap())
-            .collect(),
+            .clone(),
     );
     ctx.bot.trainer_roles.insert(
         guild_id,
         guild
             .trainer_roles
-            .iter()
-            .map(|r| RoleId::new(*r as u64).unwrap())
-            .collect(),
+            .clone(),
     );
     ctx.bot.bypass_roles.insert(
         guild_id,
         guild
             .bypass_roles
-            .iter()
-            .map(|r| RoleId::new(*r as u64).unwrap())
-            .collect(),
+            .clone(),
     );
     ctx.bot.nickname_bypass_roles.insert(
         guild_id,
         guild
             .nickname_bypass_roles
-            .iter()
-            .map(|r| RoleId::new(*r as u64).unwrap())
-            .collect(),
+            .clone(),
     );
 
     let embed = EmbedBuilder::new()

@@ -1,7 +1,6 @@
 use rowifi_models::{discord::{
     guild::Permissions,
-    id::RoleId,
-}, id::GuildId};
+}, id::{GuildId, RoleId}};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct CachedRole {

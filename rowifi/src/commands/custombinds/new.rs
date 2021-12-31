@@ -3,8 +3,7 @@ use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Custombind, Template},
-    id::{GuildId},
-    discord::id::RoleId,
+    id::{GuildId, RoleId},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -277,10 +276,10 @@ pub async fn custombinds_new_common(
     let mut roles = Vec::new();
     for role_str in discord_roles_str.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            roles.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            roles.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role_str) {
-            if server_roles.contains(&RoleId::new(role_id).unwrap()) {
-                roles.push(role_id as i64);
+            if server_roles.contains(&role_id) {
+                roles.push(role_id);
             }
         }
     }

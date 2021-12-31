@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    discord::id::RoleId,
+    id::RoleId,
     guild::{GuildType, RoGuild},
 };
 
@@ -77,13 +77,13 @@ pub async fn bypass_add(
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
-            roles_to_add.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            roles_to_add.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
-                .any(|r| r.id == RoleId::new(role_id).unwrap())
+                .any(|r| r.id == role_id)
             {
-                roles_to_add.push(role_id as i64);
+                roles_to_add.push(role_id);
             }
         }
     }
@@ -91,7 +91,7 @@ pub async fn bypass_add(
 
     {
         let bypass_roles = ctx.bot.bypass_roles.entry(guild_id).or_default();
-        roles_to_add.retain(|r| !bypass_roles.contains(&RoleId::new(*r as u64).unwrap()));
+        roles_to_add.retain(|r| !bypass_roles.contains(r));
     }
 
     ctx.bot.database.execute("UPDATE guilds SET bypass_roles = array_cat(bypass_roles, $1::BIGINT[]) WHERE guild_id = $2", &[&roles_to_add, &guild.guild_id]).await?;
@@ -100,7 +100,7 @@ pub async fn bypass_add(
         .bypass_roles
         .entry(guild_id)
         .or_default()
-        .extend(roles_to_add.iter().map(|r| RoleId::new(*r as u64).unwrap()));
+        .extend(&roles_to_add);
 
     let mut description = "Added Bypass Roles:\n".to_string();
     for role in roles_to_add {
@@ -129,9 +129,9 @@ pub async fn bypass_remove(
     let mut role_ids = Vec::new();
     for r in discord_roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
-            role_ids.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            role_ids.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(r) = parse_role(r) {
-            role_ids.push(r as i64);
+            role_ids.push(r);
         }
     }
 
@@ -149,7 +149,7 @@ pub async fn bypass_remove(
         .bypass_roles
         .entry(guild_id)
         .or_default()
-        .retain(|r| !role_ids.contains(&(r.0.get() as i64)));
+        .retain(|r| !role_ids.contains(r));
 
     let mut description = "Removed Bypass Roles:\n".to_string();
     for role in role_ids {
@@ -180,13 +180,13 @@ pub async fn bypass_set(
     let mut roles_to_set = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
-            roles_to_set.extend(resolved.roles.iter().map(|r| r.0.get() as i64));
+            roles_to_set.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
             if server_roles
                 .iter()
-                .any(|r| r.id == RoleId::new(role_id).unwrap())
+                .any(|r| r.id == role_id)
             {
-                roles_to_set.push(role_id as i64);
+                roles_to_set.push(role_id);
             }
         }
     }
@@ -202,10 +202,7 @@ pub async fn bypass_set(
 
     ctx.bot.bypass_roles.insert(
         guild_id,
-        roles_to_set
-            .iter()
-            .map(|r| RoleId::new(*r as u64).unwrap())
-            .collect(),
+        roles_to_set.clone(),
     );
 
     let mut description = "Set Bypass Roles:\n".to_string();

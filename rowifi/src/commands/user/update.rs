@@ -4,8 +4,9 @@ use rowifi_models::{
     bind::Bind,
     discord::{
         channel::embed::Embed,
-        id::{RoleId, UserId},
+        id::{UserId},
     },
+    id::RoleId,
 };
 use std::error::Error;
 use twilight_http::error::{Error as DiscordHttpError, ErrorType as DiscordErrorType};

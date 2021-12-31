@@ -18,7 +18,7 @@ use rowifi_models::{
         },
         channel::{embed::Embed, ReactionType},
         gateway::event::Event,
-    },
+    }, id::RoleId,
 };
 use std::{
     cmp::{max, min},
@@ -535,7 +535,7 @@ pub fn parse_username(mention: impl AsRef<str>) -> Option<u64> {
     }
 }
 
-pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
+pub fn parse_role(mention: impl AsRef<str>) -> Option<RoleId> {
     let mention = mention.as_ref();
 
     if mention.len() < 4 {
@@ -544,9 +544,10 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<u64> {
 
     if mention.starts_with("<@&") && mention.ends_with('>') {
         let len = mention.len() - 1;
-        mention[3..len].parse::<u64>().ok()
+        let id = mention[3..len].parse::<u64>().ok();
+        id.map(|i| RoleId::new(i))
     } else if let Ok(r) = mention.parse::<u64>() {
-        Some(r)
+        Some(RoleId::new(r))
     } else {
         None
     }

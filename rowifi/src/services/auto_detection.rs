@@ -8,13 +8,13 @@ use rowifi_models::{
     bind::Bind,
     discord::{
         gateway::{event::Event, payload::outgoing::RequestGuildMembers},
-        id::{RoleId, UserId},
+        id::{UserId},
     },
     guild::{GuildType, RoGuild},
     roblox::id::UserId as RobloxUserId,
     user::RoGuildUser,
     FromRow,
-    id::GuildId,
+    id::{GuildId, RoleId},
 };
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};
@@ -161,7 +161,7 @@ pub async fn execute_chunk(
     auto_detection: bool,
     role_filter: Option<RoleId>,
     binds: &[Bind],
-    all_roles: &[&i64],
+    all_roles: &[&RoleId],
 ) -> Result<(), RoError> {
     let log = if auto_detection {
         "Auto Detection"

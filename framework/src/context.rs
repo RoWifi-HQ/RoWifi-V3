@@ -7,10 +7,10 @@ use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
         channel::embed::Embed,
-        id::{ChannelId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+        id::{ChannelId, InteractionId, MessageId, UserId, WebhookId},
         user::User,
     },
-    id::GuildId,
+    id::{GuildId, RoleId},
     stats::BotStats,
 };
 use std::{

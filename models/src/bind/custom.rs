@@ -6,7 +6,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 use super::Template;
 
-use crate::{rolang::RoCommand, FromRow, serialize_i64_as_string, serialize_vec_as_string};
+use crate::{rolang::RoCommand, FromRow, serialize_i64_as_string, id::RoleId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Custombind {
@@ -16,8 +16,7 @@ pub struct Custombind {
     /// The ID of the Custom Bind
     pub custom_bind_id: i32,
     /// The discord roles bound to the custombind
-    #[serde(serialize_with = "serialize_vec_as_string")]
-    pub discord_roles: Vec<i64>,
+    pub discord_roles: Vec<RoleId>,
     /// The code of the bind
     pub code: String,
     /// The number that decides whether this bind is chosen for the nickname

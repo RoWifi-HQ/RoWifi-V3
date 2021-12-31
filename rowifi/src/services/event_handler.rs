@@ -7,7 +7,7 @@ use rowifi_models::{
     discord::{
         channel::GuildChannel,
         guild::Permissions,
-        id::{ChannelId, RoleId},
+        id::{ChannelId},
     },
     id::GuildId,
     guild::{GuildType, RoGuild},
@@ -157,10 +157,10 @@ impl Service<(u64, Event)> for EventHandler {
                         }
 
                         if guild.kind != GuildType::Free {
-                            eh.bot.admin_roles.insert(guild_id, guild.admin_roles.into_iter().map(|a| RoleId::new(a as u64).unwrap()).collect());
-                            eh.bot.trainer_roles.insert(guild_id, guild.trainer_roles.into_iter().map(|t| RoleId::new(t as u64).unwrap()).collect());
-                            eh.bot.bypass_roles.insert(guild_id, guild.bypass_roles.into_iter().map(|b| RoleId::new(b as u64).unwrap()).collect());
-                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.nickname_bypass_roles.into_iter().map(|nb| RoleId::new(nb as u64).unwrap()).collect());
+                            eh.bot.admin_roles.insert(guild_id, guild.admin_roles);
+                            eh.bot.trainer_roles.insert(guild_id, guild.trainer_roles);
+                            eh.bot.bypass_roles.insert(guild_id, guild.bypass_roles);
+                            eh.bot.nickname_bypass_roles.insert(guild_id, guild.nickname_bypass_roles);
                         }
 
                         if let Some(log_channel) = guild.log_channel {
@@ -189,8 +189,8 @@ impl Service<(u64, Event)> for EventHandler {
                         Some(u) => u,
                         None => {
                             if let Some(verification_role) = guild.verification_roles.get(0) {
-                                if let Some(role) = eh.bot.cache.role(RoleId::new(*verification_role as u64).unwrap()) {
-                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id).exec().await?;
+                                if let Some(role) = eh.bot.cache.role(*verification_role) {
+                                    eh.bot.http.add_guild_member_role(m.guild_id, m.user.id, role.id.0).exec().await?;
                                 }
                             }
                             return Ok(());
