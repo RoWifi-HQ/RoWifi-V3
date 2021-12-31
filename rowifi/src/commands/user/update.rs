@@ -161,12 +161,7 @@ pub async fn update_func(
         return Ok(embed);
     }
 
-    let user = match ctx
-        .bot
-        .database
-        .get_linked_user(user_id, guild_id)
-        .await?
-    {
+    let user = match ctx.bot.database.get_linked_user(user_id, guild_id).await? {
         Some(u) => u,
         None => {
             let embed = EmbedBuilder::new()
@@ -184,10 +179,7 @@ pub async fn update_func(
     let binds = ctx
         .bot
         .database
-        .query::<Bind>(
-            "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id)],
-        )
+        .query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id)])
         .await?;
     let all_roles = binds
         .iter()

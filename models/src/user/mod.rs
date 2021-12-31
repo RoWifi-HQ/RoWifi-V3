@@ -2,7 +2,10 @@ mod flags;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{FromRow, id::{GuildId, UserId}};
+use crate::{
+    id::{GuildId, UserId},
+    FromRow,
+};
 
 pub use flags::UserFlags;
 

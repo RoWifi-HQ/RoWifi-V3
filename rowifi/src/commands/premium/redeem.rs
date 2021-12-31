@@ -2,8 +2,8 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     discord::gateway::payload::outgoing::RequestGuildMembers,
     guild::GuildType,
+    id::UserId,
     user::{RoUser, UserFlags},
-    id::UserId
 };
 use std::env;
 
@@ -88,44 +88,26 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         )
         .await?;
 
-    if !premium_user
-        .premium_servers
-        .contains(&(guild_id))
-    {
+    if !premium_user.premium_servers.contains(&(guild_id)) {
         let user_change = transaction.prepare_cached("UPDATE users SET premium_servers = array_append(premium_servers, $1) WHERE discord_id = $2").await?;
         transaction
-            .execute(
-                &user_change,
-                &[&(guild_id), &(ctx.author.id.get() as i64)],
-            )
+            .execute(&user_change, &[&(guild_id), &(ctx.author.id.get() as i64)])
             .await?;
     }
     transaction.commit().await?;
 
-    ctx.bot.admin_roles.insert(
-        guild_id,
-        guild
-            .admin_roles
-            .clone(),
-    );
-    ctx.bot.trainer_roles.insert(
-        guild_id,
-        guild
-            .trainer_roles
-            .clone(),
-    );
-    ctx.bot.bypass_roles.insert(
-        guild_id,
-        guild
-            .bypass_roles
-            .clone(),
-    );
-    ctx.bot.nickname_bypass_roles.insert(
-        guild_id,
-        guild
-            .nickname_bypass_roles
-            .clone(),
-    );
+    ctx.bot
+        .admin_roles
+        .insert(guild_id, guild.admin_roles.clone());
+    ctx.bot
+        .trainer_roles
+        .insert(guild_id, guild.trainer_roles.clone());
+    ctx.bot
+        .bypass_roles
+        .insert(guild_id, guild.bypass_roles.clone());
+    ctx.bot
+        .nickname_bypass_roles
+        .insert(guild_id, guild.nickname_bypass_roles.clone());
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -165,10 +147,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         }
     };
 
-    if !premium_user
-        .premium_servers
-        .contains(&(guild_id))
-    {
+    if !premium_user.premium_servers.contains(&(guild_id)) {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Premium Disable Failed")
             .description("This server either does not have premium enabled or the premium is owned by an another member")

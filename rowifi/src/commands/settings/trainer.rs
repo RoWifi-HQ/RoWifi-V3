@@ -1,8 +1,8 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    id::RoleId,
     guild::{GuildType, RoGuild},
+    id::RoleId,
 };
 
 use super::FunctionOption;
@@ -83,10 +83,7 @@ pub async fn trainer_add(
         if let Some(resolved) = &ctx.resolved {
             roles_to_add.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
-            if server_roles
-                .iter()
-                .any(|r| r.id == role_id)
-            {
+            if server_roles.iter().any(|r| r.id == role_id) {
                 roles_to_add.push(role_id);
             }
         }
@@ -185,10 +182,7 @@ pub async fn trainer_set(
         if let Some(resolved) = &ctx.resolved {
             roles_to_set.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(role_id) = parse_role(role) {
-            if server_roles
-                .iter()
-                .any(|r| r.id == role_id)
-            {
+            if server_roles.iter().any(|r| r.id == role_id) {
                 roles_to_set.push(role_id);
             }
         }
@@ -203,10 +197,7 @@ pub async fn trainer_set(
         )
         .await?;
 
-    ctx.bot.trainer_roles.insert(
-        guild_id,
-        roles_to_set.clone(),
-    );
+    ctx.bot.trainer_roles.insert(guild_id, roles_to_set.clone());
 
     let mut description = "Set Trainer Roles:\n".to_string();
     for role in roles_to_set {

@@ -87,7 +87,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     let event_type = EventType {
         event_type_id: 0,
         event_type_guild_id: event_id,
-        guild_id: guild_id,
+        guild_id,
         name: event_name.to_string(),
         disabled: false,
     };

@@ -46,9 +46,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
     let events_change = transaction
         .prepare_cached("DELETE FROM events WHERE guild_id = $1")
         .await?;
-    transaction
-        .execute(&events_change, &[&(guild_id)])
-        .await?;
+    transaction.execute(&events_change, &[&(guild_id)]).await?;
 
     transaction.commit().await?;
 

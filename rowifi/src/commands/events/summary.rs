@@ -33,10 +33,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
     let events = ctx
         .bot
         .database
-        .query::<EventLog>(
-            "SELECT * FROM events WHERE guild_id = $1",
-            &[&(guild_id)],
-        )
+        .query::<EventLog>("SELECT * FROM events WHERE guild_id = $1", &[&(guild_id)])
         .await?;
 
     let mut embed = EmbedBuilder::new().default_data().title("Events Summary");

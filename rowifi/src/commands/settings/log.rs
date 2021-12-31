@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{id::ChannelId, guild::GuildType};
+use rowifi_models::{guild::GuildType, id::ChannelId};
 
 #[derive(FromArgs)]
 pub struct LogChannelArguments {

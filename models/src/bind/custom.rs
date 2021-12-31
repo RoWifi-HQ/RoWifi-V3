@@ -6,7 +6,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 use super::Template;
 
-use crate::{rolang::RoCommand, FromRow, serialize_i64_as_string, id::RoleId};
+use crate::{id::RoleId, rolang::RoCommand, serialize_i64_as_string, FromRow};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Custombind {

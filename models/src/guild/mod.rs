@@ -3,7 +3,11 @@ mod types;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{blacklist::Blacklist, FromRow, serialize_vec_as_string, id::{GuildId, RoleId, ChannelId, UserId}};
+use crate::{
+    blacklist::Blacklist,
+    id::{ChannelId, GuildId, RoleId, UserId},
+    serialize_vec_as_string, FromRow,
+};
 
 pub use types::{BlacklistActionType, GuildType};
 

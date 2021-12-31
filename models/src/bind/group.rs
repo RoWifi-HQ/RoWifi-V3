@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::Template;
 
-use crate::{FromRow, serialize_i64_as_string, id::RoleId};
+use crate::{id::RoleId, serialize_i64_as_string, FromRow};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Groupbind {

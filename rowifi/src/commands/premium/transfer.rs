@@ -1,7 +1,7 @@
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    id::UserId,
     guild::GuildType,
+    id::UserId,
     user::{RoUser, UserFlags},
 };
 

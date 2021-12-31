@@ -1,15 +1,19 @@
-use rowifi_models::{discord::{
-    application::interaction::Interaction,
-    channel::Channel,
-    gateway::{
-        event::Event,
-        payload::incoming::{
-            ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
-            InteractionCreate, MemberAdd, MemberChunk, MemberRemove, MemberUpdate, MessageCreate,
-            Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild, UserUpdate,
+use rowifi_models::{
+    discord::{
+        application::interaction::Interaction,
+        channel::Channel,
+        gateway::{
+            event::Event,
+            payload::incoming::{
+                ChannelCreate, ChannelDelete, ChannelUpdate, GuildCreate, GuildDelete, GuildUpdate,
+                InteractionCreate, MemberAdd, MemberChunk, MemberRemove, MemberUpdate,
+                MessageCreate, Ready, RoleCreate, RoleDelete, RoleUpdate, UnavailableGuild,
+                UserUpdate,
+            },
         },
     },
-}, id::{GuildId, RoleId, UserId, ChannelId}};
+    id::{ChannelId, GuildId, RoleId, UserId},
+};
 use std::{
     ops::Deref,
     sync::{atomic::Ordering, Arc},
@@ -223,7 +227,7 @@ impl UpdateCache for MemberChunk {
 impl UpdateCache for MemberRemove {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {            
         let guild_id = GuildId(self.guild_id);
-        let user_id  = UserId(self.user.id);
+        let user_id = UserId(self.user.id);
         c.0.members.remove(&(guild_id, user_id));
         if let Some(mut members) = c.0.guild_members.get_mut(&guild_id) {
             if let Some(guild) = c.guild(guild_id) {

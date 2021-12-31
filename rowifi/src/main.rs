@@ -35,8 +35,8 @@ use rowifi_database::Database;
 use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
-    stats::BotStats,
     id::UserId,
+    stats::BotStats,
 };
 use services::EventHandler;
 use std::{

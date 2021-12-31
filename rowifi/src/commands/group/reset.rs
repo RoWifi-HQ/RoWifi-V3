@@ -44,9 +44,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
     let delete_binds = transaction
         .prepare_cached("DELETE FROM binds WHERE guild_id = $1")
         .await?;
-    transaction
-        .execute(&delete_binds, &[&(guild_id)])
-        .await?;
+    transaction.execute(&delete_binds, &[&(guild_id)]).await?;
     transaction.commit().await?;
 
     ctx.bot.admin_roles.remove(&guild_id);

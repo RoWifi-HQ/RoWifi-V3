@@ -1,8 +1,14 @@
-use postgres_types::{ToSql, Type, IsNull, to_sql_checked, FromSql};
-use std::{error::Error as StdError, fmt::{Display, Formatter, Result as FmtResult}};
 use bytes::BytesMut;
+use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Serialize};
-use twilight_model::id::{GuildId as DiscordGuildId, UserId as DiscordUserId, RoleId as DiscordRoleId, ChannelId as DiscordChannelId};
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+use twilight_model::id::{
+    ChannelId as DiscordChannelId, GuildId as DiscordGuildId, RoleId as DiscordRoleId,
+    UserId as DiscordUserId,
+};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct GuildId(pub DiscordGuildId);
@@ -81,7 +87,11 @@ impl Display for ChannelId {
 }
 
 impl ToSql for GuildId {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
         i64::to_sql(&(self.get() as i64), ty, out)
     }
 
@@ -93,7 +103,11 @@ impl ToSql for GuildId {
 }
 
 impl ToSql for UserId {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
         i64::to_sql(&(self.get() as i64), ty, out)
     }
 
@@ -105,7 +119,11 @@ impl ToSql for UserId {
 }
 
 impl ToSql for RoleId {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
         i64::to_sql(&(self.get() as i64), ty, out)
     }
 
@@ -117,7 +135,11 @@ impl ToSql for RoleId {
 }
 
 impl ToSql for ChannelId {
-    fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
         i64::to_sql(&(self.get() as i64), ty, out)
     }
 

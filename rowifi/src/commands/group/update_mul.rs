@@ -2,11 +2,8 @@ use itertools::Itertools;
 use rowifi_database::dynamic_args_with_start;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
-    bind::Bind,
-    discord::{gateway::payload::outgoing::RequestGuildMembers},
-    guild::GuildType,
-    id::RoleId,
-    roblox::id::UserId as RobloxUserId,
+    bind::Bind, discord::gateway::payload::outgoing::RequestGuildMembers, guild::GuildType,
+    id::RoleId, roblox::id::UserId as RobloxUserId,
 };
 use std::{env, sync::atomic::Ordering};
 use tokio::time::sleep;
@@ -106,10 +103,7 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
     let binds = ctx
         .bot
         .database
-        .query::<Bind>(
-            "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id)],
-        )
+        .query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id)])
         .await?;
 
     let guild_roles = ctx.bot.cache.roles(guild_id);
@@ -274,10 +268,7 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
     let binds = ctx
         .bot
         .database
-        .query::<Bind>(
-            "SELECT * FROM binds WHERE guild_id = $1",
-            &[&(guild_id)],
-        )
+        .query::<Bind>("SELECT * FROM binds WHERE guild_id = $1", &[&(guild_id)])
         .await?;
     let guild_roles = ctx.bot.cache.roles(guild_id);
     let c = ctx.clone();

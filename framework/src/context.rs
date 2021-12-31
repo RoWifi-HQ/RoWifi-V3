@@ -10,7 +10,7 @@ use rowifi_models::{
         id::{InteractionId, MessageId, WebhookId},
         user::User,
     },
-    id::{GuildId, RoleId, ChannelId, UserId},
+    id::{ChannelId, GuildId, RoleId, UserId},
     stats::BotStats,
 };
 use std::{
@@ -188,7 +188,12 @@ impl CommandContext {
         if let Some(member) = self.bot.cache.member(guild_id, user_id) {
             return Ok(Some(member));
         }
-        let res = self.bot.http.guild_member(guild_id.0, user_id.0).exec().await;
+        let res = self
+            .bot
+            .http
+            .guild_member(guild_id.0, user_id.0)
+            .exec()
+            .await;
         match res {
             Err(e) => {
                 if let DiscordErrorType::Response {
