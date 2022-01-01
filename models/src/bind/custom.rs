@@ -6,13 +6,16 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 use super::Template;
 
-use crate::{id::RoleId, rolang::RoCommand, serialize_i64_as_string, FromRow};
+use crate::{
+    id::{BindId, RoleId},
+    rolang::RoCommand,
+    FromRow,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Custombind {
     /// The global id of the bind
-    #[serde(serialize_with = "serialize_i64_as_string")]
-    pub bind_id: i64,
+    pub bind_id: BindId,
     /// The ID of the Custom Bind
     pub custom_bind_id: i32,
     /// The discord roles bound to the custombind

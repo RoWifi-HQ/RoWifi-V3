@@ -4,7 +4,7 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Rankbind, Template},
-    id::RoleId,
+    id::{BindId, RoleId},
     roblox::id::GroupId,
 };
 
@@ -164,7 +164,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         let rank_id = i64::from(roblox_rank.rank);
         let bind = Rankbind {
             // Don't care about the bind id here. The struct is only constructed to validate that all bind fields are being collected.
-            bind_id: 0,
+            bind_id: BindId::default(),
             group_id,
             group_rank_id: rank_id,
             roblox_rank_id: roblox_rank.id.0 as i64,

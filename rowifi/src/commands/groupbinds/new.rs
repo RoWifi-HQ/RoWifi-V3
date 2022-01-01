@@ -3,7 +3,7 @@ use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Groupbind, Template},
-    id::RoleId,
+    id::{BindId, RoleId},
 };
 
 #[derive(FromArgs)]
@@ -75,9 +75,9 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
     }
 
     let bind = Groupbind {
-        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // default is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
         // collected all fields.
-        bind_id: 0,
+        bind_id: BindId::default(),
         group_id,
         discord_roles: roles.into_iter().unique().collect::<Vec<_>>(),
         priority,

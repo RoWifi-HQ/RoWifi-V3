@@ -4,7 +4,7 @@ use regex::Regex;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetType, Assetbind, BindType, Groupbind, Rankbind, Template},
-    id::{GuildId, RoleId},
+    id::{BindId, GuildId, RoleId},
     roblox::{group::PartialRank, id::GroupId},
 };
 use std::str::FromStr;
@@ -371,9 +371,9 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     }
 
     let bind = Assetbind {
-        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // default is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
         // collected all fields.
-        bind_id: 0,
+        bind_id: BindId::default(),
         asset_id,
         asset_type,
         discord_roles: discord_roles.into_iter().unique().collect::<Vec<_>>(),
@@ -603,9 +603,9 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
     }
 
     let bind = Groupbind {
-        // 0 is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
+        // default is entered here since this field is not used in the insertion. The struct is only constructed to ensure we have
         // collected all fields.
-        bind_id: 0,
+        bind_id: BindId::default(),
         group_id,
         discord_roles: discord_roles.into_iter().unique().collect::<Vec<_>>(),
         priority,
@@ -684,7 +684,7 @@ async fn bind_rank(
 
         let rank_id = i64::from(group_rank.rank);
         let bind = Rankbind {
-            bind_id: 0,
+            bind_id: BindId::default(),
             group_id,
             group_rank_id: rank_id,
             roblox_rank_id: group_rank.id.0 as i64,
