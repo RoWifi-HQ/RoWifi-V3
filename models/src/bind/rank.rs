@@ -1,14 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{id::RoleId, serialize_i64_as_string, FromRow};
+use crate::{
+    id::{BindId, RoleId},
+    serialize_i64_as_string, FromRow,
+};
 
 use super::template::Template;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Rankbind {
     /// The global id of the bind
-    #[serde(serialize_with = "serialize_i64_as_string")]
-    pub bind_id: i64,
+    pub bind_id: BindId,
     /// The Id of the Group
     #[serde(serialize_with = "serialize_i64_as_string")]
     pub group_id: i64,

@@ -3,7 +3,7 @@ use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{BindType, Custombind, Template},
-    id::{GuildId, RoleId, UserId},
+    id::{BindId, GuildId, RoleId, UserId},
     roblox::id::UserId as RobloxUserId,
     rolang::{RoCommand, RoCommandUser},
 };
@@ -285,9 +285,9 @@ pub async fn custombinds_new_common(
     }
 
     let bind = Custombind {
-        // 0 is used here since this field is not used in inserting the bind. The struct is only created for thr purpose
+        // default is entered here since this field is not used in inserting the bind. The struct is only created for thr purpose
         // of ensuring all fields are collected.
-        bind_id: 0,
+        bind_id: BindId::default(),
         custom_bind_id: 0,
         code: args.code.clone(),
         priority,

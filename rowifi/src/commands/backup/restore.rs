@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{Assetbind, Bind, BindBackup, BindType, Custombind, Groupbind, Rankbind},
     guild::{backup::GuildBackup, GuildType, RoGuild},
-    id::RoleId,
+    id::{BindId, RoleId},
     rolang::RoCommand,
     user::{RoUser, UserFlags},
 };
@@ -136,7 +136,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
 
             match b {
                 BindBackup::Rank(r) => Bind::Rank(Rankbind {
-                    bind_id: 0,
+                    bind_id: BindId::default(),
                     group_id: r.group_id,
                     group_rank_id: r.group_rank_id,
                     roblox_rank_id: r.roblox_rank_id,
@@ -145,14 +145,14 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                     priority: r.priority,
                 }),
                 BindBackup::Group(g) => Bind::Group(Groupbind {
-                    bind_id: 0,
+                    bind_id: BindId::default(),
                     group_id: g.group_id,
                     discord_roles,
                     template: g.template,
                     priority: g.priority,
                 }),
                 BindBackup::Custom(c) => Bind::Custom(Custombind {
-                    bind_id: 0,
+                    bind_id: BindId::default(),
                     custom_bind_id: c.custom_bind_id,
                     code: c.code.clone(),
                     command: RoCommand::new(&c.code).unwrap(),
@@ -161,7 +161,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                     priority: c.priority,
                 }),
                 BindBackup::Asset(a) => Bind::Asset(Assetbind {
-                    bind_id: 0,
+                    bind_id: BindId::default(),
                     asset_id: a.asset_id,
                     asset_type: a.asset_type,
                     discord_roles,
