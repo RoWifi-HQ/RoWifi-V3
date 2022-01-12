@@ -302,7 +302,7 @@ pub async fn custombinds_new_common(
         RETURNING custom_bind_id, bind_id"#,
      &[&BindType::Custom, &(guild_id), &bind.discord_roles, &bind.code, &bind.priority, &bind.template]
     ).await?;
-    let bind_id: i64 = row.get("bind_id");
+    let bind_id: BindId = row.get("bind_id");
 
     let name = format!("Id: {}", row.get::<'_, _, i32>("custom_bind_id"));
     let roles_str = bind

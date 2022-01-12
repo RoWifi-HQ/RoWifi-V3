@@ -1,6 +1,7 @@
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::rolang::{RoCommand, RoCommandUser};
@@ -19,7 +20,7 @@ pub enum BlacklistData {
     Custom(RoCommand),
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Ord, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 #[non_exhaustive]
 pub enum BlacklistType {
