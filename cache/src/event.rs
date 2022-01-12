@@ -204,8 +204,8 @@ impl UpdateCache for InteractionCreate {
 impl UpdateCache for MemberAdd {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let guild_id = GuildId(self.guild_id);
-        c.cache_member(self.guild_id, self.0.clone());
-        if let Some(guild) = c.guild(self.guild_id) {
+        c.cache_member(guild_id, self.0.clone());
+        if let Some(guild) = c.guild(guild_id) {
             guild.member_count.fetch_add(1, Ordering::SeqCst);
             c.0.stats.resource_counts.users.inc();
         }
