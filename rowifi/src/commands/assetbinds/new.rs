@@ -95,7 +95,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
         "INSERT INTO binds(bind_type, guild_id, asset_id, asset_type, discord_roles, priority, template) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING bind_id",
         &[&BindType::Asset, &(guild_id), &bind.asset_id, &bind.asset_type, &bind.discord_roles, &bind.priority, &bind.template]
     ).await?;
-    let bind_id: i64 = row.get("bind_id");
+    let bind_id: BindId = row.get("bind_id");
 
     let name = format!("Id: {}", asset_id);
     let value = format!(
