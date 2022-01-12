@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     events::{EventLog, EventType},
     guild::GuildType,
-    id::UserId,
+    id::{UserId, EventId},
 };
 use std::time::Duration;
 
@@ -230,7 +230,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
     };
 
     let new_event = EventLog {
-        event_id: 0,
+        event_id: EventId::default(),
         guild_id,
         event_type: event_type.event_type_guild_id,
         guild_event_id: 0,
