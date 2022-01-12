@@ -28,6 +28,21 @@ pub struct ChannelId(pub DiscordChannelId);
 )]
 pub struct BindId(pub Uuid);
 
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct BackupId(pub Uuid);
+
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct EventId(pub Uuid);
+
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct EventTypeId(pub Uuid);
+
 impl GuildId {
     pub fn new(n: u64) -> Self {
         Self(DiscordGuildId::new(n).unwrap())
@@ -93,6 +108,24 @@ impl Display for ChannelId {
 }
 
 impl Display for BindId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl Display for BackupId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl Display for EventId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl Display for EventTypeId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
     }
@@ -178,6 +211,54 @@ impl ToSql for BindId {
     to_sql_checked!();
 }
 
+impl ToSql for BackupId {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+        Uuid::to_sql(&self.0, ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl ToSql for EventId {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+        Uuid::to_sql(&self.0, ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
+impl ToSql for EventTypeId {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn StdError + Sync + Send>> {
+        Uuid::to_sql(&self.0, ty, out)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as ToSql>::accepts(ty)
+    }
+
+    to_sql_checked!();
+}
+
 impl<'a> FromSql<'a> for GuildId {
     fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
         let id = i64::from_sql(ty, raw)?;
@@ -223,6 +304,39 @@ impl<'a> FromSql<'a> for ChannelId {
 }
 
 impl<'a> FromSql<'a> for BindId {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
+        let id = Uuid::from_sql(ty, raw)?;
+        Ok(Self(id))
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as FromSql>::accepts(ty)
+    }
+}
+
+impl<'a> FromSql<'a> for BackupId {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
+        let id = Uuid::from_sql(ty, raw)?;
+        Ok(Self(id))
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as FromSql>::accepts(ty)
+    }
+}
+
+impl<'a> FromSql<'a> for EventId {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
+        let id = Uuid::from_sql(ty, raw)?;
+        Ok(Self(id))
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        <Uuid as FromSql>::accepts(ty)
+    }
+}
+
+impl<'a> FromSql<'a> for EventTypeId {
     fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn StdError + Sync + Send>> {
         let id = Uuid::from_sql(ty, raw)?;
         Ok(Self(id))

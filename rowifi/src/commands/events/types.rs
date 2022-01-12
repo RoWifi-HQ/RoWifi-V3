@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::{events::EventType, guild::GuildType};
+use rowifi_models::{events::EventType, guild::GuildType, id::EventTypeId};
 
 pub async fn event_type(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
@@ -85,7 +85,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
     }
 
     let event_type = EventType {
-        event_type_id: 0,
+        event_type_id: EventTypeId::default(),
         event_type_guild_id: event_id,
         guild_id,
         name: event_name.to_string(),
@@ -163,7 +163,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         )
         .await?;
 
-    let name = format!("Event Type Id: {}", event.event_type_id);
+    let name = format!("Event Type Id: {}", event.event_type_guild_id);
     let desc = format!("Name: {} -> {}", &event.name, event_name);
     let embed = EmbedBuilder::new()
         .default_data()

@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{id::GuildId, FromRow};
+use crate::{id::{GuildId, EventId, EventTypeId}, FromRow};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct EventLog {
-    pub event_id: i64,
+    pub event_id: EventId,
     pub guild_id: GuildId,
     pub event_type: i32,
     pub guild_event_id: i64,
@@ -17,7 +17,7 @@ pub struct EventLog {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct EventType {
-    pub event_type_id: i64,
+    pub event_type_id: EventTypeId,
     pub event_type_guild_id: i32,
     pub guild_id: GuildId,
     pub name: String,
