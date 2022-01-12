@@ -103,7 +103,7 @@ pub async fn blacklist_group(ctx: CommandContext, args: BlacklistGroupArguments)
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

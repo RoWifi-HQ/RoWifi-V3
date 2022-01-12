@@ -122,7 +122,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

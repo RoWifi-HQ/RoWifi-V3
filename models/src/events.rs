@@ -1,7 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{id::{GuildId, EventId, EventTypeId}, FromRow};
+use crate::{
+    id::{EventId, EventTypeId, GuildId},
+    FromRow,
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct EventLog {

@@ -128,7 +128,7 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

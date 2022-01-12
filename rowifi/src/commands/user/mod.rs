@@ -87,7 +87,7 @@ pub async fn handle_update_button(
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(keep_components),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

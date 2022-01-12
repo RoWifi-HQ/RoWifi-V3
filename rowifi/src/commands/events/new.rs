@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     events::{EventLog, EventType},
     guild::GuildType,
-    id::{UserId, EventId},
+    id::{EventId, UserId},
 };
 use std::time::Duration;
 
@@ -138,7 +138,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                                 components: Some(vec![Component::ActionRow(ActionRow {
                                     components: vec![Component::SelectMenu(select_menu.clone())],
                                 })]),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

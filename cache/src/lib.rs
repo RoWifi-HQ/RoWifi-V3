@@ -99,23 +99,21 @@ pub struct CacheError;
 impl Cache {
     #[must_use]
     pub fn new(stats: Arc<BotStats>) -> Self {
-        Self {
-            0: Arc::new(CacheRef {
-                channels: DashMap::new(),
-                guilds: DashMap::new(),
-                members: DashMap::new(),
-                roles: DashMap::new(),
-                users: DashMap::new(),
-                guild_roles: DashMap::new(),
-                guild_channels: DashMap::new(),
-                guild_members: DashMap::new(),
-                unavailable_guilds: DashSet::new(),
-                current_user: Mutex::new(None),
-                guild_permissions: DashMap::new(),
-                channel_permissions: DashMap::new(),
-                stats,
-            }),
-        }
+        Self(Arc::new(CacheRef {
+            channels: DashMap::new(),
+            guilds: DashMap::new(),
+            members: DashMap::new(),
+            roles: DashMap::new(),
+            users: DashMap::new(),
+            guild_roles: DashMap::new(),
+            guild_channels: DashMap::new(),
+            guild_members: DashMap::new(),
+            unavailable_guilds: DashSet::new(),
+            current_user: Mutex::new(None),
+            guild_permissions: DashMap::new(),
+            channel_permissions: DashMap::new(),
+            stats,
+        }))
     }
 
     /// Returns the bot user
@@ -287,7 +285,7 @@ impl Cache {
 
         let user = self.cache_user(member.user);
         let cached = Arc::new(CachedMember {
-            roles: member.roles.into_iter().map(|r| RoleId(r)).collect(),
+            roles: member.roles.into_iter().map(RoleId).collect(),
             nick: member.nick,
             user,
             pending: member.pending,

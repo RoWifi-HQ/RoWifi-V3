@@ -37,13 +37,11 @@ pub struct EventHandler(Arc<EventHandlerRef>);
 
 impl EventHandler {
     pub fn new(bot: &BotContext) -> Self {
-        Self {
-            0: Arc::new(EventHandlerRef {
-                bot: bot.clone(),
-                unavailable: DashSet::new(),
-                auto_detection_started: AtomicBool::new(false),
-            }),
-        }
+        Self(Arc::new(EventHandlerRef {
+            bot: bot.clone(),
+            unavailable: DashSet::new(),
+            auto_detection_started: AtomicBool::new(false),
+        }))
     }
 }
 

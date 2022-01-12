@@ -375,7 +375,7 @@ pub async fn custombinds_new_common(
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: Some(Vec::new()),
                                 flags: None,
                                 tts: None,
                             }),

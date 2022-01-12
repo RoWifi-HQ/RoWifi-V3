@@ -44,40 +44,48 @@ pub struct EventId(pub Uuid);
 pub struct EventTypeId(pub Uuid);
 
 impl GuildId {
+    #[must_use]
     pub fn new(n: u64) -> Self {
         Self(DiscordGuildId::new(n).unwrap())
     }
 
+    #[must_use]
     pub const fn get(self) -> u64 {
         self.0.get()
     }
 }
 
 impl UserId {
+    #[must_use]
     pub fn new(n: u64) -> Self {
         Self(DiscordUserId::new(n).unwrap())
     }
 
+    #[must_use]
     pub const fn get(self) -> u64 {
         self.0.get()
     }
 }
 
 impl RoleId {
+    #[must_use]
     pub fn new(n: u64) -> Self {
         Self(DiscordRoleId::new(n).unwrap())
     }
 
+    #[must_use]
     pub const fn get(self) -> u64 {
         self.0.get()
     }
 }
 
 impl ChannelId {
+    #[must_use]
     pub fn new(n: u64) -> Self {
         Self(DiscordChannelId::new(n).unwrap())
     }
 
+    #[must_use]
     pub const fn get(self) -> u64 {
         self.0.get()
     }

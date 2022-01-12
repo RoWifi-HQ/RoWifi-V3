@@ -225,7 +225,7 @@ impl UpdateCache for MemberChunk {
 }
 
 impl UpdateCache for MemberRemove {
-    fn update(&self, c: &Cache) -> Result<(), CacheError> {            
+    fn update(&self, c: &Cache) -> Result<(), CacheError> {
         let guild_id = GuildId(self.guild_id);
         let user_id = UserId(self.user.id);
         c.0.members.remove(&(guild_id, user_id));

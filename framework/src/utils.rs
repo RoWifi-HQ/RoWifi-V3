@@ -107,7 +107,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),
@@ -221,7 +221,7 @@ pub async fn await_template_reply(
                                 components: Some(vec![Component::ActionRow(ActionRow {
                                     components: vec![Component::SelectMenu(select_menu.clone())],
                                 })]),
-                                embeds: Vec::new(),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),
@@ -331,7 +331,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Vec::new(),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),
@@ -482,7 +482,7 @@ pub async fn paginate_embed(
                                     allowed_mentions: None,
                                     content: None,
                                     components: None,
-                                    embeds: vec![pages[page_pointer].clone()],
+                                    embeds: Some(vec![pages[page_pointer].clone()]),
                                     flags: None,
                                     tts: None,
                                 }),
@@ -526,11 +526,11 @@ pub fn parse_username(mention: impl AsRef<str>) -> Option<UserId> {
     if mention.starts_with("<@!") {
         let len = mention.len() - 1;
         let id = mention[3..len].parse::<u64>().ok();
-        id.map(|i| UserId::new(i))
+        id.map(UserId::new)
     } else if mention.starts_with("<@") {
         let len = mention.len() - 1;
         let id = mention[2..len].parse::<u64>().ok();
-        id.map(|i| UserId::new(i))
+        id.map(UserId::new)
     } else if let Ok(r) = mention.parse::<u64>() {
         Some(UserId::new(r))
     } else {
@@ -548,7 +548,7 @@ pub fn parse_role(mention: impl AsRef<str>) -> Option<RoleId> {
     if mention.starts_with("<@&") && mention.ends_with('>') {
         let len = mention.len() - 1;
         let id = mention[3..len].parse::<u64>().ok();
-        id.map(|i| RoleId::new(i))
+        id.map(RoleId::new)
     } else if let Ok(r) = mention.parse::<u64>() {
         Some(RoleId::new(r))
     } else {
@@ -566,7 +566,7 @@ pub fn parse_channel(mention: impl AsRef<str>) -> Option<ChannelId> {
     if mention.starts_with("<#") && mention.ends_with('>') {
         let len = mention.len() - 1;
         let id = mention[2..len].parse::<u64>().ok();
-        id.map(|i| ChannelId::new(i))
+        id.map(ChannelId::new)
     } else if let Ok(r) = mention.parse::<u64>() {
         Some(ChannelId::new(r))
     } else {

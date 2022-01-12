@@ -90,6 +90,7 @@ impl<'a> Responder<'a> {
         Ok(self)
     }
 
+    #[must_use]
     pub fn files(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
         if let Some(interaction) = self.interaction {
             self.interaction = Some(interaction.attach(files));

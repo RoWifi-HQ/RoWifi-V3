@@ -82,11 +82,13 @@ impl Framework {
         }
     }
 
+    #[must_use]
     pub fn command(mut self, cmd: Command) -> Self {
         self.cmds.push(cmd);
         self
     }
 
+    #[must_use]
     pub fn configure<F>(mut self, func: F) -> Self
     where
         F: FnOnce(&mut Vec<Command>),
@@ -107,7 +109,7 @@ impl Framework {
                 let ctx = CommandContext {
                     bot: self.bot.clone(),
                     channel_id: ChannelId(msg.channel_id),
-                    guild_id: msg.guild_id.map(|g| GuildId(g)),
+                    guild_id: msg.guild_id.map(GuildId),
                     author: Arc::new(msg.author.clone()),
                     message_id: Some(msg.id),
                     interaction_id: None,
@@ -174,7 +176,7 @@ impl Service<&Event> for Framework {
                 let mut stream = Stream::new(&msg.content);
                 stream.take_while_char(char::is_whitespace);
 
-                let guild_id = msg.guild_id.map(|g| GuildId(g));
+                let guild_id = msg.guild_id.map(GuildId);
                 let channel_id = ChannelId(msg.channel_id);
                 let prefix = parser::find_prefix(&mut stream, &self.bot, guild_id);
                 if let Some(PrefixType::Mention) = prefix {
@@ -252,7 +254,7 @@ impl Service<&Event> for Framework {
                     None => return Either::Left(ready(Ok(()))),
                 }
 
-                let guild_id = msg.guild_id.map(|g| GuildId(g));
+                let guild_id = msg.guild_id.map(GuildId);
                 if !run_checks(&self.bot, command, guild_id, UserId(msg.author.id)) {
                     return Either::Left(ready(Ok(())));
                 }
@@ -291,7 +293,7 @@ impl Service<&Event> for Framework {
                     let id = top_command.id;
                     let token = top_command.token.clone();
 
-                    let guild_id = top_command.guild_id.map(|g| GuildId(g));
+                    let guild_id = top_command.guild_id.map(GuildId);
                     if !run_checks(&self.bot, command, guild_id, UserId(user.id)) {
                         let http = self.bot.http.clone();
                         let fut = async move {
@@ -302,7 +304,7 @@ impl Service<&Event> for Framework {
                                     &InteractionResponse::ChannelMessageWithSource(CallbackData {
                                         allowed_mentions: None,
                                         tts: None,
-                                        embeds: Vec::new(),
+                                        embeds: None,
                                         content: Some(
                                             "You do not have sufficient perms to run this command"
                                                 .into(),

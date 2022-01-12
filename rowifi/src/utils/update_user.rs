@@ -183,12 +183,12 @@ impl UpdateUser<'_> {
         }
 
         for bind_role in self.all_roles {
-            if self.guild_roles.get(&bind_role).is_some() {
+            if self.guild_roles.get(bind_role).is_some() {
                 if roles_to_add.contains(bind_role) {
-                    if !self.member.roles.contains(&bind_role) {
+                    if !self.member.roles.contains(bind_role) {
                         added_roles.push(**bind_role);
                     }
-                } else if self.member.roles.contains(&bind_role) {
+                } else if self.member.roles.contains(bind_role) {
                     removed_roles.push(**bind_role);
                 }
             }

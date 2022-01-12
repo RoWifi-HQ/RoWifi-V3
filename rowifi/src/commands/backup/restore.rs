@@ -116,12 +116,12 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let verification_roles = data
         .verification_roles
         .iter()
-        .filter_map(|v| roles_map.get(v).cloned())
+        .filter_map(|v| roles_map.get(v).copied())
         .collect();
     let verified_roles = data
         .verified_roles
         .iter()
-        .filter_map(|v| roles_map.get(v).cloned())
+        .filter_map(|v| roles_map.get(v).copied())
         .collect();
 
     let binds = data
@@ -131,7 +131,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
             let discord_roles = b
                 .discord_roles()
                 .iter()
-                .filter_map(|v| roles_map.get(v).cloned())
+                .filter_map(|v| roles_map.get(v).copied())
                 .collect();
 
             match b {

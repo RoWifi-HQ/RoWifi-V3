@@ -135,33 +135,31 @@ impl BotContext {
             let (id, token) = webhook::parse(url).unwrap();
             webhooks_map.insert(name, (id, token.unwrap().to_owned()));
         }
-        Self {
-            0: Arc::new(BotContextRef {
-                on_mention,
-                prefixes: DashMap::new(),
-                default_prefix,
-                disabled_channels: DashSet::new(),
-                owners: owners_set,
-                admin_roles: DashMap::new(),
-                trainer_roles: DashMap::new(),
-                bypass_roles: DashMap::new(),
-                nickname_bypass_roles: DashMap::new(),
-                log_channels: DashMap::new(),
-                ignore_message_components: DashSet::new(),
-                http,
-                cache,
-                cluster,
-                standby,
-                database,
-                roblox,
-                patreon,
-                stats,
-                webhooks: webhooks_map,
-                cluster_id,
-                total_shards,
-                shards_per_cluster,
-            }),
-        }
+        Self(Arc::new(BotContextRef {
+            on_mention,
+            prefixes: DashMap::new(),
+            default_prefix,
+            disabled_channels: DashSet::new(),
+            owners: owners_set,
+            admin_roles: DashMap::new(),
+            trainer_roles: DashMap::new(),
+            bypass_roles: DashMap::new(),
+            nickname_bypass_roles: DashMap::new(),
+            log_channels: DashMap::new(),
+            ignore_message_components: DashSet::new(),
+            http,
+            cache,
+            cluster,
+            standby,
+            database,
+            roblox,
+            patreon,
+            stats,
+            webhooks: webhooks_map,
+            cluster_id,
+            total_shards,
+            shards_per_cluster,
+        }))
     }
 }
 

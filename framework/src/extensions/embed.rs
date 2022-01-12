@@ -4,7 +4,9 @@ use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder
 use crate::utils::Color;
 
 pub trait EmbedExtensions {
+    #[must_use]
     fn default_data(self) -> Self;
+    #[must_use]
     fn update_log(self, added_roles: &[RoleId], removed_roles: &[RoleId], disc_nick: &str) -> Self;
 }
 

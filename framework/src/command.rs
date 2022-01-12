@@ -174,7 +174,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             &InteractionResponse::ChannelMessageWithSource(CallbackData {
                                 allowed_mentions: None,
                                 tts: None,
-                                embeds: Vec::new(),
+                                embeds: None,
                                 content: Some("Commands are disabled in this channel".into()),
                                 flags: Some(MessageFlags::EPHEMERAL),
                                 components: None,
@@ -201,7 +201,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         &InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
                             allowed_mentions: None,
                             tts: None,
-                            embeds: Vec::new(),
+                            embeds: None,
                             content: None,
                             flags: None,
                             components: None,
@@ -339,36 +339,43 @@ pub struct CommandBuilder {
 }
 
 impl CommandBuilder {
+    #[must_use]
     pub fn level(mut self, level: RoLevel) -> Self {
         self.options.level = level;
         self
     }
 
+    #[must_use]
     pub fn description(mut self, desc: &'static str) -> Self {
         self.options.desc = Some(desc);
         self
     }
 
+    #[must_use]
     pub fn examples(mut self, examples: &'static [&'static str]) -> Self {
         self.options.examples = examples;
         self
     }
 
+    #[must_use]
     pub fn hidden(mut self, hidden: bool) -> Self {
         self.options.hidden = hidden;
         self
     }
 
+    #[must_use]
     pub fn group(mut self, group: &'static str) -> Self {
         self.options.group = Some(group);
         self
     }
 
+    #[must_use]
     pub fn names(mut self, names: &'static [&'static str]) -> Self {
         self.names = names;
         self
     }
 
+    #[must_use]
     pub fn sub_command(mut self, sub_command: Command) -> Self {
         self.sub_commands.push(sub_command);
         self

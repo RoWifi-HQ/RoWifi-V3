@@ -5,7 +5,8 @@
     clippy::if_not_else,
     clippy::missing_panics_doc,
     clippy::too_many_lines,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap
 )]
 
 use serde::Serializer;
@@ -36,6 +37,7 @@ impl FromRow for Row {
     }
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub(crate) fn serialize_i64_as_string<S: Serializer>(
     x: &i64,
     serializer: S,
@@ -43,9 +45,10 @@ pub(crate) fn serialize_i64_as_string<S: Serializer>(
     serializer.serialize_str(&x.to_string())
 }
 
+#[allow(clippy::ptr_arg)]
 pub(crate) fn serialize_vec_as_string<S: Serializer>(
     x: &Vec<i64>,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    serializer.collect_seq(x.iter().map(|n| n.to_string()).collect::<Vec<_>>())
+    serializer.collect_seq(x.iter().map(ToString::to_string).collect::<Vec<_>>())
 }

@@ -3,7 +3,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::{AssetbindBackup, Bind, BindBackup, CustombindBackup, GroupbindBackup, RankbindBackup},
     guild::backup::{GuildBackup, GuildBackupData},
-    id::{UserId, BackupId},
+    id::{BackupId, UserId},
     user::{RoUser, UserFlags},
 };
 use std::collections::HashMap;
@@ -77,7 +77,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
             let discord_roles = b
                 .discord_roles()
                 .iter()
-                .filter_map(|r| roles.get(&r).cloned())
+                .filter_map(|r| roles.get(r).cloned())
                 .collect();
 
             match b {

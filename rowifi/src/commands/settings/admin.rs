@@ -94,7 +94,7 @@ pub async fn admin_add(
         .admin_roles
         .entry(guild_id)
         .or_default()
-        .extend(roles_to_add.iter().map(|r| *r));
+        .extend(roles_to_add.iter().copied());
 
     let mut description = "Added Admin Roles:\n".to_string();
     for role in roles_to_add {
@@ -190,9 +190,7 @@ pub async fn admin_set(
         )
         .await?;
 
-    ctx.bot
-        .admin_roles
-        .insert(guild_id, roles_to_set.iter().cloned().collect());
+    ctx.bot.admin_roles.insert(guild_id, roles_to_set.clone());
 
     let mut description = "Set Admin Roles:\n".to_string();
     for role in roles_to_set {
