@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0", default-features = false, features = ["std"] }
-dashmap = "5"
+dashmap = "4"
 framework-derive = { path = "./framework-derive" }
 futures-util = "0"
 itertools = "0"

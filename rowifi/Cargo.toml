@@ -15,7 +15,7 @@ rowifi-framework = { path = '../framework' }
 rowifi-models = { path = "../models" }
 
 # Main Crates
-dashmap = "5"
+dashmap = "4"
 hyper = { version = "0", features = ["server", "client"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 tokio-stream = "0"
