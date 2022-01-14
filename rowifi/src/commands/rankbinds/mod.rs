@@ -17,11 +17,39 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to add a new rankbind")
         .handler(rankbinds_new);
 
+    let rankbinds_modify_priority_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to modify the priority of a rankbind")
+        .handler(rb_modify_priority);
+
+    let rankbinds_modify_template_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to modify the template of a rankbind")
+        .handler(rb_modify_template);
+
+    let rankbinds_add_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add-roles"])
+        .description("Command to add roles to a rankbind")
+        .handler(rb_add_roles);
+
+    let rankbinds_remove_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to remove roles from a rankbind")
+        .handler(rb_remove_roles);
+
     let rankbinds_modify_command = Command::builder()
         .level(RoLevel::Admin)
         .names(&["modify", "m"])
         .description("Command to modify an existing rankbind")
-        .handler(rankbinds_modify);
+        .sub_command(rankbinds_modify_priority_cmd)
+        .sub_command(rankbinds_modify_template_cmd)
+        .sub_command(rankbinds_add_roles_cmd)
+        .sub_command(rankbinds_remove_roles_cmd)
+        .handler(rankbinds_view);
 
     let rankbinds_delete_command = Command::builder()
         .level(RoLevel::Admin)
