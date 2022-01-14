@@ -97,7 +97,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
             .filter(|b| b.kind() == BindType::Asset)
             .count();
         let val = format!("Prefix: {}\nVerification: {:?}\nVerified: {:?}\nRankbinds: {}\nGroupbinds: {}\nCustombinds: {}\nAssetbinds: {}",
-            data.command_prefix, data.verification_roles.get(0), data.verified_roles.get(0),
+            data.command_prefix, data.verification_roles.join(", "), data.verified_roles.join(", "),
             r, g, c, a
         );
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val));

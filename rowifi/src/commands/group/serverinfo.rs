@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{bind::BindType, FromRow};
@@ -28,6 +29,23 @@ pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
         )
         .await?;
 
+    let mut verification_roles = guild
+        .verification_roles
+        .iter()
+        .map(|r| format!("<@&{}>", r))
+        .join(" ");
+    if verification_roles.is_empty() {
+        verification_roles = "None".into();
+    }
+    let mut verified_roles = guild
+        .verified_roles
+        .iter()
+        .map(|r| format!("<@&{}>", r))
+        .join(" ");
+    if verified_roles.is_empty() {
+        verified_roles = "None".into();
+    }
+
     let embed = EmbedBuilder::new()
         .default_data()
         .field(EmbedFieldBuilder::new("Guild Id", guild_id.0.to_string()).inline())
@@ -41,28 +59,8 @@ pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline())
         .field(EmbedFieldBuilder::new("Tier", guild.kind.to_string()).inline())
         .field(EmbedFieldBuilder::new("Prefix", &guild.command_prefix).inline())
-        .field(
-            EmbedFieldBuilder::new(
-                "Verification Role",
-                if let Some(verification_role) = guild.verification_roles.get(0) {
-                    format!("<@&{}>", verification_role)
-                } else {
-                    "None".into()
-                },
-            )
-            .inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Verified Role",
-                if let Some(verified_role) = guild.verified_roles.get(0) {
-                    format!("<@&{}>", verified_role)
-                } else {
-                    "None".into()
-                },
-            )
-            .inline(),
-        )
+        .field(EmbedFieldBuilder::new("Verification Roles", verification_roles).inline())
+        .field(EmbedFieldBuilder::new("Verified Role", verified_roles).inline())
         .field(
             EmbedFieldBuilder::new(
                 "Rankbinds",

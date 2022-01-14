@@ -8,6 +8,7 @@ mod trainer;
 mod update;
 mod verify;
 
+use itertools::Itertools;
 use rowifi_framework::prelude::*;
 
 use admin::admin;
@@ -18,7 +19,10 @@ use misc::{blacklist_action, settings_prefix, toggle_commands};
 use nickname_bypass::nickname_bypass;
 use trainer::trainer;
 use update::update_on_join;
-use verify::{settings_verification, settings_verified};
+use verify::{
+    settings_verification_add, settings_verification_remove, settings_verified_add,
+    settings_verified_remove,
+};
 
 pub fn settings_config(cmds: &mut Vec<Command>) {
     let settings_view_cmd = Command::builder()
@@ -51,17 +55,45 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to toggle the `Update On Join` setting in the server")
         .handler(update_on_join);
 
+    let settings_verification_add_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add"])
+        .description("Command to add verification roles")
+        .handler(settings_verification_add);
+
+    let settings_verification_remove_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove"])
+        .description("Command to remove verification roles")
+        .handler(settings_verification_remove);
+
     let settings_verification_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["verification"])
-        .description("Command to change the verification role")
-        .handler(settings_verification);
+        .names(&["verification", "unverified"])
+        .description("Module to add or remove verification roles")
+        .sub_command(settings_verification_add_cmd)
+        .sub_command(settings_verification_remove_cmd)
+        .handler(settings_view);
+
+    let settings_verified_add_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add"])
+        .description("Command to add verified roles")
+        .handler(settings_verified_add);
+
+    let settings_verified_remove_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove"])
+        .description("Command to remove verified roles")
+        .handler(settings_verified_remove);
 
     let settings_verified_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["verified"])
-        .description("Command to change the verified role")
-        .handler(settings_verified);
+        .description("Module to add or remove verified roles")
+        .sub_command(settings_verified_add_cmd)
+        .sub_command(settings_verified_remove_cmd)
+        .handler(settings_view);
 
     let settings_admin_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -124,6 +156,22 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
 pub async fn settings_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx.bot.database.get_guild(guild_id).await?;
+    let mut verification_roles = guild
+        .verification_roles
+        .iter()
+        .map(|r| format!("<@&{}>", r))
+        .join(" ");
+    if verification_roles.is_empty() {
+        verification_roles = "None".into();
+    }
+    let mut verified_roles = guild
+        .verified_roles
+        .iter()
+        .map(|r| format!("<@&{}>", r))
+        .join(" ");
+    if verified_roles.is_empty() {
+        verified_roles = "None".into();
+    }
 
     let embed = EmbedBuilder::new()
         .default_data()
@@ -134,28 +182,8 @@ pub async fn settings_view(ctx: CommandContext) -> CommandResult {
             EmbedFieldBuilder::new("Blacklist Action", guild.blacklist_action.to_string()).inline(),
         )
         .field(EmbedFieldBuilder::new("Update On Join", guild.update_on_join.to_string()).inline())
-        .field(
-            EmbedFieldBuilder::new(
-                "Verification Role",
-                if let Some(verification_role) = guild.verification_roles.get(0) {
-                    format!("<@&{}>", verification_role)
-                } else {
-                    "None".into()
-                },
-            )
-            .inline(),
-        )
-        .field(
-            EmbedFieldBuilder::new(
-                "Verified Role",
-                if let Some(verified_role) = guild.verified_roles.get(0) {
-                    format!("<@&{}>", verified_role)
-                } else {
-                    "None".into()
-                },
-            )
-            .inline(),
-        )
+        .field(EmbedFieldBuilder::new("Verification Role", verification_roles).inline())
+        .field(EmbedFieldBuilder::new("Verified Role", verified_roles).inline())
         .build()
         .unwrap();
 

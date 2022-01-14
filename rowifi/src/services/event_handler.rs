@@ -183,8 +183,8 @@ impl Service<(u64, Event)> for EventHandler {
                     let user = match eh.bot.database.get_linked_user(user_id, guild_id).await? {
                         Some(u) => u,
                         None => {
-                            if let Some(verification_role) = guild.verification_roles.get(0) {
-                                if let Some(role) = eh.bot.cache.role(*verification_role) {
+                            for verification_role in guild.verification_roles {
+                                if let Some(role) = eh.bot.cache.role(verification_role) {
                                     eh.bot.http.add_guild_member_role(m.guild_id, user_id.0, role.id.0).exec().await?;
                                 }
                             }
