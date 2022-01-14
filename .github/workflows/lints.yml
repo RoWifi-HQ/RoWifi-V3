@@ -6,6 +6,8 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: ""
 
     steps:
       - name: Checkout sources
