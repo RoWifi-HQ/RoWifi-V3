@@ -37,7 +37,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
 
     let rankbinds_remove_roles_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["priority"])
+        .names(&["remove-roles"])
         .description("Command to remove roles from a rankbind")
         .handler(rb_remove_roles);
 

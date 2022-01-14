@@ -63,7 +63,7 @@ pub async fn rb_modify_priority(ctx: CommandContext, args: ModifyPriority) -> Co
         .await?;
 
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Priority: {0} -> {priority}", bind.priority);
+    let desc = format!("Rank Id: {rank_id}\n`Priority`: {0} -> {priority}", bind.priority);
 
     rb_reply_log(ctx, name, desc).await
 }
@@ -160,7 +160,7 @@ pub async fn rb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
         .await?;
 
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Template: {0} -> {template}", bind.template);
+    let desc = format!("Rank Id: {rank_id}\n`Template`: {0} -> {template}", bind.template);
 
     rb_reply_log(ctx, name, desc).await
 }
@@ -227,7 +227,7 @@ pub async fn rb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
         .map(|r| format!("<@&{}> ", r))
         .collect::<String>();
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Added Roles: {modification}");
+    let desc = format!("Rank Id: {rank_id}\n`Added Roles`: {modification}");
     
     rb_reply_log(ctx, name, desc).await
 }
@@ -302,7 +302,7 @@ pub async fn rb_remove_roles(ctx: CommandContext, args: RemoveRoles) -> CommandR
         .map(|r| format!("<@&{}> ", r))
         .collect::<String>();
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Removed Roles: {modification}");
+    let desc = format!("Rank Id: {rank_id}\n`Removed Roles`: {modification}");
 
     rb_reply_log(ctx, name, desc).await
 }

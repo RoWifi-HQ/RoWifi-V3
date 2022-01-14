@@ -8,7 +8,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::bind::{BindType, Custombind};
 
 use delete::custombinds_delete;
-use modify::custombinds_modify;
+use modify::{cb_add_roles, cb_modify_code, cb_modify_priority, cb_modify_template, cb_remove_roles};
 use new::custombinds_new;
 
 pub fn custombinds_config(cmds: &mut Vec<Command>) {
@@ -24,11 +24,46 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
         .description("Command to delete a custombind")
         .handler(custombinds_delete);
 
+    let custombinds_modify_code_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["code"])
+        .description("Command to modify the code of a custombind")
+        .handler(cb_modify_code);
+
+    let custombinds_modify_priority_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to modify the priority of a custombind")
+        .handler(cb_modify_priority);
+
+    let custombinds_modify_template_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["template"])
+        .description("Command to modify the template of a custombind")
+        .handler(cb_modify_template);
+
+    let custombinds_add_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add-roles"])
+        .description("Command to add roles to a custombind")
+        .handler(cb_add_roles);
+
+    let custombinds_remove_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove-roles"])
+        .description("Command to remove roles from a custombind")
+        .handler(cb_remove_roles);    
+
     let custombinds_modify_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["modify", "m"])
         .description("Command to modify a custombind")
-        .handler(custombinds_modify);
+        .sub_command(custombinds_modify_priority_cmd)
+        .sub_command(custombinds_modify_template_cmd)
+        .sub_command(custombinds_modify_code_cmd)
+        .sub_command(custombinds_add_roles_cmd)
+        .sub_command(custombinds_remove_roles_cmd)
+        .handler(custombinds_view);
 
     let custombinds_new_cmd = Command::builder()
         .level(RoLevel::Admin)
