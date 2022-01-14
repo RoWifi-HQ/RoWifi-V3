@@ -453,7 +453,6 @@ pub async fn paginate_embed(
 
         ctx.bot.ignore_message_components.insert(message_id);
         let mut page_pointer: usize = 0;
-
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
