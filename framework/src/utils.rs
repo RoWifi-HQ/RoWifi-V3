@@ -22,7 +22,7 @@ use rowifi_models::{
     id::{ChannelId, RoleId, UserId},
 };
 use std::{
-    cmp::{max, min},
+    cmp::min,
     num::ParseIntError,
     str::FromStr,
     time::Duration,
@@ -453,6 +453,7 @@ pub async fn paginate_embed(
 
         ctx.bot.ignore_message_components.insert(message_id);
         let mut page_pointer: usize = 0;
+
         while let Some(Ok(event)) = component_interaction.next().await {
             if let Event::InteractionCreate(interaction) = event {
                 if let Interaction::MessageComponent(message_component) = interaction.0 {
@@ -463,7 +464,10 @@ pub async fn paginate_embed(
                                 page_pointer = 0;
                             }
                             "previous-page" => {
-                                page_pointer = max(page_pointer - 1, 0);
+                                page_pointer = match page_pointer.checked_sub(1) {
+                                    Some(t) => t,
+                                    None => 0
+                                };
                             }
                             "next-page" => {
                                 page_pointer = min(page_pointer + 1, page_count - 1);
