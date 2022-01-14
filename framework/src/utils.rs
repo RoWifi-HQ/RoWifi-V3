@@ -21,12 +21,7 @@ use rowifi_models::{
     },
     id::{ChannelId, RoleId, UserId},
 };
-use std::{
-    cmp::{max, min},
-    num::ParseIntError,
-    str::FromStr,
-    time::Duration,
-};
+use std::{cmp::min, num::ParseIntError, str::FromStr, time::Duration};
 use tokio_stream::StreamExt;
 
 pub enum Color {
@@ -463,7 +458,10 @@ pub async fn paginate_embed(
                                 page_pointer = 0;
                             }
                             "previous-page" => {
-                                page_pointer = max(page_pointer - 1, 0);
+                                page_pointer = match page_pointer.checked_sub(1) {
+                                    Some(t) => t,
+                                    None => 0,
+                                };
                             }
                             "next-page" => {
                                 page_pointer = min(page_pointer + 1, page_count - 1);
