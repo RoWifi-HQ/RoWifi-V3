@@ -336,16 +336,3 @@ impl From<ParseIntError> for ParseError {
         ParseError("a number")
     }
 }
-
-#[test]
-fn arg_test_1() {
-    let mut args =
-        Arguments::new("111111 1 \"Prefix1 | {roblox_username}\" 1 \"@Role @Role2\" r".into());
-    assert_eq!(args.next(), Some("111111"));
-    assert_eq!(args.next(), Some("1"));
-    assert_eq!(args.next(), Some("Prefix1 | {roblox_username}"));
-    assert_eq!(args.next(), Some("1"));
-    assert_eq!(args.next(), Some("@Role @Role2"));
-    assert_eq!(args.next(), Some("r"));
-    assert_eq!(args.next(), None);
-}

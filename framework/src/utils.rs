@@ -458,10 +458,7 @@ pub async fn paginate_embed(
                                 page_pointer = 0;
                             }
                             "previous-page" => {
-                                page_pointer = match page_pointer.checked_sub(1) {
-                                    Some(t) => t,
-                                    None => 0,
-                                };
+                                page_pointer = page_pointer.saturating_sub(1);
                             }
                             "next-page" => {
                                 page_pointer = min(page_pointer + 1, page_count - 1);
