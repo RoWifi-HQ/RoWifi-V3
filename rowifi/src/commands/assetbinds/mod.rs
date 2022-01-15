@@ -7,7 +7,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::bind::{Assetbind, BindType};
 
 pub use delete::assetbinds_delete;
-pub use modify::{ab_add_roles, ab_remove_roles, ab_modify_priority, ab_modify_template};
+pub use modify::{ab_add_roles, ab_modify_priority, ab_modify_template, ab_remove_roles};
 pub use new::assetbinds_new;
 
 pub fn assetbinds_config(cmds: &mut Vec<Command>) {
@@ -28,13 +28,13 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
         .names(&["priority"])
         .description("Command to modify the priority of an assetbind")
         .handler(ab_modify_priority);
-    
+
     let assetbinds_modify_template_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["template"])
         .description("Command to modify the template of an assetbind")
-        .handler(ab_modify_template);  
-        
+        .handler(ab_modify_template);
+
     let assetbinds_add_roles_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["add-roles"])

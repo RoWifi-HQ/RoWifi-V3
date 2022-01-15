@@ -8,7 +8,9 @@ use rowifi_framework::prelude::*;
 use rowifi_models::bind::{BindType, Custombind};
 
 use delete::custombinds_delete;
-use modify::{cb_add_roles, cb_modify_code, cb_modify_priority, cb_modify_template, cb_remove_roles};
+use modify::{
+    cb_add_roles, cb_modify_code, cb_modify_priority, cb_modify_template, cb_remove_roles,
+};
 use new::custombinds_new;
 
 pub fn custombinds_config(cmds: &mut Vec<Command>) {
@@ -52,7 +54,7 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
         .level(RoLevel::Admin)
         .names(&["remove-roles"])
         .description("Command to remove roles from a custombind")
-        .handler(cb_remove_roles);    
+        .handler(cb_remove_roles);
 
     let custombinds_modify_cmd = Command::builder()
         .level(RoLevel::Admin)

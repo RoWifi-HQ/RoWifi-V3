@@ -63,7 +63,10 @@ pub async fn rb_modify_priority(ctx: CommandContext, args: ModifyPriority) -> Co
         .await?;
 
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Priority`: {0} -> {priority}", bind.priority);
+    let desc = format!(
+        "Rank Id: {rank_id}\n`Priority`: {0} -> {priority}",
+        bind.priority
+    );
 
     rb_reply_log(ctx, name, desc).await
 }
@@ -160,7 +163,10 @@ pub async fn rb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
         .await?;
 
     let name = format!("Group Id: {group_id}");
-    let desc = format!("Rank Id: {rank_id}\n`Template`: {0} -> {template}", bind.template);
+    let desc = format!(
+        "Rank Id: {rank_id}\n`Template`: {0} -> {template}",
+        bind.template
+    );
 
     rb_reply_log(ctx, name, desc).await
 }
@@ -179,7 +185,7 @@ pub async fn rb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
     let guild_id = ctx.guild_id.unwrap();
     let group_id = args.group_id;
     let rank_id = args.rank_id;
-    
+
     let mut role_ids = Vec::new();
     for r in args.roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
@@ -228,7 +234,7 @@ pub async fn rb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
         .collect::<String>();
     let name = format!("Group Id: {group_id}");
     let desc = format!("Rank Id: {rank_id}\n`Added Roles`: {modification}");
-    
+
     rb_reply_log(ctx, name, desc).await
 }
 
@@ -246,7 +252,7 @@ pub async fn rb_remove_roles(ctx: CommandContext, args: RemoveRoles) -> CommandR
     let guild_id = ctx.guild_id.unwrap();
     let group_id = args.group_id;
     let rank_id = args.rank_id;
-    
+
     let mut role_ids = Vec::new();
     for r in args.roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {

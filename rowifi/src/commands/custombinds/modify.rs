@@ -69,10 +69,7 @@ pub async fn cb_modify_code(ctx: CommandContext, args: ModifyCode) -> CommandRes
     };
 
     let user_id = RobloxUserId(user.roblox_id as u64);
-    let member = ctx
-        .member(guild_id, UserId(ctx.author.id))
-        .await?
-        .unwrap();
+    let member = ctx.member(guild_id, UserId(ctx.author.id)).await?.unwrap();
     let ranks = ctx
         .bot
         .roblox

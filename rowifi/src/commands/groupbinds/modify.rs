@@ -130,7 +130,7 @@ pub struct AddRoles {
 pub async fn gb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let group_id = args.group_id;
-    
+
     let mut role_ids = Vec::new();
     for r in args.roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
@@ -188,7 +188,7 @@ pub struct RemoveRoles {
 pub async fn gb_remove_roles(ctx: CommandContext, args: AddRoles) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let group_id = args.group_id;
-    
+
     let mut role_ids = Vec::new();
     for r in args.roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
