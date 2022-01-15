@@ -7,7 +7,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::bind::{Assetbind, BindType};
 
 pub use delete::assetbinds_delete;
-pub use modify::assetbinds_modify;
+pub use modify::{ab_add_roles, ab_remove_roles, ab_modify_priority, ab_modify_template};
 pub use new::assetbinds_new;
 
 pub fn assetbinds_config(cmds: &mut Vec<Command>) {
@@ -15,7 +15,7 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
         .level(RoLevel::Admin)
         .names(&["view"])
         .description("Command to view the assetbinds of the server")
-        .handler(assetbind);
+        .handler(assetbinds_view);
 
     let assetbinds_new_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -23,11 +23,39 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to add a new assetbind")
         .handler(assetbinds_new);
 
+    let assetbinds_modify_priority_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to modify the priority of an assetbind")
+        .handler(ab_modify_priority);
+    
+    let assetbinds_modify_template_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["template"])
+        .description("Command to modify the template of an assetbind")
+        .handler(ab_modify_template);  
+        
+    let assetbinds_add_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add-roles"])
+        .description("Command to add roles to an assetbind")
+        .handler(ab_add_roles);
+
+    let assetbinds_remove_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove-roles"])
+        .description("Command to remove roles from an assetbind")
+        .handler(ab_remove_roles);
+
     let assetbinds_modify_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["modify", "m"])
-        .description("Command to modify an existing assetbind")
-        .handler(assetbinds_modify);
+        .description("Moduile to modify an existing assetbind")
+        .sub_command(assetbinds_modify_priority_cmd)
+        .sub_command(assetbinds_modify_template_cmd)
+        .sub_command(assetbinds_add_roles_cmd)
+        .sub_command(assetbinds_remove_roles_cmd)
+        .handler(assetbinds_view);
 
     let assetbinds_delete_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -44,11 +72,11 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
         .sub_command(assetbinds_new_cmd)
         .sub_command(assetbinds_modify_cmd)
         .sub_command(assetbinds_delete_cmd)
-        .handler(assetbind);
+        .handler(assetbinds_view);
     cmds.push(assetbinds_cmd);
 }
 
-pub async fn assetbind(ctx: CommandContext) -> CommandResult {
+pub async fn assetbinds_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let assetbinds = ctx
         .bot
