@@ -12,6 +12,13 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+        
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
+            components: rustfmt, clippy
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1

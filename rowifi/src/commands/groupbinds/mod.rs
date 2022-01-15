@@ -7,7 +7,7 @@ use rowifi_framework::prelude::*;
 use rowifi_models::bind::{BindType, Groupbind};
 
 pub use delete::groupbinds_delete;
-pub use modify::groupbinds_modify;
+pub use modify::{gb_add_roles, gb_modify_priority, gb_modify_template, gb_remove_roles};
 pub use new::groupbinds_new;
 
 pub fn groupbinds_config(cmds: &mut Vec<Command>) {
@@ -23,11 +23,39 @@ pub fn groupbinds_config(cmds: &mut Vec<Command>) {
         .description("Command to delete a groupbind")
         .handler(groupbinds_delete);
 
+    let groupbinds_modify_priority_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["priority"])
+        .description("Command to modify the priority of a groupbind")
+        .handler(gb_modify_priority);
+
+    let groupbinds_modify_template_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["template"])
+        .description("Command to modify the template of a groupbind")
+        .handler(gb_modify_template);
+
+    let groupbinds_add_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["add-roles"])
+        .description("Command to add roles to a groupbind")
+        .handler(gb_add_roles);
+
+    let groupbinds_remove_roles_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["remove-roles"])
+        .description("Command to remove roles from a groupbind")
+        .handler(gb_remove_roles);
+
     let groupbinds_modify_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["modify", "m"])
         .description("Command to modify an existing groupbind")
-        .handler(groupbinds_modify);
+        .sub_command(groupbinds_modify_priority_cmd)
+        .sub_command(groupbinds_modify_template_cmd)
+        .sub_command(groupbinds_add_roles_cmd)
+        .sub_command(groupbinds_remove_roles_cmd)
+        .handler(groupbinds_view);
 
     let groupbinds_new_cmd = Command::builder()
         .level(RoLevel::Admin)
