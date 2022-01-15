@@ -25,7 +25,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
 
     let rankbinds_modify_template_cmd = Command::builder()
         .level(RoLevel::Admin)
-        .names(&["priority"])
+        .names(&["template"])
         .description("Command to modify the template of a rankbind")
         .handler(rb_modify_template);
 
