@@ -1,21 +1,14 @@
 use itertools::Itertools;
 use rowifi_framework::prelude::*;
-use rowifi_models::{
-    guild::{GuildType, RoGuild},
-    id::RoleId,
-};
-
-use super::FunctionOption;
+use rowifi_models::{guild::GuildType, id::RoleId};
 
 #[derive(FromArgs)]
 pub struct TrainerArguments {
-    #[arg(help = "Option to interact with the custom trainer roles - `add` `remove` `set`")]
-    pub option: Option<FunctionOption>,
     #[arg(rest, help = "The discord roles to add, remove or set")]
-    pub discord_roles: Option<String>,
+    pub discord_roles: String,
 }
 
-pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResult {
+pub async fn trainer_view(ctx: CommandContext) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
     let guild = ctx.bot.database.get_guild(guild_id).await?;
 
@@ -31,22 +24,6 @@ pub async fn trainer(ctx: CommandContext, args: TrainerArguments) -> CommandResu
         return Ok(());
     }
 
-    let option = args.option.unwrap_or_default();
-    match option {
-        FunctionOption::Add => {
-            trainer_add(ctx, guild, args.discord_roles.unwrap_or_default()).await
-        }
-        FunctionOption::Remove => {
-            trainer_remove(ctx, guild, args.discord_roles.unwrap_or_default()).await
-        }
-        FunctionOption::Set => {
-            trainer_set(ctx, guild, args.discord_roles.unwrap_or_default()).await
-        }
-        FunctionOption::View => trainer_view(ctx, guild).await,
-    }
-}
-
-pub async fn trainer_view(ctx: CommandContext, guild: RoGuild) -> CommandResult {
     let mut description = String::new();
     for trainer_role in guild.trainer_roles {
         description.push_str(&format!("- <@&{}>\n", trainer_role));
@@ -70,14 +47,27 @@ pub async fn trainer_view(ctx: CommandContext, guild: RoGuild) -> CommandResult 
     Ok(())
 }
 
-pub async fn trainer_add(
-    ctx: CommandContext,
-    guild: RoGuild,
-    discord_roles: String,
-) -> CommandResult {
+pub async fn trainer_add(ctx: CommandContext, args: TrainerArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
+
+    if guild.kind == GuildType::Free {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Command Failed")
+            .description("This command is only available on Premium servers")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
+
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
-    let roles = discord_roles.split_ascii_whitespace().collect::<Vec<_>>();
+    let roles = args
+        .discord_roles
+        .split_ascii_whitespace()
+        .collect::<Vec<_>>();
     let mut roles_to_add = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
@@ -120,14 +110,24 @@ pub async fn trainer_add(
     Ok(())
 }
 
-pub async fn trainer_remove(
-    ctx: CommandContext,
-    guild: RoGuild,
-    discord_roles: String,
-) -> CommandResult {
+pub async fn trainer_remove(ctx: CommandContext, args: TrainerArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
+
+    if guild.kind == GuildType::Free {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Command Failed")
+            .description("This command is only available on Premium servers")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
+
     let mut role_ids = Vec::new();
-    for r in discord_roles.split_ascii_whitespace() {
+    for r in args.discord_roles.split_ascii_whitespace() {
         if let Some(resolved) = &ctx.resolved {
             role_ids.extend(resolved.roles.iter().map(|r| RoleId(*r.0)));
         } else if let Some(r) = parse_role(r) {
@@ -168,15 +168,27 @@ pub async fn trainer_remove(
     Ok(())
 }
 
-pub async fn trainer_set(
-    ctx: CommandContext,
-    guild: RoGuild,
-    discord_roles: String,
-) -> CommandResult {
+pub async fn trainer_set(ctx: CommandContext, args: TrainerArguments) -> CommandResult {
     let guild_id = ctx.guild_id.unwrap();
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
+
+    if guild.kind == GuildType::Free {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Command Failed")
+            .description("This command is only available on Premium servers")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
 
     let server_roles = ctx.bot.cache.guild_roles(guild_id);
-    let roles = discord_roles.split_ascii_whitespace().collect::<Vec<_>>();
+    let roles = args
+        .discord_roles
+        .split_ascii_whitespace()
+        .collect::<Vec<_>>();
     let mut roles_to_set = Vec::new();
     for role in roles {
         if let Some(resolved) = &ctx.resolved {
