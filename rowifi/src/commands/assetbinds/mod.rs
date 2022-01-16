@@ -55,7 +55,7 @@ pub fn assetbinds_config(cmds: &mut Vec<Command>) {
         .sub_command(assetbinds_modify_template_cmd)
         .sub_command(assetbinds_add_roles_cmd)
         .sub_command(assetbinds_remove_roles_cmd)
-        .handler(assetbinds_view);
+        .no_handler();
 
     let assetbinds_delete_cmd = Command::builder()
         .level(RoLevel::Admin)

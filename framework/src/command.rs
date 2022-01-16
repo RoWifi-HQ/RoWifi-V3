@@ -48,7 +48,7 @@ pub struct CommandOptions {
 pub struct Command {
     pub master_name: String,
     pub names: &'static [&'static str],
-    pub(crate) service: BoxedService,
+    pub(crate) service: Option<BoxedService>,
     pub sub_commands: Vec<Command>,
     pub options: CommandOptions,
 }
@@ -72,7 +72,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
     type Future = Pin<Box<dyn Future<Output = Result<(), RoError>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(cx)
+        if let Some(service) = &mut self.service {
+            service.poll_ready(cx)
+        } else {
+            Poll::Ready(Ok(()))
+        }
     }
 
     fn call(&mut self, mut req: (CommandContext, ServiceRequest)) -> Self::Future {
@@ -92,7 +96,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                     }
                 }
                 args.back();
-                self.service.call(req)
+                if let Some(service) = &mut self.service {
+                    service.call(req)
+                } else {
+                    Box::pin(async move { Ok(()) })
+                }
             }
             ServiceRequest::Interaction(ref top_options) => {
                 for option in top_options {
@@ -111,7 +119,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         _ => {}
                     }
                 }
-                self.service.call(req)
+                if let Some(service) = &mut self.service {
+                    service.call(req)
+                } else {
+                    Box::pin(async move { Ok(()) })
+                }
             }
             ServiceRequest::Help(ref mut args, ref embed) => {
                 if let Some(lit) = args.next() {
@@ -155,9 +167,11 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         .join(", ");
                     embed = embed.field(EmbedFieldBuilder::new("Subcommands", subs));
                 }
-                return self
-                    .service
-                    .call((req.0, ServiceRequest::Help(args.clone(), embed)));
+                if let Some(service) = &mut self.service {
+                    service.call((req.0, ServiceRequest::Help(args.clone(), embed)))
+                } else {
+                    Box::pin(async move { Ok(()) })
+                }
             }
         };
 
@@ -385,7 +399,7 @@ impl CommandBuilder {
         let mut cmd = Command {
             options: self.options,
             names: self.names,
-            service,
+            service: Some(service),
             sub_commands: self.sub_commands,
             master_name: "".into(),
         };
@@ -402,7 +416,19 @@ impl CommandBuilder {
         let mut cmd = Command {
             options: self.options,
             names: self.names,
-            service: Box::new(CommandHandler::new(handler)),
+            service: Some(Box::new(CommandHandler::new(handler))),
+            sub_commands: self.sub_commands,
+            master_name: "".into(),
+        };
+        cmd._master_name("");
+        cmd
+    }
+
+    pub fn no_handler(self) -> Command {
+        let mut cmd = Command {
+            options: self.options,
+            names: self.names,
+            service: None,
             sub_commands: self.sub_commands,
             master_name: "".into(),
         };

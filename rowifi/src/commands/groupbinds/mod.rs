@@ -55,7 +55,7 @@ pub fn groupbinds_config(cmds: &mut Vec<Command>) {
         .sub_command(groupbinds_modify_template_cmd)
         .sub_command(groupbinds_add_roles_cmd)
         .sub_command(groupbinds_remove_roles_cmd)
-        .handler(groupbinds_view);
+        .no_handler();
 
     let groupbinds_new_cmd = Command::builder()
         .level(RoLevel::Admin)

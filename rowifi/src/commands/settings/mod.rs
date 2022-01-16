@@ -75,7 +75,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Module to add or remove verification roles")
         .sub_command(settings_verification_add_cmd)
         .sub_command(settings_verification_remove_cmd)
-        .handler(settings_view);
+        .no_handler();
 
     let settings_verified_add_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -95,7 +95,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Module to add or remove verified roles")
         .sub_command(settings_verified_add_cmd)
         .sub_command(settings_verified_remove_cmd)
-        .handler(settings_view);
+        .no_handler();
 
     let admin_add_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -129,7 +129,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(admin_remove_cmd)
         .sub_command(admin_set_cmd)
         .sub_command(admin_view_cmd)
-        .handler(admin_view);
+        .no_handler();
 
     let trainer_add_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -163,7 +163,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(trainer_remove_cmd)
         .sub_command(trainer_set_cmd)
         .sub_command(trainer_view_cmd)
-        .handler(trainer_view);
+        .no_handler();
 
     let bypass_add_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -197,7 +197,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(bypass_remove_cmd)
         .sub_command(bypass_set_cmd)
         .sub_command(bypass_view_cmd)
-        .handler(bypass_view);
+        .no_handler();
 
     let nickname_bypass_add_cmd = Command::builder()
         .level(RoLevel::Admin)
@@ -231,7 +231,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(nickname_bypass_remove_cmd)
         .sub_command(nickname_bypass_set_cmd)
         .sub_command(nickname_bypass_view_cmd)
-        .handler(nickname_bypass_view);
+        .no_handler();
 
     let log_channel_cmd = Command::builder()
         .level(RoLevel::Admin)

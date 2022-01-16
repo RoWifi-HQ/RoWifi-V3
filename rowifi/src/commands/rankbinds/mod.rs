@@ -49,7 +49,7 @@ pub fn rankbinds_config(cmds: &mut Vec<Command>) {
         .sub_command(rankbinds_modify_template_cmd)
         .sub_command(rankbinds_add_roles_cmd)
         .sub_command(rankbinds_remove_roles_cmd)
-        .handler(rankbinds_view);
+        .no_handler();
 
     let rankbinds_delete_command = Command::builder()
         .level(RoLevel::Admin)

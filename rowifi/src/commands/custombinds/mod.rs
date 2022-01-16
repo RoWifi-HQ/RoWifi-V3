@@ -65,7 +65,7 @@ pub fn custombinds_config(cmds: &mut Vec<Command>) {
         .sub_command(custombinds_modify_code_cmd)
         .sub_command(custombinds_add_roles_cmd)
         .sub_command(custombinds_remove_roles_cmd)
-        .handler(custombinds_view);
+        .no_handler();
 
     let custombinds_new_cmd = Command::builder()
         .level(RoLevel::Admin)
