@@ -4,8 +4,9 @@ mod modify;
 pub mod new;
 
 use itertools::Itertools;
-use rowifi_framework::prelude::*;
+use rowifi_framework::{constants::EMBED_FIELD_DESCRIPTION_LIMIT, prelude::*};
 use rowifi_models::bind::{BindType, Custombind};
+use twilight_http::request::AttachmentFile;
 
 use delete::custombinds_delete;
 use modify::{
@@ -109,30 +110,57 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
         return Ok(());
     }
 
-    let mut pages = Vec::new();
-    let mut page_count = 0;
-    for cbs in &custombinds.iter().chunks(12) {
-        let mut embed = EmbedBuilder::new()
-            .default_data()
-            .title("Custombinds")
-            .description(format!("Page {}", page_count + 1));
-        let cbs = cbs.sorted_by_key(|c| c.custom_bind_id);
-        for cb in cbs {
-            let name = format!("Bind Id: {}", cb.custom_bind_id);
+    let text_file_mode = custombinds
+        .iter()
+        .any(|c| c.code.len() >= EMBED_FIELD_DESCRIPTION_LIMIT);
+
+    if text_file_mode {
+        let mut text = String::new();
+        for cb in custombinds {
             let roles_str = cb
                 .discord_roles
                 .iter()
                 .map(|r| format!("<@&{}> ", r))
                 .collect::<String>();
-            let desc = format!(
-                "Code: {}\nTemplate: {}\nPriority: {}\nRoles: {}",
-                cb.code, cb.template, cb.priority, roles_str
-            );
-            embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
+            text.push_str(&format!(
+                "Bind Id: {}\nCode: {}\nTemplate: {}\nPriority: {}\nDiscord Roles: {}\n\n",
+                cb.custom_bind_id, cb.code, cb.template, cb.priority, roles_str
+            ));
         }
-        pages.push(embed.build()?);
-        page_count += 1;
+
+        ctx.respond()
+            .files(&[AttachmentFile::from_bytes(
+                "custombinds.txt",
+                text.as_bytes(),
+            )])
+            .exec()
+            .await?;
+    } else {
+        let mut pages = Vec::new();
+        let mut page_count = 0;
+        for cbs in &custombinds.iter().chunks(12) {
+            let mut embed = EmbedBuilder::new()
+                .default_data()
+                .title("Custombinds")
+                .description(format!("Page {}", page_count + 1));
+            let cbs = cbs.sorted_by_key(|c| c.custom_bind_id);
+            for cb in cbs {
+                let name = format!("Bind Id: {}\n", cb.custom_bind_id);
+                let roles_str = cb
+                    .discord_roles
+                    .iter()
+                    .map(|r| format!("<@&{}> ", r))
+                    .collect::<String>();
+                let desc = format!(
+                    "Code: {}\nTemplate: {}\nPriority: {}\nRoles: {}",
+                    cb.code, cb.template, cb.priority, roles_str
+                );
+                embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
+            }
+            pages.push(embed.build()?);
+            page_count += 1;
+        }
+        paginate_embed(&ctx, pages, page_count).await?;
     }
-    paginate_embed(&ctx, pages, page_count).await?;
     Ok(())
 }
