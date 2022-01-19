@@ -271,11 +271,16 @@ impl Client {
         let res = self
             .request::<VecWrapper<Asset>>(route, Method::GET, None)
             .await;
-            
+
         let assets = match res {
             Ok(a) => a,
             Err(err) => {
-                if let ErrorKind::Response { body: _, status, route: _ } = err.kind {
+                if let ErrorKind::Response {
+                    body: _,
+                    status,
+                    route: _,
+                } = err.kind
+                {
                     if status == StatusCode::BAD_REQUEST {
                         return Ok(None);
                     }
@@ -283,7 +288,7 @@ impl Client {
                 return Err(err);
             }
         };
-        
+
         match assets.data.into_iter().next() {
             Some(a) => Ok(Some(a)),
             None => Ok(None),
