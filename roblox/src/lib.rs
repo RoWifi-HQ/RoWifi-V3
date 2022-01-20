@@ -268,12 +268,28 @@ impl Client {
             asset_id: asset_id.0,
             asset_type,
         };
-        let mut assets = self
+        let res = self
             .request::<VecWrapper<Asset>>(route, Method::GET, None)
-            .await?
-            .data
-            .into_iter();
-        match assets.next() {
+            .await;
+
+        let assets = match res {
+            Ok(a) => a,
+            Err(err) => {
+                if let ErrorKind::Response {
+                    body: _,
+                    status,
+                    route: _,
+                } = err.kind
+                {
+                    if status == StatusCode::BAD_REQUEST {
+                        return Ok(None);
+                    }
+                }
+                return Err(err);
+            }
+        };
+
+        match assets.data.into_iter().next() {
             Some(a) => Ok(Some(a)),
             None => Ok(None),
         }
