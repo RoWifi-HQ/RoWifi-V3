@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use rowifi_database::postgres::Row;
-use rowifi_framework::prelude::*;
+use rowifi_framework::{constants::EMBED_DESCRIPTION_LIMIT, prelude::*};
 use rowifi_models::{
     bind::{BindType, Custombind, Template},
     id::{BindId, GuildId, RoleId, UserId},
@@ -304,21 +304,25 @@ pub async fn custombinds_new_common(
     ).await?;
     let bind_id: BindId = row.get("bind_id");
 
-    let name = format!("Id: {}", row.get::<'_, _, i32>("custom_bind_id"));
+    let mut desc = format!("**Id**\n: {}", row.get::<'_, _, i32>("custom_bind_id"));
     let roles_str = bind
         .discord_roles
         .iter()
         .map(|r| format!("<@&{}> ", r))
         .collect::<String>();
-    let desc = format!(
+    desc.push_str(&format!(
         "Code: {}\nTemplate: `{}`\nPriority: {}\nDiscord Roles: {}",
         bind.code, bind.template, bind.priority, roles_str
-    );
+    ));
     let embed = EmbedBuilder::new()
         .default_data()
         .title("Bind Addition Successful")
         .color(Color::DarkGreen as u32)
-        .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
+        .description(
+            desc.chars()
+                .take(EMBED_DESCRIPTION_LIMIT)
+                .collect::<String>(),
+        )
         .build()
         .unwrap();
     let message = ctx
@@ -345,7 +349,11 @@ pub async fn custombinds_new_common(
         .default_data()
         .title(format!("Action by {}", ctx.author.name))
         .description("Custom Bind Addition")
-        .field(EmbedFieldBuilder::new(name, desc))
+        .description(
+            desc.chars()
+                .take(EMBED_DESCRIPTION_LIMIT)
+                .collect::<String>(),
+        )
         .build()
         .unwrap();
     ctx.log_guild(guild_id, log_embed).await;

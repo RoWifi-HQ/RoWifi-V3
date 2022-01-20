@@ -16,6 +16,7 @@
 pub mod arguments;
 pub mod bucket;
 pub mod command;
+pub mod constants;
 pub mod context;
 pub mod error;
 pub mod extensions;
