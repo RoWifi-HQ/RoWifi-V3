@@ -247,7 +247,7 @@ impl Client {
                     route: _,
                 } = err.kind()
                 {
-                    if *status == StatusCode::NOT_FOUND {
+                    if *status == StatusCode::BAD_REQUEST {
                         return Ok(None);
                     }
                 }
