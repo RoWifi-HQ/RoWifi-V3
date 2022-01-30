@@ -12,11 +12,8 @@ use rowifi_models::{
     user::{RoGuildUser, RoUser},
     FromRow,
 };
-use rustls::{ClientConfig as RustlsConfig, OwnedTrustAnchor, RootCertStore};
-use rustls_pemfile::certs;
-use std::{fs::File, io::BufReader, str::FromStr, time::Duration};
-use tokio_postgres::{types::ToSql, Config as TokioPostgresConfig};
-use tokio_postgres_rustls::MakeRustlsConnect;
+use std::{str::FromStr, time::Duration};
+use tokio_postgres::{types::ToSql, Config as TokioPostgresConfig, NoTls};
 
 use error::DatabaseError;
 
@@ -30,28 +27,8 @@ pub struct Database {
 impl Database {
     pub async fn new(connection_string: &str, primary_key: &str) -> Self {
         let postgres_config = TokioPostgresConfig::from_str(connection_string).unwrap();
-        let mut cert_store = RootCertStore::empty();
 
-        cert_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
-            OwnedTrustAnchor::from_subject_spki_name_constraints(
-                ta.subject,
-                ta.spki,
-                ta.name_constraints,
-            )
-        }));
-
-        let cert_file = File::open("ca-certificates/us-east-1-bundle.pem").unwrap();
-        let mut buf = BufReader::new(cert_file);
-        let certs = certs(&mut buf).unwrap();
-        cert_store.add_parsable_certificates(&certs);
-
-        let rustls_config = RustlsConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(cert_store)
-            .with_no_client_auth();
-
-        let tls = MakeRustlsConnect::new(rustls_config);
-        let manager = Manager::new(postgres_config, tls);
+        let manager = Manager::new(postgres_config, NoTls);
         let pool = Pool::builder(manager)
             .runtime(Runtime::Tokio1)
             .recycle_timeout(Some(Duration::from_secs(30)))
