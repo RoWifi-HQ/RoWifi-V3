@@ -1533,12 +1533,8 @@ dependencies = [
  "deadpool-postgres",
  "itertools",
  "rowifi-models",
- "rustls",
- "rustls-pemfile",
  "tokio-postgres",
- "tokio-postgres-rustls",
  "tracing",
- "webpki-roots",
 ]
 
 [[package]]
@@ -1605,15 +1601,6 @@ dependencies = [
  "ring",
  "sct",
  "webpki",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eebeaeb360c87bfb72e84abdb3447159c0eaececf1bef2aecd65a8be949d1c9"
-dependencies = [
- "base64",
 ]
 
 [[package]]
@@ -1954,20 +1941,6 @@ dependencies = [
  "socket2",
  "tokio",
  "tokio-util",
-]
-
-[[package]]
-name = "tokio-postgres-rustls"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "606f2b73660439474394432239c82249c0d45eb5f23d91f401be1e33590444a7"
-dependencies = [
- "futures",
- "ring",
- "rustls",
- "tokio",
- "tokio-postgres",
- "tokio-rustls",
 ]
 
 [[package]]
