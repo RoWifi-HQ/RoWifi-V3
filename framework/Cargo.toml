@@ -27,4 +27,5 @@ twilight-gateway = { branch = "main", git = "https://github.com/twilight-rs/twil
 twilight-http = { branch = "main", git = "https://github.com/twilight-rs/twilight", default-features = false, features = ["rustls-webpki-roots", "tracing"] }
 twilight-standby = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
 twilight-util = { branch = "main", git = "https://github.com/twilight-rs/twilight", features = ["link"] }
+twilight-validate = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
 uwl = "0"

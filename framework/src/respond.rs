@@ -9,8 +9,9 @@ use twilight_http::{
         channel::message::create_message::CreateMessage,
         AttachmentFile,
     },
-    response::ResponseFuture,
+    response::ResponseFuture, client::InteractionClient,
 };
+use rowifi_models::discord::id::{Id, marker::ApplicationMarker};
 
 use crate::{context::CommandContext, error::MessageError};
 
@@ -18,39 +19,40 @@ pub struct Responder<'a> {
     message: Option<CreateMessage<'a>>,
     interaction: Option<UpdateOriginalResponse<'a>>,
     followup: Option<CreateFollowupMessage<'a>>,
+    interaction_client: InteractionClient<'a>
 }
 
 impl<'a> Responder<'a> {
-    pub fn new(ctx: &'a CommandContext) -> Self {
+    pub fn new(ctx: &'a CommandContext, application_id: Id<ApplicationMarker>) -> Self {
+        let interaction_client = ctx.bot.http.interaction(application_id);
         ctx.interaction_token.as_ref().map_or_else(
             || Self {
                 message: Some(ctx.bot.http.create_message(ctx.channel_id.0)),
                 interaction: None,
                 followup: None,
+                interaction_client: ctx.bot.http.interaction(application_id)
             },
-            |interaction_token| {
-                if ctx.callback_invoked.load(Ordering::Relaxed) {
+            move |interaction_token| { 
+                if ctx.callback_invoked.load(Ordering::Relaxed) {   
                     Self {
                         message: None,
                         interaction: None,
                         followup: Some(
-                            ctx.bot
-                                .http
-                                .create_followup_message(interaction_token)
-                                .unwrap(),
+                            interaction_client
+                                .create_followup_message(interaction_token),
                         ),
+                        interaction_client
                     }
                 } else {
                     ctx.callback_invoked.store(true, Ordering::Relaxed);
                     Self {
                         message: None,
                         interaction: Some(
-                            ctx.bot
-                                .http
-                                .update_interaction_original(interaction_token)
-                                .unwrap(),
+                            interaction_client
+                                .update_interaction_original(interaction_token),
                         ),
                         followup: None,
+                        interaction_client
                     }
                 }
             },
@@ -59,33 +61,33 @@ impl<'a> Responder<'a> {
 
     pub fn content(mut self, content: &'a str) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.content(Some(content))?);
+            self.interaction = Some(interaction.content(Some(content)).map_err(|e| MessageError::Interaction(e))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.content(content)?);
+            self.message = Some(message.content(content).map_err(|e| MessageError::Create(e))?);
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.content(content));
+            self.followup = Some(followup.content(content).map_err(|e| MessageError::Followup(e))?);
         }
         Ok(self)
     }
 
     pub fn components(mut self, components: &'a [Component]) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.components(Some(components))?);
+            self.interaction = Some(interaction.components(Some(components)).map_err(|e| MessageError::Interaction(e))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.components(components)?);
+            self.message = Some(message.components(components).map_err(|e| MessageError::Create(e))?);
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.components(components)?);
+            self.followup = Some(followup.components(components).map_err(|e| MessageError::Followup(e))?);
         }
         Ok(self)
     }
 
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageError> {
         if let Some(interaction) = self.interaction {
-            self.interaction = Some(interaction.embeds(Some(embeds))?);
+            self.interaction = Some(interaction.embeds(Some(embeds)).map_err(|e| MessageError::Interaction(e))?);
         } else if let Some(message) = self.message {
-            self.message = Some(message.embeds(embeds)?);
+            self.message = Some(message.embeds(embeds).map_err(|e| MessageError::Create(e))?);
         } else if let Some(followup) = self.followup {
-            self.followup = Some(followup.embeds(embeds));
+            self.followup = Some(followup.embeds(embeds).map_err(|e| MessageError::Followup(e))?);
         }
         Ok(self)
     }

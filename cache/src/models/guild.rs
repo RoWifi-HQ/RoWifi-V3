@@ -1,5 +1,5 @@
 use rowifi_models::{
-    discord::{datetime::Timestamp, guild::Permissions},
+    discord::{datetime::Timestamp, guild::Permissions, util::ImageHash},
     id::{ChannelId, GuildId, RoleId, UserId},
 };
 use std::sync::{atomic::AtomicI64, Arc};
@@ -8,7 +8,7 @@ use std::sync::{atomic::AtomicI64, Arc};
 pub struct CachedGuild {
     pub id: GuildId,
     pub description: Option<String>,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub joined_at: Option<Timestamp>,
     pub name: String,
     pub owner_id: UserId,

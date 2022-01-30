@@ -8,18 +8,10 @@ use std::{
 };
 use twilight_embed_builder::EmbedError;
 use twilight_http::{
-    request::{
-        application::interaction::{
-            create_followup_message::CreateFollowupMessageError,
-            update_original_response::UpdateOriginalResponseError,
-        },
-        channel::message::{
-            create_message::CreateMessageError, update_message::UpdateMessageError,
-        },
-    },
     response::DeserializeBodyError,
     Error as DiscordHttpError,
 };
+use twilight_validate::message::MessageValidationError;
 
 use crate::arguments::ArgumentError;
 
@@ -105,11 +97,11 @@ impl StdError for CommandError {}
 
 #[derive(Debug)]
 pub enum MessageError {
-    Create(CreateMessageError),
-    Update(UpdateMessageError),
+    Create(MessageValidationError),
+    Update(MessageValidationError),
     Embed(EmbedError),
-    Interaction(UpdateOriginalResponseError),
-    Followup(CreateFollowupMessageError),
+    Interaction(MessageValidationError),
+    Followup(MessageValidationError),
 }
 
 impl Display for MessageError {
@@ -201,24 +193,6 @@ impl From<MessageError> for RoError {
             source: Some(Box::new(CommandError::Message(err))),
             kind: ErrorKind::Command,
         }
-    }
-}
-
-impl From<UpdateOriginalResponseError> for MessageError {
-    fn from(err: UpdateOriginalResponseError) -> Self {
-        MessageError::Interaction(err)
-    }
-}
-
-impl From<CreateMessageError> for MessageError {
-    fn from(err: CreateMessageError) -> Self {
-        MessageError::Create(err)
-    }
-}
-
-impl From<CreateFollowupMessageError> for MessageError {
-    fn from(err: CreateFollowupMessageError) -> Self {
-        MessageError::Followup(err)
     }
 }
 

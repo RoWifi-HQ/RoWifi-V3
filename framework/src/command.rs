@@ -180,8 +180,10 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
         {
             if let (Some(id), Some(token)) = (ctx.interaction_id, ctx.interaction_token) {
                 let http = ctx.bot.http.clone();
+                let application_id = ctx.bot.application_id;
                 let fut = async move {
                     let _ = http
+                        .interaction(application_id)
                         .interaction_callback(
                             id,
                             &token,
@@ -204,11 +206,13 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
         }
 
         let http = ctx.bot.http.clone();
+        let application_id = ctx.bot.application_id;
         let (interaction_id, interaction_token) =
             (ctx.interaction_id, ctx.interaction_token.clone());
         let fut = async move {
             if let (Some(id), Some(token)) = (interaction_id, interaction_token) {
                 let _ = http
+                    .interaction(application_id)
                     .interaction_callback(
                         id,
                         &token,

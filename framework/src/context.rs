@@ -7,7 +7,7 @@ use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
         channel::embed::Embed,
-        id::{InteractionId, MessageId, WebhookId},
+        id::{Id, marker::{MessageMarker, InteractionMarker, WebhookMarker, ApplicationMarker}},
         user::User,
     },
     id::{ChannelId, GuildId, RoleId, UserId},
@@ -50,7 +50,7 @@ pub struct BotContextRef {
     /// The map containing log channels of all servers
     pub log_channels: DashMap<GuildId, ChannelId>,
     /// The array containing the message ids wit active components
-    pub ignore_message_components: DashSet<MessageId>,
+    pub ignore_message_components: DashSet<Id<MessageMarker>>,
 
     // Twilight Components
     /// The module used to make requests to discord
@@ -62,7 +62,7 @@ pub struct BotContextRef {
     /// The module for waiting for certain events within commands
     pub standby: Standby,
     /// The pre-configured webhooks that we write to for logging purposes
-    pub webhooks: HashMap<&'static str, (WebhookId, String)>,
+    pub webhooks: HashMap<&'static str, (Id<WebhookMarker>, String)>,
 
     // RoWifi Modules
     /// The module handling all connections to Mongo
@@ -78,6 +78,7 @@ pub struct BotContextRef {
     pub cluster_id: u64,
     pub total_shards: u64,
     pub shards_per_cluster: u64,
+    pub application_id: Id<ApplicationMarker>
 }
 
 /// The struct that contains all bot config fields. We use an internally arced struct here
@@ -97,9 +98,9 @@ pub struct CommandContext {
     /// The struct containing fields of the author
     pub author: Arc<User>,
     /// The id of the original message invoked by the user
-    pub message_id: Option<MessageId>,
+    pub message_id: Option<Id<MessageMarker>>,
     /// The id of the interaction
-    pub interaction_id: Option<InteractionId>,
+    pub interaction_id: Option<Id<InteractionMarker>>,
     /// The token of the interaction. This is used to make followups or edit the original response
     pub interaction_token: Option<String>,
     /// Bool whether callback has been invoked
@@ -126,6 +127,7 @@ impl BotContext {
         cluster_id: u64,
         total_shards: u64,
         shards_per_cluster: u64,
+        application_id: Id<ApplicationMarker>
     ) -> Self {
         let mut owners_set = DashSet::new();
         owners_set.extend(owners.iter().map(ToOwned::to_owned));
@@ -159,6 +161,7 @@ impl BotContext {
             cluster_id,
             total_shards,
             shards_per_cluster,
+            application_id
         }))
     }
 }
@@ -173,7 +176,7 @@ impl Deref for BotContext {
 
 impl CommandContext {
     pub fn respond(&self) -> Responder {
-        Responder::new(self)
+        Responder::new(self, self.bot.application_id)
     }
 
     pub async fn member(
@@ -246,18 +249,20 @@ impl BotContext {
             .http
             .execute_webhook(*id, token)
             .embeds(&[embed])
+            .unwrap()
             .exec()
             .await;
     }
 
     pub async fn log_error(&self, text: &str) {
         let (id, token) = self.webhooks.get("error").unwrap();
-        let _ = self
+        let fut = self
             .http
             .execute_webhook(*id, token)
-            .content(text)
-            .exec()
-            .await;
+            .content(text);
+        if let Ok(fut) = fut {
+            let _ = fut.exec().await;
+        }
     }
 
     pub async fn log_premium(&self, text: &str) {
@@ -266,6 +271,7 @@ impl BotContext {
             .http
             .execute_webhook(*id, token)
             .content(text)
+            .unwrap()
             .exec()
             .await;
     }
