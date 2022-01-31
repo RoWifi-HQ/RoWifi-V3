@@ -4,7 +4,7 @@ mod update;
 mod verify;
 
 use rowifi_framework::prelude::*;
-use rowifi_models::discord::id::MessageId;
+use rowifi_models::discord::id::{marker::MessageMarker, Id};
 
 pub use info::{botinfo, support, userinfo};
 pub use test::test;
@@ -58,7 +58,7 @@ pub fn user_config(cmds: &mut Vec<Command>) {
 
 pub async fn handle_update_button(
     ctx: &CommandContext,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     keep_components: Vec<Component>,
 ) -> Result<(), RoError> {
     let author_id = ctx.author.id;
@@ -80,6 +80,7 @@ pub async fn handle_update_button(
                 {
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -98,9 +99,9 @@ pub async fn handle_update_button(
                     let embed = update_func(ctx, UpdateArguments { user_id: None }, false).await?;
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .embeds(&[embed])
+                        .embeds(&[embed])?
                         .exec()
                         .await?;
                     break;
@@ -108,6 +109,7 @@ pub async fn handle_update_button(
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -118,10 +120,10 @@ pub async fn handle_update_button(
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
-                    .content("This button is only interactable by the original command invoker")
+                    .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
             }

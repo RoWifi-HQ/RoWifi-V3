@@ -297,8 +297,10 @@ impl Service<&Event> for Framework {
                     let guild_id = top_command.guild_id.map(GuildId);
                     if !run_checks(&self.bot, command, guild_id, UserId(user.id)) {
                         let http = self.bot.http.clone();
+                        let application_id = self.bot.application_id;
                         let fut = async move {
                             let _ = http
+                                .interaction(application_id)
                                 .interaction_callback(
                                     id,
                                     &token,
@@ -343,10 +345,12 @@ impl Service<&Event> for Framework {
                         .contains(&message_component.message.id)
                     {
                         let http = self.bot.http.clone();
+                        let application_id = self.bot.application_id;
                         let id = message_component.id;
                         let token = message_component.token.clone();
                         let fut = async move {
                             let _ = http
+                                .interaction(application_id)
                                 .interaction_callback(
                                     id,
                                     &token,
@@ -355,10 +359,11 @@ impl Service<&Event> for Framework {
                                 .exec()
                                 .await;
                             let _ = http
+                                .interaction(application_id)
                                 .create_followup_message(&token)
-                                .unwrap()
                                 .ephemeral(true)
                                 .content("This component is no longer active and cannot be used.")
+                                .unwrap()
                                 .exec()
                                 .await;
                             Ok(())

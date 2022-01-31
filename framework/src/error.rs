@@ -7,19 +7,8 @@ use std::{
     time::Duration,
 };
 use twilight_embed_builder::EmbedError;
-use twilight_http::{
-    request::{
-        application::interaction::{
-            create_followup_message::CreateFollowupMessageError,
-            update_original_response::UpdateOriginalResponseError,
-        },
-        channel::message::{
-            create_message::CreateMessageError, update_message::UpdateMessageError,
-        },
-    },
-    response::DeserializeBodyError,
-    Error as DiscordHttpError,
-};
+use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
+use twilight_validate::message::MessageValidationError;
 
 use crate::arguments::ArgumentError;
 
@@ -105,21 +94,15 @@ impl StdError for CommandError {}
 
 #[derive(Debug)]
 pub enum MessageError {
-    Create(CreateMessageError),
-    Update(UpdateMessageError),
+    Message(MessageValidationError),
     Embed(EmbedError),
-    Interaction(UpdateOriginalResponseError),
-    Followup(CreateFollowupMessageError),
 }
 
 impl Display for MessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Create(err) => Debug::fmt(&err, f),
-            Self::Update(err) => Debug::fmt(&err, f),
+            Self::Message(err) => Debug::fmt(&err, f),
             Self::Embed(err) => Debug::fmt(&err, f),
-            Self::Interaction(err) => Debug::fmt(&err, f),
-            Self::Followup(err) => Debug::fmt(&err, f),
         }
     }
 }
@@ -204,21 +187,18 @@ impl From<MessageError> for RoError {
     }
 }
 
-impl From<UpdateOriginalResponseError> for MessageError {
-    fn from(err: UpdateOriginalResponseError) -> Self {
-        MessageError::Interaction(err)
+impl From<MessageValidationError> for MessageError {
+    fn from(err: MessageValidationError) -> Self {
+        MessageError::Message(err)
     }
 }
 
-impl From<CreateMessageError> for MessageError {
-    fn from(err: CreateMessageError) -> Self {
-        MessageError::Create(err)
-    }
-}
-
-impl From<CreateFollowupMessageError> for MessageError {
-    fn from(err: CreateFollowupMessageError) -> Self {
-        MessageError::Followup(err)
+impl From<MessageValidationError> for RoError {
+    fn from(err: MessageValidationError) -> Self {
+        Self {
+            source: Some(Box::new(CommandError::Message(MessageError::Message(err)))),
+            kind: ErrorKind::Command,
+        }
     }
 }
 

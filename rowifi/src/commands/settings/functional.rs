@@ -118,6 +118,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -253,12 +254,12 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     let _ = ctx
                         .bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .create_followup_message(&message_component.token)
-                        .unwrap()
                         .ephemeral(true)
                         .content(
                             "This component is only interactable by the original command invoker",
-                        )
+                        )?
                         .exec()
                         .await;
                 }

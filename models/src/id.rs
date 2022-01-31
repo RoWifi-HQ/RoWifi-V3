@@ -6,22 +6,22 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::id::{
-    ChannelId as DiscordChannelId, GuildId as DiscordGuildId, RoleId as DiscordRoleId,
-    UserId as DiscordUserId,
+    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
+    Id,
 };
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct GuildId(pub DiscordGuildId);
+pub struct GuildId(pub Id<GuildMarker>);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct UserId(pub DiscordUserId);
+pub struct UserId(pub Id<UserMarker>);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct RoleId(pub DiscordRoleId);
+pub struct RoleId(pub Id<RoleMarker>);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ChannelId(pub DiscordChannelId);
+pub struct ChannelId(pub Id<ChannelMarker>);
 
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
@@ -46,7 +46,7 @@ pub struct EventTypeId(pub Uuid);
 impl GuildId {
     #[must_use]
     pub fn new(n: u64) -> Self {
-        Self(DiscordGuildId::new(n).unwrap())
+        Self(Id::new(n))
     }
 
     #[must_use]
@@ -58,7 +58,7 @@ impl GuildId {
 impl UserId {
     #[must_use]
     pub fn new(n: u64) -> Self {
-        Self(DiscordUserId::new(n).unwrap())
+        Self(Id::new(n))
     }
 
     #[must_use]
@@ -70,7 +70,7 @@ impl UserId {
 impl RoleId {
     #[must_use]
     pub fn new(n: u64) -> Self {
-        Self(DiscordRoleId::new(n).unwrap())
+        Self(Id::new(n))
     }
 
     #[must_use]
@@ -82,7 +82,7 @@ impl RoleId {
 impl ChannelId {
     #[must_use]
     pub fn new(n: u64) -> Self {
-        Self(DiscordChannelId::new(n).unwrap())
+        Self(Id::new(n))
     }
 
     #[must_use]

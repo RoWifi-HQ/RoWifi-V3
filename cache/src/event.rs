@@ -156,7 +156,7 @@ impl UpdateCache for GuildUpdate {
         if let Some(mut guild) = c.0.guilds.get_mut(&GuildId(self.0.id)) {
             let mut guild = Arc::make_mut(&mut guild);
             guild.description = self.description.clone();
-            guild.icon = self.icon.clone();
+            guild.icon = self.icon;
             guild.name = self.name.clone();
             guild.owner_id = UserId(self.owner_id);
             guild.permissions = self.permissions;

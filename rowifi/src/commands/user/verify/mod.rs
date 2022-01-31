@@ -79,7 +79,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
     if ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
         .is_some()
     {
@@ -120,7 +120,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
     if ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
         .is_none()
     {
@@ -240,7 +240,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
     let user = match ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
     {
         Some(u) => u,

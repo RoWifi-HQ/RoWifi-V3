@@ -14,7 +14,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         .database
         .query_opt::<RoUser>(
             "SELECT * FROM users WHERE discord_id = $1",
-            &[&(ctx.author.id.0.get() as i64)],
+            &[&(ctx.author.id.get() as i64)],
         )
         .await?
     {
@@ -132,7 +132,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         .database
         .query_opt::<RoUser>(
             "SELECT * FROM users WHERE discord_id = $1",
-            &[&(ctx.author.id.0.get() as i64)],
+            &[&(ctx.author.id.get() as i64)],
         )
         .await?
     {

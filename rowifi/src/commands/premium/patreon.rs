@@ -5,7 +5,7 @@ use rowifi_models::{
 };
 
 pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
-    let author = ctx.author.id.0;
+    let author = ctx.author.id;
     let user = match ctx
         .bot
         .database

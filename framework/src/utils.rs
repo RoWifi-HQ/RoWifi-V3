@@ -76,6 +76,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
 
     let message_id = message.id;
     let author_id = ctx.author.id;
+    let application_id = ctx.bot.application_id;
 
     let mut answer = false;
 
@@ -95,6 +96,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
+                        .interaction(application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -120,6 +122,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -130,10 +133,11 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .unwrap()
                     .exec()
                     .await;
             }
@@ -176,6 +180,7 @@ pub async fn await_template_reply(
 
     let message_id = message.id;
     let author_id = ctx.author.id;
+    let application_id = ctx.bot.application_id;
 
     select_menu.disabled = true;
 
@@ -207,6 +212,7 @@ pub async fn await_template_reply(
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
+                        .interaction(application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -227,9 +233,10 @@ pub async fn await_template_reply(
                     if message_component.data.custom_id == "template-reply-cancel" {
                         ctx.bot
                             .http
+                            .interaction(application_id)
                             .create_followup_message(&message_component.token)
-                            .unwrap()
                             .content("Command has been cancelled")
+                            .unwrap()
                             .exec()
                             .await?;
                         return Err(CommandError::Cancelled.into());
@@ -241,6 +248,7 @@ pub async fn await_template_reply(
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -251,10 +259,11 @@ pub async fn await_template_reply(
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .unwrap()
                     .exec()
                     .await;
             }
@@ -288,6 +297,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
         .await?;
     let message_id = message.id;
     let author_id = ctx.author.id;
+    let application_id = ctx.bot.application_id;
 
     let stream = ctx
         .bot
@@ -319,6 +329,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 {
                     ctx.bot
                         .http
+                        .interaction(application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -335,9 +346,10 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         .await?;
                     ctx.bot
                         .http
+                        .interaction(application_id)
                         .create_followup_message(&message_component.token)
-                        .unwrap()
                         .content("Command has been cancelled")
+                        .unwrap()
                         .exec()
                         .await?;
                     ctx.bot.ignore_message_components.remove(&message_id);
@@ -346,6 +358,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -356,10 +369,11 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
                     .content("This component is only interactable by the original command invoker")
+                    .unwrap()
                     .exec()
                     .await;
             }
@@ -437,6 +451,7 @@ pub async fn paginate_embed(
         //Get some easy named vars
         let message_id = message.id;
         let author_id = ctx.author.id;
+        let application_id = ctx.bot.application_id;
         let http = ctx.bot.http.clone();
 
         let component_interaction = ctx
@@ -470,6 +485,7 @@ pub async fn paginate_embed(
                         }
 
                         let _ = http
+                            .interaction(application_id)
                             .interaction_callback(
                                 message_component.id,
                                 &message_component.token,
@@ -486,6 +502,7 @@ pub async fn paginate_embed(
                             .await;
                     } else {
                         let _ = http
+                            .interaction(application_id)
                             .interaction_callback(
                                 message_component.id,
                                 &message_component.token,
@@ -494,12 +511,13 @@ pub async fn paginate_embed(
                             .exec()
                             .await;
                         let _ = http
+                            .interaction(application_id)
                             .create_followup_message(&message_component.token)
-                            .unwrap()
                             .ephemeral(true)
                             .content(
                                 "This view menu is only navigable by the original command invoker",
                             )
+                            .unwrap()
                             .exec()
                             .await;
                     }

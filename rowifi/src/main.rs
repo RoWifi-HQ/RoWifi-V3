@@ -153,11 +153,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .model()
         .await?;
     let owner = UserId(current_user.owner.id);
-    http.set_application_id(current_user.id);
     owners.push(owner);
 
     let (cluster, mut events) = Cluster::builder(
-        &token,
+        token,
         Intents::GUILD_MESSAGES
             | Intents::GUILDS
             | Intents::GUILD_MEMBERS
@@ -209,6 +208,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_id,
         total_shards,
         shards_per_cluster,
+        current_user.id,
     );
     let framework = Framework::new(
         bot.clone(),

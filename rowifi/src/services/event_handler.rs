@@ -93,8 +93,8 @@ impl Service<(u64, Event)> for EventHandler {
                             .description(format!(
                                 "Name: {}\nServer Id: {}\nOwner Id: {}\nMembercount: {}",
                                 guild.name,
-                                guild.id.0,
-                                guild.owner_id.0,
+                                guild.id.get(),
+                                guild.owner_id.get(),
                                 guild.member_count.unwrap_or_default()
                             ))
                             .build()
@@ -109,7 +109,7 @@ impl Service<(u64, Event)> for EventHandler {
                         let log_embed = EmbedBuilder::new()
                             .default_data()
                             .title("Guild Leave")
-                            .description(format!("Server Id: {}", guild.id.0))
+                            .description(format!("Server Id: {}", guild.id.get()))
                             .build()
                             .unwrap();
                         eh.bot.log_debug(log_embed).await;
@@ -139,7 +139,7 @@ impl Service<(u64, Event)> for EventHandler {
                     let guild_ids = ready
                         .guilds
                         .iter()
-                        .map(|k| k.id.0.get() as i64)
+                        .map(|k| k.id.get() as i64)
                         .collect::<Vec<_>>();
                     let guilds = eh.bot.database.query::<RoGuild>("SELECT * FROM guilds WHERE guild_id = ANY($1)", &[&guild_ids]).await?;
                     for guild in guilds {

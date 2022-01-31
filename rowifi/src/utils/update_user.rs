@@ -11,7 +11,6 @@ use rowifi_models::{
 };
 use std::collections::{HashMap, HashSet};
 
-#[allow(dead_code)]
 pub struct UpdateUser<'u> {
     pub ctx: &'u BotContext,
     pub member: &'u CachedMember,
@@ -24,7 +23,6 @@ pub struct UpdateUser<'u> {
     pub all_roles: &'u [&'u RoleId],
 }
 
-#[allow(dead_code)]
 pub enum UpdateUserResult {
     Success(Vec<RoleId>, Vec<RoleId>, String),
     Blacklist(String),
@@ -33,7 +31,6 @@ pub enum UpdateUserResult {
 }
 
 impl UpdateUser<'_> {
-    #[allow(dead_code)]
     pub async fn execute(self) -> UpdateUserResult {
         let mut added_roles = Vec::<RoleId>::new();
         let mut removed_roles = Vec::<RoleId>::new();

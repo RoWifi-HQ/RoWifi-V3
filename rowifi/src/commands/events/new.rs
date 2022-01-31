@@ -129,6 +129,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -148,9 +149,9 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     if message_component.data.custom_id == "event-new-cancel" {
                         ctx.bot
                             .http
+                            .interaction(ctx.bot.application_id)
                             .create_followup_message(&message_component.token)
-                            .unwrap()
-                            .content("Command has been cancelled")
+                            .content("Command has been cancelled")?
                             .exec()
                             .await?;
                     } else if message_component.data.custom_id == "event-new-select" {
@@ -161,6 +162,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -171,10 +173,10 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
-                    .content("This button is only interactable by the original command invoker")
+                    .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
             }
@@ -249,7 +251,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
 
     let value = format!(
         "Host: <@{}>\nType: {}\nAttendees: {}",
-        ctx.author.id.0,
+        ctx.author.id.get(),
         event_type.name,
         new_event.attendees.len()
     );

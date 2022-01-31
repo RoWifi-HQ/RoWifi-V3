@@ -563,7 +563,7 @@ pub fn channel_permissions(
         for overwrite in &tc.permission_overwrites {
             match overwrite.kind {
                 PermissionOverwriteType::Role(role) => {
-                    if role.0 == guild_id.0 {
+                    if role.get() == guild_id.get() {
                         permissions.remove(overwrite.deny);
                         permissions.insert(overwrite.allow);
                         continue;
