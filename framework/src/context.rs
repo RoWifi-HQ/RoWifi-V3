@@ -7,7 +7,10 @@ use rowifi_models::{
     discord::{
         application::interaction::application_command::CommandInteractionDataResolved,
         channel::embed::Embed,
-        id::{Id, marker::{MessageMarker, InteractionMarker, WebhookMarker, ApplicationMarker}},
+        id::{
+            marker::{ApplicationMarker, InteractionMarker, MessageMarker, WebhookMarker},
+            Id,
+        },
         user::User,
     },
     id::{ChannelId, GuildId, RoleId, UserId},
@@ -78,7 +81,7 @@ pub struct BotContextRef {
     pub cluster_id: u64,
     pub total_shards: u64,
     pub shards_per_cluster: u64,
-    pub application_id: Id<ApplicationMarker>
+    pub application_id: Id<ApplicationMarker>,
 }
 
 /// The struct that contains all bot config fields. We use an internally arced struct here
@@ -127,7 +130,7 @@ impl BotContext {
         cluster_id: u64,
         total_shards: u64,
         shards_per_cluster: u64,
-        application_id: Id<ApplicationMarker>
+        application_id: Id<ApplicationMarker>,
     ) -> Self {
         let mut owners_set = DashSet::new();
         owners_set.extend(owners.iter().map(ToOwned::to_owned));
@@ -161,7 +164,7 @@ impl BotContext {
             cluster_id,
             total_shards,
             shards_per_cluster,
-            application_id
+            application_id,
         }))
     }
 }
@@ -176,7 +179,7 @@ impl Deref for BotContext {
 
 impl CommandContext {
     pub fn respond(&self) -> Responder {
-        Responder::new(self, self.bot.application_id)
+        Responder::new(self)
     }
 
     pub async fn member(
@@ -256,10 +259,7 @@ impl BotContext {
 
     pub async fn log_error(&self, text: &str) {
         let (id, token) = self.webhooks.get("error").unwrap();
-        let fut = self
-            .http
-            .execute_webhook(*id, token)
-            .content(text);
+        let fut = self.http.execute_webhook(*id, token).content(text);
         if let Ok(fut) = fut {
             let _ = fut.exec().await;
         }

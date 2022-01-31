@@ -154,6 +154,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                 if component_interaction_author == author_id {
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -183,9 +184,9 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .unwrap();
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .embeds(&[embed])
+                        .embeds(&[embed])?
                         .exec()
                         .await?;
 
@@ -194,6 +195,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -204,10 +206,10 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
-                    .content("This button is only interactable by the original command invoker")
+                    .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
             }

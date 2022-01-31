@@ -7,10 +7,7 @@ use std::{
     time::Duration,
 };
 use twilight_embed_builder::EmbedError;
-use twilight_http::{
-    response::DeserializeBodyError,
-    Error as DiscordHttpError,
-};
+use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
 use twilight_validate::message::MessageValidationError;
 
 use crate::arguments::ArgumentError;
@@ -97,21 +94,15 @@ impl StdError for CommandError {}
 
 #[derive(Debug)]
 pub enum MessageError {
-    Create(MessageValidationError),
-    Update(MessageValidationError),
+    Message(MessageValidationError),
     Embed(EmbedError),
-    Interaction(MessageValidationError),
-    Followup(MessageValidationError),
 }
 
 impl Display for MessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Create(err) => Debug::fmt(&err, f),
-            Self::Update(err) => Debug::fmt(&err, f),
+            Self::Message(err) => Debug::fmt(&err, f),
             Self::Embed(err) => Debug::fmt(&err, f),
-            Self::Interaction(err) => Debug::fmt(&err, f),
-            Self::Followup(err) => Debug::fmt(&err, f),
         }
     }
 }
@@ -191,6 +182,21 @@ impl From<MessageError> for RoError {
     fn from(err: MessageError) -> Self {
         Self {
             source: Some(Box::new(CommandError::Message(err))),
+            kind: ErrorKind::Command,
+        }
+    }
+}
+
+impl From<MessageValidationError> for MessageError {
+    fn from(err: MessageValidationError) -> Self {
+        MessageError::Message(err)
+    }
+}
+
+impl From<MessageValidationError> for RoError {
+    fn from(err: MessageValidationError) -> Self {
+        Self {
+            source: Some(Box::new(CommandError::Message(MessageError::Message(err)))),
             kind: ErrorKind::Command,
         }
     }

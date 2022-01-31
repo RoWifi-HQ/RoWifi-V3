@@ -1,20 +1,14 @@
-#![allow(unused_imports)]
-
 use itertools::Itertools;
 use rowifi_cache::CachedGuild;
 use rowifi_database::postgres::Row;
 use rowifi_framework::{context::BotContext, prelude::*};
 use rowifi_models::{
     bind::Bind,
-    discord::{
-        gateway::{event::Event, payload::outgoing::RequestGuildMembers},
-        id::UserId,
-    },
+    discord::gateway::{event::Event, payload::outgoing::RequestGuildMembers},
     guild::{GuildType, RoGuild},
     id::{GuildId, RoleId},
     roblox::id::UserId as RobloxUserId,
     user::RoGuildUser,
-    FromRow,
 };
 use std::{collections::HashSet, env, error::Error, sync::atomic::Ordering};
 use tokio::time::{interval, sleep, timeout, Duration};

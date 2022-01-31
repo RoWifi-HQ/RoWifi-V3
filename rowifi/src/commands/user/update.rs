@@ -56,6 +56,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 {
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .interaction_callback(
                             message_component.id,
                             &message_component.token,
@@ -73,9 +74,9 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     let embed = update_func(&ctx, args, true).await?;
                     ctx.bot
                         .http
+                        .interaction(ctx.bot.application_id)
                         .create_followup_message(&message_component.token)
-                        .unwrap()
-                        .embeds(&[embed])
+                        .embeds(&[embed])?
                         .exec()
                         .await?;
                     break;
@@ -83,6 +84,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .interaction_callback(
                         message_component.id,
                         &message_component.token,
@@ -93,10 +95,10 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                 let _ = ctx
                     .bot
                     .http
+                    .interaction(ctx.bot.application_id)
                     .create_followup_message(&message_component.token)
-                    .unwrap()
                     .ephemeral(true)
-                    .content("This button is only interactable by the original command invoker")
+                    .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
             }

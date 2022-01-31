@@ -6,7 +6,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::id::{
-    Id, marker::{GuildMarker, UserMarker, RoleMarker, ChannelMarker}
+    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
+    Id,
 };
 use uuid::Uuid;
 

@@ -10,7 +10,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
     let user = match ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
     {
         Some(u) => u,
@@ -108,7 +108,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
     let mut user = match ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
     {
         Some(u) => u,
@@ -209,7 +209,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
     let mut user = match ctx
         .bot
         .database
-        .get_user(ctx.author.id.0.get() as i64)
+        .get_user(ctx.author.id.get() as i64)
         .await?
     {
         Some(u) => u,
