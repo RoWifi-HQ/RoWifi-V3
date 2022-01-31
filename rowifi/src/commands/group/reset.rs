@@ -50,23 +50,23 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         .execute(
             &upsert,
             &[
-                &guild_id, // guild_id
-                &GuildType::Free, // kind
-                &None::<UserId>, // premium_owner
-                &"!", // command_prefix
-                &Vec::<RoleId>::new(), // verification_roles
-                &Vec::<RoleId>::new(), // verified_roles
-                &Vec::<Blacklist>::new(), // blacklists
-                &Vec::<ChannelId>::new(), // disabled_channels
-                &Vec::<i64>::new(), // registered_groups
-                &false, // auto_detection
+                &guild_id,                  // guild_id
+                &GuildType::Free,           // kind
+                &None::<UserId>,            // premium_owner
+                &"!",                       // command_prefix
+                &Vec::<RoleId>::new(),      // verification_roles
+                &Vec::<RoleId>::new(),      // verified_roles
+                &Vec::<Blacklist>::new(),   // blacklists
+                &Vec::<ChannelId>::new(),   // disabled_channels
+                &Vec::<i64>::new(),         // registered_groups
+                &false,                     // auto_detection
                 &BlacklistActionType::None, // blacklist_action
-                &false, // update_on_join
-                &Vec::<RoleId>::new(), // admin_roles
-                &Vec::<RoleId>::new(), // trainer_roles
-                &Vec::<RoleId>::new(), // bypass_roles
-                &Vec::<RoleId>::new(), // nickname_bypass_roles
-                &None::<ChannelId>, // log_channel
+                &false,                     // update_on_join
+                &Vec::<RoleId>::new(),      // admin_roles
+                &Vec::<RoleId>::new(),      // trainer_roles
+                &Vec::<RoleId>::new(),      // bypass_roles
+                &Vec::<RoleId>::new(),      // nickname_bypass_roles
+                &None::<ChannelId>,         // log_channel
             ],
         )
         .await?;
