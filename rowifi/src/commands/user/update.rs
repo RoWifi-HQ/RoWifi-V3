@@ -63,7 +63,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Some(Vec::new()),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),
