@@ -15,7 +15,7 @@ use admin::{admin_add, admin_remove, admin_set, admin_view};
 use bypass::{bypass_add, bypass_remove, bypass_set, bypass_view};
 use functional::functional;
 use log::log_channel;
-use misc::{blacklist_action, settings_prefix, toggle_commands};
+use misc::{blacklist_action, settings_prefix, toggle_ad, toggle_commands};
 use nickname_bypass::{
     nickname_bypass_add, nickname_bypass_remove, nickname_bypass_set, nickname_bypass_view,
 };
@@ -245,6 +245,12 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .description("Command to change the RoWifi permissions of a discord role")
         .handler(functional);
 
+    let toggle_ad_cmd = Command::builder()
+        .level(RoLevel::Admin)
+        .names(&["auto-detection", "ad"])
+        .description("Command to toggle the auto detection setting of the server")
+        .handler(toggle_ad);
+
     let settings_cmd = Command::builder()
         .level(RoLevel::Admin)
         .names(&["settings", "setting"])
@@ -263,6 +269,7 @@ pub fn settings_config(cmds: &mut Vec<Command>) {
         .sub_command(settings_nickname_bypass_cmd)
         .sub_command(log_channel_cmd)
         .sub_command(functional_cmd)
+        .sub_command(toggle_ad_cmd)
         .handler(settings_view);
     cmds.push(settings_cmd);
 }

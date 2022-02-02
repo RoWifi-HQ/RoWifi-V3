@@ -38,12 +38,24 @@ pub async fn premium_transfer(
         }
     };
 
+    if user.flags.contains(UserFlags::STAFF) {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Premium Transfer Failed")
+            .description("You may not transfer a Staff Tier Premium.")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
+
     if user.transferred_to.is_some() {
         let embed = EmbedBuilder::new()
             .default_data()
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
-            .description("You have already transferred a premium to someone else. You may not transfer it again.")
+            .description("You have already transferred premium to someone else. You may not transfer it again.")
             .build()
             .unwrap();
         ctx.respond().embeds(&[embed])?.exec().await?;
@@ -131,7 +143,7 @@ pub async fn premium_transfer(
     let transaction = db.transaction().await?;
 
     let guild_change = transaction
-        .prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2")
+        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL, auto_detection = false WHERE guild_id = $2")
         .await?;
     for server in user.premium_servers {
         transaction
@@ -250,7 +262,7 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
     let transaction = db.transaction().await?;
 
     let guild_change = transaction
-        .prepare_cached("UPDATE guilds SET kind = $1 WHERE guild_id = $2")
+        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL, auto_detection = false WHERE guild_id = $2")
         .await?;
     for server in transfer_to_user.premium_servers {
         transaction

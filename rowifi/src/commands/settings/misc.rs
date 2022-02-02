@@ -1,5 +1,5 @@
 use rowifi_framework::prelude::*;
-use rowifi_models::guild::BlacklistActionType;
+use rowifi_models::guild::{BlacklistActionType, GuildType};
 
 use super::ToggleOption;
 
@@ -135,5 +135,58 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     ctx.bot.prefixes.insert(guild_id, prefix);
+    Ok(())
+}
+
+#[derive(FromArgs)]
+pub struct ToggleADArguments {
+    #[arg(
+        help = "The toggle to enable/disable auto detection in the server. Must be one of `enable` `disable` `on` `off`"
+    )]
+    pub option: ToggleOption,
+}
+
+pub async fn toggle_ad(ctx: CommandContext, args: ToggleADArguments) -> CommandResult {
+    let guild_id = ctx.guild_id.unwrap();
+    let guild = ctx.bot.database.get_guild(guild_id).await?;
+
+    if guild.kind == GuildType::Free {
+        let embed = EmbedBuilder::new()
+            .default_data()
+            .color(Color::Red as u32)
+            .title("Command Failed")
+            .description("This command is only available on Premium servers")
+            .build()
+            .unwrap();
+        ctx.respond().embeds(&[embed])?.exec().await?;
+        return Ok(());
+    }
+
+    let option = args.option;
+    let (statement, desc) = match option {
+        ToggleOption::Enable => (
+            "UPDATE guilds SET auto_detection = true WHERE guild_id = $1",
+            "Auto Detection has been enabled",
+        ),
+        ToggleOption::Disable => (
+            "UPDATE guilds SET auto_detection = false WHERE guild_id = $1",
+            "Auto Detection has been disabled",
+        ),
+    };
+
+    ctx.bot
+        .database
+        .execute(statement, &[&guild.guild_id])
+        .await?;
+
+    let embed = EmbedBuilder::new()
+        .default_data()
+        .color(Color::DarkGreen as u32)
+        .title("Settings Modification Successful")
+        .description(desc)
+        .build()
+        .unwrap();
+    ctx.respond().embeds(&[embed])?.exec().await?;
+
     Ok(())
 }
