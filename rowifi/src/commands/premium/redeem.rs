@@ -162,7 +162,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
     let transaction = db.transaction().await?;
 
     let guild_change = transaction
-        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL WHERE guild_id = $2")
+        .prepare_cached("UPDATE guilds SET kind = $1, premium_owner = NULL, auto_detection = false WHERE guild_id = $2")
         .await?;
     transaction
         .execute(&guild_change, &[&GuildType::Free, &guild.guild_id])
