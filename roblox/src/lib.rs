@@ -47,7 +47,7 @@ impl Client {
         let proxy = env::var("RBX_PROXY").ok();
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_webpki_roots()
-            .https_only()
+            .https_or_http()
             .enable_http1()
             .enable_http2()
             .build();
