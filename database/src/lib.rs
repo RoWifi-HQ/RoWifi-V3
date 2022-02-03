@@ -30,6 +30,7 @@ impl Database {
 
         let manager = Manager::new(postgres_config, NoTls);
         let pool = Pool::builder(manager)
+            .max_size(16)
             .runtime(Runtime::Tokio1)
             .recycle_timeout(Some(Duration::from_secs(30)))
             .wait_timeout(Some(Duration::from_secs(30)))
