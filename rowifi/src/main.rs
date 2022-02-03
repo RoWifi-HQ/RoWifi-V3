@@ -173,7 +173,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let standby = Standby::new();
 
     let redis = RedisPool::builder(RedisManager::new(redis_conn).unwrap())
-        .max_size(4)
+        .max_size(16)
         .runtime(Runtime::Tokio1)
         .recycle_timeout(Some(Duration::from_secs(30)))
         .wait_timeout(Some(Duration::from_secs(30)))
