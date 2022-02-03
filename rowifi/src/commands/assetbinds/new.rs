@@ -170,7 +170,7 @@ pub async fn assetbinds_new(ctx: CommandContext, args: NewArguments) -> CommandR
                                 allowed_mentions: None,
                                 content: None,
                                 components: Some(Vec::new()),
-                                embeds: Some(Vec::new()),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),

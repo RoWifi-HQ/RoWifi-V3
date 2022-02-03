@@ -139,7 +139,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                                 components: Some(vec![Component::ActionRow(ActionRow {
                                     components: vec![Component::SelectMenu(select_menu.clone())],
                                 })]),
-                                embeds: Some(Vec::new()),
+                                embeds: None,
                                 flags: None,
                                 tts: None,
                             }),
