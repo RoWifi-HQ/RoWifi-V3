@@ -128,7 +128,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
         }),
     };
 
-    ctx.bot.database.execute("INSERT INTO backups(discord_id, name, data) VALUES($1, $2, $3) ON CONFLICT DO UPDATE SET data = $3", &[&backup.discord_id, &backup.name, &backup.data]).await?;
+    ctx.bot.database.execute("INSERT INTO backups(discord_id, name, data) VALUES($1, $2, $3) ON CONFLICT(discord_id, name) DO UPDATE SET data = $3", &[&backup.discord_id, &backup.name, &backup.data]).await?;
 
     ctx.respond()
         .content(&format!("New backup with {} was created", name))?
