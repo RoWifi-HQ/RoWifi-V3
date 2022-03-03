@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use rowifi_database::dynamic_args_with_start;
+use rowifi_database::postgres::Row;
 use rowifi_framework::prelude::*;
 use rowifi_models::{
     bind::Bind, discord::gateway::payload::outgoing::RequestGuildMembers, guild::GuildType,
@@ -76,29 +76,28 @@ pub async fn update_all(ctx: CommandContext) -> CommandResult {
             .collect::<Vec<_>>();
     }
 
-    members.insert(0, guild_id.get() as i64);
-    let db = ctx.bot.database.get().await?;
-    let statement = db
-        .prepare_cached(&format!(
+    let rows = ctx
+        .bot
+        .database
+        .query::<Row>(
             r#"
-            SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
-            LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
-            ON l.discord_id = users.discord_id
-            WHERE users.discord_id IN ({})
+            SELECT users.discord_id, l.roblox_id, users.default_roblox_id FROM 
+            (SELECT * FROM linked_users WHERE guild_id = $1) AS l
+            RIGHT JOIN users
+            ON users.discord_id = l.discord_id
+            WHERE users.discord_id = ANY($2)
         "#,
-            dynamic_args_with_start(members.len() - 1, 2)
-        ))
+            &[&guild.guild_id, &members],
+        )
         .await?;
-    let rows = db.query_raw(&statement, &members).await?;
-    tokio::pin!(rows);
     let mut users = Vec::new();
-    while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(&row, guild_id) {
+    for row in rows {
+        match mass_update_user(&row, guild.guild_id) {
             Ok(u) => users.push(u),
-            Err(e) => tracing::error!("error in update all: {}", e),
+            Err(err) => tracing::error!("error in deserializing user: {}", err),
         }
     }
-    tracing::debug!(users = ?users);
+    tracing::trace!(users = ?users);
 
     let binds = ctx
         .bot
@@ -241,29 +240,28 @@ pub async fn update_role(ctx: CommandContext, args: UpdateMultipleArguments) -> 
             .collect::<Vec<_>>();
     }
 
-    members.insert(0, guild_id.get() as i64);
-    let db = ctx.bot.database.get().await?;
-    let statement = db
-        .prepare_cached(&format!(
+    let rows = ctx
+        .bot
+        .database
+        .query::<Row>(
             r#"
-            SELECT users.discord_id, default_roblox_id, roblox_id, guild_id FROM users
-            LEFT JOIN (SELECT * FROM linked_users WHERE guild_id = $1) AS l
-            ON l.discord_id = users.discord_id
-            WHERE users.discord_id IN ({})
+            SELECT users.discord_id, l.roblox_id, users.default_roblox_id FROM 
+            (SELECT * FROM linked_users WHERE guild_id = $1) AS l
+            RIGHT JOIN users
+            ON users.discord_id = l.discord_id
+            WHERE users.discord_id = ANY($2)
         "#,
-            dynamic_args_with_start(members.len() - 1, 2)
-        ))
+            &[&guild.guild_id, &members],
+        )
         .await?;
-    let rows = db.query_raw(&statement, &members).await?;
-    tokio::pin!(rows);
     let mut users = Vec::new();
-    while let Some(Ok(row)) = rows.next().await {
-        match mass_update_user(&row, guild_id) {
+    for row in rows {
+        match mass_update_user(&row, guild.guild_id) {
             Ok(u) => users.push(u),
-            Err(e) => tracing::error!("error in update all: {}", e),
+            Err(err) => tracing::error!("error in deserializing user: {}", err),
         }
     }
-    tracing::debug!(users = ?users);
+    tracing::trace!(users = ?users);
 
     let binds = ctx
         .bot
