@@ -4,7 +4,7 @@ use itertools::Itertools;
 use rowifi_framework::{context::BotContext, prelude::*};
 use rowifi_models::{
     bind::Bind,
-    discord::{channel::GuildChannel, guild::Permissions},
+    discord::{channel::ChannelType, guild::Permissions},
     guild::{GuildType, RoGuild},
     id::{ChannelId, GuildId, UserId},
 };
@@ -69,8 +69,8 @@ impl Service<(u64, Event)> for EventHandler {
                             \nTo view our documentation, please visit our website: https://rowifi.link";
                         let mut channel = None;
                         for c in &guild.channels {
-                            if let GuildChannel::Text(tc) = c {
-                                if let Some(permissions) = eh.bot.cache.channel_permissions(ChannelId(tc.id)) {
+                            if c.kind == ChannelType::GuildText {
+                                if let Some(permissions) = eh.bot.cache.channel_permissions(ChannelId(c.id)) {
                                     if permissions.contains(Permissions::SEND_MESSAGES) {
                                         channel = Some(c);
                                         break;
@@ -81,7 +81,7 @@ impl Service<(u64, Event)> for EventHandler {
                         if let Some(channel) = channel {
                             let _ = eh.bot
                                 .http
-                                .create_message(channel.id())
+                                .create_message(channel.id)
                                 .content(content)
                                 .unwrap()
                                 .exec()
@@ -97,8 +97,7 @@ impl Service<(u64, Event)> for EventHandler {
                                 guild.owner_id.get(),
                                 guild.member_count.unwrap_or_default()
                             ))
-                            .build()
-                            .unwrap();
+                            .build();
                         eh.bot.log_debug(log_embed).await;
                     }
                 }
@@ -110,8 +109,7 @@ impl Service<(u64, Event)> for EventHandler {
                             .default_data()
                             .title("Guild Leave")
                             .description(format!("Server Id: {}", guild.id.get()))
-                            .build()
-                            .unwrap();
+                            .build();
                         eh.bot.log_debug(log_embed).await;
                     }
                 }
@@ -243,8 +241,7 @@ impl Service<(u64, Event)> for EventHandler {
                         .default_data()
                         .title("Update On Join")
                         .update_log(&added_roles, &removed_roles, &disc_nick)
-                        .build()
-                        .unwrap();
+                        .build();
                     eh.bot.log_guild(guild_id, log_embed).await;
                 }
                 _ => {}

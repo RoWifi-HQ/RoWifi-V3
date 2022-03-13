@@ -8,7 +8,6 @@ use rowifi_models::{
     bind::Template,
     discord::{
         application::{
-            callback::{CallbackData, InteractionResponse},
             component::{
                 action_row::ActionRow,
                 button::{Button, ButtonStyle},
@@ -16,11 +15,12 @@ use rowifi_models::{
             },
             interaction::Interaction,
         },
-        channel::{embed::Embed, ReactionType},
-        gateway::event::Event,
+        channel::{embed::Embed, ReactionType, message::MessageFlags},
+        gateway::event::Event, http::interaction::{InteractionResponse, InteractionResponseType},
     },
     id::{ChannelId, RoleId, UserId},
 };
+use twilight_util::builder::InteractionResponseDataBuilder;
 use std::{cmp::min, num::ParseIntError, str::FromStr, time::Duration};
 use tokio_stream::StreamExt;
 
@@ -97,17 +97,15 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     ctx.bot
                         .http
                         .interaction(application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(InteractionResponseDataBuilder::new()
+                                    .components(Vec::new())
+                                    .build())
+                            },
                         )
                         .exec()
                         .await?;
@@ -123,10 +121,13 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     .bot
                     .http
                     .interaction(application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        },
                     )
                     .exec()
                     .await;
@@ -134,8 +135,8 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                     .bot
                     .http
                     .interaction(application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This component is only interactable by the original command invoker")
                     .unwrap()
                     .exec()
@@ -213,19 +214,20 @@ pub async fn await_template_reply(
                     ctx.bot
                         .http
                         .interaction(application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(vec![Component::ActionRow(ActionRow {
-                                    components: vec![Component::SelectMenu(select_menu.clone())],
-                                })]),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(InteractionResponseDataBuilder::new()
+                                    .components(vec![
+                                        Component::ActionRow(ActionRow {
+                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                        })
+                                    ])
+                                    .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -234,7 +236,7 @@ pub async fn await_template_reply(
                         ctx.bot
                             .http
                             .interaction(application_id)
-                            .create_followup_message(&message_component.token)
+                            .create_followup(&message_component.token)
                             .content("Command has been cancelled")
                             .unwrap()
                             .exec()
@@ -249,10 +251,13 @@ pub async fn await_template_reply(
                     .bot
                     .http
                     .interaction(application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        },
                     )
                     .exec()
                     .await;
@@ -260,8 +265,8 @@ pub async fn await_template_reply(
                     .bot
                     .http
                     .interaction(application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This component is only interactable by the original command invoker")
                     .unwrap()
                     .exec()
@@ -330,24 +335,22 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     ctx.bot
                         .http
                         .interaction(application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(InteractionResponseDataBuilder::new()
+                                    .components(Vec::new())
+                                    .build())
+                            },
                         )
                         .exec()
                         .await?;
                     ctx.bot
                         .http
                         .interaction(application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .content("Command has been cancelled")
                         .unwrap()
                         .exec()
@@ -359,10 +362,13 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .bot
                     .http
                     .interaction(application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        },
                     )
                     .exec()
                     .await;
@@ -370,8 +376,8 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                     .bot
                     .http
                     .interaction(application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This component is only interactable by the original command invoker")
                     .unwrap()
                     .exec()
@@ -486,34 +492,37 @@ pub async fn paginate_embed(
 
                         let _ = http
                             .interaction(application_id)
-                            .interaction_callback(
+                            .create_response(
                                 message_component.id,
                                 &message_component.token,
-                                &InteractionResponse::UpdateMessage(CallbackData {
-                                    allowed_mentions: None,
-                                    content: None,
-                                    components: None,
-                                    embeds: Some(vec![pages[page_pointer].clone()]),
-                                    flags: None,
-                                    tts: None,
-                                }),
+                                &InteractionResponse {
+                                    kind: InteractionResponseType::UpdateMessage,
+                                    data: Some(
+                                        InteractionResponseDataBuilder::new()
+                                            .embeds(vec![pages[page_pointer].clone()])
+                                            .build()
+                                    )
+                                }
                             )
                             .exec()
                             .await;
                     } else {
                         let _ = http
                             .interaction(application_id)
-                            .interaction_callback(
+                            .create_response(
                                 message_component.id,
                                 &message_component.token,
-                                &InteractionResponse::DeferredUpdateMessage,
+                                &InteractionResponse {
+                                    kind: InteractionResponseType::DeferredUpdateMessage,
+                                    data: None
+                                },
                             )
                             .exec()
                             .await;
                         let _ = http
                             .interaction(application_id)
-                            .create_followup_message(&message_component.token)
-                            .ephemeral(true)
+                            .create_followup(&message_component.token)
+                            .flags(MessageFlags::EPHEMERAL)
                             .content(
                                 "This view menu is only navigable by the original command invoker",
                             )

@@ -18,8 +18,7 @@ pub async fn trainer_view(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -40,8 +39,7 @@ pub async fn trainer_view(ctx: CommandContext) -> CommandResult {
             "{}\n\n{}",
             "These are the roles that can interact with trainer commands.", description
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -57,8 +55,7 @@ pub async fn trainer_add(ctx: CommandContext, args: TrainerArguments) -> Command
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -103,8 +100,7 @@ pub async fn trainer_add(ctx: CommandContext, args: TrainerArguments) -> Command
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -120,8 +116,7 @@ pub async fn trainer_remove(ctx: CommandContext, args: TrainerArguments) -> Comm
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -161,8 +156,7 @@ pub async fn trainer_remove(ctx: CommandContext, args: TrainerArguments) -> Comm
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -178,8 +172,7 @@ pub async fn trainer_set(ctx: CommandContext, args: TrainerArguments) -> Command
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -221,8 +214,7 @@ pub async fn trainer_set(ctx: CommandContext, args: TrainerArguments) -> Command
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

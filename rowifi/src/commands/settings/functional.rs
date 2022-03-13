@@ -21,8 +21,7 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -119,10 +118,13 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -255,8 +257,8 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         .bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
-                        .ephemeral(true)
+                        .create_followup(&message_component.token)
+                        .flags(MessageFlags::EPHEMERAL)
                         .content(
                             "This component is only interactable by the original command invoker",
                         )?

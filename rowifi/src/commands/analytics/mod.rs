@@ -56,8 +56,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -68,8 +67,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Group Registration Failed")
             .description("There are no groups registered to this server")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -84,8 +82,7 @@ pub async fn analytics_config_view(ctx: CommandContext) -> CommandResult {
         .default_data()
         .title("Registered Groups")
         .description(registered_groups)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

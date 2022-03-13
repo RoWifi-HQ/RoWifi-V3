@@ -35,8 +35,7 @@ pub async fn blacklist_action(
             "Blacklist action has successfully been set to {}",
             bl_type
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -46,8 +45,7 @@ pub async fn blacklist_action(
             "Settings Modification: Blacklist Action - {} -> {}",
             guild.blacklist_action, bl_type
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
@@ -91,8 +89,7 @@ pub async fn toggle_commands(ctx: CommandContext, args: ToggleCommandsArguments)
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(desc)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     if add {
@@ -130,8 +127,7 @@ pub async fn settings_prefix(ctx: CommandContext, args: SettingsPrefixArguments)
             "The bot prefix has been successfully changed to {}",
             prefix
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     ctx.bot.prefixes.insert(guild_id, prefix);
@@ -156,8 +152,7 @@ pub async fn toggle_ad(ctx: CommandContext, args: ToggleADArguments) -> CommandR
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -184,8 +179,7 @@ pub async fn toggle_ad(ctx: CommandContext, args: ToggleADArguments) -> CommandR
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(desc)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

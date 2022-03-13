@@ -25,8 +25,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                     "There was no user found with username {}",
                     username
                 ))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -66,8 +65,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         .title("Blacklist Addition Successful")
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
         .color(Color::DarkGreen as u32)
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -93,8 +91,7 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
         .title(format!("Action by {}", ctx.author.name))
         .description("Blacklist Addition")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     let message_id = message.id;
@@ -116,17 +113,17 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -138,12 +135,11 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                         .color(Color::DarkGreen as u32)
                         .title("Successful!")
                         .description("The newly created blacklist was deleted")
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .embeds(&[embed])?
                         .exec()
                         .await?;
@@ -154,10 +150,13 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -165,8 +164,8 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;

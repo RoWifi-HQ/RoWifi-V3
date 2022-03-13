@@ -17,8 +17,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .color(Color::Red as u32)
             .title("Group Registration Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -29,8 +28,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
             .default_data()
             .title("Group Registration Already Exists")
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -41,8 +39,7 @@ pub async fn analytics_register(ctx: CommandContext, args: RegisterArguments) ->
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Group Registration Successful")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -63,8 +60,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
             .color(Color::Red as u32)
             .title("Group Registration Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -75,8 +71,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
             .default_data()
             .title("Group Registration doesn't exist")
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -87,8 +82,7 @@ pub async fn analytics_unregister(ctx: CommandContext, args: UnregisterArguments
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Group Unregistration Successful")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

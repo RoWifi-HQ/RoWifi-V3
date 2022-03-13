@@ -57,17 +57,17 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -75,7 +75,7 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .embeds(&[embed])?
                         .exec()
                         .await?;
@@ -85,10 +85,13 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -96,8 +99,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
@@ -131,8 +134,7 @@ pub async fn update_func(
                 .title("Update Failed")
                 .description("No such member was found")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             return Ok(embed);
         }
     };
@@ -144,8 +146,7 @@ pub async fn update_func(
             .title("Update Failed")
             .description("Due to discord limitations, I cannot update the server owner")
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         return Ok(embed);
     }
 
@@ -158,8 +159,7 @@ pub async fn update_func(
             .title("Update Failed")
             .description("I cannot update users with roles having the `RoWifi Bypass` permission")
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         return Ok(embed);
     }
 
@@ -171,8 +171,7 @@ pub async fn update_func(
                 .title("Update Failed")
                 .description("User was not verified. Please ask them to verify themselves")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             return Ok(embed);
         }
     };
@@ -227,8 +226,7 @@ pub async fn update_func(
                             2. I am trying to add/remove a binded role that is above my highest role
                             3. Either the verification & verified role are above my highest role",
                                 )
-                                .build()
-                                .unwrap();
+                                .build();
                             return Ok(embed);
                         }
                     }
@@ -243,8 +241,7 @@ pub async fn update_func(
                         "User was found on the server blacklist. Reason: {}",
                         reason
                     ))
-                    .build()
-                    .unwrap();
+                    .build();
                 if let Ok(channel) = ctx
                     .bot
                     .http
@@ -276,8 +273,7 @@ pub async fn update_func(
                         "The supposed nickname {} is greater than 32 characters.",
                         nickname
                     ))
-                    .build()
-                    .unwrap();
+                    .build();
                 return Ok(embed);
             }
         };
@@ -291,15 +287,13 @@ pub async fn update_func(
             "RoWifi | Executed in {} ms",
             (end - start)
         )))
-        .build()
-        .unwrap();
+        .build();
 
     let log_embed = EmbedBuilder::new()
         .default_data()
         .title("Update")
         .update_log(&added_roles, &removed_roles, &disc_nick)
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(embed)

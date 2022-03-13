@@ -41,8 +41,7 @@ pub async fn cb_modify_code(ctx: CommandContext, args: ModifyCode) -> CommandRes
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", id_to_modify))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -61,8 +60,7 @@ pub async fn cb_modify_code(ctx: CommandContext, args: ModifyCode) -> CommandRes
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description("You must be verified to create a custombind")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -144,8 +142,7 @@ pub async fn cb_modify_priority(ctx: CommandContext, args: ModifyPriority) -> Co
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", id_to_modify))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -184,8 +181,7 @@ pub async fn cb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
             .color(Color::Red as u32)
             .title("Custombind Modification Failed")
             .description("You have entered a blank template")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -210,8 +206,7 @@ pub async fn cb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", id_to_modify))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -273,8 +268,7 @@ pub async fn cb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", id_to_modify))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -334,8 +328,7 @@ pub async fn cb_remove_roles(ctx: CommandContext, args: RemoveRoles) -> CommandR
                 .color(Color::Red as u32)
                 .title("Custom Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", id_to_modify))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -369,8 +362,7 @@ async fn cb_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title("Success!")
         .description("The bind was successfully modified")
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -378,8 +370,7 @@ async fn cb_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title(format!("Action by {}", ctx.author.name))
         .description("Custom Bind Modification")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())

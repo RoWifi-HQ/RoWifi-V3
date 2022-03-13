@@ -31,8 +31,7 @@ pub async fn premium_transfer(
                 .color(Color::Red as u32)
                 .title("Premium Transfer Failed")
                 .description("You must be verified to use this command")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -44,8 +43,7 @@ pub async fn premium_transfer(
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You may not transfer a Staff Tier Premium.")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -56,8 +54,7 @@ pub async fn premium_transfer(
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You have already transferred premium to someone else. You may not transfer it again.")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -68,8 +65,7 @@ pub async fn premium_transfer(
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You may not transfer a premium that you do not own")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -82,8 +78,7 @@ pub async fn premium_transfer(
                 .color(Color::Red as u32)
                 .title("Premium Transfer Failed")
                 .description("You must specify a user id to transfer to.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -95,8 +90,7 @@ pub async fn premium_transfer(
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You cannot transfer your premium to yourself.")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -117,8 +111,7 @@ pub async fn premium_transfer(
                 .color(Color::Red as u32)
                 .title("Premium Transfer Failed")
                 .description("The user you are transferring to must also be verified")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -133,8 +126,7 @@ pub async fn premium_transfer(
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You cannot transfer to a user who already has premium")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -193,8 +185,7 @@ pub async fn premium_transfer(
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Premium Transfer Successful")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -216,8 +207,7 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Premium Transfer Failed")
                 .description("You must be verified to use this command")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -229,8 +219,7 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Premium Transfer Failed")
             .description("You have not transferred your premium to anyone.")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -251,8 +240,7 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Premium Transfer Failed")
                 .description("The user you have to transferred to doesn't exist. This shouldn't happen. Please contact the RoWifi support server.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -298,8 +286,7 @@ pub async fn premium_untransfer(ctx: CommandContext) -> CommandResult {
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Premium Untransfer Successful")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

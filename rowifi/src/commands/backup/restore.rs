@@ -28,8 +28,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 .color(Color::Red as u32)
                 .title("Backup Failed")
                 .description("This module may only be used by a Beta Tier user")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -58,8 +57,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                     "No backup with name {} was found associated to your account",
                     name
                 ))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -107,7 +105,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     for channel in server_channels {
         let cached = ctx.bot.cache.channel(channel);
         if let Some(cached) = cached {
-            channels.insert(cached.name().to_string(), channel);
+            channels.insert(cached.name.clone(), channel);
         }
     }
 

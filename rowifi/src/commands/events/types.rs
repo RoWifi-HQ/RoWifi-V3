@@ -11,8 +11,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -32,7 +31,7 @@ pub async fn event_type(ctx: CommandContext) -> CommandResult {
         let value = format!("Name: {}", event_type.name);
         embed = embed.field(EmbedFieldBuilder::new(name, value).inline());
     }
-    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
+    ctx.respond().embeds(&[embed.build()])?.exec().await?;
     Ok(())
 }
 
@@ -54,8 +53,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -79,7 +77,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Event Type Addition Failed")
             .description(format!("An event type with id {} already exists. To modify an event type, use `events type modify`", event_id))
-            .build()?;
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -102,8 +100,7 @@ pub async fn event_type_new(ctx: CommandContext, args: EventTypeArguments) -> Co
             format!("Id: {}", event_type.event_type_guild_id),
             format!("Name: {}", event_type.name),
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -118,8 +115,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -149,8 +145,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
                     "An event type with id {} does not exist",
                     event_type_guild_id
                 ))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -170,8 +165,7 @@ pub async fn event_type_modify(ctx: CommandContext, args: EventTypeArguments) ->
         .color(Color::DarkGreen as u32)
         .title("Event Type Modification Successful")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -192,8 +186,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -222,8 +215,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
                     "An event type with id {} does not exist",
                     event_type_guild_id
                 ))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -244,8 +236,7 @@ pub async fn event_type_disable(ctx: CommandContext, args: DisableArguments) -> 
         .color(Color::DarkGreen as u32)
         .title("Event Type Modification Successful")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -266,8 +257,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -296,8 +286,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
                     "An event type with id {} does not exist",
                     event_type_guild_id
                 ))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -318,8 +307,7 @@ pub async fn event_type_enable(ctx: CommandContext, args: EnableArguments) -> Co
         .color(Color::DarkGreen as u32)
         .title("Event Type Modification Successful")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

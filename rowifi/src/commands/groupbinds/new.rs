@@ -36,8 +36,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
             .title("Bind Addition Failed")
             .color(Color::Red as u32)
             .description(format!("A bind with group id {} already exists", group_id))
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -105,8 +104,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .title("Bind Addition Successful")
         .color(Color::DarkGreen as u32)
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -132,8 +130,7 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
         .title(format!("Action by {}", ctx.author.name))
         .description("Group Bind Addition")
         .field(EmbedFieldBuilder::new(name, value))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     let message_id = message.id;
@@ -155,17 +152,17 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -180,12 +177,11 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                         .color(Color::DarkGreen as u32)
                         .title("Successful!")
                         .description("The newly created bind was deleted")
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .embeds(&[embed])?
                         .exec()
                         .await?;
@@ -196,10 +192,13 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -207,8 +206,8 @@ pub async fn groupbinds_new(ctx: CommandContext, args: GroupbindsNewArguments) -
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;

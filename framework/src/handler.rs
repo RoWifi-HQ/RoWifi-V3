@@ -5,7 +5,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::EmbedFieldBuilder;
+use twilight_util::builder::embed::EmbedFieldBuilder;
 
 use crate::{
     arguments::FromArgs, context::CommandContext, error::RoError, CommandResult, ServiceRequest,
@@ -98,7 +98,7 @@ where
                 if !fields_help.is_empty() {
                     embed = embed.field(EmbedFieldBuilder::new("Fields", fields_help));
                 }
-                let mut embed = embed.build().unwrap();
+                let mut embed = embed.build();
                 if let Some(field) = embed.fields.iter_mut().find(|f| f.name.eq("Usage")) {
                     field.value = format!("`{} {}`", field.value, usage);
                 }

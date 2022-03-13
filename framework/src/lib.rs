@@ -32,12 +32,11 @@ use rowifi_cache::{CachedGuild, CachedMember};
 use rowifi_models::{
     discord::{
         application::{
-            callback::{CallbackData, InteractionResponse},
             interaction::{application_command::CommandDataOption, Interaction},
         },
         channel::{message::MessageFlags, Message},
         gateway::event::Event,
-        guild::Permissions,
+        guild::Permissions, http::interaction::{InteractionResponse, InteractionResponseType},
     },
     id::{ChannelId, GuildId, UserId},
 };
@@ -48,7 +47,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
+use twilight_util::builder::{embed::{EmbedBuilder, EmbedFieldBuilder}, InteractionResponseDataBuilder};
 use uwl::Stream;
 
 use arguments::Arguments;
@@ -138,7 +137,7 @@ impl Framework {
                 embed = embed.field(EmbedFieldBuilder::new(group, commands));
             }
         }
-        let embed = embed.build().unwrap();
+        let embed = embed.build();
         let bot = self.bot.clone();
         let channel_id = msg.channel_id;
         let fut = async move {
@@ -301,20 +300,18 @@ impl Service<&Event> for Framework {
                         let fut = async move {
                             let _ = http
                                 .interaction(application_id)
-                                .interaction_callback(
+                                .create_response(
                                     id,
                                     &token,
-                                    &InteractionResponse::ChannelMessageWithSource(CallbackData {
-                                        allowed_mentions: None,
-                                        tts: None,
-                                        embeds: None,
-                                        content: Some(
-                                            "You do not have sufficient perms to run this command"
-                                                .into(),
-                                        ),
-                                        flags: Some(MessageFlags::EPHEMERAL),
-                                        components: None,
-                                    }),
+                                    &InteractionResponse {
+                                        kind: InteractionResponseType::ChannelMessageWithSource,
+                                        data: Some(
+                                            InteractionResponseDataBuilder::new()
+                                                .content("You do not have sufficient perms to run this command".into())
+                                                .flags(MessageFlags::EPHEMERAL)
+                                                .build()
+                                        )
+                                    }
                                 )
                                 .exec()
                                 .await;
@@ -351,17 +348,20 @@ impl Service<&Event> for Framework {
                         let fut = async move {
                             let _ = http
                                 .interaction(application_id)
-                                .interaction_callback(
+                                .create_response(
                                     id,
                                     &token,
-                                    &InteractionResponse::DeferredUpdateMessage,
+                                    &InteractionResponse {
+                                        kind: InteractionResponseType::DeferredUpdateMessage,
+                                        data: None
+                                    },
                                 )
                                 .exec()
                                 .await;
                             let _ = http
                                 .interaction(application_id)
-                                .create_followup_message(&token)
-                                .ephemeral(true)
+                                .create_followup(&token)
+                                .flags(MessageFlags::EPHEMERAL)
                                 .content("This component is no longer active and cannot be used.")
                                 .unwrap()
                                 .exec()

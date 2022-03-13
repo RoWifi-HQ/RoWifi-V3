@@ -5,8 +5,7 @@ pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::{constants::EMBED_FIELD_DESCRIPTION_LIMIT, prelude::*};
-use rowifi_models::bind::{BindType, Custombind};
-use twilight_http::request::AttachmentFile;
+use rowifi_models::{bind::{BindType, Custombind}, discord::http::attachment::Attachment};
 
 use delete::custombinds_delete;
 use modify::{
@@ -104,8 +103,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
             .title("Bind Viewing Failed")
             .color(Color::Red as u32)
             .description("No custombinds were found associated with this server")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[e])?.exec().await?;
         return Ok(());
     }
@@ -129,9 +127,9 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
         }
 
         ctx.respond()
-            .files(&[AttachmentFile::from_bytes(
-                "custombinds.txt",
-                text.as_bytes(),
+            .files(&[Attachment::from_bytes(
+                "custombinds.txt".into(),
+                text.into_bytes(),
             )])
             .exec()
             .await?;
@@ -157,7 +155,7 @@ pub async fn custombinds_view(ctx: CommandContext) -> CommandResult {
                 );
                 embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
             }
-            pages.push(embed.build()?);
+            pages.push(embed.build());
             page_count += 1;
         }
         paginate_embed(&ctx, pages, page_count).await?;

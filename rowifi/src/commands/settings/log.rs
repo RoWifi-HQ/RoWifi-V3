@@ -17,8 +17,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -30,8 +29,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
                 .color(Color::Red as u32)
                 .title("Command Failed")
                 .description("This channel cannot be set as a log channel or does not exist")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -50,8 +48,7 @@ pub async fn log_channel(ctx: CommandContext, args: LogChannelArguments) -> Comm
             .color(Color::DarkGreen as u32)
             .title("Settings Modification Successful")
             .description(format!("Logs channel has been set to <#{}>", channel_id))
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
     } else if let Some(channel_id) = guild.log_channel {
         ctx.respond()

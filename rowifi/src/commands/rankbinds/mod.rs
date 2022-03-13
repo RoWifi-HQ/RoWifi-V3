@@ -94,8 +94,7 @@ pub async fn rankbinds_view(ctx: CommandContext) -> Result<(), RoError> {
             .title("Bind Viewing Failed")
             .color(Color::Red as u32)
             .description("No rankbinds were found associated with this server")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -123,7 +122,7 @@ pub async fn rankbinds_view(ctx: CommandContext) -> Result<(), RoError> {
                 );
                 embed = embed.field(EmbedFieldBuilder::new(name, desc).inline().build());
             }
-            pages.push(embed.build()?);
+            pages.push(embed.build());
             page_count += 1;
         }
     }

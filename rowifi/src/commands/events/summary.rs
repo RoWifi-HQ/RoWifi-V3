@@ -16,8 +16,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -74,7 +73,7 @@ pub async fn event_summary(ctx: CommandContext) -> CommandResult {
         );
     }
 
-    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
+    ctx.respond().embeds(&[embed.build()])?.exec().await?;
 
     Ok(())
 }

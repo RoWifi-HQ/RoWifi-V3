@@ -150,8 +150,7 @@ pub async fn custombinds_new_common(
                 .color(Color::Red as u32)
                 .title("Custom Bind Addition Failed")
                 .description("You must be verified to create a custom bind")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -259,8 +258,7 @@ pub async fn custombinds_new_common(
                         .color(Color::Red as u32)
                         .title("Custom Bind Addition Failed")
                         .description("Expected priority to be a number")
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.respond().embeds(&[embed])?.exec().await?;
                     return Ok(());
                 }
@@ -323,8 +321,7 @@ pub async fn custombinds_new_common(
                 .take(EMBED_DESCRIPTION_LIMIT)
                 .collect::<String>(),
         )
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -354,8 +351,7 @@ pub async fn custombinds_new_common(
                 .take(EMBED_DESCRIPTION_LIMIT)
                 .collect::<String>(),
         )
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     let author_id = ctx.author.id;
@@ -377,17 +373,17 @@ pub async fn custombinds_new_common(
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -402,12 +398,11 @@ pub async fn custombinds_new_common(
                         .color(Color::DarkGreen as u32)
                         .title("Successful!")
                         .description("The newly created bind was deleted")
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .embeds(&[embed])?
                         .exec()
                         .await?;
@@ -418,10 +413,13 @@ pub async fn custombinds_new_common(
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -429,8 +427,8 @@ pub async fn custombinds_new_common(
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;

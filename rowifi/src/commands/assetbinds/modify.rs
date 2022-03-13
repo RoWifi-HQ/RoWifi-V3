@@ -35,8 +35,7 @@ pub async fn ab_modify_priority(ctx: CommandContext, args: ModifyPriority) -> Co
                 .color(Color::Red as u32)
                 .title("Asset Modification Failed")
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -86,8 +85,7 @@ pub async fn ab_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
                 .color(Color::Red as u32)
                 .title("Asset Modification Failed")
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -146,8 +144,7 @@ pub async fn ab_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
                 .color(Color::Red as u32)
                 .title("Asset Modification Failed")
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -204,8 +201,7 @@ pub async fn ab_remove_roles(ctx: CommandContext, args: RemoveRoles) -> CommandR
                 .color(Color::Red as u32)
                 .title("Asset Modification Failed")
                 .description(format!("A bind with Asset Id {} does not exist", asset_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -239,8 +235,7 @@ async fn ab_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title("Success!")
         .description("The bind was successfully modified")
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -248,8 +243,7 @@ async fn ab_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title(format!("Action by {}", ctx.author.name))
         .description("Asset Bind Modification")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())
