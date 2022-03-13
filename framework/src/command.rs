@@ -1,10 +1,9 @@
 use itertools::Itertools;
 use rowifi_models::discord::{
     application::{
-        callback::{CallbackData, InteractionResponse},
         interaction::application_command::CommandOptionValue,
     },
-    channel::message::MessageFlags,
+    channel::message::MessageFlags, http::interaction::{InteractionResponse, InteractionResponseType},
 };
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -13,7 +12,7 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
+use twilight_util::builder::{embed::{EmbedBuilder, EmbedFieldBuilder}, InteractionResponseDataBuilder};
 
 use crate::{
     arguments::{ArgumentError, FromArgs},
@@ -184,17 +183,16 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                 let fut = async move {
                     let _ = http
                         .interaction(application_id)
-                        .interaction_callback(
+                        .create_response(
                             id,
                             &token,
-                            &InteractionResponse::ChannelMessageWithSource(CallbackData {
-                                allowed_mentions: None,
-                                tts: None,
-                                embeds: None,
-                                content: Some("Commands are disabled in this channel".into()),
-                                flags: Some(MessageFlags::EPHEMERAL),
-                                components: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::ChannelMessageWithSource,
+                                data: Some(InteractionResponseDataBuilder::new()
+                                    .content("Commands are disabled in this channel".into())
+                                    .flags(MessageFlags::EPHEMERAL)
+                                    .build())
+                            },
                         )
                         .exec()
                         .await;
@@ -213,17 +211,13 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
             if let (Some(id), Some(token)) = (interaction_id, interaction_token) {
                 let _ = http
                     .interaction(application_id)
-                    .interaction_callback(
+                    .create_response(
                         id,
                         &token,
-                        &InteractionResponse::DeferredChannelMessageWithSource(CallbackData {
-                            allowed_mentions: None,
-                            tts: None,
-                            embeds: None,
-                            content: None,
-                            flags: None,
-                            components: None,
-                        }),
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredChannelMessageWithSource,
+                            data: None
+                        },
                     )
                     .exec()
                     .await;
@@ -306,8 +300,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .title("Command Failure")
                             .color(Color::Red as u32)
                             .description("Command was cancelled.")
-                            .build()
-                            .unwrap();
+                            .build();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     }
                     CommandError::Message(_) => todo!(),
@@ -317,8 +310,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                             .title("Command Failure")
                             .color(Color::Red as u32)
                             .description("Command timed out. Please try again.")
-                            .build()
-                            .unwrap();
+                            .build();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     }
                     CommandError::Ratelimit(d) => {
@@ -330,8 +322,7 @@ async fn handle_error(err: &RoError, ctx: CommandContext, master_name: &str) {
                                 "Ratelimit reached. You may retry this command in {} seconds",
                                 d.as_secs()
                             ))
-                            .build()
-                            .unwrap();
+                            .build();
                         let _ = ctx.respond().embeds(&[embed]).unwrap().exec().await;
                     }
                 }

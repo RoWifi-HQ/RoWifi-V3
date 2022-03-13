@@ -105,8 +105,7 @@ pub async fn serverinfo(ctx: CommandContext) -> CommandResult {
             )
             .inline(),
         )
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

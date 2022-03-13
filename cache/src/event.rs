@@ -1,7 +1,6 @@
 use rowifi_models::{
     discord::{
         application::interaction::Interaction,
-        channel::Channel,
         gateway::{
             event::Event,
             payload::incoming::{
@@ -35,13 +34,13 @@ impl UpdateCache for Event {
         };
 
         match self {
-            ChannelCreate(v) => c.update(v),
-            ChannelDelete(v) => c.update(v),
-            ChannelUpdate(v) => c.update(v),
+            ChannelCreate(v) => c.update(v.deref()),
+            ChannelDelete(v) => c.update(v.deref()),
+            ChannelUpdate(v) => c.update(v.deref()),
             GuildCreate(v) => c.update(v.deref()),
             GuildDelete(v) => c.update(v.deref()),
             GuildUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v),
             MemberAdd(v) => c.update(v.deref()),
             MemberChunk(v) => c.update(v.deref()),
             MemberRemove(v) => c.update(v.deref()),
@@ -60,10 +59,9 @@ impl UpdateCache for Event {
 
 impl UpdateCache for ChannelCreate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        if let Channel::Guild(gc) = self.0.clone() {
-            let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(GuildId(guild_id), gc);
-            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id()));
+        if let Some(guild_id) = self.guild_id {
+            c.cache_guild_channel(GuildId(guild_id), self.0.clone());
+            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id));
         }
 
         Ok(())
@@ -72,20 +70,18 @@ impl UpdateCache for ChannelCreate {
 
 impl UpdateCache for ChannelDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        if let Channel::Guild(gc) = self.0.clone() {
-            c.delete_guild_channel(&gc);
-            c.0.channel_permissions.remove(&ChannelId(self.id()));
-        }
+        c.delete_guild_channel(&self);
+        c.0.channel_permissions.remove(&ChannelId(self.id));
+        
         Ok(())
     }
 }
 
 impl UpdateCache for ChannelUpdate {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        if let Channel::Guild(gc) = self.0.clone() {
-            let guild_id = gc.guild_id().unwrap();
-            c.cache_guild_channel(GuildId(guild_id), gc);
-            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id()));
+        if let Some(guild_id) = self.guild_id {
+            c.cache_guild_channel(GuildId(guild_id), self.0.clone());
+            c.cache_channel_permissions(GuildId(guild_id), ChannelId(self.id));
         }
 
         Ok(())
@@ -102,7 +98,7 @@ impl UpdateCache for GuildCreate {
             .store(self.member_count.unwrap() as i64, Ordering::SeqCst);
         c.cache_guild_permissions(guild_id);
         for channel in &self.channels {
-            c.cache_channel_permissions(guild_id, ChannelId(channel.id()));
+            c.cache_channel_permissions(guild_id, ChannelId(channel.id));
         }
         if old_guild.is_none() {
             c.0.stats.resource_counts.guilds.inc();

@@ -23,7 +23,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
                 .title("Premium Redeem Failed")
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
-                .build()?;
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -33,7 +33,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Premium Redeem Failed")
             .description("You seem to have transferred your premium to someone else. Thus, you cannot use it.")
-            .build()?;
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -46,8 +46,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Premium Redeem Failed")
             .description("You must be the server owner to redeem premium in a server")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -59,8 +58,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Premium Redeem Failed")
                 .description("You may only use premium in one of your servers")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -114,8 +112,7 @@ pub async fn premium_redeem(ctx: CommandContext) -> CommandResult {
         .color(Color::DarkGreen as u32)
         .title("Premium Redeem Successful")
         .description(format!("Added Premium Features to {}", server.name))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let req = RequestGuildMembers::builder(server.id.0).query("", None);
@@ -141,7 +138,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
                 .title("Premium Disable Failed")
                 .description("Premium Details corresponding to your account were not found. Please use `premium patreon` to link your details")
-                .build()?;
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -151,7 +148,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
             .title("Premium Disable Failed")
             .description("This server either does not have premium enabled or the premium is owned by an another member")
-            .build()?;
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -189,8 +186,7 @@ pub async fn premium_remove(ctx: CommandContext) -> CommandResult {
         .color(Color::DarkGreen as u32)
         .title("Premium Disable Successful")
         .description(format!("Removed Premium Features from {}", server.name))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

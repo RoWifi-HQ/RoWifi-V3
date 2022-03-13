@@ -20,7 +20,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
                 .title("Patreon Linking Failed")
                 .description("You need to be verified with RoWifi to redeem your premium. Please do so using `/verify`")
-                .build()?;
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -33,7 +33,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
             let embed = EmbedBuilder::new().default_data().color(Color::Red as u32)
                 .title("Patreon Linking Failed")
                 .description("Patreon Account was not found for this Discord Account. Please make sure your Discord Account is linked to your patreon account")
-                .build()?;
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -46,8 +46,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Patreon Linking Failed")
                 .description("You were not found to be a member of any tier")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -147,8 +146,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
         .color(Color::DarkGreen as u32)
         .title("Patreon Linking Successful")
         .description("Your patreon account has successfully been registered with our database")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

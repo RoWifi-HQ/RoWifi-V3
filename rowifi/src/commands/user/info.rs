@@ -45,8 +45,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
                 .color(Color::Red as u32)
                 .title("User Info Failed")
                 .description("User was not verified. Please ask him/her to verify themselves")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -78,8 +77,7 @@ pub async fn userinfo(ctx: CommandContext, args: UserInfoArguments) -> CommandRe
             ))
             .unwrap(),
         )
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -107,8 +105,7 @@ pub async fn botinfo(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Cluster Id", ctx.bot.cluster_id.to_string()).inline())
         .field(EmbedFieldBuilder::new("Servers", guilds.len().to_string()).inline())
         .field(EmbedFieldBuilder::new("Members", member_count.to_string()).inline())
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }
@@ -137,8 +134,7 @@ pub async fn support(ctx: CommandContext) -> CommandResult {
             "Website",
             format!("To check out our website: [Click Here]({})", website),
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

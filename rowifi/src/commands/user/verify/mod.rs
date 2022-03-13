@@ -90,8 +90,7 @@ pub async fn verify(ctx: CommandContext, args: VerifyArguments) -> CommandResult
                 "To link another account, use `verify add`. To get your roles, use `update`. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`.",
             )
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         let message = ctx
             .respond()
             .embeds(&[embed])?
@@ -129,8 +128,7 @@ pub async fn verify_add(ctx: CommandContext, args: VerifyArguments) -> CommandRe
             .title("User Not Verified")
             .description("You are not verified. Please use `verify` to link your account")
             .color(Color::Red as u32)
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -162,8 +160,7 @@ pub async fn verify_common(
         None => {
             let embed = embed
                 .description("Invalid Roblox Username. Please try again.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -186,8 +183,7 @@ pub async fn verify_common(
                 "Once successfully verified, you must use `update` to get your roles. To switch your account on this server, you must use `verify switch`. To set a default account on new servers, you must use `verify default`."
             )
         )
-        .build()
-        .unwrap();
+        .build();
 
     let game_url_button = Component::Button(Button {
         style: ButtonStyle::Link,
@@ -250,8 +246,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
                 .title("User Not Verified")
                 .description("You are not verified. Please use `verify` to link your account")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -299,7 +294,7 @@ pub async fn verify_view(ctx: CommandContext) -> CommandResult {
         acc_string.push('\n');
     }
 
-    let embed = embed.description(acc_string).build()?;
+    let embed = embed.description(acc_string).build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

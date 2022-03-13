@@ -40,8 +40,7 @@ pub async fn settings_verification_add(
             "{} were added to the verification roles",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -51,8 +50,7 @@ pub async fn settings_verification_add(
             "Settings Modification: Verification Roles: Added {}",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
@@ -98,8 +96,7 @@ pub async fn settings_verification_remove(
             "{} were removed from the verification roles",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -109,8 +106,7 @@ pub async fn settings_verification_remove(
             "Settings Modification: Verification Roles: Removed {}",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
@@ -154,8 +150,7 @@ pub async fn settings_verified_add(
             "{} were added to the verified roles",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -165,8 +160,7 @@ pub async fn settings_verified_add(
             "Settings Modification: Verified Roles: Added {}",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }
@@ -213,8 +207,7 @@ pub async fn settings_verified_remove(
             "{} were removed from the verified roles",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -224,8 +217,7 @@ pub async fn settings_verified_remove(
             "Settings Modification: Verified Roles: Removed {}",
             role_ids.iter().map(|r| format!("<@&{}>", r)).join(" ")
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
     Ok(())
 }

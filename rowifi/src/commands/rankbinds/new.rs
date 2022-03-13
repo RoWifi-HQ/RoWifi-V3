@@ -68,8 +68,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
                 .title("Rankbinds Addition Failed")
                 .color(Color::Red as u32)
                 .description(format!("The group with id {} does not exist", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -101,8 +100,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
             .color(Color::Red as u32)
             .title("Rankbinds Addition Failed")
             .description(desc)
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -263,7 +261,7 @@ pub async fn rankbinds_new(ctx: CommandContext, args: NewRankbind) -> CommandRes
         count += 1;
     }
 
-    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
+    ctx.respond().embeds(&[embed.build()])?.exec().await?;
 
     for rb in added {
         log_rankbind(&ctx, rb).await;
@@ -322,8 +320,7 @@ pub async fn log_rankbind(ctx: &CommandContext, bind: Rankbind) {
         .title(format!("Action by {}", ctx.author.name))
         .description("Rank Bind Addition")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(ctx.guild_id.unwrap(), log_embed).await;
 }
 

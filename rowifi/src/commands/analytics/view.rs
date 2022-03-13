@@ -2,9 +2,8 @@ use chrono::{DateTime, Duration, TimeZone, Utc};
 use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
 use rowifi_framework::prelude::{Color as DiscordColor, *};
-use rowifi_models::{analytics::Group, guild::GuildType};
+use rowifi_models::{analytics::Group, guild::GuildType, discord::http::attachment::Attachment};
 use std::io::Cursor;
-use twilight_http::request::AttachmentFile;
 
 #[derive(FromArgs)]
 pub struct ViewArguments {
@@ -28,8 +27,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .color(DiscordColor::Red as u32)
             .title("Analytics Viewing Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -41,8 +39,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .color(DiscordColor::Red as u32)
             .title("Analytics Viewing failed")
             .description("You may only view groups that are registered with this server")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -68,8 +65,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
             .color(DiscordColor::Red as u32)
             .title("Analytics Viewing failed")
             .description("There is not enough usable data to generate data. Please give the bot 24 hours to collect enough data or use another timeframe")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -158,7 +154,7 @@ pub async fn analytics_view(ctx: CommandContext, args: ViewArguments) -> Command
     img.encode(&buffer, 1024, 768, ColorType::Rgb8).unwrap();
 
     ctx.respond()
-        .files(&[AttachmentFile::from_bytes("analytics.png", &bytes)])
+        .files(&[Attachment::from_bytes("analytics.png".to_string(), bytes)])
         .exec()
         .await?;
     Ok(())

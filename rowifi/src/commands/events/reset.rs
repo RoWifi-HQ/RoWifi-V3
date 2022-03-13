@@ -11,8 +11,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -27,8 +26,7 @@ pub async fn event_reset(ctx: CommandContext) -> CommandResult {
             .default_data()
             .color(Color::Red as u32)
             .title("Reset was cancelled!")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }

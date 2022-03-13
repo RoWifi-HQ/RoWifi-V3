@@ -16,7 +16,7 @@ mod models;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use rowifi_models::{
     discord::{
-        channel::{permission_overwrite::PermissionOverwriteType, GuildChannel},
+        channel::{permission_overwrite::PermissionOverwriteType, Channel},
         guild::{Guild, Member, Permissions, Role},
         user::{CurrentUser, User},
     },
@@ -33,7 +33,7 @@ use std::{
 };
 
 use event::UpdateCache;
-pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole};
+pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole, channel::CachedChannel};
 
 const LOG_CHANNEL: &str = "rowifi-logs";
 const BYPASS: &str = "RoWifi Bypass";
@@ -70,7 +70,7 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V)
 }
 
 pub struct CacheRef {
-    channels: DashMap<ChannelId, Arc<GuildChannel>>,
+    channels: DashMap<ChannelId, Arc<CachedChannel>>,
     guilds: DashMap<GuildId, Arc<CachedGuild>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
     roles: DashMap<RoleId, Arc<CachedRole>>,
@@ -126,7 +126,7 @@ impl Cache {
     }
 
     /// Get a immutable reference to a channel
-    pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
+    pub fn channel(&self, channel_id: ChannelId) -> Option<Arc<CachedChannel>> {
         self.0
             .channels
             .get(&channel_id)
@@ -237,29 +237,36 @@ impl Cache {
     fn cache_guild_channels(
         &self,
         guild: GuildId,
-        channels: impl IntoIterator<Item = GuildChannel>,
+        channels: impl IntoIterator<Item = Channel>,
     ) -> HashSet<ChannelId> {
         let mut c = HashSet::new();
         for channel in channels {
-            let id = channel.id();
+            let id = channel.id;
             self.cache_guild_channel(guild, channel);
             c.insert(ChannelId(id));
         }
         c
     }
 
-    fn cache_guild_channel(&self, guild: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
-        if let GuildChannel::Text(tc) = &channel {
-            if tc.name.eq_ignore_ascii_case(LOG_CHANNEL) {
+    fn cache_guild_channel(&self, guild: GuildId, channel: Channel) -> Arc<CachedChannel> {
+        if let Some(name) = &channel.name {
+            if name.eq_ignore_ascii_case(LOG_CHANNEL) {
                 if let Some(mut guild) = self.0.guilds.get_mut(&guild) {
                     let mut guild = Arc::make_mut(&mut guild);
-                    guild.log_channel = Some(ChannelId(channel.id()));
+                    guild.log_channel = Some(ChannelId(channel.id));
                 }
             }
         }
-        let id = ChannelId(channel.id());
+
+        let cached_channel = CachedChannel {
+            id: channel.id,
+            name: channel.name,
+            kind: channel.kind,
+            permission_overwrites: channel.permission_overwrites.unwrap_or_default()
+        };
+        let id = ChannelId(channel.id);
         upsert_guild_item(&self.0.guild_channels, guild, id);
-        upsert_item(&self.0.channels, id, channel)
+        upsert_item(&self.0.channels, id, cached_channel)
     }
 
     fn cache_members(
@@ -365,32 +372,30 @@ impl Cache {
 
     fn cache_channel_permissions(&self, guild_id: GuildId, channel_id: ChannelId) {
         if let Some(channel) = self.channel(channel_id) {
-            if let GuildChannel::Text(_) = channel.as_ref() {
-                let user = self.0.current_user.lock().expect("current user poisoned");
-                if let (Some(user), Some(guild)) = (user.as_ref(), self.guild(guild_id)) {
-                    let server_roles = self
-                        .guild_roles(guild_id)
-                        .iter()
-                        .map(|r| (r.id, r.clone()))
-                        .collect::<HashMap<RoleId, Arc<CachedRole>>>();
-                    let member = self.member(guild_id, UserId(user.id)).unwrap();
-                    let new_permissions = match channel_permissions(
-                        &guild,
-                        &server_roles,
-                        UserId(user.id),
-                        &member.roles,
-                        &channel,
-                    ) {
-                        Ok(p) => p,
-                        Err(why) => {
-                            tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
-                            return;
-                        }
-                    };
-                    self.0
-                        .channel_permissions
-                        .insert(channel_id, new_permissions);
-                }
+            let user = self.0.current_user.lock().expect("current user poisoned");
+            if let (Some(user), Some(guild)) = (user.as_ref(), self.guild(guild_id)) {
+                let server_roles = self
+                    .guild_roles(guild_id)
+                    .iter()
+                    .map(|r| (r.id, r.clone()))
+                    .collect::<HashMap<RoleId, Arc<CachedRole>>>();
+                let member = self.member(guild_id, UserId(user.id)).unwrap();
+                let new_permissions = match channel_permissions(
+                    &guild,
+                    &server_roles,
+                    UserId(user.id),
+                    &member.roles,
+                    &channel,
+                ) {
+                    Ok(p) => p,
+                    Err(why) => {
+                        tracing::error!(guild = ?guild_id, channel = ?channel_id, reason = ?why);
+                        return;
+                    }
+                };
+                self.0
+                    .channel_permissions
+                    .insert(channel_id, new_permissions);
             }
         }
     }
@@ -416,8 +421,8 @@ impl Cache {
         let log_channel = guild
             .channels
             .iter()
-            .find(|c| c.name().eq_ignore_ascii_case(LOG_CHANNEL))
-            .map(|c| ChannelId(c.id()));
+            .find(|c| c.name.clone().unwrap_or_default().eq_ignore_ascii_case(LOG_CHANNEL))
+            .map(|c| ChannelId(c.id));
         let admin_role = guild
             .roles
             .iter()
@@ -466,17 +471,17 @@ impl Cache {
         user
     }
 
-    fn delete_guild_channel(&self, tc: &GuildChannel) -> Option<Arc<GuildChannel>> {
+    fn delete_guild_channel(&self, tc: &Channel) -> Option<Arc<CachedChannel>> {
         let channel = self
             .0
             .channels
-            .remove(&ChannelId(tc.id()))
+            .remove(&ChannelId(tc.id))
             .map(|(_, c)| c)?;
-        let guild_id = GuildId(tc.guild_id().unwrap());
+        let guild_id = GuildId(tc.guild_id.unwrap());
         if let Some(mut channels) = self.0.guild_channels.get_mut(&guild_id) {
-            channels.remove(&ChannelId(tc.id()));
+            channels.remove(&ChannelId(tc.id));
         }
-        if channel.name().eq_ignore_ascii_case(LOG_CHANNEL) {
+        if channel.name.clone().unwrap_or_default().eq_ignore_ascii_case(LOG_CHANNEL) {
             if let Some(mut guild) = self.0.guilds.get_mut(&guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.log_channel = None;
@@ -550,7 +555,7 @@ pub fn channel_permissions(
     roles: &HashMap<RoleId, Arc<CachedRole>>,
     member_id: UserId,
     member_roles: &[RoleId],
-    channel: &Arc<GuildChannel>,
+    channel: &Arc<CachedChannel>,
 ) -> Result<Permissions, String> {
     let guild_id = guild.id.0;
     let mut permissions = guild_wide_permissions(guild, roles, member_id, member_roles)?;
@@ -559,37 +564,34 @@ pub fn channel_permissions(
     let mut roles_allow = Permissions::empty();
     let mut roles_deny = Permissions::empty();
 
-    if let GuildChannel::Text(tc) = channel.as_ref() {
-        for overwrite in &tc.permission_overwrites {
-            match overwrite.kind {
-                PermissionOverwriteType::Role(role) => {
-                    if role.get() == guild_id.get() {
-                        permissions.remove(overwrite.deny);
-                        permissions.insert(overwrite.allow);
-                        continue;
-                    }
-
-                    if !member_roles.contains(&RoleId(role)) {
-                        continue;
-                    }
-
-                    roles_allow.insert(overwrite.allow);
-                    roles_deny.insert(overwrite.deny);
+    for overwrite in &channel.permission_overwrites {
+        match overwrite.kind {
+            PermissionOverwriteType::Role => {
+                let role = overwrite.id;
+                if role.get() == guild_id.get() {
+                    permissions.remove(overwrite.deny);
+                    permissions.insert(overwrite.allow);
+                    continue;
                 }
-                PermissionOverwriteType::Member(user) if UserId(user) == member_id => {
-                    member_allow.insert(overwrite.allow);
-                    member_deny.insert(overwrite.deny);
+
+                if !member_roles.contains(&RoleId(role.cast())) {
+                    continue;
                 }
-                PermissionOverwriteType::Member(_) => {}
+
+                roles_allow.insert(overwrite.allow);
+                roles_deny.insert(overwrite.deny);
             }
+            PermissionOverwriteType::Member if UserId(overwrite.id.cast()) == member_id => {
+                member_allow.insert(overwrite.allow);
+                member_deny.insert(overwrite.deny);
+            }
+            PermissionOverwriteType::Member => {}
         }
-        permissions.remove(roles_deny);
-        permissions.insert(roles_allow);
-        permissions.remove(member_deny);
-        permissions.insert(member_allow);
-
-        return Ok(permissions);
     }
+    permissions.remove(roles_deny);
+    permissions.insert(roles_allow);
+    permissions.remove(member_deny);
+    permissions.insert(member_allow);
 
-    Err("Not implemented for non text guild channels".into())
+    return Ok(permissions);
 }

@@ -20,8 +20,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .title("User Not Verified")
                 .description("You are not verified. Please use `verify` to link your account")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -45,8 +44,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -59,8 +57,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
             .color(Color::Red as u32)
             .title("Verification Process Failed")
             .description("The provided username is not linked to your discord account. Please link it using `verify add`")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -79,8 +76,7 @@ pub async fn verify_switch(ctx: CommandContext, args: VerifyArguments) -> Comman
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Account Switching Successful")
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -118,8 +114,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .title("User Not Verified")
                 .description("You are not verified. Please use `verify` to link your account")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -143,8 +138,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -159,8 +153,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("The provided username is not linked to your discord account or is already your default account")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -180,8 +173,7 @@ pub async fn verify_default(ctx: CommandContext, args: VerifyArguments) -> Comma
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Default Account Set Successfully")
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -219,8 +211,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .title("User Not Verified")
                 .description("You are not verified. Please use `verify` to link your account")
                 .color(Color::Red as u32)
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -244,8 +235,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("Invalid Roblox Username. Please try again.")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -260,8 +250,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
                 .color(Color::Red as u32)
                 .title("Verification Process Failed")
                 .description("The provided username is not linked to your discord account or is your default account")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -289,8 +278,7 @@ pub async fn verify_delete(ctx: CommandContext, args: VerifyArguments) -> Comman
         .default_data()
         .color(Color::DarkGreen as u32)
         .title("Account Unlinking Successful")
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?

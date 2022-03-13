@@ -117,8 +117,7 @@ pub async fn events(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -129,7 +128,7 @@ pub async fn events(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Event Types", "To register a new event type: `!event type new <Event Id> <Event Name>`\nTo modify an existing event type: `!event type modify <Event Id> <Event Name>`"))
         .field(EmbedFieldBuilder::new("For Trainers", "To add a new event: `!event new`"))
         .field(EmbedFieldBuilder::new("Viewing Events", "To see the last 12 events attended by the member: `!event attendee [RobloxName]`\nTo see the last 12 events hosted by the member: `!event host [RobloxName]`\nTo view specific information about an event: `!event view <Event Id>`"))
-        .build()?;
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

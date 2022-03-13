@@ -6,7 +6,6 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     time::Duration,
 };
-use twilight_embed_builder::EmbedError;
 use twilight_http::{response::DeserializeBodyError, Error as DiscordHttpError};
 use twilight_validate::message::MessageValidationError;
 
@@ -95,14 +94,12 @@ impl StdError for CommandError {}
 #[derive(Debug)]
 pub enum MessageError {
     Message(MessageValidationError),
-    Embed(EmbedError),
 }
 
 impl Display for MessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Message(err) => Debug::fmt(&err, f),
-            Self::Embed(err) => Debug::fmt(&err, f),
         }
     }
 }
@@ -197,21 +194,6 @@ impl From<MessageValidationError> for RoError {
     fn from(err: MessageValidationError) -> Self {
         Self {
             source: Some(Box::new(CommandError::Message(MessageError::Message(err)))),
-            kind: ErrorKind::Command,
-        }
-    }
-}
-
-impl From<EmbedError> for MessageError {
-    fn from(err: EmbedError) -> Self {
-        MessageError::Embed(err)
-    }
-}
-
-impl From<EmbedError> for RoError {
-    fn from(err: EmbedError) -> Self {
-        Self {
-            source: Some(Box::new(CommandError::Message(MessageError::Embed(err)))),
             kind: ErrorKind::Command,
         }
     }

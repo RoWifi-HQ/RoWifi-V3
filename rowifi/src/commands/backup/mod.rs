@@ -57,8 +57,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Backup Failed")
                 .description("This module may only be used by a Beta Tier user")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -103,6 +102,6 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         embed = embed.field(EmbedFieldBuilder::new(backup.name, val));
     }
 
-    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
+    ctx.respond().embeds(&[embed.build()])?.exec().await?;
     Ok(())
 }

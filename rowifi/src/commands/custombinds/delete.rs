@@ -46,8 +46,7 @@ pub async fn custombinds_delete(
             .color(Color::Red as u32)
             .title("Binds Deletion Failed")
             .description("There were no binds found associated with given ids")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -66,8 +65,7 @@ pub async fn custombinds_delete(
         .color(Color::DarkGreen as u32)
         .title("Success!")
         .description("The given binds were successfully deleted")
-        .build()
-        .unwrap();
+        .build();
     let message = ctx
         .respond()
         .embeds(&[embed])?
@@ -97,8 +95,7 @@ pub async fn custombinds_delete(
         .title(format!("Action by {}", ctx.author.name))
         .description("Custom Bind Deletion")
         .field(EmbedFieldBuilder::new("Binds Deleted", ids_str))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     let message_id = message.id;
@@ -120,17 +117,17 @@ pub async fn custombinds_delete(
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(Vec::new()),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -163,12 +160,11 @@ pub async fn custombinds_delete(
                         .color(Color::DarkGreen as u32)
                         .title("Restoration Successful!")
                         .description("The deleted binds were successfully restored")
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .create_followup_message(&message_component.token)
+                        .create_followup(&message_component.token)
                         .embeds(&[embed])?
                         .exec()
                         .await?;
@@ -179,10 +175,13 @@ pub async fn custombinds_delete(
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -190,8 +189,8 @@ pub async fn custombinds_delete(
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;

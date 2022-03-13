@@ -305,8 +305,7 @@ pub async fn settings_view(ctx: CommandContext) -> CommandResult {
         .field(EmbedFieldBuilder::new("Update On Join", guild.update_on_join.to_string()).inline())
         .field(EmbedFieldBuilder::new("Verification Role", verification_roles).inline())
         .field(EmbedFieldBuilder::new("Verified Role", verified_roles).inline())
-        .build()
-        .unwrap();
+        .build();
 
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())

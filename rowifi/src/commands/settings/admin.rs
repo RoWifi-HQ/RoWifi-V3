@@ -18,8 +18,7 @@ pub async fn admin_view(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -36,8 +35,7 @@ pub async fn admin_view(ctx: CommandContext) -> CommandResult {
         .default_data()
         .title("RoWifi Admin Roles")
         .description(format!("{}\n\n{}", "These are the roles that can manage RoWifi. They are **not** roles with administrator permissions on discord. However, by default, anyone with administrator permissions can manage RoWifi.", description))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -53,8 +51,7 @@ pub async fn admin_add(ctx: CommandContext, args: AdminArguments) -> CommandResu
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -99,8 +96,7 @@ pub async fn admin_add(ctx: CommandContext, args: AdminArguments) -> CommandResu
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -116,8 +112,7 @@ pub async fn admin_remove(ctx: CommandContext, args: AdminArguments) -> CommandR
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -157,8 +152,7 @@ pub async fn admin_remove(ctx: CommandContext, args: AdminArguments) -> CommandR
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())
@@ -174,8 +168,7 @@ pub async fn admin_set(ctx: CommandContext, args: AdminArguments) -> CommandResu
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This command is only available on Premium servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -217,8 +210,7 @@ pub async fn admin_set(ctx: CommandContext, args: AdminArguments) -> CommandResu
         .color(Color::DarkGreen as u32)
         .title("Settings Modification Successful")
         .description(description)
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

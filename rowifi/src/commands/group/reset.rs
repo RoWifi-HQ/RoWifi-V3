@@ -18,8 +18,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
             .default_data()
             .color(Color::Red as u32)
             .title("Reset was cancelled!")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -89,8 +88,7 @@ pub async fn reset(ctx: CommandContext) -> CommandResult {
         .color(Color::DarkGreen as u32)
         .title("Reset Successful!")
         .description("Your settings & bind configurations have been reset")
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     Ok(())

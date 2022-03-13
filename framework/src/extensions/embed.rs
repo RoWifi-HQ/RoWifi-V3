@@ -1,5 +1,5 @@
 use rowifi_models::{discord::datetime::Timestamp, id::RoleId};
-use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
+use twilight_util::builder::embed::{EmbedBuilder, EmbedFieldBuilder, EmbedFooterBuilder};
 
 use crate::utils::Color;
 

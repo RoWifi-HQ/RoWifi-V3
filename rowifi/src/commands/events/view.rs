@@ -25,8 +25,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -40,8 +39,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                     .title("Event Viewing Failed")
                     .description("Given roblox username does not have an associated id")
                     .color(Color::Red as u32)
-                    .build()
-                    .unwrap();
+                    .build();
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
@@ -60,8 +58,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
                         .title("Event Viewing Failed")
                         .description("You must be verified to use this command on yourself")
                         .color(Color::Red as u32)
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.respond().embeds(&[embed])?.exec().await?;
                     return Ok(());
                 }
@@ -115,7 +112,7 @@ pub async fn event_attendee(ctx: CommandContext, args: EventAttendeeArguments) -
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
         }
-        pages.push(embed.build()?);
+        pages.push(embed.build());
         page_count += 1;
     }
 
@@ -139,8 +136,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -154,8 +150,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                     .title("Event Viewing Failed")
                     .description("Given roblox username does not have an associated id")
                     .color(Color::Red as u32)
-                    .build()
-                    .unwrap();
+                    .build();
                 ctx.respond().embeds(&[embed])?.exec().await?;
                 return Ok(());
             }
@@ -174,8 +169,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
                         .title("Event Viewing Failed")
                         .description("You must be verified to use this command on yourselves")
                         .color(Color::Red as u32)
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.respond().embeds(&[embed])?.exec().await?;
                     return Ok(());
                 }
@@ -230,7 +224,7 @@ pub async fn event_host(ctx: CommandContext, args: EventHostArguments) -> Comman
 
             embed = embed.field(EmbedFieldBuilder::new(name, desc).inline());
         }
-        pages.push(embed.build()?);
+        pages.push(embed.build());
         page_count += 1;
     }
 
@@ -254,8 +248,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -286,8 +279,7 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
                 .color(Color::Red as u32)
                 .title("Event Viewing Failed")
                 .description(format!("An event with id {} does not exist", event_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -343,6 +335,6 @@ pub async fn event_view(ctx: CommandContext, args: EventViewArguments) -> Comman
         ));
     }
 
-    ctx.respond().embeds(&[embed.build()?])?.exec().await?;
+    ctx.respond().embeds(&[embed.build()])?.exec().await?;
     Ok(())
 }

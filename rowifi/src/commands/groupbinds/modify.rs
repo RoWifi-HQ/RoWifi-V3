@@ -35,8 +35,7 @@ pub async fn gb_modify_priority(ctx: CommandContext, args: ModifyPriority) -> Co
                 .color(Color::Red as u32)
                 .title("Group Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -75,8 +74,7 @@ pub async fn gb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
             .color(Color::Red as u32)
             .title("Groupbind Modification Failed")
             .description("You have entered a blank template")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -98,8 +96,7 @@ pub async fn gb_modify_template(ctx: CommandContext, args: ModifyTemplate) -> Co
                 .color(Color::Red as u32)
                 .title("Group Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -158,8 +155,7 @@ pub async fn gb_add_roles(ctx: CommandContext, args: AddRoles) -> CommandResult 
                 .color(Color::Red as u32)
                 .title("Group Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -216,8 +212,7 @@ pub async fn gb_remove_roles(ctx: CommandContext, args: AddRoles) -> CommandResu
                 .color(Color::Red as u32)
                 .title("Group Bind Modification Failed")
                 .description(format!("There was no bind found with id {}", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -251,8 +246,7 @@ async fn gb_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title("Success!")
         .description("The bind was successfully modified")
         .field(EmbedFieldBuilder::new(name.clone(), desc.clone()))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -260,8 +254,7 @@ async fn gb_reply_log(ctx: CommandContext, name: String, desc: String) -> Comman
         .title(format!("Action by {}", ctx.author.name))
         .description("Group Bind Modification")
         .field(EmbedFieldBuilder::new(name, desc))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())

@@ -194,8 +194,7 @@ pub async fn execute_chunk(
                         .default_data()
                         .title(format!("{}: {}", log, name))
                         .update_log(&added_roles, &removed_roles, &disc_nick)
-                        .build()
-                        .unwrap();
+                        .build();
                     ctx.log_guild(server.id, log_embed).await;
                 }
             } else if let UpdateUserResult::Error(err) = res {

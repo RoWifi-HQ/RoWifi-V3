@@ -17,8 +17,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Command Failed")
             .description("This module may only be used in Beta Tier Servers")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -36,8 +35,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Event Addition Failed")
                 .description("You need to be verified to use this command")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -71,8 +69,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Event Addition Failed")
             .description("There are no event types or all event types are disabled")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -130,19 +127,19 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                content: None,
-                                components: Some(vec![Component::ActionRow(ActionRow {
-                                    components: vec![Component::SelectMenu(select_menu.clone())],
-                                })]),
-                                embeds: None,
-                                flags: None,
-                                tts: None,
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(vec![Component::ActionRow(ActionRow {
+                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                        })])
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -150,7 +147,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                         ctx.bot
                             .http
                             .interaction(ctx.bot.application_id)
-                            .create_followup_message(&message_component.token)
+                            .create_followup(&message_component.token)
                             .content("Command has been cancelled")?
                             .exec()
                             .await?;
@@ -163,10 +160,13 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -174,8 +174,8 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This button is only interactable by the original command invoker")?
                     .exec()
                     .await;
@@ -211,8 +211,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             .color(Color::Red as u32)
             .title("Event Addition Failed")
             .description("The number of valid attendees was found to be zero")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -263,8 +262,7 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
             format!("Event Id: {}", row.get::<'_, _, i64>("guild_event_id")),
             value,
         ))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
     Ok(())
 }

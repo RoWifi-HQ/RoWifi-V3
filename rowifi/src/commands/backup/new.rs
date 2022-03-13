@@ -27,8 +27,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
                 .color(Color::Red as u32)
                 .title("Backup Failed")
                 .description("This module may only be used by a Beta Tier user")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -57,7 +56,7 @@ pub async fn backup_new(ctx: CommandContext, args: BackupArguments) -> CommandRe
     for channel in server_channels {
         let cached = ctx.bot.cache.channel(channel);
         if let Some(cached) = cached {
-            channels.insert(channel, cached.name().to_string());
+            channels.insert(channel, cached.name.clone());
         }
     }
 

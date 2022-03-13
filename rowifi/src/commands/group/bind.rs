@@ -83,19 +83,19 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     ctx.bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                components: Some(vec![Component::ActionRow(ActionRow {
-                                    components: vec![Component::SelectMenu(select_menu.clone())],
-                                })]),
-                                content: None,
-                                embeds: None,
-                                flags: None,
-                                tts: Some(false),
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(vec![Component::ActionRow(ActionRow {
+                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                        })])
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await?;
@@ -106,10 +106,13 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -117,8 +120,8 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This component is only interactable by the original command invoker")?
                     .exec()
                     .await;
@@ -224,19 +227,19 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                         .bot
                         .http
                         .interaction(ctx.bot.application_id)
-                        .interaction_callback(
+                        .create_response(
                             message_component.id,
                             &message_component.token,
-                            &InteractionResponse::UpdateMessage(CallbackData {
-                                allowed_mentions: None,
-                                components: Some(vec![Component::ActionRow(ActionRow {
-                                    components: vec![Component::SelectMenu(select_menu.clone())],
-                                })]),
-                                content: None,
-                                embeds: None,
-                                flags: None,
-                                tts: Some(false),
-                            }),
+                            &InteractionResponse {
+                                kind: InteractionResponseType::UpdateMessage,
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(vec![Component::ActionRow(ActionRow {
+                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                        })])
+                                        .build()
+                                )
+                            }
                         )
                         .exec()
                         .await;
@@ -247,10 +250,13 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .interaction_callback(
+                    .create_response(
                         message_component.id,
                         &message_component.token,
-                        &InteractionResponse::DeferredUpdateMessage,
+                        &InteractionResponse {
+                            kind: InteractionResponseType::DeferredUpdateMessage,
+                            data: None
+                        }
                     )
                     .exec()
                     .await;
@@ -258,8 +264,8 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                     .bot
                     .http
                     .interaction(ctx.bot.application_id)
-                    .create_followup_message(&message_component.token)
-                    .ephemeral(true)
+                    .create_followup(&message_component.token)
+                    .flags(MessageFlags::EPHEMERAL)
                     .content("This component is only interactable by the original command invoker")?
                     .exec()
                     .await;
@@ -287,8 +293,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Asset Bind Addition Failed")
                 .description("Expected asset id to be a number")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -356,8 +361,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Bind Addition Failed")
                 .description("Expected priority to be a number")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -406,8 +410,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         .title("Bind Addition Successful")
         .color(Color::DarkGreen as u32)
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -415,8 +418,7 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         .title(format!("Action by {}", ctx.author.name))
         .description("Asset Bind Addition")
         .field(EmbedFieldBuilder::new(name, value))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())
@@ -434,8 +436,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Bind Addition Failed")
                 .description("Expected the group id to be a number")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -454,8 +455,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Bind Addition Failed")
                 .description(format!("Group with Id {} does not exist", group_id))
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -494,8 +494,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
             .color(Color::Red as u32)
             .title("Bind Addition Failed")
             .description("There were no ranks found associated with the entered ones")
-            .build()
-            .unwrap();
+            .build();
         ctx.respond().embeds(&[embed])?.exec().await?;
         return Ok(());
     }
@@ -572,8 +571,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                 .color(Color::Red as u32)
                 .title("Bind Addition Failed")
                 .description("Expected priority to be a number")
-                .build()
-                .unwrap();
+                .build();
             ctx.respond().embeds(&[embed])?.exec().await?;
             return Ok(());
         }
@@ -636,8 +634,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         .title("Bind Addition Successful")
         .color(Color::DarkGreen as u32)
         .field(EmbedFieldBuilder::new(name.clone(), value.clone()))
-        .build()
-        .unwrap();
+        .build();
     ctx.respond().embeds(&[embed])?.exec().await?;
 
     let log_embed = EmbedBuilder::new()
@@ -645,8 +642,7 @@ async fn bind_group(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
         .title(format!("Action by {}", ctx.author.name))
         .description("Bind Addition")
         .field(EmbedFieldBuilder::new(name, value))
-        .build()
-        .unwrap();
+        .build();
     ctx.log_guild(guild_id, log_embed).await;
 
     Ok(())
@@ -749,8 +745,7 @@ async fn bind_rank(
             added.len(),
             modified.len()
         ))
-        .build()
-        .unwrap();
+        .build();
 
     ctx.respond().embeds(&[embed])?.exec().await?;
 

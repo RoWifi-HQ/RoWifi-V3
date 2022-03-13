@@ -1,9 +1,10 @@
 use rowifi_models::discord::{
     application::component::Component,
     channel::{embed::Embed, Message},
+    http::attachment::Attachment
 };
 use std::sync::atomic::Ordering;
-use twilight_http::{request::AttachmentFile, response::ResponseFuture};
+use twilight_http:: response::ResponseFuture;
 use twilight_validate::message::{
     components as _components, content as _content, embeds as _embeds,
 };
@@ -15,7 +16,7 @@ pub struct Responder<'a> {
     content: Option<&'a str>,
     components: Option<&'a [Component]>,
     embeds: Option<&'a [Embed]>,
-    files: Option<&'a [AttachmentFile<'a>]>,
+    files: Option<&'a [Attachment]>,
 }
 
 impl<'a> Responder<'a> {
@@ -51,7 +52,7 @@ impl<'a> Responder<'a> {
     }
 
     #[must_use]
-    pub fn files(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
+    pub fn files(mut self, files: &'a [Attachment]) -> Self {
         self.files = Some(files);
         self
     }
@@ -60,7 +61,7 @@ impl<'a> Responder<'a> {
         if let Some(interaction_token) = &self.ctx.interaction_token {
             if self.ctx.callback_invoked.load(Ordering::Relaxed) {
                 let client = self.ctx.bot.http.interaction(self.ctx.bot.application_id);
-                let mut req = client.create_followup_message(interaction_token);
+                let mut req = client.create_followup(interaction_token);
                 if let Some(content) = self.content {
                     req = req.content(content).unwrap();
                 }
@@ -71,20 +72,21 @@ impl<'a> Responder<'a> {
                     req = req.embeds(embeds).unwrap();
                 }
                 if let Some(files) = self.files {
-                    req = req.attach(files);
+                    req = req.attachments(files).unwrap();
                 }
                 req.exec()
             } else {
                 let client = self.ctx.bot.http.interaction(self.ctx.bot.application_id);
                 let req = client
-                    .update_interaction_original(interaction_token)
+                    .update_response(interaction_token)
                     .content(self.content)
                     .unwrap()
                     .components(self.components)
                     .unwrap()
                     .embeds(self.embeds)
                     .unwrap()
-                    .attach(self.files.unwrap_or_default());
+                    .attachments(self.files.unwrap_or_default())
+                    .unwrap();
                 req.exec()
             }
         } else {
@@ -99,7 +101,7 @@ impl<'a> Responder<'a> {
                 req = req.embeds(embeds).unwrap();
             }
             if let Some(files) = self.files {
-                req = req.attach(files);
+                req = req.attachments(files).unwrap();
             }
             req.exec()
         }
