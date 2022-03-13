@@ -164,9 +164,9 @@ pub async fn blacklist_custom(
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -198,8 +198,8 @@ pub async fn blacklist_custom(
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

@@ -91,11 +91,13 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(vec![Component::ActionRow(ActionRow {
-                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                            components: vec![Component::SelectMenu(
+                                                select_menu.clone(),
+                                            )],
                                         })])
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -111,8 +113,8 @@ pub async fn bind(ctx: CommandContext) -> CommandResult {
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;
@@ -235,11 +237,13 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(vec![Component::ActionRow(ActionRow {
-                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                            components: vec![Component::SelectMenu(
+                                                select_menu.clone(),
+                                            )],
                                         })])
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await;
@@ -255,8 +259,8 @@ async fn bind_asset(ctx: CommandContext, guild_id: GuildId) -> CommandResult {
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

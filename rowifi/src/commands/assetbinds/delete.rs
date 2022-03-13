@@ -127,9 +127,9 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -179,8 +179,8 @@ pub async fn assetbinds_delete(ctx: CommandContext, args: DeleteArguments) -> Co
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

@@ -2,7 +2,7 @@ use chrono::{DateTime, Duration, TimeZone, Utc};
 use image::{png::PngEncoder, ColorType};
 use plotters::prelude::*;
 use rowifi_framework::prelude::{Color as DiscordColor, *};
-use rowifi_models::{analytics::Group, guild::GuildType, discord::http::attachment::Attachment};
+use rowifi_models::{analytics::Group, discord::http::attachment::Attachment, guild::GuildType};
 use std::io::Cursor;
 
 #[derive(FromArgs)]

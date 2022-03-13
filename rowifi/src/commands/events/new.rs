@@ -135,11 +135,13 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(vec![Component::ActionRow(ActionRow {
-                                            components: vec![Component::SelectMenu(select_menu.clone())],
+                                            components: vec![Component::SelectMenu(
+                                                select_menu.clone(),
+                                            )],
                                         })])
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -165,8 +167,8 @@ pub async fn events_new(ctx: CommandContext) -> CommandResult {
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

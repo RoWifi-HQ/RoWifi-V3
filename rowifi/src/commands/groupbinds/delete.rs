@@ -125,9 +125,9 @@ pub async fn groupbinds_delete(
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -177,8 +177,8 @@ pub async fn groupbinds_delete(
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

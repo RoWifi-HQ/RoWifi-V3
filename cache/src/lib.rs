@@ -33,7 +33,9 @@ use std::{
 };
 
 use event::UpdateCache;
-pub use models::{guild::CachedGuild, member::CachedMember, role::CachedRole, channel::CachedChannel};
+pub use models::{
+    channel::CachedChannel, guild::CachedGuild, member::CachedMember, role::CachedRole,
+};
 
 const LOG_CHANNEL: &str = "rowifi-logs";
 const BYPASS: &str = "RoWifi Bypass";
@@ -262,7 +264,7 @@ impl Cache {
             id: channel.id,
             name: channel.name,
             kind: channel.kind,
-            permission_overwrites: channel.permission_overwrites.unwrap_or_default()
+            permission_overwrites: channel.permission_overwrites.unwrap_or_default(),
         };
         let id = ChannelId(channel.id);
         upsert_guild_item(&self.0.guild_channels, guild, id);
@@ -421,7 +423,12 @@ impl Cache {
         let log_channel = guild
             .channels
             .iter()
-            .find(|c| c.name.clone().unwrap_or_default().eq_ignore_ascii_case(LOG_CHANNEL))
+            .find(|c| {
+                c.name
+                    .clone()
+                    .unwrap_or_default()
+                    .eq_ignore_ascii_case(LOG_CHANNEL)
+            })
             .map(|c| ChannelId(c.id));
         let admin_role = guild
             .roles
@@ -472,16 +479,17 @@ impl Cache {
     }
 
     fn delete_guild_channel(&self, tc: &Channel) -> Option<Arc<CachedChannel>> {
-        let channel = self
-            .0
-            .channels
-            .remove(&ChannelId(tc.id))
-            .map(|(_, c)| c)?;
+        let channel = self.0.channels.remove(&ChannelId(tc.id)).map(|(_, c)| c)?;
         let guild_id = GuildId(tc.guild_id.unwrap());
         if let Some(mut channels) = self.0.guild_channels.get_mut(&guild_id) {
             channels.remove(&ChannelId(tc.id));
         }
-        if channel.name.clone().unwrap_or_default().eq_ignore_ascii_case(LOG_CHANNEL) {
+        if channel
+            .name
+            .clone()
+            .unwrap_or_default()
+            .eq_ignore_ascii_case(LOG_CHANNEL)
+        {
             if let Some(mut guild) = self.0.guilds.get_mut(&guild_id) {
                 let mut guild = Arc::make_mut(&mut guild);
                 guild.log_channel = None;
@@ -593,5 +601,5 @@ pub fn channel_permissions(
     permissions.remove(member_deny);
     permissions.insert(member_allow);
 
-    return Ok(permissions);
+    Ok(permissions)
 }

@@ -125,9 +125,9 @@ pub async fn custombinds_delete(
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -180,8 +180,8 @@ pub async fn custombinds_delete(
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

@@ -65,9 +65,9 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -90,8 +90,8 @@ pub async fn update(ctx: CommandContext, args: UpdateArguments) -> Result<(), Ro
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

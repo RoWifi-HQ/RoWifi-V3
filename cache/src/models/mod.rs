@@ -1,4 +1,4 @@
+pub mod channel;
 pub mod guild;
 pub mod member;
 pub mod role;
-pub mod channel;

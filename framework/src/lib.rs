@@ -31,12 +31,11 @@ use itertools::Itertools;
 use rowifi_cache::{CachedGuild, CachedMember};
 use rowifi_models::{
     discord::{
-        application::{
-            interaction::{application_command::CommandDataOption, Interaction},
-        },
+        application::interaction::{application_command::CommandDataOption, Interaction},
         channel::{message::MessageFlags, Message},
         gateway::event::Event,
-        guild::Permissions, http::interaction::{InteractionResponse, InteractionResponseType},
+        guild::Permissions,
+        http::interaction::{InteractionResponse, InteractionResponseType},
     },
     id::{ChannelId, GuildId, UserId},
 };
@@ -47,7 +46,10 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_util::builder::{embed::{EmbedBuilder, EmbedFieldBuilder}, InteractionResponseDataBuilder};
+use twilight_util::builder::{
+    embed::{EmbedBuilder, EmbedFieldBuilder},
+    InteractionResponseDataBuilder,
+};
 use uwl::Stream;
 
 use arguments::Arguments;
@@ -353,7 +355,7 @@ impl Service<&Event> for Framework {
                                     &token,
                                     &InteractionResponse {
                                         kind: InteractionResponseType::DeferredUpdateMessage,
-                                        data: None
+                                        data: None,
                                     },
                                 )
                                 .exec()

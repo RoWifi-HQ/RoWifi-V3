@@ -70,9 +70,9 @@ impl UpdateCache for ChannelCreate {
 
 impl UpdateCache for ChannelDelete {
     fn update(&self, c: &Cache) -> Result<(), CacheError> {
-        c.delete_guild_channel(&self);
+        c.delete_guild_channel(self);
         c.0.channel_permissions.remove(&ChannelId(self.id));
-        
+
         Ok(())
     }
 }

@@ -121,9 +121,9 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(Vec::new())
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -155,8 +155,8 @@ pub async fn blacklist_name(ctx: CommandContext, args: BlacklistNameArguments) -
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

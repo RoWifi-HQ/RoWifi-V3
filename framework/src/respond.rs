@@ -1,10 +1,10 @@
 use rowifi_models::discord::{
     application::component::Component,
     channel::{embed::Embed, Message},
-    http::attachment::Attachment
+    http::attachment::Attachment,
 };
 use std::sync::atomic::Ordering;
-use twilight_http:: response::ResponseFuture;
+use twilight_http::response::ResponseFuture;
 use twilight_validate::message::{
     components as _components, content as _content, embeds as _embeds,
 };

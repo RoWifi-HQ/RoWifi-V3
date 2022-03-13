@@ -89,9 +89,9 @@ pub async fn handle_update_button(
                                 data: Some(
                                     InteractionResponseDataBuilder::new()
                                         .components(keep_components)
-                                        .build()
-                                )
-                            }
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -115,8 +115,8 @@ pub async fn handle_update_button(
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

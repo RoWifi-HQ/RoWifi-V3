@@ -1,9 +1,8 @@
 use itertools::Itertools;
 use rowifi_models::discord::{
-    application::{
-        interaction::application_command::CommandOptionValue,
-    },
-    channel::message::MessageFlags, http::interaction::{InteractionResponse, InteractionResponseType},
+    application::interaction::application_command::CommandOptionValue,
+    channel::message::MessageFlags,
+    http::interaction::{InteractionResponse, InteractionResponseType},
 };
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -12,7 +11,10 @@ use std::{
     task::{Context, Poll},
 };
 use tower::Service;
-use twilight_util::builder::{embed::{EmbedBuilder, EmbedFieldBuilder}, InteractionResponseDataBuilder};
+use twilight_util::builder::{
+    embed::{EmbedBuilder, EmbedFieldBuilder},
+    InteractionResponseDataBuilder,
+};
 
 use crate::{
     arguments::{ArgumentError, FromArgs},
@@ -188,10 +190,12 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                             &token,
                             &InteractionResponse {
                                 kind: InteractionResponseType::ChannelMessageWithSource,
-                                data: Some(InteractionResponseDataBuilder::new()
-                                    .content("Commands are disabled in this channel".into())
-                                    .flags(MessageFlags::EPHEMERAL)
-                                    .build())
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .content("Commands are disabled in this channel".into())
+                                        .flags(MessageFlags::EPHEMERAL)
+                                        .build(),
+                                ),
                             },
                         )
                         .exec()
@@ -216,7 +220,7 @@ impl Service<(CommandContext, ServiceRequest)> for Command {
                         &token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredChannelMessageWithSource,
-                            data: None
+                            data: None,
                         },
                     )
                     .exec()

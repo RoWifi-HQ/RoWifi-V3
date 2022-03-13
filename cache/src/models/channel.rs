@@ -1,4 +1,7 @@
-use rowifi_models::discord::{id::{Id, marker::ChannelMarker}, channel::{ChannelType, permission_overwrite::PermissionOverwrite}};
+use rowifi_models::discord::{
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    id::{marker::ChannelMarker, Id},
+};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct CachedChannel {

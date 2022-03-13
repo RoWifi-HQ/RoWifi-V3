@@ -123,8 +123,8 @@ pub async fn functional(ctx: CommandContext, args: FunctionalArguments) -> Comma
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
-                        }
+                            data: None,
+                        },
                     )
                     .exec()
                     .await;

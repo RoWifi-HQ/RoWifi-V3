@@ -5,7 +5,10 @@ pub mod new;
 
 use itertools::Itertools;
 use rowifi_framework::{constants::EMBED_FIELD_DESCRIPTION_LIMIT, prelude::*};
-use rowifi_models::{bind::{BindType, Custombind}, discord::http::attachment::Attachment};
+use rowifi_models::{
+    bind::{BindType, Custombind},
+    discord::http::attachment::Attachment,
+};
 
 use delete::custombinds_delete;
 use modify::{

@@ -15,14 +15,15 @@ use rowifi_models::{
             },
             interaction::Interaction,
         },
-        channel::{embed::Embed, ReactionType, message::MessageFlags},
-        gateway::event::Event, http::interaction::{InteractionResponse, InteractionResponseType},
+        channel::{embed::Embed, message::MessageFlags, ReactionType},
+        gateway::event::Event,
+        http::interaction::{InteractionResponse, InteractionResponseType},
     },
     id::{ChannelId, RoleId, UserId},
 };
-use twilight_util::builder::InteractionResponseDataBuilder;
 use std::{cmp::min, num::ParseIntError, str::FromStr, time::Duration};
 use tokio_stream::StreamExt;
+use twilight_util::builder::InteractionResponseDataBuilder;
 
 pub enum Color {
     Red = 0x00E7_4C3C,
@@ -102,9 +103,11 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                             &message_component.token,
                             &InteractionResponse {
                                 kind: InteractionResponseType::UpdateMessage,
-                                data: Some(InteractionResponseDataBuilder::new()
-                                    .components(Vec::new())
-                                    .build())
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build(),
+                                ),
                             },
                         )
                         .exec()
@@ -126,7 +129,7 @@ pub async fn await_confirmation(question: &str, ctx: &CommandContext) -> Result<
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
+                            data: None,
                         },
                     )
                     .exec()
@@ -219,15 +222,16 @@ pub async fn await_template_reply(
                             &message_component.token,
                             &InteractionResponse {
                                 kind: InteractionResponseType::UpdateMessage,
-                                data: Some(InteractionResponseDataBuilder::new()
-                                    .components(vec![
-                                        Component::ActionRow(ActionRow {
-                                            components: vec![Component::SelectMenu(select_menu.clone())],
-                                        })
-                                    ])
-                                    .build()
-                                )
-                            }
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(vec![Component::ActionRow(ActionRow {
+                                            components: vec![Component::SelectMenu(
+                                                select_menu.clone(),
+                                            )],
+                                        })])
+                                        .build(),
+                                ),
+                            },
                         )
                         .exec()
                         .await?;
@@ -256,7 +260,7 @@ pub async fn await_template_reply(
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
+                            data: None,
                         },
                     )
                     .exec()
@@ -340,9 +344,11 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                             &message_component.token,
                             &InteractionResponse {
                                 kind: InteractionResponseType::UpdateMessage,
-                                data: Some(InteractionResponseDataBuilder::new()
-                                    .components(Vec::new())
-                                    .build())
+                                data: Some(
+                                    InteractionResponseDataBuilder::new()
+                                        .components(Vec::new())
+                                        .build(),
+                                ),
                             },
                         )
                         .exec()
@@ -367,7 +373,7 @@ pub async fn await_reply(question: &str, ctx: &CommandContext) -> Result<String,
                         &message_component.token,
                         &InteractionResponse {
                             kind: InteractionResponseType::DeferredUpdateMessage,
-                            data: None
+                            data: None,
                         },
                     )
                     .exec()
@@ -500,9 +506,9 @@ pub async fn paginate_embed(
                                     data: Some(
                                         InteractionResponseDataBuilder::new()
                                             .embeds(vec![pages[page_pointer].clone()])
-                                            .build()
-                                    )
-                                }
+                                            .build(),
+                                    ),
+                                },
                             )
                             .exec()
                             .await;
@@ -514,7 +520,7 @@ pub async fn paginate_embed(
                                 &message_component.token,
                                 &InteractionResponse {
                                     kind: InteractionResponseType::DeferredUpdateMessage,
-                                    data: None
+                                    data: None,
                                 },
                             )
                             .exec()
