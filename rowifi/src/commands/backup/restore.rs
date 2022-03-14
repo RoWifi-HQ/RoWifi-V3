@@ -215,7 +215,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
                 &guild.admin_roles,
                 &guild.trainer_roles,
                 &guild.bypass_roles,
-                &guild.nickname_bypass_roles
+                &guild.nickname_bypass_roles,
             ],
         )
         .await?;
