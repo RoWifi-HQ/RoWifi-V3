@@ -43,7 +43,7 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
         .bot
         .database
         .query_opt::<GuildBackup>(
-            "SELECT * FROM backup WHERE discord_id = $1 AND name = $2",
+            "SELECT * FROM backups WHERE discord_id = $1 AND name = $2",
             &[&(ctx.author.id.get() as i64), &name],
         )
         .await?
@@ -195,15 +195,21 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let delete_guild = transaction
-        .prepare_cached("DELETE FROM guilds WHERE guild_id = $1")
-        .await?;
+    let insert_guild = transaction.prepare_cached("UPDATE guilds SET kind = $2, command_prefix = $3, verification_roles = $4, verified_roles = $5, blacklists = $6, blacklist_action = $7, update_on_join = $8 WHERE guild_id = $1").await?;
     transaction
-        .execute(&delete_guild, &[&guild.guild_id])
-        .await?;
-    let insert_guild = transaction.prepare_cached("INSERT INTO guilds(guild_id, kind, command_prefix, verification_roles, verified_roles, blacklists, blacklist_action, update_on_join) VALUES($1, $2, $3, $4, $5, $6, $7, $8)").await?;
-    transaction
-        .execute(&insert_guild, &[&guild.guild_id])
+        .execute(
+            &insert_guild,
+            &[
+                &guild.guild_id,
+                &guild.kind,
+                &guild.command_prefix,
+                &guild.verification_roles,
+                &guild.verified_roles,
+                &guild.blacklists,
+                &guild.blacklist_action,
+                &guild.update_on_join,
+            ],
+        )
         .await?;
 
     let delete_binds = transaction
