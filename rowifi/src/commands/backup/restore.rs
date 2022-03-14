@@ -195,19 +195,27 @@ pub async fn backup_restore(ctx: CommandContext, args: BackupArguments) -> Comma
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    let insert_guild = transaction.prepare_cached("UPDATE guilds SET kind = $2, command_prefix = $3, verification_roles = $4, verified_roles = $5, blacklists = $6, blacklist_action = $7, update_on_join = $8 WHERE guild_id = $1").await?;
+    let insert_guild = transaction.prepare_cached("UPDATE guilds SET kind = $2, premium_owner = $3, command_prefix = $4, verification_roles = $5, verified_roles = $6, blacklists = $7, disabled_channels = $8, registered_groups = $9, auto_detection = $10, blacklist_action = $11, update_on_join = $12, admin_roles = $13, trainer_roles = $14, bypass_roles = $15, nickname_bypass_roles = $16 WHERE guild_id = $1").await?;
     transaction
         .execute(
             &insert_guild,
             &[
                 &guild.guild_id,
                 &guild.kind,
+                &guild.premium_owner,
                 &guild.command_prefix,
                 &guild.verification_roles,
                 &guild.verified_roles,
                 &guild.blacklists,
+                &guild.disabled_channels,
+                &guild.registered_groups,
+                &guild.auto_detection,
                 &guild.blacklist_action,
                 &guild.update_on_join,
+                &guild.admin_roles,
+                &guild.trainer_roles,
+                &guild.bypass_roles,
+                &guild.nickname_bypass_roles
             ],
         )
         .await?;
