@@ -4,6 +4,7 @@ RUN curl -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolch
 ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /usr/src/rowifi
 COPY . .
+RUN rm -rf ./.cargo
 RUN cargo build --release
 
 FROM debian:buster
