@@ -68,7 +68,7 @@ pub async fn backup(ctx: CommandContext) -> CommandResult {
         .bot
         .database
         .query::<GuildBackup>(
-            "SELECT * FROM backups WHERE user_id = $1",
+            "SELECT * FROM backups WHERE discord_id = $1",
             &[&user.discord_id],
         )
         .await?;
