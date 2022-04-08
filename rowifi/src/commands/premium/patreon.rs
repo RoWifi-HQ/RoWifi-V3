@@ -67,7 +67,7 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
     let mut db = ctx.bot.database.get().await?;
     let transaction = db.transaction().await?;
 
-    // If the premium id has changed
+    // If the premium id has changed or is not set
     if let Some(patreon_id) = user.patreon_id {
         if patreon_id != premium_id {
             let premium_changed = transaction
@@ -77,6 +77,13 @@ pub async fn premium_patreon(ctx: CommandContext) -> CommandResult {
                 .execute(&premium_changed, &[&premium_id, &(author.get() as i64)])
                 .await?;
         }
+    } else {
+        let premium_changed = transaction
+            .prepare_cached("UPDATE users SET patreon_id = $1 WHERE discord_id = $2")
+            .await?;
+        transaction
+            .execute(&premium_changed, &[&premium_id, &(author.get() as i64)])
+            .await?;
     }
 
     let tier_changed = transaction
