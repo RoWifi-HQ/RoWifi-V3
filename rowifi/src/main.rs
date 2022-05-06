@@ -17,16 +17,16 @@ mod commands;
 mod services;
 mod utils;
 
+use axum::{
+    routing::{get, post},
+    Extension, Json, Router, Server,
+};
 use commands::{
     analytics_config, assetbinds_config, backup_config, blacklists_config, custombinds_config,
     events_config, group_config, groupbinds_config, premium_config, rankbinds_config,
     settings_config, user_config,
 };
 use deadpool_redis::{Manager as RedisManager, Pool as RedisPool, Runtime};
-use hyper::{
-    service::{make_service_fn, service_fn},
-    Body, Response, Server,
-};
 use patreon::Client as PatreonClient;
 use prometheus::{Encoder, TextEncoder};
 use roblox::Client as RobloxClient;
@@ -35,9 +35,10 @@ use rowifi_database::Database;
 use rowifi_framework::{context::BotContext, Framework};
 use rowifi_models::{
     discord::{gateway::Intents, guild::Permissions},
-    id::UserId,
+    id::{GuildId, UserId},
     stats::BotStats,
 };
+use serde::Deserialize;
 use services::EventHandler;
 use std::{
     collections::HashMap,
@@ -190,7 +191,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::spawn(async move {
         cluster_spawn.up().await;
     });
-    tokio::spawn(run_metrics_server(pod_ip, stats.clone()));
+    tokio::spawn(run_server(pod_ip, stats.clone(), cache.clone()));
 
     let bot = BotContext::new(
         app_info.id.to_string(),
@@ -244,24 +245,44 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ok(())
 }
 
-async fn run_metrics_server(pod_ip: String, stats: Arc<BotStats>) {
-    let addr = format!("{}:{}", pod_ip, 9000).parse().unwrap();
-    let metric_service = make_service_fn(move |_| {
-        let stats = stats.clone();
-        async move {
-            Ok::<_, hyper::Error>(service_fn(move |_req| {
-                let mut buffer = vec![];
-                let encoder = TextEncoder::new();
-                let metric_families = stats.registry.gather();
-                encoder.encode(&metric_families, &mut buffer).unwrap();
+async fn run_server(pod_ip: String, stats: Arc<BotStats>, cache: Cache) {
+    let router = Router::new()
+        .route("/metrics", get(metrics))
+        .route("/guilds", post(guilds))
+        .layer(Extension(stats))
+        .layer(Extension(cache));
 
-                async move { Ok::<_, hyper::Error>(Response::new(Body::from(buffer))) }
-            }))
+    Server::bind(&pod_ip.parse().unwrap())
+        .serve(router.into_make_service())
+        .await
+        .unwrap();
+}
+
+#[allow(clippy::unused_async)]
+async fn metrics(stats: Extension<Arc<BotStats>>) -> Vec<u8> {
+    let mut buffer = vec![];
+    let encoder = TextEncoder::new();
+    let metric_families = stats.registry.gather();
+    encoder.encode(&metric_families, &mut buffer).unwrap();
+
+    buffer
+}
+
+#[derive(Deserialize, Debug)]
+struct GuildsQuery {
+    #[serde(default)]
+    pub guild_ids: Vec<GuildId>,
+}
+
+#[allow(clippy::unused_async)]
+async fn guilds(query: Json<GuildsQuery>, cache: Extension<Cache>) -> Json<Vec<GuildId>> {
+    let mut bot_in_guilds = Vec::new();
+    for guild_id in &query.guild_ids {
+        let guild = cache.guild(*guild_id);
+        if guild.is_some() {
+            bot_in_guilds.push(*guild_id);
         }
-    });
-
-    let server = Server::bind(&addr).serve(metric_service);
-    if let Err(err) = server.await {
-        tracing::error!(error = ?err, "Error from the metrics server: ");
     }
+
+    Json(bot_in_guilds)
 }
