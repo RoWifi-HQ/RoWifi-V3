@@ -255,9 +255,10 @@ async fn run_server(pod_ip: String, stats: Arc<BotStats>, cache: Cache) {
     Server::bind(&pod_ip.parse().unwrap())
         .serve(router.into_make_service())
         .await
-        .unwrap()
+        .unwrap();
 }
 
+#[allow(clippy::unused_async)]
 async fn metrics(stats: Extension<Arc<BotStats>>) -> Vec<u8> {
     let mut buffer = vec![];
     let encoder = TextEncoder::new();
@@ -273,6 +274,7 @@ struct GuildsQuery {
     pub guild_ids: Vec<GuildId>,
 }
 
+#[allow(clippy::unused_async)]
 async fn guilds(query: Json<GuildsQuery>, cache: Extension<Cache>) -> Json<Vec<GuildId>> {
     let mut bot_in_guilds = Vec::new();
     for guild_id in &query.guild_ids {
