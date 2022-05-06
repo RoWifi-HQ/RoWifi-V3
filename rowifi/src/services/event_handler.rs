@@ -64,9 +64,9 @@ impl Service<(u64, Event)> for EventHandler {
                     if eh.unavailable.contains(&GuildId(guild.id)) {
                         eh.unavailable.remove(&GuildId(guild.id));
                     } else {
-                        let content = "Thank you for adding RoWifi! To view our setup guide, check out our post: https://rowifi.link/blog/setup
+                        let content = "Thank you for adding RoWifi! To view our setup guide, check out our post: https://rowifi.xyz/docs/getting-started
                             \nTo get more information about announcements & updates, please join our support server: https://www.discord.gg/h4BGGyR
-                            \nTo view our documentation, please visit our website: https://rowifi.link";
+                            \nTo view our documentation, please visit our website: https://rowifi.xyz";
                         let mut channel = None;
                         for c in &guild.channels {
                             if let GuildChannel::Text(tc) = c {
