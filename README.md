@@ -1,6 +1,8 @@
 # RoWifi - The 2nd Gen Roblox-Discord Verification Bot
 Highly customizable bot written in Rust to make your Discord server's integration with your Roblox's group extremely flexible.
 
+WARNING: This repository has been archived. Further development of the bot is being conducted in a private repository.
+
 ## What you need to run this
 - Rust (nightly channel)
 - Docker
